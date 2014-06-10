@@ -57,6 +57,8 @@ plotThetaFit <- function(theta,fitmodel,n.replicates=1, alpha=min(1,10/n.replica
     replicates <- 1:n.replicates
     names(replicates) <- replicates
 
+    times <- c(0, fitmodel$data$time)
+
     cat("Simulate ",n.replicates," replicate(s)\n")
     fit <- ldply(replicates,function(i) {
 
