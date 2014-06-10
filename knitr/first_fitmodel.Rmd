@@ -48,17 +48,17 @@ It might be useful to first write down the system of ordinary differential equat
 
 ```{r eval=FALSE}
 SIR_simulateDeterministic <- function(theta,state.init,times) {
- # The following function compute the derivative of the ODE system
- SIR_ode <- function(time,state,theta) {
+    # The following function compute the derivative of the ODE system
+    SIR_ode <- function(time,state,theta) {
  
- # type ?ode for guidance on what to put here
+    # type ?ode for guidance on what to put here
  
- }
+    }
  
- # simulate and return a data.frame
- trajectory <- data.frame(ode(y=state.init,times=times,func=SIR_ode,parms=theta))
+    # simulate and return a data.frame
+    trajectory <- data.frame(ode(y=state.init,times=times,func=SIR_ode,parms=theta))
  
- return(trajectory)
+    return(trajectory)
  }
 ```
 

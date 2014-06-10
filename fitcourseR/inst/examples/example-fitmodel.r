@@ -11,7 +11,7 @@ ReportingRate <- fitparam(name="rho",value=0.7,support=c(0,2),sd.proposal=0.1, p
 proportionI0 <- fitparam(name="pI0",value=30/N,support=c(0,1),sd.proposal=1/N, prior=list(distribution="dunif",parameters=c(min=1/N,max=300/N)))
 proportionR0 <- fitparam(name="pR0",value=0.9,support=c(0,1),sd.proposal=0.01, prior=list(distribution="dunif",parameters=c(min=0.5,max=1)))
 
-PopSize <- fitparam(name="N",value=300)
+PopSize <- fitparam(name="N",value=7.3e+6)
 
 # function to initialise the model
 SIR_initialiseState <- function(theta) {

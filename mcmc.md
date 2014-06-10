@@ -101,9 +101,6 @@ You will probably get a different value, depending on your prior function.
 ## Posterior
 
 
-```
-## Error: object 'SIR' not found
-```
 
 To calculate the posterior for a given parameter, write a function that takes a vector `theta` of named parameters and returns a logged posterior probability.
 
@@ -130,7 +127,7 @@ my_posterior(my_SIR, theta)
 ```
 
 ```
-## Error: attempt to apply non-function
+## [1] -103697
 ```
 
 You will probably get a different value, depending on your prior and likelihood functions.
@@ -178,13 +175,6 @@ R0 <- fitparam(name = "R0",
 Once you pass this to a `fitmodel` (in `parameters`), it will return the covariance matrix containing all the parameters in `fitmodel$gaussian.proposal$covmat`.
 
 
-```
-## Error: object 'SIR_logLikelihood' not found
-```
-
-```
-## Error: object 'SIR_simulateDeterministic' not found
-```
 
 
 ```r
@@ -198,19 +188,17 @@ my_SIR <- fitmodel(name = "SIR",
                    initialise.state = my_initialiseState,
                    data = measles,
                    verbose = F)
-```
-
-```
-## Error: object 'my_simulateDeterministic' not found
-```
-
-```r
 my_SIR$gaussian.proposal$covmat
 ```
 
 ```
-##    R0
-## R0  0
+##       R0   IP  rho N       pI0   pR0
+## R0  0.01 0.00 0.00 0 0.000e+00 0e+00
+## IP  0.00 0.25 0.00 0 0.000e+00 0e+00
+## rho 0.00 0.00 0.01 0 0.000e+00 0e+00
+## N   0.00 0.00 0.00 0 0.000e+00 0e+00
+## pI0 0.00 0.00 0.00 0 1.877e-14 0e+00
+## pR0 0.00 0.00 0.00 0 0.000e+00 1e-04
 ```
 
 You will probably see a different matrix, depending on the proposal standard deviations you have set.
