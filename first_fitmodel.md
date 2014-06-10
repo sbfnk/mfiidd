@@ -54,7 +54,7 @@ SIR_simulateDeterministic <- function(theta,state.init,times) {
  }
  
  # simulate and return a data.frame
- trajectory <- data.frame(ode(y=state.nit,times=times,func=SIR_ode,parms=theta))
+ trajectory <- data.frame(ode(y=state.init,times=times,func=SIR_ode,parms=theta))
  
  return(trajectory)
  }
@@ -64,7 +64,7 @@ Check your code by updating you `fitmodel`:
 
 
 ```r
-SIR <- fitmodel(name="SIR",state.variables,list.fitparams,SIR_initialiseState,SIR_simulateDeterministic, verbose=TRUE)
+SIR <- fitmodel(name="SIR",state.variables, list.fitparams, SIR_initialiseState, SIR_simulateDeterministic, verbose=TRUE)
 ```
 
 # Plot some simulations
@@ -72,7 +72,7 @@ You should now be able to simulate your `fitmodel`:
 
 
 ```r
-traj <- SIR$simulate.model(SIR$theta,SIR$initialise.state(SIR$theta),times=0:10)
+traj <- SIR$simulate.model(SIR$theta, SIR$initialise.state(SIR$theta), times=0:10)
 ```
 
 and plot the output using the helpful `plotModelTraj()` function:
@@ -85,8 +85,7 @@ plotModelTraj(SIR,traj)
 Type `?plotModelTraj` for more potting options.
 
 # Navigate
-Next: [Data and likelihood](data_likelihood.md)
-Previous: [Overview of fitcourseR](fitcourseR.md)
+Previous: [Overview of fitcourseR](fitcourseR.md) Next: [Data and likelihood](data_likelihood.md)
 
 
 

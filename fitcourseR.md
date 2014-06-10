@@ -100,6 +100,5 @@ print(greatFunction)
 ```
 
 # Navigate
-Next: [My first fitmodel](first_fitmodel.md)
-Previous: [Installation](README_new.md)
+Previous: [Installation](README_new.md) Next: [My first fitmodel](first_fitmodel.md)
 
