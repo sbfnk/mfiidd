@@ -1,10 +1,9 @@
-
 # Objectives
-In this section, you'll build your first `fitmodel`: a SIR model. By the end of the day you'll fit this model to a measles outbreak dataset:
+In this section, you'll build your first `fitmodel`: an SIR model. By the end of the day you'll fit this model to a measles outbreak dataset:
 
-![plot of chunk measles-data](figure/measles-data.png) 
+![plot of chunk measles-data](figure/measles-data.png)
 
-Before doing any coding you should think how to model this outbreak, what assumptions you want to make and make a draw of your model showing the notation for parameters and state variables. Now you can build the corresponding `fitmodel` step-by-step.
+Before doing any coding you should think how to model this outbreak, what assumptions you want to make and make a draw of your model showing the notation for parameters and state variables. Then you can build the corresponding `fitmodel` step-by-step.
 
 # Parameters
 Define all parameters as `fitparam` objects (only the `name` and `value` arguments are required for the moment) and group them as a list:
@@ -16,10 +15,10 @@ infectious.period <- fitparam(name="IP",value=5)
 list.fitparams <- list(R0,infectious.period)
 ```
 
-This is of course an incomplete example, and you probably need more parameters to describe your model (think about initial conditions for instance). As a rule of thumb, a parameter can be anything you might want to estimate in your model. Of course feel free to choose different parameter `name`s, usually a short acronym is convenient because your are going to reuse it a lot after ;)
+This is of course an incomplete example, and you probably need more parameters to describe your model (think about initial conditions for instance). As a rule of thumb, a parameter can be anything you might want to estimate in your model. Of course feel free to choose different parameter `name`s, usually a short acronym is convenient because your are going to reuse it a lot later ;)
 
 # State variables and initial conditions
-Based on your draw, create a vector `state.variables` with the state variables names. To simulate your model you'll need some initial values for you state variables. However, since most of these initial conditions are unknown and will have to be estimated you'll need a function to set them, based on the parameter values `theta <- getParameterValues(list.fitparams)`:
+Based on your choice, create a vector `state.variables` with the state variables names. To simulate your model you'll need some initial values for you state variables. However, since most of these initial conditions are unknown and will have to be estimated you'll need a function to set them, based on the parameter values `theta <- getParameterValues(list.fitparams)`:
 
 
 ```r
@@ -48,14 +47,14 @@ It might be useful to first write down the system of ordinary differential equat
 SIR_simulateDeterministic <- function(theta,state.init,times) {
  # The following function compute the derivative of the ODE system
  SIR_ode <- function(time,state,theta) {
- 
+
  # type ?ode for guidance on what to put here
- 
+
  }
- 
+
  # simulate and return a data.frame
  trajectory <- data.frame(ode(y=state.nit,times=times,func=SIR_ode,parms=theta))
- 
+
  return(trajectory)
  }
 ```
@@ -87,6 +86,3 @@ Type `?plotModelTraj` for more potting options.
 # Navigate
 Next: [Data and likelihood](data_likelihood.md)
 Previous: [Overview of fitcourseR](fitcourseR.md)
-
-
-
