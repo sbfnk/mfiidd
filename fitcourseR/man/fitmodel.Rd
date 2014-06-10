@@ -237,7 +237,7 @@ SIR <- fitmodel(
 	list.fitparam=list(R0,InfectiousPeriod,ReportingRate,proportionI0,proportionR0,PopSize),
 	initialise.state=SIR_initialiseState,
 	log.prior.fitparam=SIR_logPrior,
-	simulate.model=SIR_simulateStochastic,
+	simulate.model=SIR_simulateDeterministic,
 	generate.observation=SIR_generateObservation,
 	data=measles,
 	log.likelihood=SIR_logLikelihood)
