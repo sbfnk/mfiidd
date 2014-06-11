@@ -1,4 +1,4 @@
-Here is an example of how to code the posterior.
+Below, you can find an example of how to code the posterior. Some bits are left out for you to fill in (marked "INSERT HERE"). Each "INSERT HERE" statement requires one line of code. If you struggle, you can find a link to the solution below the function.
 
 
 ```r
