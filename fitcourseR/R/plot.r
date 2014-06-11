@@ -21,7 +21,7 @@ plotModelTraj <- function(fitmodel,traj,state.variables=NULL,alpha=1, plot=TRUE)
 
     df <- melt(traj,measure.vars=state.variables)
 
-    p <- ggplot(df,aes(x=time,y=value,group=replicate))+facet_wrap(~variable)
+    p <- ggplot(df,aes(x=time,y=value,group=replicate))+facet_wrap(~variable, scales="free_y")
     p <- p + geom_line(alpha=alpha)
     p <- p + theme_bw()
 
