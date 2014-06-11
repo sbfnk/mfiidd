@@ -54,7 +54,7 @@ my_particleFilter <- function(fitmodel, n.particles)
         for(p in 1:n.particles){
             
             # extract current state of the particle 
-            current.state.particle <- unlist(state.particles[p])
+            current.state.particle <- state.particles[[p]]
 
             # simulate from current observation time to next observation time
             traj <- fitmodel$simulate.model(theta=theta,state.init=current.state.particle,times=c(current.time,next.time))
@@ -65,7 +65,7 @@ my_particleFilter <- function(fitmodel, n.particles)
             # Update state of the p particle
             # You need to take last row of the traj data frame which corresponds to the next observation time
             # Also make sure to only take state variables (traj contains also a time variable)
-            state.particles[[p]] <- traj[2,fitmodel$state.variables]
+            state.particles[[p]] <- unlist(traj[2,fitmodel$state.variables])
 
         }
 
