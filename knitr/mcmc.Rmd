@@ -187,3 +187,7 @@ my_SIR$gaussian.proposal$covmat
 ```
 
 You will probably see a different matrix, depending on the proposal standard deviations you have set.
+
+
+Previous: [Data and likelihood](data_likelihood.md) Next: [Tristan da Cunha outbreak](play_with_seitl.md)
+

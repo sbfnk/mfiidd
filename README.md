@@ -29,6 +29,8 @@ library(fitcourseR)
 2. [My first fitmodel](first_fitmodel.md)
 3. [Data and likelihood](data_likelihood.md)
 4. [Run a MCMC](mcmc.md)
+5. [Tristan da Cunha outbreak](play_with_seitl.md)
+6. [Run a SMC](smc.md)
 
 
 # Navigate
