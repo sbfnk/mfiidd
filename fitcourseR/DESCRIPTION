@@ -1,0 +1,17 @@
+Package: fitcourseR
+Title: Tool box for the short course on fitting dynamic infectious disease
+    models to time series.
+Version: 0.1
+Authors@R: c(person(given="Anton", family="Camacho", email="ntncmch@gmail.com",
+    role=c("aut","cre")),person(given="Sebastian", family="Funk",
+    email="sebastian.funk@lshtm.ac.uk", role=c("aut","cre")))
+Description: This package contain the functions that students will code during
+    the short course.
+Depends:
+    R (>= 3.0.2),
+    deSolve
+License: GPL-2
+LazyData: true
+Roxygen: list(wrap = FALSE)
+Imports:
+    adaptivetau,ggplot2,reshape2,plyr,tmvtnorm,parallel,doParallel,lubridate
