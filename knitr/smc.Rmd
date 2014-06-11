@@ -87,6 +87,20 @@ You can now write a new posterior function that will make use of `my_particleFil
 ## Going further
 
 * Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns these filtered trajectories. Alternatively, there is a function in the package that will do it for you (see `?bootstrapParticleFilter`).
+
+```{r echo=FALSE}
+
+my_seitlSto <- SEITL_createModelTdC(deterministic=FALSE, verbose=FALSE) 
+
+```
+
+```{r echo=TRUE, cache=TRUE}
+
+smc <- bootstrapParticleFilter(fitmodel=my_seitlSto, n.particles=50)
+plotSMC(smc=smc, fitmodel=my_seitlSto)
+
+```
+
 * You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of `bootstrapParticleFilter`.
 
 Previous: [Tristan da Cunha outbreak](play_with_seitl.md)
