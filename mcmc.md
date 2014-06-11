@@ -1,9 +1,12 @@
+<<<<<<< HEAD
 # Practical session: Fitting a deterministic model with MCMC
 
+=======
+--
+Title: Practical session: Fitting a deterministic model with MCMC
+--
+>>>>>>> parent of b1ba708... add hyphen
 
-```
-## Warning: no help found for 'fitmodel'
-```
 
 ## Introduction
 
@@ -127,7 +130,7 @@ my_posterior(my_SIR, theta)
 ```
 
 ```
-## [1] -103697
+## [1] -98544
 ```
 
 You will probably get a different value, depending on your prior and likelihood functions.
@@ -140,28 +143,87 @@ To draw a random vector from a multivariate Gaussian proposal distribution, you 
 
 
 ```r
-my_mcmc <- function(target.dist, init.theta, covariance.matrix, n.iterations) {
+## This is a function that takes four parameters:
+## - target: the target distribution, a function that takes one argument
+##           (a vector) and returns the (logged) value of a distribution
+## - theta.init: the initial value of theta, a named vector
+## - covmat.proposal: the covariance matrix of the (Gaussian) proposal distribution,
+##                    in the same order as in the "target" vector
+## - n.iterations: the number of iterations
+## it returns an MCMC trace (value of theta and target(theta) at every MCMC step)
+my_mcmc <- function(target, theta.init, covmat.proposal, n.iterations) {
 
-    ## evaluate the function target_dist at init_theta
+    ## evaluate the function "target" at "theta.init"
 
-    ## repeat n_iterations times:
+    ## repeat n.iterations times:
 
     ## - draw a new theta from the (multivariate Gaussian) proposal distribution
 
-    ## - evaluate the function target_dist at the proposed theta
+    ## - evaluate the function target at the proposed theta
 
     ## - draw a random number between 0 and 1
 
     ## - accept or reject by comparing the random number to the acceptance probability
+    ##   use a Gaussian proposal distribution; what does this look like for the 
+    ##   multivariate Gaussian? It's easiest if you assume the target distribution
+    ##   returns the logarithm of its value at theta.
 
     ## return the chain (i.e., the value of the current theta at every iteration)
 
 }
 ```
 
+
+
 You will probably find it useful to save the state of the chain (i.e., the value of `theta` at every iteration) and the current acceptance probability (i.e., the proportion of proposed `theta`s that are being accepted) in a data frame or vector.
 
-To get the covariance matrix, you can use the `sd.proposal` argument of `fitparam`, e.g. This sets the covariance matrix to be diagonal, that is the proposals for each parameter will not depend on the other parameters, but will be independently normally distributed, with the standard deviation given by `sd.proposal`.
+If you have trouble filling the empty bits in, have a look at our [example](mcmc_example.md).
+
+You can use the Metropolis-Hastings sampler to sample from any target distribution. For example, imagine you don't know how to draw a normal distribution. You could use your sampler for this. First, let's define an intermediate function that returns the log of the N(0, 1) normal probability distribution at a given sampled value:
+
+
+```r
+dnorm.log <- function(x) {
+  return(dnorm(x, log = T))
+}
+```
+
+Next, use your MCMC sampler
+
+```r
+sample.sd <- 1
+sigma <- matrix(sample.sd, nrow = 1)
+
+starting.value <- c(x = 1)
+iter <- 1000
+trace <- my_mcmc(target = dnorm.log, theta.init = starting.value, 
+                 covmat.proposal = sigma, n.iterations = iter)
+```
+
+You can visualise the sampling result using
+
+
+```r
+library(ggplot2)
+p <- ggplot(trace, aes(x = x, y = ..count../sum(..count..)))
+p <- p + geom_histogram(binwidth = 0.2)
+p
+```
+
+and a trace of the sampler using
+
+
+```r
+trace$iteration <- seq(1, nrow(trace))
+
+p <- ggplot(trace, aes(x = iteration, y = x))
+p <- p + geom_line()
+p
+```
+
+## Using MCMC to sample from the posterior
+
+To get the covariance matrix of a `fitmodel`, you can use the `sd.proposal` argument of `fitparam`, e.g. This sets the covariance matrix to be diagonal, that is the proposals for each parameter will not depend on the other parameters, but will be independently normally distributed, with the standard deviation given by `sd.proposal`.
 
 
 ```r
@@ -202,3 +264,5 @@ my_SIR$gaussian.proposal$covmat
 ```
 
 You will probably see a different matrix, depending on the proposal standard deviations you have set.
+
+Once you have this, you can pass the proposal covariance matrix and posterior distributions to your MCMC sampler to explore the posterior.
