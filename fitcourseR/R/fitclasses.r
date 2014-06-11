@@ -202,7 +202,7 @@ setParameterValues <- function(list.fitparam,new.values) {
 #' 		\item \code{upper} upper truncation vector
 #' 	}
 #' } 
-#' @examples inst/examples/example-fitmodel.r
+#' @example inst/examples/example-fitmodel.r
 fitmodel <- function(name=NULL,state.variables=NULL, list.fitparam=NULL, initialise.state=NULL, simulate.model=NULL, generate.observation=NULL, log.prior.fitparam=NULL, data=NULL, log.likelihood=NULL, distance.ABC=NULL ,gaussian.proposal=list(covmat=NULL,lower=NULL,upper=NULL), verbose=TRUE){
 	
 	# mandatory
