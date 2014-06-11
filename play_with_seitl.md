@@ -246,7 +246,7 @@ plotThetaFit(theta=my_seitlSto$theta, fitmodel=my_seitlSto, n.replicate=50)
 my_seit2lSto <- SEIT2L_createModelTdC(deterministic=FALSE)
 ```
 
-Compare the fit of both models for the same `theta` (for instance the default values above). Do you think that having an Erland ditribution improves the fit?
+Compare the fit of both models for the same `theta` (for instance the default values above). Do you think that having an Erlang ditribution improves the fit?
 
 Previous: [Run MCMC](mcmc.md) Next: [Run a SMC](smc.md)
 
