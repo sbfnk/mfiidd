@@ -4,8 +4,8 @@
 
 Copy and past the skeleton of the particle filter algorithm on your R script file.
 
-```{r eval=FALSE}
 
+```r
 # The particle filter returns an estimate of the marginal log-likelihood.
 # It takes two arguments as inputs
 # fitmodel: your fitmodel object
@@ -46,7 +46,6 @@ my_particleFilter <- function(fitmodel, n.particles)
         # End for() loop over particles
         ########################################################################################
 
-
         ## Update the estimate of the marginal log-likelihood
         ## by adding the log of the mean of the particles weights
 
@@ -54,19 +53,17 @@ my_particleFilter <- function(fitmodel, n.particles)
     # End for() loop over observation time
     ############################################################################################
 
-
     ## Compute and return the marginal log-likelihood (sum(log(mean(particle weight at time i))))
 
 }
-
-
 ```
 
 If you have trouble in writing the algorithm from scratch, you can use our more guided [example](smc_example.md).
 
 ## Using the particle filter
 
-```{r eval=FALSE}
+
+```r
 my_seitlSto <- createSEITL(deterministic=FALSE)
 log.like <- my_particleFilter(fitmodel=my_seitlSto, n.particles=10)
 ```

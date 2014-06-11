@@ -1,7 +1,7 @@
 Below, you can find an example of how to code a particle filter. Some bits are left out for you to fill in (marked "INSERT HERE"). Each "INSERT HERE" statement requires one line of code. If you struggle, you can find a link to the solution at the end of the page.
 
-```{r eval=FALSE}
 
+```r
 # The particle filter returns an estimate of the marginal log-likelihood.
 # It takes two arguments as inputs
 # fitmodel: your fitmodel object
@@ -75,13 +75,10 @@ my_particleFilter <- function(fitmodel, n.particles)
 
     }
 
-
     # Return marginal log-likelihood
     return(log.likelihood)
 
 }
-
-
 ```
 
 You can find the solution [here](smc_solution.md)

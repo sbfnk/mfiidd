@@ -1,12 +1,12 @@
 
 ```{r eval=FALSE}
 
-# The bootstrap particle filter returns an estimate of the marginal log-likelihood.
+# The particle filter returns an estimate of the marginal log-likelihood.
 # It takes two arguments as inputs
 # fitmodel: your fitmodel object
 # n.particles: number of particles
 
-my_bootstrapParticleFilter <- function(fitmodel, n.particles)
+my_particleFilter <- function(fitmodel, n.particles)
 {
 
 	############################################################################################
