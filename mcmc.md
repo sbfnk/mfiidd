@@ -34,7 +34,7 @@ First, you need to decide on the prior distribution of the different parameters,
 
 Example:
 
-```{r}
+``` r
 R0 <- fitparam(name = "R0",
                value = 2,
                prior = list(distribution = "dunif",
