@@ -104,13 +104,13 @@ To calculate the posterior for a given parameter, write a function that takes a 
 
 ```r
 ## This is a function that takes four parameters:
-## - fitmodel: the model we want to evaluate
+## - model: the model we want to evaluate
 ## - theta: the parameter value(s) at which we want to evaluate the posterior
-my_posterior <- function(fitmodel, theta) {
+my_posterior <- function(model, theta) {
 
-    ## calculate the fitmodel prior for parameter theta
+    ## calculate the model prior for parameter theta
 
-    ## calculate the fitmodel likelihood for parameter theta
+    ## calculate the model likelihood for parameter theta
 
     ## return the logged posterior probability
 }

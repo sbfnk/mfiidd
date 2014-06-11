@@ -3,7 +3,7 @@ Below, you can find an example of how to code the posterior. Some bits are left 
 
 ```r
 ## This is a function that takes two parameters:
-## - fitmodel: the model we want to evaluate
+## - model: the model we want to evaluate
 ## - theta: the parameter value(s) at which we want to evaluate the posterior
 
 our_posterior <- function(model, theta) {

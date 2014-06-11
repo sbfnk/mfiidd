@@ -36,14 +36,12 @@ our_mcmcM <- function(target, theta.init, covmat.proposal, n.iterations) {
         ## INSERT HERE: evaluate the function target at the proposed theta and
         ##              assign to a variable called target.theta.proposed
 
-        ## INSERT HERE: compute Metropolis ratio (acceptance probability).
+        ## INSERT HERE: compute Metropolis ratio (acceptance probability). 
+        ##              This is easiest if you assume the target function to 
+        ##              return the logarithm of the distribution value. Assign
+        ##              the result to a variable called log.acceptance
 
         ## INSERT HERE: random number number between 0 and 1 using "runif"
-
-        ## INSERT HERE: calculate acceptance ratio. This is easiest if you assume
-        ##              the target function to return the logarithm of the 
-        ##              distribution value. Assign the result to a variable called
-        ##              log.acceptance
 
         ## test acceptance (using "exp" because we calculated the logarithm of the
         ## acceptance ratio before
