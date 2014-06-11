@@ -202,7 +202,20 @@ To simulate many replicates of the model use the function `simulateModelReplicat
 
 ```r
 my_traj_replicates <- simulateModelReplicates(my_seitlSto, times=1:50, n=50)
+```
+
+```r
 head(my_traj_replicates)
+```
+
+```
+##   replicate time   S  E  I  T  L Inc
+## 1         1    1 254  0  2  0 28   0
+## 2         1    2 245  7  3  1 28   2
+## 3         1    3 227 19  8  2 28   8
+## 4         1    4 192 41 18  5 28  21
+## 5         1    5 142 65 35 14 28  47
+## 6         1    6  77 92 64 22 29  86
 ```
 
 You can use the same `plotModelTraj` to plot your results:

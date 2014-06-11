@@ -164,6 +164,8 @@ To simulate many replicates of the model use the function `simulateModelReplicat
 
 ```{r traj-sto-rep, cache=TRUE, results='hide'}
 my_traj_replicates <- simulateModelReplicates(my_seitlSto, times=1:50, n=50)
+```
+```{r }
 head(my_traj_replicates)
 ```
 
