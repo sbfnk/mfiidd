@@ -127,7 +127,7 @@ my_posterior(my_SIR, theta)
 ```
 
 ```
-## Error: object 'likelihod' not found
+## [1] -98544
 ```
 
 You will probably get a different value, depending on your prior and likelihood functions.
@@ -277,124 +277,10 @@ and run MCMC on that function.
 
 ## Further topics
 
-Have a look at the function `mcmcMH` by typing
+If you made it through all the bits above at lightning speed and found it really easy, you can have a look at our version of the function `mcmcMH` by typing
 
 ```r
 mcmcMH
-```
-
-```
-## function (target, target.args, theta.init, gaussian.proposal = list(covmat = NULL, 
-##     lower = NULL, upper = NULL), n.iterations, adapt.size.start = n.iterations, 
-##     adapt.size.cooling = 0.99, adapt.shape.start = n.iterations, 
-##     print.info.every = n.iterations/100) 
-## {
-##     theta.current <- theta.init
-##     theta.propose <- theta.init
-##     covmat.proposal <- gaussian.proposal$covmat
-##     lower.proposal <- gaussian.proposal$lower
-##     upper.proposal <- gaussian.proposal$upper
-##     theta.names <- names(theta.init)
-##     covmat.proposal <- covmat.proposal[theta.names, theta.names]
-##     lower.proposal <- lower.proposal[theta.names]
-##     upper.proposal <- upper.proposal[theta.names]
-##     covmat.proposal.init <- covmat.proposal
-##     start.adapt.size <- TRUE
-##     start.adapt.shape <- TRUE
-##     theta.estimated.names <- names(which(diag(covmat.proposal) > 
-##         0))
-##     target.theta.current <- do.call(target, c(list(theta = theta.current), 
-##         target.args))
-##     trace <- data.frame(t(target.theta.current$trace), weight = 1)
-##     acceptance.rate <- 0
-##     scaling.sd <- 1
-##     covmat.empirical <- covmat.proposal
-##     covmat.empirical[, ] <- 0
-##     theta.mean <- theta.current
-##     if (is.null(print.info.every)) {
-##         print.info.every <- n.iterations + 1
-##     }
-##     start_iteration_time <- Sys.time()
-##     for (i.iteration in seq_len(n.iterations)) {
-##         if (i.iteration >= adapt.size.start && acceptance.rate * 
-##             i.iteration < adapt.shape.start) {
-##             if (start.adapt.size) {
-##                 message("\n---> Start adapting size of covariance matrix")
-##                 start.adapt.size <- 0
-##             }
-##             scaling.sd <- scaling.sd * exp(adapt.size.cooling^(i.iteration - 
-##                 adapt.size.start) * (acceptance.rate - 0.234))
-##             covmat.proposal <- scaling.sd^2 * covmat.proposal.init
-##         }
-##         else if (acceptance.rate * i.iteration >= adapt.shape.start) {
-##             if (start.adapt.shape) {
-##                 message("\n---> Start adapting shape of covariance matrix")
-##                 start.adapt.shape <- 0
-##             }
-##             covmat.proposal <- 2.38^2/length(theta.estimated.names) * 
-##                 covmat.empirical
-##         }
-##         if (i.iteration%%round(print.info.every) == 0) {
-##             end_iteration_time <- Sys.time()
-##             x <- trace[nrow(trace), ]
-##             x <- paste(paste0(names(x), "=", sprintf("%.2f", 
-##                 x)), collapse = "|")
-##             suppressMessages(time.estimation <- round(as.period((end_iteration_time - 
-##                 start_iteration_time) * 10000/round(print.info.every))))
-##             message("Iteration: ", i.iteration, "/", n.iterations, 
-##                 " Time 10000 iter: ", time.estimation, " Acceptance rate: ", 
-##                 sprintf("%.3f", acceptance.rate), " Scaling.sd: ", 
-##                 sprintf("%.3f", scaling.sd), " State:", x)
-##             start_iteration_time <- end_iteration_time
-##         }
-##         if (any(diag(covmat.proposal)[theta.estimated.names] < 
-##             .Machine$double.eps)) {
-##             print(covmat.proposal[theta.estimated.names, theta.estimated.names])
-##             stop("non-positive definite covmat", call. = FALSE)
-##         }
-##         theta.propose[theta.estimated.names] <- as.vector(rtmvnorm(1, 
-##             mean = theta.current[theta.estimated.names], sigma = covmat.proposal[theta.estimated.names, 
-##                 theta.estimated.names], lower = lower.proposal[theta.estimated.names], 
-##             upper = upper.proposal[theta.estimated.names]))
-##         target.theta.propose <- do.call(target, c(list(theta = theta.propose), 
-##             target.args))
-##         if (!is.finite(target.theta.propose$log.dist)) {
-##             log.acceptance <- -Inf
-##         }
-##         else {
-##             log.acceptance <- target.theta.propose$log.dist - 
-##                 target.theta.current$log.dist + dtmvnorm(x = theta.current[theta.estimated.names], 
-##                 mean = theta.propose[theta.estimated.names], 
-##                 sigma = covmat.proposal[theta.estimated.names, 
-##                   theta.estimated.names], lower = lower.proposal[theta.estimated.names], 
-##                 upper = upper.proposal[theta.estimated.names], 
-##                 log = TRUE) - dtmvnorm(x = theta.propose[theta.estimated.names], 
-##                 mean = theta.current[theta.estimated.names], 
-##                 sigma = covmat.proposal[theta.estimated.names, 
-##                   theta.estimated.names], lower = lower.proposal[theta.estimated.names], 
-##                 upper = upper.proposal[theta.estimated.names], 
-##                 log = TRUE)
-##         }
-##         if (is.accepted <- (log(runif(1)) < log.acceptance)) {
-##             trace <- rbind(trace, c(target.theta.propose$trace, 
-##                 weight = 1))
-##             theta.current <- theta.propose
-##             target.theta.current <- target.theta.propose
-##         }
-##         else {
-##             trace$weight[nrow(trace)] <- trace$weight[nrow(trace)] + 
-##                 1
-##         }
-##         acceptance.rate <- acceptance.rate + (is.accepted - acceptance.rate)/i.iteration
-##         tmp <- updateCovmat(covmat.empirical, theta.mean, theta.current, 
-##             i.iteration)
-##         covmat.empirical <- tmp$covmat
-##         theta.mean <- tmp$theta.mean
-##     }
-##     return(list(trace = trace, acceptance.rate = acceptance.rate, 
-##         covmat.empirical = covmat.empirical))
-## }
-## <environment: namespace:fitcourseR>
 ```
 
 Can you understand what the function does? You will see that the function uses `rmvtnorm` and `dmvtnorm`, truncated Gaussian distributions, for the proposal. Can you think of why it does that?

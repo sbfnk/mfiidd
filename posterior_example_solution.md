@@ -27,7 +27,7 @@ our_posterior <- function(model, theta) {
     likelihood <- model$log.likelihood(model$data, theta, trajectory)
 
     ## INSERT HERE: calulate the posterior using the log-prior and log-likelihood
-    posterior <- prior + likelihod
+    posterior <- prior + likelihood
     
     return(posterior)
 
