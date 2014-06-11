@@ -1,5 +1,6 @@
-# Practical session: Fitting a deterministic model with MCMC
-
+--
+Title: Practical session: Fitting a deterministic model with MCMC
+--
 
 ```
 ## Warning: no help found for 'fitmodel'
