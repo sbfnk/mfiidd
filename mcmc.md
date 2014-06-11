@@ -1,12 +1,4 @@
-<<<<<<< HEAD
 # Practical session: Fitting a deterministic model with MCMC
-
-=======
---
-Title: Practical session: Fitting a deterministic model with MCMC
---
->>>>>>> parent of b1ba708... add hyphen
-
 
 ## Introduction
 
