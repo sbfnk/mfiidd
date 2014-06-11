@@ -21,13 +21,13 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 	# The latent period
 	LatentPeriod <- fitparam(name="LP",value=2,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=7))) 
 
-	# The infcetious period
+	# The infectious period
 	InfectiousPeriod <- fitparam(name="IP",value=3,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=30))) 
 
 	# The duration of the temporary protection against reinfection
 	TemporaryImmunePeriod  <- fitparam(name="TIP",value=10,support=c(0,Inf),sd.proposal=2,prior=list(distribution="dunif",parameters=c(min=0,max=50))) 
 
-	# The probbaility to acquire a long-term protection following completion of the temporary immunity
+	# The probability to acquire a long-term protection following completion of the temporary immunity
 	ProbLongTermImmunity <- fitparam(name="alpha",value=0.5,support=c(0,1),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=1))) 
 
 	# The intensity of the case reporting
@@ -103,7 +103,7 @@ my_seitlDeter <- createSEITL(deterministic=TRUE)
 
 
 
-This object has many elements, most of them you should alreday be familiar with:
+This object has many elements, most of them you should already be familiar with:
 
 
 ```r
@@ -202,11 +202,7 @@ To simulate many replicates of the model use the function `simulateModelReplicat
 
 ```r
 my_traj_replicates <- simulateModelReplicates(my_seitlSto, times=1:50, n=50)
-head(traj_replicates)
-```
-
-```
-## Error: error in evaluating the argument 'x' in selecting a method for function 'head': Error: object 'traj_replicates' not found
+head(my_traj_replicates)
 ```
 
 You can use the same `plotModelTraj` to plot your results:
