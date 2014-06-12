@@ -100,7 +100,7 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 ```{r plot_TdC_data, fig.path='knitr/figure/'}
 library(fitcourseR)
 
-# create fitmodel
+# create fitmodel with the function of yesterday
 my_SEITL <- createSEITL(deterministic=FALSE, verbose=FALSE)
 
 # print data
@@ -113,7 +113,7 @@ print(p)
 
 ## Summary statistics
 
-First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarize the data. Finally, code three functions that take your time series as input and return the summary statistics.
+First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarize the data. Finally, code three functions that take your time series as input and return the values of your summary statistics.
 
 
 ```{r eval=FALSE}
@@ -129,7 +129,7 @@ my_summaryStat1 <- function(time,inc){
 # test
 ss1.data <- my_summaryStat1(time=time.data,inc=inc.data)
 
-# etc.
+# write other summary statistics
 
 ```
 
@@ -161,25 +161,21 @@ inc.simu <- simu.obs$observation[-1] # remove initial state
 
 ss1.simu <- my_summaryStat1(time=time.simu,inc=inc.simu)
 
-# write other summary statistics
+# compute ss2.simu etc.
 
 ```
 
-Now, you can write three functions that will take as inputs: 
-
-* observed summary statistics
-* simulated summary statistics
-* an acceptance tolerance
+Now, you can write three functions that will take your observed and simulated summary statistics and return their distance
 
 ```{r eval=FALSE}
 
-my_distance1 <- function(data,simu,tol) {
+my_distance1 <- function(data,simu) {
 	
 
 }
 
 # test
-d1 <- my_distance1(data=ss1.data,simu=ss1.simu,tol=1)
+d1 <- my_distance1(data=ss1.data,simu=ss1.simu)
 
 # write other distance functions
 
@@ -187,9 +183,11 @@ d1 <- my_distance1(data=ss1.data,simu=ss1.simu,tol=1)
 
 ## ABC acceptance function
 
+Now you can write a function that will decide, for a given vector of tolerances, whether you should accept or reject your parameter theta.
+
 ```{r eval=FALSE}
 
-ABCacceptance <- function(theta,fitmodel) {
+ABCacceptance <- function(theta,fitmodel,tol) {
 
 	# simulate model
 
@@ -197,13 +195,17 @@ ABCacceptance <- function(theta,fitmodel) {
 
 	# compute data and simulated summary statistics
 
-	# compute distance between summary statistics
+	# compute distances between summary statistics
+
+	# check that distances are within the tolerances
 
 	# return 0/1
 
 }
 
 ```
+
+Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate. 
 
 ## Plug it into your posterior and run MCMC
 
