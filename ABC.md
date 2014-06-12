@@ -65,13 +65,13 @@ head(simu)
 ```
 
 ```
-##   time   S  E  I T  L Inc
-## 1    0 254  0  2 0 28   0
-## 2    1 248  6  1 1 28   0
-## 3    2 246  7  1 2 28   1
-## 4    3 239 13  2 2 28   2
-## 5    4 231 15  7 3 28   8
-## 6    5 193 39 18 6 28  22
+##   time   S  E  I  T  L Inc
+## 1    0 254  0  2  0 28   0
+## 2    1 243 10  2  1 28   1
+## 3    2 237 12  4  3 28   5
+## 4    3 217 25  8  6 28  12
+## 5    4 196 28 20 12 28  30
+## 6    5 132 66 39 19 28  56
 ```
 
 Then generate an observation:
@@ -83,13 +83,13 @@ head(simu.obs)
 ```
 
 ```
-##   time   S  E  I T  L Inc observation
-## 1    0 254  0  2 0 28   0           0
-## 2    1 248  6  1 1 28   0           0
-## 3    2 246  7  1 2 28   1           0
-## 4    3 239 13  2 2 28   2           0
-## 5    4 231 15  7 3 28   8           3
-## 6    5 193 39 18 6 28  22           9
+##   time   S  E  I  T  L Inc observation
+## 1    0 254  0  2  0 28   0           0
+## 2    1 243 10  2  1 28   1           1
+## 3    2 237 12  4  3 28   5           5
+## 4    3 217 25  8  6 28  12           5
+## 5    4 196 28 20 12 28  30          13
+## 6    5 132 66 39 19 28  56          21
 ```
 
 And compute the set of summary statistics:
@@ -143,6 +143,8 @@ ABCacceptance <- function(theta,fitmodel,tol) {
 ```
 
 Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate. 
+
+You can find an example of solution [here](ABC_example.md)
 
 ## Plug it into your posterior and run MCMC
 

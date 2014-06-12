@@ -207,6 +207,8 @@ ABCacceptance <- function(theta,fitmodel,tol) {
 
 Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate. 
 
+You can find an example of solution [here](ABC_example.md)
+
 ## Plug it into your posterior and run MCMC
 
 
