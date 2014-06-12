@@ -37,7 +37,7 @@ my_particleFilter <- function(fitmodel, n.particles)
         ########################################################################################
 
             ## Propagate particles from current observation time to the next one
-            ## using the function `fitmodel$simulation.model`
+            ## using the function `fitmodel$simulate.model`
 
             ## Weight particles according to the likelihood of the data
             ## using the function `fitmodel$log.likelihood`
@@ -68,13 +68,13 @@ my_seitlSto <- createSEITL(deterministic=FALSE)
 log.like <- my_particleFilter(fitmodel=my_seitlSto, n.particles=10)
 ```
 
-The particle filter returns a Monte-Carlo estimates of the log-likelihood and the precision of this estimate is proportional to the number of particles.
+The particle filter returns a Monte-Carlo estimate of the log-likelihood and the precision of this estimate is proportional to the number of particles.
 
-If you have too few particles then you will have a highly variable estimate of the log-likelihood and this will make the exploration of the likelihood surface quite unprecise. In addition, you might experience particle depletion (if you don't know what that means just try to run it with a single particle).
+If you have too few particles then you will have a highly variable estimate of the log-likelihood and this will make the exploration of the likelihood surface quite imprecise. In addition, you might experience particle depletion (if you don't know what that means just try to run it with a single particle).
 
 If you have too many particles, then you will have a very good estimate of your log-likelihood but it will be very time consuming so inefficient in practice.
 
-So ideally you want just enough particles to have a fairly stable estimates of your log-likelihood. Can you think on an idea how to calibrate the number of particles?
+So ideally you want just enough particles to have a fairly stable estimate of your log-likelihood. Can you think of an idea how to calibrate the number of particles?
 
 
 ## Plug the particle filter into your MCMC.
@@ -93,9 +93,9 @@ smc <- bootstrapParticleFilter(fitmodel=my_seitlSto, n.particles=50)
 plotSMC(smc=smc, fitmodel=my_seitlSto)
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+![plot of chunk filtered_SEITL_TdC](knitr/figure/filtered_SEITL_TdC.png) 
 
 * You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of `bootstrapParticleFilter`.
 
-Previous: [Tristan da Cunha outbreak](play_with_seitl.md)
+Previous: [Tristan da Cunha outbreak](play_with_seitl.md) Next: [Inference with ABC](ABC.md)
 
