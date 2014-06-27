@@ -1,0 +1,80 @@
+\documentclass[paper=a4, 11pt]{scrlttr2}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{palatino}
+\KOMAoptions{fromlogo=true, addrfield=false, backaddress=off, foldmarks=off}
+\makeatletter
+\@setplength{firstheadhpos}{23mm}
+\@setplength{toaddrhpos}{23mm}
+\@setplength{toaddrvpos}{43mm}
+\@setplength{refvpos}{40mm}
+\@setplength{toaddrwidth}{200mm}
+\@setplength{sigbeforevskip}{0mm}
+\makeatother
+\setkomavar{date}{June 27, 2014}
+\setkomavar{signature}{Sebastian \& Anton}
+\setkomavar{fromlogo}{\includegraphics[%
+           width=165mm,clip]%
+           {/Users/seb/Research/Docs/lshtmletterhead.pdf}}
+\setkomavar{firstfoot}{\hrule \vspace{0.2cm} {\bf Improving health worldwide}}
+ \setkomavar{firsthead}{\usekomavar{fromlogo} \vspace{0.5cm} \\%
+     \usekomavar{fromname} \\\usekomavar{fromemail} \\\usekomavar{fromphone}}
+\usepackage[top=14mm, bottom=20mm, left=23mm, right=23mm]{geometry}
+\usepackage{hyperref}
+\hypersetup{pdfpagemode=UseNone} % don't show bookmarks on initial view
+\hypersetup{colorlinks, urlcolor={blue}}
+
+\begin{document}
+\begin{letter}{}
+\opening{Dear participant,}
+Thanks for registering to our short course on ``Model fitting and
+inference for infectious disease dynamics'', 8--10 July at the London
+School of Hygiene \& Tropical Medicine (LSHTM). A few notes ahead of
+the course:
+
+\begin{enumerate}
+\item Remember that you are expected to bring your own laptop with R
+installed. If that is a problem, let us know and we will be able to
+provide a solution. We will also have some replacement laptops
+available, in case something breaks during the course.
+\item An internet connection will be required for the course. The easiest
+way for most of you is probably to connect through \emph{eduroam} --- if you
+haven't got this set up on your laptop it might be worth checking how you
+can get access. If you are not based at an academic institution or can't
+get access to eduroam for another reason, we will set you up to connect
+through LSHTM's own wireless network.
+\item You will find attached an introduction to the R commands and concepts
+we will use during the course. If you don't use R in your daily work, it
+would be useful for you to work through this ahead of the course. Even
+if you are a regular R user, it might be worth having a quick read to
+make sure we will be on the same page. Please note also that you should
+update your R installation to the latest version, to make sure we won't
+run into trouble because of incompatible or changed packages. Further
+instructions are in the attached document.
+\item Also attached is a timetable. We will start at 10am on Tuesday 8th,
+and close at 3pm on Thursday 10th. Lunches are not included in the
+course fee. There are plenty of very reasonbly priced lunch options in
+and around the London School --- we will give you more information on
+this during the course.
+\item We have booked a nearby restaurant serving simple English cuisine for
+Wednesday, 9th July, 7pm. We are hoping that as many as possible of you
+can join --- if you already know that you won't be able to come to this,
+please let us know to facilitate planning. The price of the dinner will
+be covered by the course fee. There will be vegetarian options --- if you
+have any other dietary requirements, please let us know as soon as
+possible.
+\item Note that the Tour de France is passing through London on 7th
+July. If you want to spend an extra day in London, it will probably be
+very busy, but also a unique opportunity to see some top cycling going
+right through the heart of the city (if you can make it through the
+crowds).
+\item We are hoping for in interesting and stimulating course. If there are
+any burning issues on your mind that you would like discussed, please
+let us know and we'll try our best to accommodate your wishes.
+\item Any further questions, please do not hesitate to email us at
+\href{mailto:mfiidd.lshtm@gmail.com}{mfiidd.lshtm@gmail.com}
+\end{enumerate}
+
+\closing{See you soon in London,}
+\end{letter}
+\end{document}

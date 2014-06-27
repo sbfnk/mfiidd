@@ -1,0 +1,497 @@
+#+LANGUAGE: en
+#+TITLE: Model fitting and inference for\\ infectious disease dynamics\\\vspace{0.5cm}Useful *R* commands
+#+OPTIONS: H:3 num:t toc:t \n:t @:t ::t |:t ^:t -:t f:t *:t <:t ':t
+#+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:nil pri:nil tags:not-in-toc
+#+OPTIONS: author:nil date:nil
+#+LaTeX_CLASS: my-org-article
+
+#+LATEX: \newpage
+
+* Introduction
+
+This document provides a summary of *R* commands that will be useful to learn or refresh in preparation for the course on /Model fitting and inference for infectious disease dynamics/, 8-10 July at the London School of Hygiene & Tropical Medicine. While we expect that you will have some knowledge of *R*, the commands listed below are the ones that we think it would be most useful for you to familiarise yourselves with in order to be able to read the code we will provide for the practical session, and to debug any code you write yourselves during the sessions. There are links in various places which will take you to web sites that provide further information, if you would like more detail on any particular concept. A good general and detailed introduction to *R* is provided in the [[http://cran.r-project.org/doc/manuals/R-intro.html][R manual]].
+
+Any line in *R* that starts with a hash (=#=) is interpreted as a comment and not evaluated:
+
+#+BEGIN_SRC R
+  # this line does nothing
+#+END_SRC
+
+For the course, please make sure you are running at least version 3.1.0 of *R*. You can find out which *R* version you are running by typing
+
+#+BEGIN_SRC R
+  R.Version()$version.string
+#+END_SRC
+
+in an *R* session. If your version is smaller than 3.1.0, please update to at least version 3.1.0 following the instructions on the [[http://cran.rstudio.com/][CRAN website]].
+
+* Data types
+The data types we will be working with in the course are (named) /vectors/, /lists/, and /data frames/. More information on data types in *R* can be found in many places on the web, for example the [[http://en.wikibooks.org/wiki/R_Programming/Data_types][R programming wikibook]].
+** Vectors
+Vectors are an ordered collection of simple elements such as numbers or strings. They can be created with the ~c()~ command.
+
+#+BEGIN_SRC R
+  a <- c(1, 3, 6, 1)
+  a
+#+END_SRC
+
+#+RESULTS:
+: [1] 1 3 6 1
+
+An individual member at position ~i~ be accessed with ~[i]~.
+
+#+BEGIN_SRC R
+  a[2]
+#+END_SRC
+
+#+RESULTS:
+: [1] 3
+
+Importantly, vectors can be named. We will use this to define parameters for a model. For a named vector, simply specify the names as you create the vector
+
+#+BEGIN_SRC R
+  b <- c(start = 3, inc = 2, end = 17)
+  b
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC R
+#+END_SRC
+
+The elements of a named vector can be accessed both by index
+
+#+BEGIN_SRC R
+  b[2]
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC R
+inc
+  2
+#+END_SRC
+
+and by name
+
+#+BEGIN_SRC R
+  b["inc"]
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC R
+inc
+  2
+#+END_SRC
+
+To strip the names from a named vector, one can use double brackets
+
+#+BEGIN_SRC R
+b[["inc"]]
+#+END_SRC
+
+#+BEGIN_SRC R
+b[[2]]
+#+END_SRC
+
+or the ~unname~ function
+
+#+BEGIN_SRC R
+unname(b)
+#+END_SRC
+
+Several functions exist to conveniently create simple vectors. To create a vector of equal elements, we can use =rep=
+
+#+begin_src R
+  rep(3, times = 10)
+#+END_SRC
+
+To create a sequence, we can use =seq=
+
+#+BEGIN_SRC R
+  seq(from = 3, to = 11, by = 2)
+#+END_SRC
+
+If the increments are by 1, we can also use a colon
+
+#+BEGIN_SRC R
+  3:11
+#+END_SRC
+
+To create a sequence that starts at 1 with increments of 1, we can use =seq_len=
+
+#+BEGIN_SRC R
+  seq_len(5)
+#+END_SRC
+
+** Lists
+
+Lists are different from vectors in that elements of a list can be anything (including more lists, vectors, etc.), and not all elements have to be of the same type either.
+
+#+BEGIN_SRC R
+l <- list("cabbage", c(3,4,1))
+l
+#+END_SRC
+
+Similar to vectors, list elements can be named:
+
+#+BEGIN_SRC R
+l <- list(text = "cabbage", numbers = c(3,4,1))
+l
+#+END_SRC
+
+The meaning of brackets for lists is different to vectors. Single brackets return a list of one element
+
+#+BEGIN_SRC R
+  l["text"]
+#+END_SRC
+
+whereas double brackets return the element itself (not within a list)
+
+#+BEGIN_SRC R
+  l[["text"]]
+#+END_SRC
+
+More on the meanings of single and double brackets, as well as details on another notation for accessing elements (using the dollar sign) can be found in the [[http://cran.r-project.org/doc/manuals/R-lang.html#Indexing][R language specification]].
+
+** Data frames
+
+Data frames are 2-dimensional extensions of vectors. They can be thought of as the *R*-version of an Excel spreadsheet. Every column of a data frame is a vector.
+
+#+BEGIN_SRC R
+  df <- data.frame(a = c(2, 3, 0), b = c(1, 4, 5))
+  df
+#+END_SRC
+
+#+RESULTS:
+:   a b
+: 1 2 1
+: 2 3 4
+: 3 0 5
+
+Data frames themselves have a version of single and double bracket notation for accessing elements. Single brackets return a 1-column data frame
+
+#+BEGIN_SRC R
+df["a"]
+#+END_SRC
+
+whereas double brackets return the column as a vector
+
+#+BEGIN_SRC R
+df[["a"]]
+#+END_SRC
+
+To access a row, we use single brackets and specify the row we want to access before a comma
+
+#+BEGIN_SRC R
+df[2, ]
+#+END_SRC
+
+Note that this returns a data frame (with one row). A data frame itself is a list, and a data frame of one row can be converted to a named vector using =unlist=
+
+#+BEGIN_SRC R
+  unlist(df[2, ])
+#+END_SRC
+
+We can also select multiple rows
+
+#+BEGIN_SRC R
+df[c(1,2), ]
+#+END_SRC
+
+We can select a column, or multiple columns, after the comma
+
+#+BEGIN_SRC R
+  df[2, "a"]
+#+END_SRC
+
+* Functions
+Functions are at the essence of everything in *R*. The ~c()~ command used earlier was a call to a function (called ~c~). To find out about what a function does, which parameters it takes, what it returns, as well as, importantly, to see some examples for use of a function, one can use ~?~, e.g. ~?c~ or ~?data.frame~. More information on functions can be found in the [[http://en.wikibooks.org/wiki/R_Programming/Working_with_functions][R programming wikibook]].
+
+To define a new function, we assign a ~function~ object to a variable. For example, a function that increments a number by one.
+
+#+BEGIN_SRC R
+  add1 <- function(x) {
+      return(x + 1)
+  }
+  add1(3)
+#+END_SRC
+
+To see how any function does what it does, one can look at its source code by typing the function name:
+
+#+BEGIN_SRC R
+add1
+#+END_SRC
+
+** Passing functions as parameters
+
+Since functions themselves are variables, they can be passed to other functions. For example, we could write a function that takes a function and a variable and applies the function twice to the variable.
+
+#+BEGIN_SRC R
+  doTwice <- function(f, x) {
+      return(f(f(x)))
+  }
+  doTwice(add1, 3)
+#+END_SRC
+
+** Debugging functions
+
+Writing functions comes with the need to debug them, in case they return errors or faulty results. *R* provides its own debugger, which is started with ~debug~:
+
+#+BEGIN_SRC R
+debug(add1)
+#+END_SRC
+
+On the next call to the function ~add1~, this puts us into *R*'s own debugger, where we can advance step-by-step (by typing ~n~), inspect variables, evaluate calls, etc. To quits the debugger, type ~Q~. To stop debugging function ~add1~, we can use
+
+#+BEGIN_SRC R
+undebug(add1)
+#+END_SRC
+
+More on the debugging functionalities of *R* can be found on the [[http://www.stats.uwo.ca/faculty/murdoch/software/debuggingR/][Debugging in R]] pages.
+
+An alternative way for debugging is to include printouts in the function, for example using ~cat~
+
+#+BEGIN_SRC R
+  add1 <- function(x) {
+      cat("Adding 1 to", x, "\n")
+      return(x + 1)
+  }
+  add1(3)
+#+END_SRC
+
+* Loops and conditional statements
+
+This section discusses the basic structural syntax of *R*: =for= loops, conditional statements and the =apply= family of functions.
+
+** For loops
+A =for= loop in *R* is written using the word =in= and a vector of values that the loop variable takes. For example, to create the square of the numbers from 1 to 10, we can write
+
+#+BEGIN_SRC R
+  squares <- NULL
+  for (i in 1:10) {
+      squares[i] <- i * i
+  }
+  squares
+#+END_SRC
+
+** Conditional statements
+
+A conditional statement in *R* is written using =if=:
+
+#+BEGIN_SRC R
+  k <- 13
+  if (k > 10) {
+      cat("k is greater than 10\n")
+  }
+#+END_SRC
+
+An alternative outcome can be specified with =else=
+
+#+BEGIN_SRC R
+    k <- 3
+    if (k > 10) {
+        cat("k is greater than 10\n")
+    } else {
+        cat("k is not greater than 10\n")
+    }
+#+END_SRC
+
+** The =apply= family of functions
+
+*R* is not optimised for =for= loops, and they can be slow to compute. An often faster and more elegant way to loop over the elements of a vector or data frame is using the =apply= family of functions: =apply=, =lapply=, =sapply= and others. An good introduction to these functions can be found in [[http://nsaunders.wordpress.com/2010/08/20/a-brief-introduction-to-apply-in-r/][this blog post]].
+
+The =apply= function operates on data frames. It takes three arguments: the first argument is the data frame to apply a function to, the second argument specifies whether the function is applied by row (1) or column (2), and the third argument is the function to be applied. For example, to take the mean of =df= by row, we write
+
+#+BEGIN_SRC R
+  apply(df, 1, mean)
+#+END_SRC
+
+To take the mean by column, we write
+
+#+BEGIN_SRC R
+  apply(df, 2, mean)
+#+END_SRC
+
+The =lapply= and =sapply= functions operate on lists or vectors. Their difference is in the type of object they return. To take the square root of every element of vector =a=, we could use =lapply=, which returns a list
+
+#+BEGIN_SRC R
+  lapply(a, sqrt)
+#+END_SRC
+
+=sapply=, on the other hand, does the same thing but returns a vector:
+
+#+BEGIN_SRC R
+  sapply(a, sqrt)
+#+END_SRC
+
+We can specify any function to be used by the =apply= functions, including one we define ourselves. For example, to take the square of every element of vector =a= and return a vector, we can write
+
+#+BEGIN_SRC R
+  sapply(a, function(x) { x * x})
+#+END_SRC
+
+Of course, the last two examples could have been calculated much simpler using =sqrt(a)= and =a*a=, but in many examples, there is no such simple expression, and the =apply= functions come in handy.
+
+* Probability distributions
+
+Probability distributions are at the heart of many aspects of model fitting. *R* provides functions to both estimate the probability of obtaining a certain value under a given probability distribution and to sample random numbers from the same distribution. The corresponding functions have a common nomenclature, that is ~dxxx~ for the probability (density) of a given value and ~rxxx~ for generation of a random number from the same distribution. For example, for a uniform distribution we have ~dunif~ and ~runif~, and to generate a random number between 0 and 5 we can write
+
+#+BEGIN_SRC R
+  r <- runif(n = 1, min = 0, max = 5)
+  r
+#+END_SRC
+
+This number has density $1/(\mathrm{max}-\mathrm{min})=0.2$ within the uniform distribution:
+
+#+BEGIN_SRC R
+  dunif(x = r, min = 0, max = 5)
+#+END_SRC
+
+For almost all probability distributions, we can get the logarithm of the probability density by passing ~log = TRUE~:
+
+#+BEGIN_SRC R
+  dunif(x = r, min = 0, max = 5, log = TRUE)
+#+END_SRC
+
+Other functions available are =rnorm= and =dnorm= for the normal distribution, =rpois= and =dpois= for the Poisson distribution, and many more. A number of probability distributions and their corresponding *R* functions can be found in the [[http://en.wikibooks.org/wiki/R_Programming/Probability_Distributions][R programming wikibook]].
+
+* Running dynamic models
+
+*R* provides packages for running both deterministic and stochastic dynamic models. For deterministic models, the ~deSolve~ package is a good choice, whereas for stochastic models, ~adaptivetau~ is recommended.
+
+** Deterministic models
+
+The ~deSolve~ package can be installed with ~install.packages("deSolve")~. Once installed, it is loaded with
+
+#+BEGIN_SRC R
+  library(deSolve)
+#+END_SRC
+
+The command for running a model based on a system of differential equations (e.g., the ones of the SIR model), is ~ode~. It takes as parameters the initial state (as a named vector), parameters (again, a named vector), the times at which to produce model output, and a model function ~func~ -- for more details, see the [[http://cran.r-project.org/web/packages/deSolve/vignettes/deSolve.pdf][deSolve vignette]]. The ~func~ argument is for specifying the derivatives in the system of ordinary differential equations. It is passed a function that takes the current time, the current state of the system and the parameters and returns a list of transition rates. For the SIR model, for example, we could write
+
+#+BEGIN_SRC R
+  SIR_ode <- function(time, state, parameters) {
+
+      ## parameters
+      beta <- parameters["R0"] / parameters["infectious.period"]
+      gamma <- 1 / parameters["infectious.period"]
+
+      ## states
+      S <- state["S"]
+      I <- state["I"]
+      R <- state["R"]
+
+      N <- S + I + R
+
+      dS <- -beta * S * I/N
+      dI <- beta * S * I/N-gamma * I
+      dR <- gamma * I
+
+      return(list(c(dS, dI, dR)))
+  }
+
+#+END_SRC
+
+We can plug this into the ~ode~ function
+
+#+BEGIN_SRC R
+  trajectory <- ode(y = c(S = 999, I = 1, R = 0),
+                    times = 1:10,
+                    parms = c(R0 = 5, infectious.period = 1),
+                    func = SIR_ode)
+  trajectory
+#+END_SRC
+
+** Stochastic models
+
+The ~adaptivetau~ package can be installed with ~install.packages("adaptivetau")~. Once installed, it is loaded with
+
+#+BEGIN_SRC R
+  library(adaptivetau)
+#+END_SRC
+
+The ~adaptivetau~ package uses a different syntax from the ~deSolve~ package. Instead of providing a function to calculate the rates of change at each time point, one specifies a list of /transitions/ and their rates. Examples for how this is done can be found in the [[http://cran.r-project.org/web/packages/adaptivetau/vignettes/adaptivetau.pdf][adaptivetau vignette]].
+
+For the SIR model, we could write
+
+#+BEGIN_SRC R
+  SIR_transitions <- list(
+      c(S = -1, I = 1), # infection
+      c(I = -1, R = 1) # recovery
+  )
+
+  SIR_rateFunc <- function(x, parameters, t) {
+
+      beta <- parameters["R0"]/parameters["infectious.period"]
+      nu <- 1/parameters["infectious.period"]
+
+      S <- x["S"]
+      I <- x["I"]
+      R <- x["R"]
+
+      N <- S + I + R
+
+      return(c(
+          beta * S * I / N, # infection
+          nu * I # recovery
+      ))
+  }
+#+END_SRC
+
+To run the stochastic model, we then use the ~ssa.adaptivetau~ function, which takes a vector of initial conditions, the list of transitions and rate function, a named vector of parameters, and the final time (with simulations starting at time 0).
+
+#+BEGIN_SRC R
+  run <- ssa.adaptivetau(init.values = c(S = 999, I = 1, R = 0),
+                         transitions = SIR_transitions,
+                         rateFunc = SIR_rateFunc,
+                         params = c(R0 = 5, infectious.period = 1),
+                         tf = 10)
+  head(run)
+#+END_SRC
+
+Unlike =ode= from the =deSolve= package, this does not produce output at specific times, but every time an event happens. To convert this to different times, we first convert the output of =ssa.adaptivetau= to a data frame (=ssa.adaptivetau= returns a /matrix/, a data type which we do not discuss here) using =data.frame=
+
+#+BEGIN_SRC R
+  run_df <- data.frame(run)
+#+END_SRC
+
+To get the output at chosen times, we can use =approx=
+
+#+BEGIN_SRC R
+   # get output at times 1, ..., 10
+  run.I.times <- approx(x = run_df$time,
+                        y = run_df$I,
+                        xout = 1:10,
+                        method = "constant")
+  run.I.times
+#+END_SRC
+
+By applying this to all the variables returned by =ssa.adaptivetau=, we can construct a data frame with model output at the desired times.
+
+* Plotting
+The simplest way to plot a function using =plot=. To plot the output of the deterministic SIR run above, we first convert it to a data frame (=ode= returns a /matrix/, a data type which we do not discuss here) using =data.frame=
+
+#+BEGIN_SRC R
+  trajectory_df <- data.frame(trajectory)
+#+END_SRC
+
+We can then plot the number of infected against time using
+
+#+header: :width 5 :height 5
+#+BEGIN_SRC R :results graphics :file trajectory_plot.pdf
+  plot(x = trajectory_df$time, y = trajectory_df$I)
+#+END_SRC
+
+A slightly more involved way with many options for different types of plot is using the =ggplot2= package. This can be installed with =install.packages("ggplot2")= and loaded with
+
+#+BEGIN_SRC R
+  library(ggplot2)
+#+END_SRC
+
+=ggplot2= uses a somewhat peculiar syntax. To create a similar plot to the one above using =ggplot=, we would write
+
+#+header: :width 5 :height 5
+#+BEGIN_SRC R :results graphics :file trajectory_ggplot.pdf
+  ggplot(trajectory_df, aes(x = time, y = I)) + geom_point()
+#+END_SRC
+
+A detailed introduction to =ggplot2= and its numerous options for plotting is beyond the scope of this introduction, but comprehensive documentation as well as many examples can be found on the [[http://ggplot2.org/][ggplot2 website]].
