@@ -1,6 +1,7 @@
 % Practical session: Fitting a deterministic model with MCMC
 
 ```{r echo=FALSE,results="hide"}
+opts_chunk$set(fig.cap='')
 library(fitR)
 example(SIR)
 example(SIR_reporting)
@@ -17,65 +18,88 @@ The aim of this session is to learn how to fit a deterministic SIR model to outb
 
 # The Metropolis-Hastings sampler
 
-To sample from a distribution using MCMC, write a function that takes a target distribution like your posterior (i.e., a function that takes one argument, `theta`), an initial `init.theta`, a covariance matrix and the number of iterations. It should evaluate the target function at `init.theta` and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
+Let us write a function that samples from an arbitrary distribution using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and use a standard Gaussian proposal distribution. The function we want to write should take four arguments: 1) a function that can evaluate the *target distribution* at any value of its parameter, 2) an initial value for the parameter, 3) the standard deviation of the (Gaussian) proposal distribution to set the step size of the sampler and 4) the number of iterations for which to run the sampler. The function should evaluate the target function at the initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
 
-To draw a random vector from a multivariate Gaussian proposal distribution, you can use the function `rmvnorm`, see `?rmvnorm`. To draw a random number between 0 and 1, you can use `runif(n = 1)`.
+Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
+
+A few useful tips: To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a random number between 0 and 1, you can use `runif(n = 1)`. Also, it would be useful to keep track of the number of accepted samples as we will later use the proportion of accepted runs to evaluate the efficiency of the sampler. Lastly, we can set up our function to pass further arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `dotsMethods`, and for more hints on using it, click the link below the code for a more guided example.
 
 ```{r}
-my_mcmc <- function(target.dist, init.theta, covariance.matrix, n.iterations) {
+# This is a function that takes four arguments:
+# - target: the target distribution, a function that takes one argument
+#           (a number) and returns the (logged) value of a distribution
+# - theta.init: the initial value of theta, a number
+# - proposal.sd: the standard deviation of (Gaussian) proposal distribution
+# - n.iterations: the number of iterations
+# Any further arguments passed to my_mcmcMH should be passed to the target
+# distribution.
+# The function should return a vector of samples of theta from the target
+# distribution
+my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations, ...) {
 
-    # evaluate the function target_dist at init_theta
+    # evaluate the function "target.dist" at parameter value "init.theta"
 
-    # repeat n_iterations times:
+    # initialise variables to store the current value of theta, the
+    # vector of samples, and the number of accepted runs
 
-    # - draw a new theta from the (multivariate Gaussian) proposal distribution
+    # repeat n.iterations times:
 
-    # - evaluate the function target_dist at the proposed theta
+    # - draw a new theta from the (Gaussian) proposal distribution
+    #   with standard deviation sd
+
+    # - evaluate the function target_dist at the proposed theta,
+    #   passing further arguemnts using '...'
+
+    # - calculate the Metropolis-Hastings ratio
 
     # - draw a random number between 0 and 1
 
-    # - accept or reject by comparing the random number to the acceptance probability
+    # - accept or reject by comparing the random number to the
+    #   Metropolis-Hastings ratio (acceptance probability); if accept,
+    #   change the current value of theta to the proposed theta,
+    #   update the current value of the target and keep track of the
+    #   number of accepted proposals
 
-    # return the chain (i.e., the value of the current theta at every iteration)
+    # add the current theta to the vector of samples
 
+    # return the trace of the chain (i.e., the vector of samples)
 }
 ```
 
-You will probably find it useful to save the state of the chain (i.e., the value of `theta` at every iteration) and the current acceptance probability (i.e., the proportion of proposed `theta`s that are being accepted) in a data frame or vector.
-
-To get the covariance matrix, you can use the `sd.proposal` argument of `fitparam`, e.g. This sets the covariance matrix to be diagonal, that is the proposals for each parameter will not depend on the other parameters, but will be independently normally distributed, with the standard deviation given by `sd.proposal`.
-
-```{r}
-R0 <- fitparam(name = "R0",
-               value = 2,
-               prior = list(distribution = "dunif",
-                            parameters = c(min = 1, max = 5)),
-               sd.proposal = 0.1)
+```{r echo = FALSE}
+source('our_mcmcM.r')
 ```
 
-Once you pass this to a `fitmodel` (in `parameters`), it will return the covariance matrix containing all the parameters in `fitmodel$gaussian.proposal$covmat`.
+If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.md).
 
-```{r echo=FALSE}
-my_logLikelihood <- SIR_logLikelihood
-my_simulateDeterministic <- SIR_simulateDeterministic
-my_initialiseState <- SIR_initialiseState
+# Sampling from a simple distribution
+
+In principle, we can use the Metropolis-Hastings sampler to sample from any target distribution. Let us test this: imagine you didn't know how to draw random numbers from a normal distribution centred around 0, with standard deviation 1. You could use the Metropolis-Hastings sampler to do this. In **R**, the function to evaluate the probability density of a number under a normal distribution is called `dnorm`, so that we could write:
+
+```{r results = "hide"}
+starting.value <- 1 # starting value for MCMC
+sigma <- 1 # standard deviation of MCMC
+iter <- 10000
+trace <- my_mcmcMH(target.dist = dnorm, init.theta = starting.value,
+                   proposal.sd = sigma, n.iterations = iter, log = T)
 ```
 
-```{r}
-my_SIR <- fitmodel(name = "SIR",
-                   state.variables = c("S", "I", "R", "Inc"),
-                   list.fitparam = list(R0, InfectiousPeriod, ReportingRate, PopSize,
-                                        proportionI0, proportionR0),
-                   log.prior.fitparam = my_logPrior,
-                   log.likelihood = my_logLikelihood,
-                   simulate.model = my_simulateDeterministic,
-                   initialise.state = my_initialiseState,
-                   data = measles,
-                   verbose = F)
-my_SIR$gaussian.proposal$covmat
+Note that we passed `log = T` as extra parameter, which is passed to the target distribution function `dnorm`.
+
+We will talk later about diagnosing the trace of an MCMC run. For now, you can visualise the trace of your MCMC run (i.e., the sequence of samples over time) using
+
+```{r caption = "", fig.width = 10}
+plot(trace, type = "l")
 ```
 
-You will probably see a different matrix, depending on the proposal standard deviations you have set.
+And you can plot a histogram of the samples generated using
 
+```{r caption = ""}
+hist(trace)
+```
 
-Previous: [Data and likelihood](data_likelihood.md) Next: [Tristan da Cunha outbreak](play_with_seitl.md)
+This looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
+
+<div>
+Previous: [Introduction](introduction.md) Next: [Tristan da Cunha outbreak](play_with_seitl.md)
+</div>
