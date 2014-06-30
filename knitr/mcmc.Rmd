@@ -24,19 +24,19 @@ To draw a random vector from a multivariate Gaussian proposal distribution, you 
 ```{r}
 my_mcmc <- function(target.dist, init.theta, covariance.matrix, n.iterations) {
 
-    ## evaluate the function target_dist at init_theta
+    # evaluate the function target_dist at init_theta
 
-    ## repeat n_iterations times:
+    # repeat n_iterations times:
 
-    ## - draw a new theta from the (multivariate Gaussian) proposal distribution
+    # - draw a new theta from the (multivariate Gaussian) proposal distribution
 
-    ## - evaluate the function target_dist at the proposed theta
+    # - evaluate the function target_dist at the proposed theta
 
-    ## - draw a random number between 0 and 1
+    # - draw a random number between 0 and 1
 
-    ## - accept or reject by comparing the random number to the acceptance probability
+    # - accept or reject by comparing the random number to the acceptance probability
 
-    ## return the chain (i.e., the value of the current theta at every iteration)
+    # return the chain (i.e., the value of the current theta at every iteration)
 
 }
 ```
