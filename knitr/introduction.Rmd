@@ -7,7 +7,7 @@ set.seed(1234)
 # Introduction to model fitting in R
 
 ## Objectives
-The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as POMP. Instead, we use it to provide you with model code that follows a common, data and solutions to the practical questions.
+The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as POMP. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
 
 In this session, you will
 
