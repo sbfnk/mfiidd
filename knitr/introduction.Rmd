@@ -47,7 +47,7 @@ SIR$state.names
 SIR$theta.names
 ```
 
-Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `generateObs` to generate observations from a model run. Let us look at these one after the other. You can get information on the components of a `fitmodel` using
+Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `generateObs` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
 
 ```{r eval=FALSE}
 ?fitmodel
@@ -122,7 +122,7 @@ Let's load a test data set using
 data(epi)
 ```
 
-This is contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, you will try to estimate the value of $R_0$. For now, you can look at this data set using
+This is contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. For now, you can look at this data set using
 
 ```{r}
 epi1
@@ -189,9 +189,15 @@ source('our_posterior.r')
 
 If you have trouble filling any of the empty bits in, have a look at our [more guided example](posterior_example.md).
 
+Check that your function returns a sensible value.
+
+```{r}
+my_posterior(SIR, parameters, state.init, epi1)
+```
+
 ## Explore the posterior
 
-Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the `my_posterior` function you wrote above (or the `our_posterior` function provided by clicking through to the solution). In which range of $R_0$ is the posterior maximised?
+Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the `my_posterior` function you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised?
 
 You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$logPrior` and `SIR$pointLogLike` by typing
 
@@ -204,8 +210,8 @@ To change the prior, copy and paste the functions, change them, and reassign to 
 
 ```{r eval = FALSE}
 SIR$pointLogLike <- function(data.point, model.point, theta) {
-        # the prevalence is observed through a normal process
-	return(dnorm(x=data.point[["obs"]], mean=model.point[["I"]], log=TRUE))
+        # the prevalence is observed through a normally distributed process
+        return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = TRUE))
 }
 ```
 
