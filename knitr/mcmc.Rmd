@@ -14,7 +14,8 @@ The aim of this session is to learn how to fit a deterministic SIR model to outb
 1. create function that generates samples from an arbitrary distribution using a Metropolis-Hastings sampler
 2. use this function to generate samples from a simple (normal) distribution
 3. use this function to generate samples from the posterior distribution
-4. use the generated samples to learn about the underlying model
+
+In the next session, you will learn how to analyse and interpret the outcome of MCMC runs.
 
 # The Metropolis-Hastings sampler
 
