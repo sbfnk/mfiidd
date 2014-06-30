@@ -1,0 +1,189 @@
+```{r echo=FALSE}
+opts_chunk$set(fig.cap='')
+library(fitR)
+set.seed(1234)
+```
+
+# Introduction to model fitting in R
+
+## Objectives
+The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course.This is not a full-fledged model fitting suite such as POMP. Instead, we use it to provide you with model code that follows a common, data and solutions to the practical questions.
+
+In this session, you will
+
+1. familiarise yourselves with the structure of models in the `fitR` package
+2. combine the prior and likelihood to calculate the posterior for a simple SIR model
+3. explore the posterior for a model that has a single parameter
+
+## A simple SIR model
+
+First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number $R_0$ and the infectious period $D$. The model equations are
+
+$$
+\begin{aligned}
+\frac{dS}{dt} &= - \beta S \frac{I}{N}\\
+\frac{dI}{dt} &= \beta S \frac{I}{N} - \nu I\\
+\frac{dR}{dt} &= \nu I\\
+\end{aligned}
+$$
+
+where $\beta=R_0/D$, $\nu = 1/D$ and $N = S + I + R$ is constant. To load this model into your `R` session, type
+
+```{r eval=FALSE}
+example(SIR)
+```
+
+This will load a `fitmodel` object called `SIR` into your `R` session. A `fitmodel` is simply a collection of functions and variables that define a model. To see the objects that the `SIR` model contains, type
+
+```{r}
+names(SIR)
+```
+
+A fitmodel object provides its description, as well as the names of its model variables and parameters. These can be accessed with
+
+```{r}
+SIR$name
+SIR$state.names
+SIR$theta.names
+```
+
+Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `generateObs` to generate observations from a model run. Let us look at these one after the other. You can get information on the components of a `fitmodel` using
+
+```{r eval=FALSE}
+?fitmodel
+```
+
+### Simulate
+
+To simulate a model run, we use the `simulate` contained within a `fitmodel`. To run the SIR model, we have to provide, parameter values, initial conditions and the times at which we want model output.
+
+```{r}
+parameters <- c(R0 = 3, D = 1.5)
+state.init <- c(S = 999, I = 1, R = 0)
+times <- 1:100
+traj <- SIR$simulate(parameters, state.init, times)
+```
+
+We can now look at the output of the model run
+
+```{r}
+head(traj)
+```
+
+To visualise a model, you can use `plotTraj`
+
+```{r fig.height=4}
+plotTraj(traj)
+```
+
+Try running the model with different values of the parameters and initial conditions, and output times.
+
+Remember that if you want more detail on what the `simulate` and `plotTraj` functions do, you can always look at their implementation by typing their function name. To look at the `simulate` function of SIR, type
+
+```{r eval=F}
+SIR$simulate
+```
+
+## Prior
+
+To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
+
+```{r}
+SIR$logPrior(parameters)
+```
+
+Have a look at the `logPrior` function by typing
+
+```{r eval = FALSE}
+SIR$logPrior
+```
+
+You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D$ (between 0 and 30).
+
+### Likelihood
+
+The `pointLogLike` function is used to evaluate the likelihood of a data point
+
+```{r}
+SIR$pointLogLike(data.point = c(I = 13), model.point = c(I = 24), parameters)
+```
+
+Have a look at the `pointLogLike` function by typing
+
+```{r eval = FALSE}
+SIR$pointLogLike
+```
+
+You will see that this calculates the likelihood of a data point taking its "I" member (number of infected) and evaluating it with respect to a Poisson distribution centred around the "I" member of the model point. In other words, it assumes that the observations follows a Poisson distribution centred around the current prevalence.
+
+Let's load a test data set using
+
+```{r}
+data(epi1)
+```
+
+This is an epidemic data set that has been created using a stochastic simulation this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. You can look at the data set using
+
+```{r}
+head(epi1)
+```
+
+You will see that is a time series of observed prevalence ("I"). You can plot the data using.
+
+```{r fig.height=4,fig.width=4}
+plotTraj(epi1)
+```
+
+To calculate the log-likelihood of a set of parameters and initial conditions, we can use `trajLogLike`. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial conditions.
+
+```{r}
+trajLogLike(SIR, parameters, state.init, epi1)
+```
+
+### Generate observations
+
+The function `genObsPoint` generates single observation point from a model point. In that sense, it can be seen as the inverse of `pointLogLike`. Whereas `loglikePoint` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes a (randomly sampled) data point from the model.
+
+```{r}
+SIR$genObsPoint(model.point = c(I = 24), parameters)
+```
+
+To generate a whole trajectory, we can use `genObsTraj`. This uses the `simulate` function to simulate the model, and then the `genObsPoint` function at every time point to generate a trajectory of observations. It returns the trajectory, with an added column for the observations.
+
+```{r}
+obs.traj <- genObsTraj(SIR, parameters, state.init, epi1$time)
+head(obs.traj)
+```
+
+If you run this multiple times, you will find that the outcome is different every time. This is because the observations are outcomes of a random draw from the (deterministic) model trajectory.
+
+## Calculate the posterior
+
+We are now ready to calculate the value of the posterior $p(theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted a comments for every line that you should insert. If you are struggling with at any point, click on the link below the code for some hints.
+
+```{r eval = FALSE}
+## This is a function that takes 4 arguments:
+## - fitmodel, a fitmodel object that defines the model dynamics,
+##   prior and likelihoods.
+## - theta, a named vector of parameters
+## - state.init,  a named vector of initial conditions
+## - data, the data set we are fitting the model to
+## It should return the posterior for the given model, parameters,
+## initial conditions and data.
+my_posterior <- function(fitmodel, theta, state.init, data) {
+
+    ## calculate the fitmodel prior for parameter theta
+
+    ## calculate the fitmodel likelihood for parameter theta and
+    ## initial conditions state.init, with respect to the data set data.
+
+    ## return the logged posterior probability
+}
+```
+
+# Explore the posterior
+
+<div>
+# Navigate
+Previous: [Installation](README.md) Next: [MCMC](mcmc.md)
+</div>
