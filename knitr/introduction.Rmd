@@ -84,7 +84,7 @@ Remember that if you want more detail on what the `simulate` and `plotTraj` func
 SIR$simulate
 ```
 
-## Prior
+### Prior
 
 To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
 
@@ -105,7 +105,7 @@ You will see that this calculates the prior of the parameters using uniform dist
 The `pointLogLike` function is used to evaluate the likelihood of a data point
 
 ```{r}
-SIR$pointLogLike(data.point = c(I = 13), model.point = c(I = 24), parameters)
+SIR$pointLogLike(data.point = c(obs = 13), model.point = c(I = 24), parameters)
 ```
 
 Have a look at the `pointLogLike` function by typing
@@ -119,16 +119,16 @@ You will see that this calculates the likelihood of a data point taking its "I" 
 Let's load a test data set using
 
 ```{r}
-data(epi1)
+data(epi)
 ```
 
-This is an epidemic data set that has been created using a stochastic simulation this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. You can look at the data set using
+This is contains several epidemic data sets that have been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. You can look at a first data set using
 
 ```{r}
 head(epi1)
 ```
 
-You will see that is a time series of observed prevalence ("I"). You can plot the data using.
+The observations ("obs") are based on observed prevalence ("I"). You can plot the data using.
 
 ```{r fig.height=4,fig.width=4}
 plotTraj(epi1)
@@ -159,29 +159,65 @@ If you run this multiple times, you will find that the outcome is different ever
 
 ## Calculate the posterior
 
-We are now ready to calculate the value of the posterior $p(theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted a comments for every line that you should insert. If you are struggling with at any point, click on the link below the code for some hints.
+We are now ready to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted a comments for every line that you should insert. If you are struggling with at any point, click on the link below the code for some hints.
 
 ```{r eval = FALSE}
-## This is a function that takes 4 arguments:
-## - fitmodel, a fitmodel object that defines the model dynamics,
-##   prior and likelihoods.
-## - theta, a named vector of parameters
-## - state.init,  a named vector of initial conditions
-## - data, the data set we are fitting the model to
-## It should return the posterior for the given model, parameters,
-## initial conditions and data.
+# This is a function that takes 4 arguments:
+# - fitmodel, a fitmodel object that defines the model dynamics,
+#   prior and likelihoods.
+# - theta, a named vector of parameters
+# - state.init,  a named vector of initial conditions
+# - data, the data set we are fitting the model to
+# It should return the posterior for the given model, parameters,
+# initial conditions and data.
 my_posterior <- function(fitmodel, theta, state.init, data) {
 
-    ## calculate the fitmodel prior for parameter theta
+    # calculate the fitmodel prior for parameter theta
 
-    ## calculate the fitmodel likelihood for parameter theta and
-    ## initial conditions state.init, with respect to the data set data.
-
-    ## return the logged posterior probability
+    # calculate the fitmodel likelihood for parameter theta and
+    # initial conditions state.init, with respect to the data set data.
+    # return the logged posterior probability
 }
 ```
 
-# Explore the posterior
+```{r echo = FALSE}
+source('our_posterior.r')
+my_posterior <- our_posterior
+```
+
+If you have trouble filling any of the empty bits in, have a look at our [more guided example](posterior_example.md).
+
+## Explore the posterior
+
+Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. As stated above, the infectious period of the `sir.epi1` data set was 2. Evaluate the posterior at different values of $R_0$ using the `my_posterior` function you wrote above (or the `our_posterior` function provided by clicking through to the solution). In which range of $R_0$ is the posterior maximised?
+
+You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$logPrior` and `SIR$pointLogLike` by typing
+
+```{r eval = FALSE}
+SIR$logPrior
+SIR$pointLogLike
+```
+
+To change the prior, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
+
+```{r eval = FALSE}
+SIR$pointLogLike <- function(data.point, model.point, theta) {
+        ## the prevalence is observed through a normal process
+	return(dnorm(x=data.point[["obs"]], lambda=mean.point[["I"]], log=TRUE))
+}
+```
+
+Try different distributions for the prior and likelihood distributions. Do they change the shape of the posterior?
+
+## Going further
+
+If you knew that on average only 10% of cases were reported, how would you change the point likelihood. You can test this with a second data set, `epi2`, which you can load with
+
+```{r}
+data(epi2)
+```
+
+This was created with infectious period 2 and a reporting rate of 10%. Can you estimate $R_0$?
 
 <div>
 # Navigate
