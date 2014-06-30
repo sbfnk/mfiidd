@@ -5,13 +5,20 @@ if [ ! -f $1 ]; then
     exit 1
 fi
 
-name=$(basename $1 .md)
-path=$(dirname $1)
+CURRENT_DIR=$(pwd)
+
+filename=$(basename $1)
+filebase=$(basename $1 .md)
+filepath=$(dirname $1)
+
+cd $filepath
 
 # create pdf version
-pandoc --smart -f markdown-markdown_in_html_blocks   -o $path/$name.pdf $1
+pandoc --smart -f markdown-markdown_in_html_blocks   -o $filebase.pdf $filename
 # create HTML version
-pandoc --toc  --mathjax  -c github-pandoc.css -f markdown -t html -o $path/$name.html $1
+pandoc --toc  --mathjax  -c github-pandoc.css -f markdown -t html -o $filebase.html $filename
 
 # convert links to HTML
-sed -i "" 's/\.md/.html/g' $path/$name.html
+sed -i "" 's/\.md/.html/g' $filebase.html
+
+cd $CURRENT_DIR
