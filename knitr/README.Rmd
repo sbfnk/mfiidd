@@ -20,6 +20,8 @@ Then you can check that everything went fine by loading the package into your `R
 library(fitR)
 ```
 
+<div>
+
 ## Contents
 
 1. [Overview of fitcourseR](fitcourseR.md)
@@ -30,6 +32,7 @@ library(fitR)
 6. [Run a SMC](smc.md)
 7. [ABC inference](ABC.md)
 
-
 # Navigate
 Next: [Overview of fitcourseR](fitcourseR.md)
+
+</div>
