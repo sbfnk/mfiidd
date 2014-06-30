@@ -26,3 +26,4 @@ knitr/*.md
 knitr/*.html
 knitr/*.pdf
 knitr/figure
+knitr/cache
