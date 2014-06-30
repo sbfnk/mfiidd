@@ -7,4 +7,6 @@ read_chunk('our_posterior.r')
 ```{r posterior}
 ```
 
+You can copy and paste the function into your **R** session, and proceed from there.
+
 [Return](introduction.md#calculate-the-posterior) to the practical session.
