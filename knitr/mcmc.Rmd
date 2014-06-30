@@ -1,12 +1,12 @@
+% Practical session: Fitting a deterministic model with MCMC
+
 ```{r echo=FALSE,results="hide"}
 library(fitR)
 example(SIR)
 example(SIR_reporting)
 ```
 
-# Practical session: Fitting a deterministic model with MCMC
-
-## Objectives
+# Objectives
 
 The aim of this session is to learn how to fit a deterministic SIR model to outbreak data using MCMC. More specifically, in this session you will
 
@@ -15,7 +15,7 @@ The aim of this session is to learn how to fit a deterministic SIR model to outb
 3. use this function to generate samples from the posterior distribution
 4. use the generated samples to learn about the underlying model
 
-## The Metropolis-Hastings sampler
+# The Metropolis-Hastings sampler
 
 To sample from a distribution using MCMC, write a function that takes a target distribution like your posterior (i.e., a function that takes one argument, `theta`), an initial `init.theta`, a covariance matrix and the number of iterations. It should evaluate the target function at `init.theta` and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
 

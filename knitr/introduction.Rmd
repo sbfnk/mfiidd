@@ -1,12 +1,12 @@
+% Introduction to model fitting in R
+
 ```{r echo=FALSE,message=FALSE}
 opts_chunk$set(fig.cap='')
 library(fitR)
 set.seed(1234)
 ```
 
-# Introduction to model fitting in R
-
-## Objectives
+# Objectives
 The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as POMP. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
 
 In this session, you will
@@ -15,7 +15,7 @@ In this session, you will
 2. combine the prior and likelihood to calculate the posterior for a simple SIR model
 3. explore the posterior for a model that has a single parameter
 
-## A simple SIR model
+# A simple SIR model
 
 First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number $R_0$ and the infectious period $D$. The model equations are
 
@@ -53,7 +53,7 @@ Moreover, each `fitmodel` contains four functions: `simulate` to run the model, 
 ?fitmodel
 ```
 
-### Simulate
+## Simulate
 
 To simulate a model run, we use the `simulate` contained within a `fitmodel`. To run the SIR model, we have to provide parameter values, initial conditions and the times at which we want model output.
 
@@ -84,7 +84,7 @@ Remember that if you want more detail on what the `simulate` and `plotTraj` func
 SIR$simulate
 ```
 
-### Prior
+## Prior
 
 To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
 
@@ -100,7 +100,7 @@ SIR$logPrior
 
 You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D$ (between 0 and 30).
 
-### Likelihood
+## Likelihood
 
 The `pointLogLike` function is used to evaluate the likelihood of a data point
 
@@ -140,7 +140,7 @@ To calculate the log-likelihood of a set of parameters and initial conditions, w
 trajLogLike(SIR, parameters, state.init, epi1)
 ```
 
-### Generate observations
+## Generate observations
 
 The function `genObsPoint` generates single observation point from a model point. In that sense, it can be seen as the inverse of `pointLogLike`. Whereas `loglikePoint` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes a (randomly sampled) data point from the model.
 
@@ -159,7 +159,7 @@ head(obs.traj)
 
 If you run this multiple times, you will find that the outcome is different every time. This is because the observations are outcomes of random draws from the (deterministic) model trajectory. If we changed `genObsPoint` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `genObsTraj` would be the same every time.
 
-## Calculate the posterior
+# Calculate the posterior
 
 We are now ready to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling with at any point, click on the link below the code for some hints.
 
@@ -195,7 +195,7 @@ Check that your function returns a sensible value.
 my_posterior(SIR, parameters, state.init, epi1)
 ```
 
-## Explore the posterior
+# Explore the posterior
 
 Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the `my_posterior` function you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised?
 
@@ -217,7 +217,7 @@ SIR$pointLogLike <- function(data.point, model.point, theta) {
 
 Try different distributions for the prior and likelihood distributions. Do they change the shape of the posterior?
 
-## Going further
+# Going further
 
 If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, `epi2`, which you can have a look at with
 
