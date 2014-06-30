@@ -142,7 +142,7 @@ trajLogLike(SIR, parameters, state.init, epi1)
 
 ## Generate observations
 
-The function `genObsPoint` generates single observation point from a model point. In that sense, it can be seen as the inverse of `pointLogLike`. Whereas `loglikePoint` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes a (randomly sampled) data point from the model.
+The function `genObsPoint` generates a single observation from a point in a model trajectory. In that sense, it can be seen as the inverse of `pointLogLike`. Whereas `poitnlogLike` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes a (randomly sampled) data point from the model.
 
 ```{r}
 SIR$genObsPoint(model.point = c(I = 24), parameters)
@@ -161,7 +161,7 @@ If you run this multiple times, you will find that the outcome is different ever
 
 # Calculate the posterior
 
-We are now ready to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling with at any point, click on the link below the code for some hints.
+We are now ready to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
 ```{r eval = FALSE}
 # This is a function that takes 4 arguments:
