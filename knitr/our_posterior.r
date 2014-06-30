@@ -5,8 +5,8 @@
 # - theta, a named vector of parameters
 # - state.init,  a named vector of initial conditions
 # - data, the data set we are fitting the model to
-# It should return the posterior for the given model, parameters,
-# initial conditions and data.
+# It returns the posterior for the given model, parameters, initial
+# conditions and data.
 my_posterior <- function(fitmodel, theta, state.init, data) {
 
     # calculate the fitmodel prior for parameter vector theta using
