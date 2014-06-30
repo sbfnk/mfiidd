@@ -1,132 +1,21 @@
+```{r echo=FALSE,results="hide"}
+library(fitR)
+example(SIR)
+example(SIR_reporting)
+```
+
 # Practical session: Fitting a deterministic model with MCMC
 
-```{r echo=FALSE,results="hide"}
-library(fitcourseR)
-library(deSolve)
-example(fitmodel)
-```
+## Objectives
 
-## Introduction
+The aim of this session is to learn how to fit a deterministic SIR model to outbreak data using MCMC. More specifically, in this session you will
 
-For this session, you will fit a deterministic SIR model to a recent measles outbreak in Europe, making use of the model simulation and likelihood functions from the last session. The data is in the "measles" data set, and can be loaded with
+1. create function that generates samples from an arbitrary distribution using a Metropolis-Hastings sampler
+2. use this function to generate samples from a simple (normal) distribution
+3. use this function to generate samples from the posterior distribution
+4. use the generated samples to learn about the underlying model
 
-```{r}
-data(measles)
-```
-
-You can look at the data set with
-
-```{r results="hide"}
-measles
-```
-
-or visualise them using `plot` or `ggplot`, e.g.
-
-```{r results="hide", fig.keep="none"}
-library(ggplot2)
-ggplot(measles, aes(x = time, y = Inc)) + geom_point()
-```
-
-You will use the likelihood and model simulation functions from the last session.
-
-## Prior
-
-First, you need to decide on the prior distribution of the different parameters, such as `R0`, the infectious period, etc. The `fitparam` class has a structure set up for this: you can pass a prior distribution by setting the `prior` parameter. This expects an R `list` with two elements: `distribution`, a name of a density function for the prior distribution, and `parameter`, a named vector of parameters to pass to the `distribution` functions. Distribution functions in R start with the letter `d`. Common ones which might be useful for prior distributions are `dunif` and `dnorm`. A good resource for the most commonly used probability distributions can be found in the [R tutorial ebook](http://www.r-tutor.com/elementary-statistics/probability-distributions).
-
-Example:
-```{r}
-R0 <- fitparam(name = "R0",
-               value = 2,
-               prior = list(distribution = "dunif",
-                            parameters = c(min = 1, max = 5)))
-```
-To calculate the model prior, you have to take the product of all individual model prior (or sum the logged priors). There is already a function to do this for you, called `compositeLogPrior`. It takes a list of `fitparam` objects and returns the composite prior from the specified prior distributions.
-
-Example: if you have fitparam objects `R0` and `infectious.period` defined,
-
-```{r}
-compositeLogPrior(list(R0))
-```
-
-Using this, write a function to calculate the prior:
-```{r}
-my_logPrior <- function(list.fitparam) {
-
-    ## calculate the composite prior for the given parameter list
-
-    ## return the logged prior probability
-}
-```
-
-```{r echo=FALSE}
-my_logPrior <- function(list.fitparam) {
-
-    ## calculate the composite prior for the given parameter list
-
-    ## return the logged prior probability
-    return(compositeLogPrior(list.fitparam))
-}
-```
-
-Once you have done this, you can pass the prior function to a `fitmodel` object. For example, if you have two fitparam objects `R0` and `infectious.period`, and a function `my_logPrior`, you can call
-
-```{r}
-my_SIR <- fitmodel(name = "SIR",
-                   state.variables = c("S", "I", "R"),
-                   list.fitparam = list(R0),
-                   log.prior.fitparam = my_logPrior)
-```
-
-`fitmodel` converts the prior function into a function that takes a named parameter vector `theta`, available as `SIR$log.prior` (see the `fitmodel` documentation). You can then use this to evaluate the prior at different parameter values:
-
-```{r}
-my_SIR$log.prior(c(R0 = 3))
-```
-
-You will probably get a different value, depending on your prior function.
-
-## Posterior
-
-```{r echo=FALSE}
-my_SIR <- SIR
-```
-
-To calculate the posterior for a given parameter, write a function that takes a vector `theta` of named parameters and returns a logged posterior probability.
-
-```{r}
-my_posterior <- function(fitmodel, theta) {
-
-    ## calculate the fitmodel prior for parameter theta
-
-    ## calculate the fitmodel likelihood for parameter theta
-
-    ## return the logged posterior probability
-}
-```
-
-```{r echo=FALSE,results="hide"}
-my_posterior <- function(fitmodel, theta) {
-    prior <- fitmodel$log.prior(theta)
-
-    state.init <- fitmodel$initialise.state(theta)
-
-    trajectory <- fitmodel$simulate.model(theta, state.init, fitmodel$data$time)
-    likelihood <- fitmodel$log.likelihood(fitmodel$data, theta, trajectory)
-
-    return(prior + likelihood)
-}
-```
-
-When called with a `fitmodel` and a vector of named parameters `theta`, it should return the value of the posterior at that value of `theta`, e.g.
-
-```{r}
-theta <- c(R0 = 15, IP = 2, rho = 0.5, pI0 = 35 / 7.3e+6, pR0 = 0.9, N = 7.3e+6)
-my_posterior(my_SIR, theta)
-```
-
-You will probably get a different value, depending on your prior and likelihood functions.
-
-## MCMC
+## The Metropolis-Hastings sampler
 
 To sample from a distribution using MCMC, write a function that takes a target distribution like your posterior (i.e., a function that takes one argument, `theta`), an initial `init.theta`, a covariance matrix and the number of iterations. It should evaluate the target function at `init.theta` and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
 
@@ -190,4 +79,3 @@ You will probably see a different matrix, depending on the proposal standard dev
 
 
 Previous: [Data and likelihood](data_likelihood.md) Next: [Tristan da Cunha outbreak](play_with_seitl.md)
-
