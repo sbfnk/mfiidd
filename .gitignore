@@ -19,3 +19,4 @@ auto
 *.fls
 *.log
 *.synctex.gz
+*.out
