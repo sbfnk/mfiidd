@@ -7,7 +7,7 @@
 # - data, the data set we are fitting the model to
 # It returns the posterior for the given model, parameters, initial
 # conditions and data.
-my_posterior <- function(fitmodel, theta, state.init, data) {
+my_logPosterior <- function(fitmodel, theta, state.init, data) {
 
     # calculate the fitmodel prior for parameter vector theta using
     # fitmodel$logPrior, and assign to variable log.prior

@@ -9,7 +9,7 @@ Below, you can find an example of how to code the posterior. Some bits are left 
 # - data, the data set we are fitting the model to
 # It should return the posterior for the given model, parameters,
 # initial conditions and data.
-my_posterior <- function(fitmodel, theta, state.init, data) {
+my_logPosterior <- function(fitmodel, theta, state.init, data) {
 
     log.prior <- # INSERT HERE: calculate the fitmodel prior for
         # parameter vector theta using fitmodel$logPrior, and assign
