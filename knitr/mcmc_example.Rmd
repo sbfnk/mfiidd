@@ -9,16 +9,13 @@ Below, you can find an example of how to code a Metropolis sampler. Some bits ar
 # - proposal.sd: the standard deviation of (Gaussian) proposal
 #   distribution
 # - n.iterations: the number of iterations
-# Any further arguments passed to my_mcmcMH will be passed to the target
-# distribution.
 # The function returns a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations, ...) {
+my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations) {
 
     # evaluate the function "target.dist" at "theta.init", and assign to
-    # a variable called target.theta.current. Pass all
-    # extra arguments of my_mcmcMH to the target function using '...'
-    target.theta.current <- target.dist(init.theta, ...)
+    # a variable called target.theta.current.
+    target.theta.current <- target.dist(init.theta)
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted runs
@@ -36,8 +33,7 @@ my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations, ...) {
 
         target.theta.proposed <- # INSERT HERE: evaluate the function
             # target.dist at the proposed theta and assign to a
-            # variable called "target.theta.proposed", passing further
-            # arguments using '...'
+            # variable called "target.theta.proposed"
 
         log.acceptance <- # INSERT HERE: compute Metropolis ratio
             # (acceptance probability). This is easiest if you assume

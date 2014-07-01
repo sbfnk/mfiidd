@@ -7,16 +7,13 @@
 # - proposal.sd: the standard deviation of (Gaussian) proposal
 #   distribution
 # - n.iterations: the number of iterations
-# Any further arguments passed to my_mcmcMH will be passed to the target
-# distribution.
 # The function returns a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations, ...) {
+my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations) {
 
     # evaluate the function "target.dist" at "theta.init", and assign to
-    # a variable called target.theta.current. Pass all
-    # extra arguments of my_mcmcMH to the target function
-    target.theta.current <- target.dist(init.theta, ...)
+    # a variable called target.theta.current.
+    target.theta.current <- target.dist(init.theta)
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted runs
@@ -34,9 +31,8 @@ my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations, ...) {
                                 sd = proposal.sd)
 
         # evaluate the function target.dist at the proposed theta and
-        # assign to a variable called target.theta.proposed, passing
-        # further arguments using '...'
-        target.theta.proposed <- target.dist(theta.proposed, ...)
+        # assign to a variable called target.theta.proposed
+        target.theta.proposed <- target.dist(theta.proposed)
 
         # compute Metropolis-Hastings ratio (acceptance probability). Since
         # the multivariate Gaussian is symmetric, we don't need to consider
