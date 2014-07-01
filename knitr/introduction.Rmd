@@ -130,7 +130,7 @@ This is contains several epidemic data sets. The first one, called `epi1`, has b
 epi1
 ```
 
-The observations ("obs") are based on observed prevalence ("I"). You can plot the data using.
+The observations ("obs") are based on observed prevalence ("I"). You can plot the data using
 
 ```{r}
 plotTraj(epi1)
