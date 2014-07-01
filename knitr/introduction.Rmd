@@ -1,7 +1,7 @@
 % Introduction to model fitting in R
 
 ```{r echo=FALSE,message=FALSE}
-opts_chunk$set(fig.cap='')
+opts_chunk$set(fig.cap='', fig.height=5, fig.width=5)
 library(fitR)
 set.seed(1234)
 ```
@@ -72,7 +72,7 @@ head(traj)
 
 To visualise a model, you can use `plotTraj`
 
-```{r fig.height=4}
+```{r fig.width = 10}
 plotTraj(traj)
 ```
 
@@ -130,7 +130,7 @@ epi1
 
 The observations ("obs") are based on observed prevalence ("I"). You can plot the data using.
 
-```{r fig.height=4,fig.width=4}
+```{r}
 plotTraj(epi1)
 ```
 
