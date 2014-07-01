@@ -17,9 +17,9 @@ my_logPosterior <- function(fitmodel, theta, state.init, data) {
     # fitmodel$logPrior, and assign to variable log.prior
     log.likelihood <- trajLogLike(fitmodel, theta, state.init, data)
 
-    # calulate the posterior using the log-prior and log-likelihood
-    posterior <- log.prior + log.likelihood
+    # calulate the log-posterior using the log-prior and log-likelihood
+    log.posterior <- log.prior + log.likelihood
 
-    return(posterior)
+    return(log.posterior)
 
 }
