@@ -23,13 +23,18 @@ my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations) {
     samples <- theta.init
     accepted <- 0
 
-    ## run MCMC for n.iteration interations
+    # run MCMC for n.iteration interations
     for (i.iteration in seq_len(n.iterations)) {
 
         theta.proposed <- # INSERT HERE: draw a new theta from the
-            # (multivariate Gaussian) proposal distribution and assign
-            # to a variable called "theta.proposed". See "?nrorm for
-            # help.
+            # (Gaussian) proposal distribution and assign to a
+            # variable called "theta.proposed". See "?rnorm for help.
+
+        # 'rnorm' returns an unnamed vector, but our the functions of
+        # 'fitmodel' need a named parameter vector. We therefore set
+        # the names of theta.proposed to be the same as the names of
+        # theta.current
+        names(theta.proposed) <- names(theta.current)
 
         target.theta.proposed <- # INSERT HERE: evaluate the function
             # target.dist at the proposed theta and assign to a

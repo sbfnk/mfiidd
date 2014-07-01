@@ -27,8 +27,15 @@ my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations) {
         # draw a new theta from the (Gaussian) proposal distribution
         # and assign to a variable called theta.proposed.  See
         # "?rnorm for more information
-        theta.proposed <- rnorm(n = 1, mean = theta.current,
+        theta.proposed <- rnorm(n = length(theta.current),
+                                mean = theta.current,
                                 sd = proposal.sd)
+
+        # 'rnorm' returns an unnamed vector, but our the functions of
+        # 'fitmodel' need a named parameter vector. We therefore set
+        # the names of theta.proposed to be the same as the names of
+        # theta.current
+        names(theta.proposed) <- names(theta.current)
 
         # evaluate the function target.dist at the proposed theta and
         # assign to a variable called target.theta.proposed
