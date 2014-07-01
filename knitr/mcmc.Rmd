@@ -103,6 +103,42 @@ hist(trace)
 ```
 
 This looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
+# Sampling from a posterior distribution
+
+We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a `my_posterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). We need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler. Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. In other words, while the `my_posterior` function evaluates $p(R_0,D_\mathrm{inf},X_0|\mathrm{Data})$ we want to sample from $p(R_0|D_\mathrm{inf}, X_0, \mathrm{Data})$, and write this as an **R** function that just takes one argument, $R_0$. Again, we us a wrapper function for this, which returns the posterior density for a given value of $R_0$ for the `SIR` model with respect to the `epi1` data set, with fixed infectious period $D_\mathrm{inf}$ and initial conditions $X_0$.
+
+```{r}
+my_posterior_R0 <- function(R0) {
+
+    # set parameters using the provided value of R0 and duration of
+    # infection 2
+    parameters <- c(R0 = R0, D.inf = 2)
+
+    return(my_posterior(fitmodel = SIR,
+                        theta = parameters,
+                        state.init = c(S = 999, I = 1, R = 0),
+                        data = epi1))
+
+}
+```
+
+We can test that this function returns the value of the posterior for a given value of $R_0$.
+
+```{r}
+my_posterior_R0(3)
+```
+
+We can now generate samples from `my_posterior_R0` using `my_mcmcMH`. Can you work out the command to do this? If have any problems with this, have a look at our [solution](generate_samples.md).
+
+Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample medians (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
+
+Try different starting values for $R_0$, for the standard deviation of the (Gaussian) proposal distribution $q(\theta'|\theta)$, and for the number of iterations. Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on  parameters:
+
+1. What is your best estimate of $R_0$? Does this match you estimate from the previous session?
+2. What determines the acceptance rate?
+3. How many iterations do you need to get a good estimate for $R_0$?
+
+In the next session we will look at all of these issues in more detail.
 
 <div>
 Previous: [Introduction](introduction.md) Next: [Tristan da Cunha outbreak](play_with_seitl.md)
