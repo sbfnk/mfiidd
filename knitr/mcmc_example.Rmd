@@ -70,7 +70,7 @@ my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations, ...) {
         samples <- c(samples, theta.current)
 
         # print current state of chain and acceptance rate
-        cat("chain:", theta.current),
+        cat("chain:", theta.current,
             "acceptance rate:", accepted / i.iteration, "\n")
 
     }
