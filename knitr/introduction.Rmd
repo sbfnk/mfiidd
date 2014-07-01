@@ -17,7 +17,7 @@ In this session, you will
 
 # A simple SIR model
 
-First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number $R_0$ and the infectious period $D$. The model equations are
+First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$. The model equations are
 
 $$
 \begin{aligned}
@@ -27,7 +27,7 @@ $$
 \end{aligned}
 $$
 
-where $\beta=R_0/D$, $\nu = 1/D$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
+where $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
 
 ```{r results="hide"}
 example(SIR)
@@ -58,7 +58,7 @@ Moreover, each `fitmodel` contains four functions: `simulate` to run the model, 
 To simulate a model run, we use the `simulate` contained within a `fitmodel`. To run the SIR model, we have to provide parameter values, initial conditions and the times at which we want model output.
 
 ```{r}
-parameters <- c(R0 = 3, D = 1.5)
+parameters <- c(R0 = 3, D.inf = 2)
 state.init <- c(S = 999, I = 1, R = 0)
 times <- 1:100
 traj <- SIR$simulate(parameters, state.init, times)
