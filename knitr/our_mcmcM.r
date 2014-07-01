@@ -24,7 +24,7 @@ my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations, ...) {
     samples <- theta.current
     accepted <- 0
 
-    ## run MCMC for n.iteration interations
+    # run MCMC for n.iteration interations
     for (i.iteration in seq_len(n.iterations)) {
 
         # draw a new theta from the (Gaussian) proposal distribution
