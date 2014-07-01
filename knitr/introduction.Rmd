@@ -201,7 +201,7 @@ my_logPosterior(SIR, parameters, state.init, epi1)
 
 You can assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial conditions using `genObsTraj` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
 
-```{r}
+```{r message = FALSE}
 plotFit(SIR, theta, state.init, epi1)
 ```
 
