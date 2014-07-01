@@ -1,0 +1,26 @@
+% Practical session: MCMC diagnostics
+
+```{r echo=FALSE,results="hide",message=FALSE}
+opts_chunk$set(fig.cap='')
+library(fitR)
+example(SIR)
+example(SIR_reporting)
+```
+
+# Objectives
+
+The aim of this session is to learn how to interpret the results of MCMC sampling, as well as to improve the performance of the sampler. More specifically, you will
+
+1. use the Metropolis-Hastings sampler to explore the posterior of a models with more than one parameter
+2. learn to use `ggmcmc` for assessing and interpreting MCMC runs
+3. explore strategies for improving the performance of an Metropolis-Hastings sampler
+
+# The Metropolis-Hastings sampler for more than one parameter
+
+If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later.
+
+The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`.
+
+<div>
+Previous: [Fitting a deterministic model with MCMC](mcmc.md) Next: [Tristan da Cunha](mcmc_diagnostics.md) (not there yet)
+</div>
