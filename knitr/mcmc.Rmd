@@ -140,6 +140,10 @@ Try different starting values for $R_0$, for the standard deviation of the (Gaus
 
 In the next session we will look at all of these issues in more detail.
 
+# Going further
+
+I don't have anything here, let me know if you have ideas.
+
 <div>
 Previous: [Introduction](introduction.md) Next: [MCMC diagnostics](mcmc_diagnostics.md) (not there yet)
 </div>
