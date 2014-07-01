@@ -33,7 +33,9 @@ where $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ i
 example(SIR)
 ```
 
-This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. To see the objects that the `SIR` model contains, type
+This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `SIR` model. If at any time something breaks, you can always go back to the original model by typing `example(SIR)`.
+
+To see the objects that the `SIR` model contains, type
 
 ```{r}
 names(SIR)
@@ -205,7 +207,7 @@ plotFit(SIR, theta, state.init, epi1)
 
 # Explore the posterior
 
-Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the `my_posterior` function you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised?
+Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the `my_posterior` function you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised? Does the model fit the data (looking at `plotFit`)?
 
 You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$logPrior` and `SIR$pointLogLike` by typing
 
@@ -214,7 +216,7 @@ SIR$logPrior
 SIR$pointLogLike
 ```
 
-To change the prior, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
+To change the prior and likelihood functions, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
 
 ```{r eval = FALSE}
 SIR$pointLogLike <- function(data.point, model.point, theta) {
@@ -223,7 +225,7 @@ SIR$pointLogLike <- function(data.point, model.point, theta) {
 }
 ```
 
-Try different distributions for the prior and likelihood distributions. Do they change the shape of the posterior?
+Try different distributions for the prior and likelihood distributions. Do they change the shape of the posterior distribution?
 
 # Going further
 
