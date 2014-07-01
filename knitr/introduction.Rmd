@@ -133,7 +133,7 @@ epi1
 The observations ("obs") are based on observed prevalence ("I"). You can plot the data using
 
 ```{r}
-plotTraj(epi1)
+plotTraj(data = epi1)
 ```
 
 To calculate the log-likelihood of a set of parameters and initial conditions, we can use `trajLogLike`. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial conditions.
