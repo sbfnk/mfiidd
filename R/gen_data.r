@@ -16,8 +16,3 @@ epi2 <- epi1[c("time", "obs")]
 
 save(epi1, epi2, file="epi.rdata")
 
-for (i in seq(1, 3, 0.1)) {
-  parameters <- c(R0 = i, D = 2)
-  post <- my_posterior(SIR, parameters, state.init, epi1)
-  cat(i, post, "\n")
-}
