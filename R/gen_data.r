@@ -21,5 +21,11 @@ epi3 <- genObsTraj(SIR, parameters, state.init, 1:100)
 epi3 <- epi3[1:44, ]
 epi3 <- epi3[c("time", "obs")]
 
-save(epi1, epi2, epi3, file="epi.rdata")
+parameters <- c(R0 = 2.4, D.inf = 8, RR = 0.25)
+state.init <- c(S = 999, I = 1, R = 0)
+
+epi4 <- genObsTraj(SIR_reporting, parameters, state.init, 1:100)
+epi4 <- epi4[c("time", "obs")]
+
+save(epi1, epi2, epi3, epi4, file="epi.rdata")
 
