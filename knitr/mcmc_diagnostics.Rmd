@@ -11,15 +11,39 @@ example(SIR_reporting)
 
 The aim of this session is to learn how to interpret the results of MCMC sampling, as well as to improve the performance of the sampler. More specifically, you will
 
-1. use the Metropolis-Hastings sampler to explore the posterior of a models with more than one parameter
-2. learn to use `ggmcmc` for assessing and interpreting MCMC runs
-3. explore strategies for improving the performance of an Metropolis-Hastings sampler
+1. learn how to use `coda` for assessing and interpreting MCMC runs
+2. explore strategies for improving the performance of an Metropolis-Hastings sampler
+3. learn about posterior predictive checks to assess the goodness of fit
 
-# The Metropolis-Hastings sampler for more than one parameter
+# Sampling more than one parameter
 
-If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later.
+<!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
 
-The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`.
+<!-- The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`. -->
+
+In the last practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, on the other hand, we are often faced with the need to fit models with a multitude of parameters, and our MCMC needs to sample from a posterior distribution that depends on all of them.
+
+Getting the acceptance rate to a desired value is much harder when dealing with multiple parameters, but there are a few strategies available for doing so, which we will learn about in this practical session.
+
+The data set `epi3` was generated from an SIR model with unknown basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. Try to use the MCMC sampler created in the previous session to generate samples that follow the the posterior density (if you didn't get to write your own MCMC sampler, use the own from our [solution](mcmc_example_solution.md)).
+
+To get good acceptance rates, it is usually a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate.
+
+You can visualise the `epi3` data set with
+
+```{r}
+plotTraj(data = epi3)
+```
+
+You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_wrap` wrapper function to fit to data set `epi3`. Try a few values for the vector of standard deviations `proposal.sd` and see if you can get acceptance rates of 0.2-0.3.
+
+# Assessing and interpreting MCMC runs
+
+
+
+# Improving the performance of the sampler
+
+# Assessing the fit
 
 <div>
 Previous: [Fitting a deterministic model with MCMC](mcmc.md) Next: [Tristan da Cunha](mcmc_diagnostics.md) (not there yet)
