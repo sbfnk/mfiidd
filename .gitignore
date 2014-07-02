@@ -12,6 +12,7 @@ test/testground.txt
 
 # Emacs stuff
 auto
+.#*
 
 # Latex stuff
 *.aux
@@ -27,3 +28,4 @@ knitr/*.html
 knitr/*.pdf
 knitr/figure
 knitr/cache
+
