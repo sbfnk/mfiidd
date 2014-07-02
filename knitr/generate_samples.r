@@ -1,5 +1,5 @@
 # @knitr generate_samples
-trace <- my_mcmcMH(target.dist = my_logPosterior_R0, # target distribution
+trace <- my_mcmcMH(target.dist = my_logPosterior_epi1, # target distribution
                    init.theta = c(R0 = 1, D.inf = 2), # intiial parameter guess
                    proposal.sd = c(0.1, 0), # standard deviation of
                        # Gaussian proposals: 0.1 for the first

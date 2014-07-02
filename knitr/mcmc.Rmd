@@ -118,7 +118,7 @@ Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest S
 Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a function that just takes one parameter `theta`. Again, we us a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, with fixed initial conditions $X_0$.
 
 ```{r}
-my_logPosterior_R0 <- function(theta) {
+my_logPosterior_epi1 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR,
                         theta = theta,
