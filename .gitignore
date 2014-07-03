@@ -20,3 +20,5 @@ auto
 *.log
 *.synctex.gz
 *.out
+
+knitr/cache/*

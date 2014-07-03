@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>The SEITL model</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+</head>
+<body>
+<div id="header">
+<h1 class="title">The SEITL model</h1>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#objectives">Objectives</a></li>
+<li><a href="#tristan-da-cunha-outbreak">Tristan da Cunha outbreak</a></li>
+<li><a href="#seitl-model">SEITL model</a></li>
+<li><a href="#deterministic-vs-stochastic-simulations">Deterministic vs Stochastic simulations</a><ul>
+<li><a href="#deterministic-simulations">Deterministic simulations</a></li>
+<li><a href="#stochastic-simulations">Stochastic simulations</a></li>
+</ul></li>
+<li><a href="#exponential-vs-erlang-distributions">Exponential vs Erlang distributions</a></li>
+<li><a href="#fitting-the-deterministic-models">Fitting the deterministic models</a><ul>
+<li><a href="#run-a-mcmc">Run a MCMC</a></li>
+<li><a href="#short-run-analysis">Short run analysis</a></li>
+<li><a href="#long-run-analysis">Long run analysis</a></li>
+<li><a href="#correlation">Correlation</a></li>
+<li><a href="#model-selection">Model selection</a></li>
+</ul></li>
+<li><a href="#to-go-further">To go further</a></li>
+</ul>
+</div>
+<h1 id="objectives">Objectives</h1>
+<p>The aim of this session is to familiarise yourselves with the SEITL model. This model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971. Given the small population size of this island (284 habs), demographic stochasticity is expected to play a significant role in the dynamics of the epidemic so that the use of a stochastic model is recommended. However, as you will see in the next lecture, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. We will therefore close this session by fitting the deterministic SEITL model. Actually, this will be useful to prepare the next session, when you will fit the stochastic model.</p>
+<p>In this session you will</p>
+<ol style="list-style-type: decimal">
+<li>Familiarise yourself with the structure and parameters of the SEITL model</li>
+<li>Explore the role of demographic stochasticity in the dynamics of the model</li>
+<li>Fit the deterministic SEITL model using MCMC</li>
+</ol>
+<p>But first of all, let's have a look at the data.</p>
+<h1 id="tristan-da-cunha-outbreak">Tristan da Cunha outbreak</h1>
+<div class="figure">
+<img src="figure/SEITL_model/TdC.png" />
+</div>
+<p><a href="http://en.wikipedia.org/wiki/Tristan_da_Cunha">Tristan da Cunha</a> is a volcanic island in the South Atlantic Ocean. It has been inhabited since the <span class="math">\(19^{th}\)</span> century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas. Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island. These ships were often the cause of introduction of new diseases into the population (Samuels1963). Focusing on influenza, no epidemic has been reported since an epidemic of A/H1N1 in 1954. In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.</p>
+<p>On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha. Three of them developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing. Various family gatherings welcomed their disembarkation and in the ensuing days, an epidemic started to spread rapidly throughout the whole island population. After three weeks of propagation, while the epidemic was declining, some islanders developed second attacks and a second peak of cases was recorded. The epidemic faded out after this second wave and lasted a total of 59 days.</p>
+<p>Among the 284 islanders, 273 (96%) experienced at least one attack and 92 (32%) experienced two attacks. Unfortunately, only 312 of the 365 attacks (85%) are known to within a single day of accuracy and constitute the dataset reported by Mantle &amp; Tyrrell in 1973 (ref:Mantle1973}.</p>
+<p>The dataset of daily incidence can be loaded and plotted as follows:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(FluTdC1971)
+<span class="kw">head</span>(FluTdC1971)</code></pre>
+<pre><code>##         date time obs
+## 1 1971-08-13    1   0
+## 2 1971-08-14    2   1
+## 3 1971-08-15    3   0
+## 4 1971-08-16    4  10
+## 5 1971-08-17    5   6
+## 6 1971-08-18    6  32</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> FluTdC1971, <span class="kw">aes</span>(<span class="dt">x =</span> date, <span class="dt">y =</span> obs)) +<span class="st"> </span><span class="kw">geom_bar</span>(<span class="dt">stat =</span> <span class="st">&quot;identity&quot;</span>) +<span class="st"> </span>
+<span class="st">    </span><span class="kw">theme_bw</span>()</code></pre>
+<p><img src="figure/SEITL_model/data.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<h1 id="seitl-model">SEITL model</h1>
+<p>One possible explanation for the rapid reinfections reported during this two-wave outbreak is that following recovery from a first infection, some islanders did not develop a long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain that was still circulating. This can be modelled as follows:</p>
+<div class="figure">
+<img src="figure/SEITL_model/SEITL.png" alt="The SEITL model extends the classical SEIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular response. Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral response has a probability \alpha to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection) but otherwise they remain unprotected and re-enter the susceptible pool (S)." /><p class="caption">The SEITL model extends the classical SEIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular response. Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral response has a probability <span class="math">\(\alpha\)</span> to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection) but otherwise they remain unprotected and re-enter the susceptible pool (S).</p>
+</div>
+<p>The SEITL model can be described with five states (S, E, I, T and L) and five parameters:</p>
+<ol style="list-style-type: decimal">
+<li>basic reproductive number (<span class="math">\(R_0\)</span>)</li>
+<li>latent period (<span class="math">\(D_\mathrm{lat}\)</span>)</li>
+<li>infectious period (<span class="math">\(D_\mathrm{inf}\)</span>)</li>
+<li>temporary-immune period (<span class="math">\(D_\mathrm{imm}\)</span>)</li>
+<li>probability of developing a long-term protection (<span class="math">\(\alpha\)</span>).</li>
+</ol>
+<p>and the following deterministic equations:</p>
+<p><span class="math">\[
+\begin{cases}
+\begin{aligned}
+\frac{dS}{dt} &amp;= - \beta S \frac{I}{N} + (1-\alpha) \tau T\\
+\frac{dE}{dt} &amp;= \beta S \frac{I}{N} - \epsilon E\\
+\frac{dI}{dt} &amp;= \epsilon E - \nu I\\
+\frac{dT}{dt} &amp;= \nu I - \tau T\\
+\frac{dL}{dt} &amp;= \alpha \tau T\\
+\end{aligned}
+\end{cases}
+\]</span></p>
+<p>where <span class="math">\(\beta=R_0/D_\mathrm{inf}\)</span>, <span class="math">\(\epsilon=1/D_\mathrm{lat}\)</span>, <span class="math">\(\nu = 1/D_\mathrm{inf}\)</span>, <span class="math">\(\tau=1/D_\mathrm{imm}\)</span> and <span class="math">\(N = S + I + R\)</span> is constant.</p>
+<p>However, in order to account for the type of data reported during the outbreak we need to add one state variable and one parameter to the model:</p>
+<ul>
+<li>The dataset represents daily incidence counts: we need to create a <span class="math">\(6^\mathrm{th}\)</span> state variable - called <span class="math">\(\mathrm{Inc}\)</span> - to track the number of daily new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable: <span class="math">\[
+\frac{d\mathrm{Inc}}{dt} = \epsilon E
+\]</span></li>
+<li>The dataset is incomplete: only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate <span class="math">\(\rho\)</span>. Since this reporting rate is unknown (we can only presume that it should be below 85%) we will include it as an additional parameter.</li>
+</ul>
+<p>The deterministic SEITL model is already implemented as a <code>fitmodel</code> object, which can be loaded into your <strong>R</strong> session by typing:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_deter)</code></pre>
+<p><strong>Take 5 min</strong> to look at the different elements of the model. In particular, you might be interested in how the daily incidence is computed in the function <code>SEITL_deter$simulate</code> and how the likelihood function <code>SEITL_deter$pointLogLike</code> accounts for under-reporting.</p>
+<h1 id="deterministic-vs-stochastic-simulations">Deterministic vs Stochastic simulations</h1>
+<h2 id="deterministic-simulations">Deterministic simulations</h2>
+<p>Now, let's assess whether the deterministic SEITL model can reproduce the two-wave outbreak of Tristan da Cunha. You can start simulating the model using guess values for the initial state and the parameters. To give you some hints, here is a summary of information on influenza found in the literature:</p>
+<ol style="list-style-type: decimal">
+<li>The <span class="math">\(R_0\)</span> of influenza is commonly estimated around 2. However, it can be significantly larger (<span class="math">\(R_0&gt;10\)</span>) in close knit communities due to their exceptional contact rates.</li>
+<li>Both the average latent and infectious periods for influenza have been estimated around 2 days each.</li>
+<li>The down-regulation of the cellular response is completed 15 days after symptom onset on average.</li>
+<li>Serological surveys have shown that the seroconversion rate to influenza (probability to develop specific antibodies) is around 80%. However, it is likely that <strong>not</strong> all seroconvereted individuals acquire a long-term protective humoral immunity.</li>
+<li>Between 20 and 30% of the infection with influenza are asymptomatic.</li>
+<li>There is very limited cross-immunity between influenza viruses A/H1N1 and A/H3N2.</li>
+</ol>
+<p>Based on these informations and the description of the outbreak, propose one or more set(s) of values for the parameters (<code>theta</code>) and initial state (<code>state.init</code>) of the model? You can also use our 3 sets of values that can be loaded by typing <code>example(SEITL_guess_values)</code>.</p>
+<p>In the previous practical you have simulated trajectories using <code>genObsTraj</code> and then plot them with <code>plotTraj</code>. Actually, the function <code>plotFit</code> combine these two steps by simulating and displaying model trajectories against the data:</p>
+<pre class="sourceCode r"><code class="sourceCode r">theta.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.9</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, 
+    <span class="dt">rho =</span> <span class="fl">0.85</span>)
+state.init.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+<span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971)</code></pre>
+<pre><code>## Error: inherits(fitmodel, &quot;fitmodel&quot;) is not TRUE</code></pre>
+<p>You can also display all states variables (not only the observation) by passing <code>all.vars=TRUE</code></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971, 
+    <span class="dt">all.vars =</span> <span class="ot">TRUE</span>)</code></pre>
+<p><img src="figure/SEITL_model/allVars.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p>Although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy <code>obs</code> time-series. You can appreciate the variability of the observation process by plotting several replicates (use the argument <code>n.replicates</code>):</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971, 
+    <span class="dt">n.replicates =</span> <span class="dv">100</span>)</code></pre>
+<p><img src="figure/SEITL_model/manyObs.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p>By default, this function plots the mean, median as well as the <span class="math">\(95^\mathrm{th}\)</span> and <span class="math">\(50^\mathrm{th}\)</span> percentiles of the replicated simulations. Alternatively, you can visualize all the simulated trajectories by passing <code>summary=FALSE</code>:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971, 
+    <span class="dt">n.replicates =</span> <span class="dv">100</span>, <span class="dt">summary =</span> <span class="ot">FALSE</span>)</code></pre>
+<p><img src="figure/SEITL_model/allTraj.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p>Now, <strong>take 10 min</strong> to get yourself familiar with the function <code>plotFit</code> and explore the dynamics of your model for different parameter and initial state values. In particular, try different values for <span class="math">\(R_0\in[2-15]\)</span> and <span class="math">\(\alpha\in[0.3-1]\)</span>. For which values of <span class="math">\(R_0\)</span> and <span class="math">\(\alpha\)</span> do you get a descent fit?</p>
+<p>If you didn't get a descent fit, try <code>theta.guess3</code> and <code>state.init.guess3</code> that you can load by typing <code>example(SEITL_guess_values)</code>.</p>
+<p>Once you have a descent fit, you should note the low prevalence between the two waves. This suggests that the continuous approximation made by the deterministic model might not be appropriate and that we should use a stochastic model. In contrast to deterministic models, stochastic models explicitly take into account the discrete nature of individuals.</p>
+<h2 id="stochastic-simulations">Stochastic simulations</h2>
+<p>The stochastic SEITL model is already implemented as a <code>fitmodel</code> object, which can be loaded into your <strong>R</strong> session by typing:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_sto)</code></pre>
+<p>As you can read from the loading messages, <code>SEITL_sto</code> mainly differs from <code>SEITL_deter</code> through the <code>simulate</code> function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm takes a list of transitions (<code>SEITL_transitions</code>) and a function to compute the transition rate (<code>SEITL_rateFunc</code>). <strong>Take 5 min</strong> to have a look at the function <code>SEITL_sto$simulate</code> and make sure you understand all the transitions and rates.</p>
+<p>If you are curious about how the stochastic model is simulated, you can have a look at the code of the function <code>simulateModelStochastic</code>. You will note that it calls the function <code>ssa.adaptivetau</code> of the <strong>R</strong> package <code>adaptivetau</code>, and then process the returned data frame in order to extract the state of the model at the desired observation times given by <code>times</code>.</p>
+<p>Then <strong>take 10 min</strong> to explore the dynamics of the stochastic SEITL model with the function <code>plotFit</code>. Note that <code>SEITL_sto</code> has the same <code>theta.names</code> and <code>state.names</code> as <code>SEITL_deter</code>, which means that you can use the same parameters and initial state vectors as in the previous section. In addition, you can plot the time-series of the proportion of faded out simulations by passing <code>p.extinction=TRUE</code> to <code>plotFit</code>.</p>
+<p>What differences do you notice between stochastic and deterministic simulations? Conclude on the role of demographic stochasticity on the dynamics of the SEITL model.</p>
+<h1 id="exponential-vs-erlang-distributions">Exponential vs Erlang distributions</h1>
+<p>So far, we have assumed that the time spent in each compartment was following an <a href="http://en.wikipedia.org/wiki/Exponential_distribution">exponential distribution</a>. This distribution has the well known property of being memoryless, which means that the probability of leaving a compartment doesn't depend on the time already spent in this compartment. Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response. In order to include a memory effect, it is common to replace the exponential distribution by an <a href="http://en.wikipedia.org/wiki/Erlang_distribution">Erlang distribution</a>. This distribution is parametrised by its mean <span class="math">\(m\)</span> and shape <span class="math">\(k\)</span> and can be modelled by <span class="math">\(k\)</span> consecutive sub-stages, each being exponentially distributed with mean <span class="math">\(m/k\)</span>. As illustrated below the flexibility of the Erlang distribution ranges from the exponential (<span class="math">\(k=1\)</span>) to Gaussian-like (<span class="math">\(k&gt;&gt;1\)</span>) distributions.</p>
+<p><img src="figure/SEITL_model/erlang.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p>We can extend the SEITL as follows:</p>
+<div class="figure">
+<img src="figure/SEITL_model/SEIT2L.png" alt="The SEIT2L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spend in the T compartment (temporary protection) follow an Erlang distribution with mean D_\mathrm{imm}=1/\tau and shape equal to 2." /><p class="caption">The SEIT2L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spend in the <span class="math">\(T\)</span> compartment (temporary protection) follow an Erlang distribution with mean <span class="math">\(D_\mathrm{imm}=1/\tau\)</span> and shape equal to 2.</p>
+</div>
+<p>The deterministic and stochastic SEIT2L models are already implemented as <code>fitmodel</code> objects, which can be loaded into your <strong>R</strong> session by typing:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEIT2L_deter)
+<span class="kw">example</span>(SEIT2L_sto)</code></pre>
+<p><strong>Take 5 min</strong> to have a look at the function <code>simulate</code> of these SEIT2L models and make sure you understand how the Erlang distribution for the <span class="math">\(T\)</span> compartment is coded.</p>
+<p>Now, <strong>take 10 min</strong> to compare the dynamics of the SEITL and SEIT2L model using <code>plotFit</code>. Use your best guess from the previous exercise as well as stochastic and deterministic simulations. Note that although SEITL and SEIT2L share the same parameters, their state variables differ so you need to modify the <code>state.init</code> of SEIT2L accordingly.</p>
+<p>Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes as you change the distribution of the <span class="math">\(T\)</span> compartment?</p>
+<h1 id="fitting-the-deterministic-models">Fitting the deterministic models</h1>
+<p>As you will see in the next session, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. This can lead to a waste of time and computational resources:</p>
+<ol style="list-style-type: decimal">
+<li>If you initialise the MCMC with a <code>theta.init</code> far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.</li>
+<li>If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in poor mixing and sub-optimal acceptance rate and you will have to thin a lot your chain.</li>
+</ol>
+<p>In this context, it might be useful to run a MCMC on the deterministic model first, which is fast, and then learn from the output of this chain to initialise the chain for the fit of the stochastic model. The rational for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.</p>
+<p>So the objective of the last part of this session is to fit the deterministic SEITL and SEIT2L models to the Tristan da Cunha outbreak. This will prepare the next session and enable us to compare both models and assess whether one is significantly better than the other.</p>
+<p>To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL, the same command work for the SEIT2L model by adjusting the name of the command (i.e. 'example(SEIT2L_deter)' instead of 'example(SEITL_deter)').</p>
+<h2 id="run-a-mcmc">Run a MCMC</h2>
+<p>Here you could use the function <code>my_mcmcMH</code> that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.</p>
+<p><strong>Take 5 min</strong> to have a look at the adaptive MCMC implemented in the function <code>mcmcMH</code>. As you can see, this function takes similar arguments as your function <code>my_mcmcMH</code> (<code>target</code>, <code>theta.init</code>, <code>proposal.sd</code> and <code>n.iterations</code>) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of <code>mcmcMH</code>. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.</p>
+<p>The next step is to write a wrapper function to evaluate the posterior at a given <code>theta</code> value. Here again, you could wrap the function <code>my_posterior</code> that you have already coded and pass it to <code>mcmcMH</code> so that it returns a sample of <code>theta</code> from the posterior distribution. However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled <code>theta</code>s. Although this could be done by running <code>trajLogLike</code> on each returned <code>theta</code>, you might remember that the log-likelihood is actually computed in <code>my_posterior</code> so we could just use it. This is exactly what the function <code>logPosterior</code> does for you.</p>
+<p><strong>Take 5 min</strong> to look at the code of <code>logPosterior</code>. As you can see, this function takes similar arguments as your function <code>my_posterior</code> (<code>fitmodel</code>, <code>theta</code>, <code>state.init</code> and <code>data</code>) plus one called <code>margLogLike</code>, which is a function to compute the log-likelihood of <code>theta</code>. By default, it is set to <code>trajLogLike</code> so you don't really need to bother with this argument (actually it will be useful in the next session as we will need a different function than <code>trajLogLike</code> to compute the log-likelihood). Note also that this function returns a list of two elements:</p>
+<ol style="list-style-type: decimal">
+<li><code>log.density</code>: the log of the posterior density</li>
+<li><code>trace</code>: a vector that contains, among other things, <code>theta</code> and its <code>log.likelihood</code>. All these information will be added to the <code>trace</code> data frame returned by <code>mcmcMH</code>.</li>
+</ol>
+<p>Now, <strong>take 15 min</strong> to prepare all the inputs to be able to run <code>mcmcMH</code> to fit your model. You should proceed as follows:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the fitmodel</span>
+<span class="kw">example</span>(SEITL_deter)
+
+<span class="co"># wrapper for posterior</span>
+my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
+    
+    my_fitmodel &lt;-<span class="st"> </span>SEITL_deter
+    my_state.init &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+    
+    <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">state.init =</span> my_state.init, 
+        <span class="dt">data =</span> FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
+    
+}
+
+<span class="co"># theta to initialise the MCMC</span>
+theta.init &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">D.imm =</span> <span class="dv">16</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
+
+<span class="co"># diagonal elements of the covariance matrix for the Gaussian proposal</span>
+proposal.sd &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.lat =</span> <span class="fl">0.5</span>, <span class="dt">D.inf =</span> <span class="fl">0.5</span>, <span class="dt">alpha =</span> <span class="fl">0.1</span>, <span class="dt">D.imm =</span> <span class="dv">2</span>, <span class="dt">rho =</span> <span class="fl">0.1</span>)
+
+<span class="co"># lower and upper limits of each parameter</span>
+lower &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">0</span>, <span class="dt">D.lat =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>, <span class="dt">alpha =</span> <span class="dv">0</span>, <span class="dt">D.imm =</span> <span class="dv">0</span>, <span class="dt">rho =</span> <span class="dv">0</span>)
+upper &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="ot">Inf</span>, <span class="dt">D.lat =</span> <span class="ot">Inf</span>, <span class="dt">D.inf =</span> <span class="ot">Inf</span>, <span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">D.imm =</span> <span class="ot">Inf</span>, <span class="dt">rho =</span> <span class="dv">1</span>)
+
+<span class="co"># number of iterations for the MCMC</span>
+n.iterations &lt;-<span class="st"> </span><span class="dv">5000</span>
+
+<span class="co"># additional parameters for the adaptive MCMC, see ?mcmcMH for more details</span>
+adapt.size.start &lt;-<span class="st"> </span><span class="dv">100</span>
+adapt.size.cooling &lt;-<span class="st"> </span><span class="fl">0.999</span>
+adapt.shape.start &lt;-<span class="st"> </span><span class="dv">200</span></code></pre>
+<p>If you have trouble filling some of the empty bits, have a look at our <a href="TODO">example</a>.</p>
+<p>Then you should be able to run <code>mcmcMH</code>:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
+my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC, <span class="dt">theta.init =</span> theta.init, <span class="dt">proposal.sd =</span> proposal.sd, 
+    <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> lower, <span class="dt">upper =</span> upper), <span class="dt">n.iterations =</span> n.iterations, 
+    <span class="dt">adapt.size.start =</span> adapt.size.start, <span class="dt">adapt.size.cooling =</span> adapt.size.cooling, 
+    <span class="dt">adapt.shape.start =</span> adapt.shape.start)</code></pre>
+<p>Which should print some informations as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?</p>
+<p>Note that we have set-up the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform less iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.</p>
+<p><strong>Take 10 min</strong> to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a &quot;good&quot; combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our <a href="TODO#set">example</a>.</p>
+<h2 id="short-run-analysis">Short run analysis</h2>
+<p>Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the <code>coda</code> package. If you didn't manage to run <code>mcmcMH</code>, you can use the results from our <a href="TODO#run">example</a>.</p>
+<p>Note that because there are more than 6 parameters to look at, the <code>coda</code> functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels takes too much space). Fortunately, <code>coda</code> has another set of functions to make the plots more compacts:</p>
+<ul>
+<li><code>xyplot</code> for the trace.</li>
+<li><code>densityplot</code> for the density.</li>
+<li><code>acfplot</code> for the autocorrelation.</li>
+</ul>
+<p>You can find a grouped documentation for these three functions by typing <code>?acfplot</code>.</p>
+<p><strong>Take 10 min</strong> to analyse the trace returned by <code>mcmcMH</code>. Remember that, with the notation above, the trace can be accessed by <code>my_mcmc.TdC$trace</code> and then converted to a <code>mcmc</code> object so that the <code>coda</code> functions recognize it:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># convert to mcmc object</span>
+my_trace &lt;-<span class="st"> </span><span class="kw">mcmc</span>(my_mcmc.TdC$trace)
+<span class="co"># plot the trace</span>
+<span class="kw">xyplot</span>(my_trace)</code></pre>
+<p>Try to determine what burning and thining would be appropriate for your trace. If you are not sure about how to analyse your trace, have a look at our <a href="TODO#analyse">example</a>.</p>
+<h2 id="long-run-analysis">Long run analysis</h2>
+<p>You should have noticed that the effective sample size (ESS) is quite small (<span class="math">\(&lt;100\)</span>) for your preliminary run. By contrast, the ESS was much higher for the SIR model of the previous session with a similar number of iterations. However, this model has only 2 parameters against 6 for the SEITL and SEIT2L models. Intuitively, the more parameter you have the bigger is the parameter space and the longer it takes to the MCMC algorithm to explore it (<strong>some theoretical results?</strong>). This is why we need to run a much longer chain to achieve a descent ESS ($~1000).</p>
+<p>To save time, we have run 2 chains of 100 000 iterations starting from different initial <code>theta</code> values:</p>
+<pre class="sourceCode r"><code class="sourceCode r">theta1 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">D.imm =</span> <span class="dv">16</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
+theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">20</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.1</span>, <span class="dt">D.imm =</span> <span class="dv">8</span>, <span class="dt">rho =</span> <span class="fl">0.3</span>)</code></pre>
+<p>Each chain took 5 hours on a scientific computing cluster and can be loaded as follows:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(mcmc_TdC_deter_longRun)
+<span class="co"># this should load 2 objects in your environment: mcmc_SEITL_theta1 and</span>
+<span class="co"># mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMH</span>
+<span class="kw">names</span>(mcmc_SEITL_theta1)
+## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;
+<span class="co"># the trace contain 9 variables for 100000 iterations</span>
+<span class="kw">dim</span>(mcmc_SEITL_theta1$trace)
+## [1] 100001      9
+<span class="co"># let&#39;s have a look at it</span>
+<span class="kw">head</span>(mcmc_SEITL_theta1$trace)
+##      R0 D.lat D.inf  alpha D.imm    rho log.prior log.likelihood
+## 1 2.000 2.000 2.000 0.8000 16.00 0.8500    -12.81         -445.8
+## 2 2.000 2.000 2.000 0.8000 16.00 0.8500    -12.81         -445.8
+## 3 3.291 1.928 2.140 0.8244 19.15 0.8684    -12.81         -442.7
+## 4 3.644 1.868 1.899 0.8099 18.47 0.8769    -12.81         -438.2
+## 5 5.094 1.938 1.497 0.7237 16.55 0.7971    -12.81         -329.7
+## 6 5.405 1.981 1.826 0.5987 16.95 0.7286    -12.81         -220.3
+##   log.posterior
+## 1        -458.6
+## 2        -458.6
+## 3        -455.5
+## 4        -451.0
+## 5        -342.5
+## 6        -233.1</code></pre>
+<p>Make sure you choose a chain with a different initial <code>theta</code> than your neighbour and <strong>take 10 min</strong> to analyse it and compare your posterior distributions. If you found similar posterior distributions, that means that you can join the two chains to make your posterior even more accurate. <strong>Take 5 min</strong> to do so. Hint: 'coda' knows how to deal with list of <code>mcmc</code> objects and most functions will work for these <code>mcmc.list</code> objects.</p>
+<h2 id="correlation">Correlation</h2>
+<h2 id="model-selection">Model selection</h2>
+<h1 id="to-go-further">To go further</h1>
+<ul>
+<li>The Poisson process: see bottom of page 3 of this <a href="http://data.princeton.edu/wws509/notes/c4.pdf">reference</a> for more details.</li>
+</ul>
+<div>
+<pre><code># Navigate
+Previous: [Run MCMC](mcmc.html) Next: [Run a SMC](smc.html)</code></pre>
+</div>
+</body>
+</html>
