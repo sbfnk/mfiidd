@@ -15,6 +15,8 @@ The aim of this session is to learn how to interpret the results of MCMC samplin
 2. explore strategies for improving the performance of an Metropolis-Hastings sampler
 3. learn about posterior predictive checks to assess the goodness of fit
 
+
+
 # Sampling more than one parameter
 
 <!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
@@ -29,26 +31,24 @@ The data set `epi3` was generated from an SIR model with unknown basic reproduct
 
 You can visualise the `epi3` data set with
 
-```{r}
+```{r fig.height = 5, fig.width = 5}
 plotTraj(data = epi3)
 ```
 
-```{r}
+You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_wrap` wrapper function to fit to data set `epi3`. Try a few values for the vector of standard deviations `proposal.sd` and see if how this affects the acceptance rate.
 
-```
+To get good acceptance rates, it is sometimes a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
 
-You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_wrap` wrapper function to fit to data set `epi3`. Try a few values for the vector of standard deviations `proposal.sd` and see if you can get acceptance rates of 0.2-0.3.
+We will now introduce you to how to use `coda` to diagnose MCMC runs. We suggest that, once you've read the sections on "Summary statistics" and "Diagnostics", you spend at least a good half hour experimenting with the Metropolis-Hastings sampler. That is, you should try running MCMC on the `epi3` data set from different starting points, with different values for the step size (`proposal.sd`), and assess the impact on the summary statistics and plots introduced below . Experiment with burning and thinning (which we will introduce below), and see what impact they have. Take your time to fully understand the behaviour of the Metropolis-Hastings sampler -- this is what we well use throughout this course. You can also try to fit a model with reporting (`SIR_reporting`) to the `epi4` data set. This is a model with 3 parameters (the basic reproduction number $R_0$, the infectious period $D_\mathrm{inf}$ and the reporting rate $RR$. Don't only try to get the best fit -- it is worth also experimenting with what you need to do to break the sampler, i.e. get inconsistent results.
 
-To get good acceptance rates, it is often a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
+# Summary statistics
 
-# Assessing and interpreting MCMC runs
-
-We now use the functions from the `coda` library to assess the MCMC runs. This usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter. Use the commands below to assess MCMC runs with different values of the initial parameters `init.theta` and step size `proposal.sd`. If you didn't get any MCMC run to work, you can look at the output of an MCMC run that we did ourselves using
+We now use the functions from the `coda` library to assess the MCMC runs. This usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters `init.theta` and step size `proposal.sd`. If you didn't get any MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the `mcmc.epi3` object, which you can load with `data(mcmc)`:
 
 ```{r}
 data(mcmc)
-trace <- mcmc.epi3
-head(mcmc.epi3$trace)
+trace <- mcmc.epi3$trace
+head(trace)
 ```
 
 This run was created using the commands shown [here](mcmc_commands.md). In the following, we assume that you assigned the result of `my_mcmcMH` to a variable called `trace`, but of course you can call this anything you like.
@@ -59,22 +59,111 @@ To use `coda`, we first convert our trace to a format that `coda` understands. T
 mcmc.trace <- mcmc(trace)
 ```
 
+We can get summary statics using `summary`
+
+```{r}
+summary(mcmc.trace)
+```
+
+This provides the following information:
+
+1. Empirical (sample) mean
+2. Empirical (sample) standard deviation
+3. "Naive" standard error, that is the standard error of the mean (adjusting for sample size). See the [Wikipedia](http://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean) page of the Standard error.
+4. the time-series standard error, which corrects (3) for autocorrelations
+5. quantifies for each variable
+
+We can also compute the rejection rate (that is 1 minus the acceptance rate).
+
+```{r}
+rejectionRate(mcmc.trace)
+```
+
+Lastly, we can compute the effective sample size, that is an estimate for the number of *independent* samples (taking into account autocorrelations) generated by the MCMC run
+
+```{r}
+effectiveSize(mcmc.trace)
+```
+
+# Diagnostics
+
+Whenever one runs MCMC, it is important to assess its performance. It is very difficult (arguably, impossible) to be fully sure that a particular set of  MCMC runs provides reliable analysis, but, fortunately, there are ways to spot when things go wrong. We will look at assessing three aspects of MCMC: mixing, burn-in and run length
+
+## Mixing
+
+We need to make sure that the MCMC sampler explores the parameter space *efficiently*, that is that it doesn't reject or accept too many proposals. If too many proposals are rejected, we need many simulations to generate a sufficient number of parameter samples. If too many proposals are accepted, we don't gain much information about the underlying distribution.
+
+### Trace and density pots
+
+Trace plots provide an important tool for assessing mixing of a chain. Density plots are smoothed histograms of the samples, that is they show the function that we are trying to explore. We can get trace and density plots for all variables in an MCMC trace using `plot`.
+
+```{r trace, fig.width = 10, fig.height = 10}
+plot(mcmc.trace)
+```
+
+In the trace plots, we want to try to avoid flat bits (where the sampler stays in the same place for too long) or too many consecutive steps in one direction. In this case, it looks like there was a burn-in of about 1000 iterations, after which the MCMC sampler seems to mix well, we also see that the sampler never moves beyond 2.2 for $R_0$, and never beyond 3.5 for $D_\mathrm{inf}$. To assess the reliability of our output, we should start chains with higher initial values of $R_0$ and $D_\mathrm{inf}$ and check that the sampler converges to the same estimates.
+
+If we want to get a more detailed view of the posterior distribution (i.e., the density of the samples) around its maximum, we can cut the burn-in period out using the `burnAndThin` command:
+
+```{r trace_burned, fig.width = 10, fig.height = 10}
+trace <- burnAndThin(mcmc.epi3$trace, burn = 1000)
+mcmc.trace.burned <- mcmc(trace, start = 1000)
+plot(mcmc.trace.burned)
+```
+
+It is sometimes said that we are aiming for the trace to look like a "warm, fuzzy caterpillar", that is the situation you can see here on the left.
+
+### Autocorrelations
+
+Another way to check for convergence is to look at the autocorrelations between the samples returned by our MCMC. The lag-$k$ autocorrelation is the correlation between every sample and the sample at which we were $k$ steps before. This autocorrelation should become smaller as $k$ increases. If, on the other hand, autocorrelation remains for higher values of $k$, this indicates high degree of correlation between our samples and slow mixing.
+
+```{r autocorrelations, fig.width = 10, fig.height = 10}
+autocorr.plot(mcmc.trace.burned)
+```
+
+In this case, the autocorrelations drop with increasing $k$, which is a good sign. If autocorrelations are too strong, we can *thin* the MCMC chain, that is we discard $n$ samples for every sample that we keep. To do this, again we use `burnAndThin` and pass $n$ as `thin` argument:
+
+```{r trace_burned_thinned, fig.width = 10, fig.height = 10}
+trace <- burnAndThin(mcmc.epi3$trace, burn = 1000, thin = 5)
+mcmc.trace.burned <- mcmc(trace, start = 1000, thin = 5)
+autocorr.plot(mcmc.trace.burned)
+```
+
+It has been argued that thinning is actually not very useful, unless one wants to reduce the amount of memory and storage space in long chains. Instead of thinning to, say, keep only 1 out every 10 samples, it is usually more efficient to just run a chain 10 times as long.
+
+## Burn-in
+
+Above, we have assessed burn-in based on a glance at the trace plots. There are several diagnostics available to make this process more systematic, such as the Geweke diagnostic (`geweke.diag`), the Heidelberger-Welch diagnostic (`heidel.diag`), and the Raftery-Lewis diagnostic (`raftery.diag`). A discussion of these is beyond the scope and purpose of this session, but if you are interested have a look at the **R** help pages for these functions for more information.
+
+One other way of diagnosing burn-in is via the effective sample size (ESS). The samples in the burn-in are not very informative, and if the burn-in period is estimated to be too short this will reduce the ESS size. On the other hand, if the burn-in period is estimated to be too long, informative samples are being thrown away, again reducing the ESS. The ESS should be maximised at the "correct" estimate of the burn in. We can plot ESS against burn-in:
+
+```{r test_burn_in, fig.width = 8, fig.height = 5}
+plotESSBurn(mcmc.epi3$trace)
+```
+
+A good optimal burn-in length would be when the last parameter has its ESS maximised, that is at around 500 here.
+
+## Run length
+
+It is usually difficult to tell for how long one should run the chain. If the trace of all parameters shows the "caterpillar"-like behaviour such as shown above, it is a good indication that the MCMC is efficiently sampling from a maximum in the underlying distribution, but the sampler might be stuck in a *local* maximum, and it might need more time to leave that maximum and reach other parts of the parameter space, with potentially other maxima.
+
+There are no general rules for how long one needs to run the chain, but generally it is a good idea to start the chain from different starting points and make sure they converge to the same density plots. In fact, it is a good idea to memorise that one should *always* run multiple chains. Secondly, one decide in advance on the number of samples one wants from the underlying distribution, and run the chain until the effective sample size reaches that number. In practice, however, this is a somewhat arbitrary decision, and apart from careful diagnosis and running multiple chains there is not much one can do to get a reliable estimate of the necessary number of iterations.
+
 # Improving the performance of the sampler
-
-General discussion
-
-## Adaptive proposal steps
-
-Test from mcmcMH (rename to adaptive?)
 
 ## Truncated proposal distributions
 
 Not necessary here probably
+
+
+## Adaptive proposal steps
+
+Test from mcmcMH (rename to adaptive?)
 
 # Assessing a fit
 
 Posterior predictive checks
 
 <div>
-Previous: [Fitting a deterministic model with MCMC](mcmc.md) Next: [Tristan da Cunha](mcmc_diagnostics.md) (not there yet)
+Previous: [MCMC](mcmc.md) Next: [Tristan da Cunha](mcmc_diagnostics.md) (not there yet)
 </div>
