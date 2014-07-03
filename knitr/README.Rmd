@@ -1,7 +1,7 @@
-# Model fitting and inference for infectious disease dynamics
+% Model fitting and inference for infectious disease dynamics
 
 ## Required software
-* [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.1.0. 
+* [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.1.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
 
 ## Installation of the fitR package
@@ -24,15 +24,14 @@ library(fitR)
 
 ## Contents
 
-1. [Overview of fitcourseR](fitcourseR.md)
-2. [My first fitmodel](first_fitmodel.md)
-3. [Data and likelihood](data_likelihood.md)
-4. [Run a MCMC](mcmc.md)
-5. [Tristan da Cunha outbreak](play_with_seitl.md)
-6. [Run a SMC](smc.md)
-7. [ABC inference](ABC.md)
+1. [Introduction](introduction.md)
+2. [MCMC](mcmc.md)
+2. [MCMC diagnostics](mcmc_diagnostics.md)
+5. [Tristan da Cunha outbreak](play_with_seitl.md) (not there yet)
+6. [Run a SMC](smc.md) (not there yet)
+7. [ABC inference](ABC.md) (not there yet)
 
 # Navigate
-Next: [Overview of fitcourseR](fitcourseR.md)
+Next: [Introduction](introduction.md)
 
 </div>
