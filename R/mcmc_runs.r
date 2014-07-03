@@ -20,7 +20,7 @@ my_logPosterior_epi3 <- function(theta) {
 }
 
 ## mcmc.run.R0.Dinf <- mcmcMH(target = my_logPosterior_epi3, theta.init = c(R0 = 1, D.inf = 2), proposal.sd = c(0.01, 0.1), n.iterations = 10000)
-mcmc.epi3 <- mcmcMH(target = my_logPosterior_epi3, theta.init = c(R0 = 1, D.inf = 2), proposal.sd = c(0.01, 0.1), n.iterations = 10000)
+mcmc.epi3 <- mcmcMH(target = my_logPosterior_epi3, theta.init = c(R0 = 1, D.inf = 2), proposal.sd = c(0.01, 0.1), n.iterations = 1000)
 
 my_logPosterior_epi4 <- function(theta) {
 

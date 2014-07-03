@@ -2,7 +2,7 @@ Below, you can find an example of how to code a Metropolis sampler. Some bits ar
 
 ```{r eval = FALSE}
 # This is a function that takes four parameters:
-# - target.dist: the target distribution, a function that takes one
+# - target: the target distribution, a function that takes one
 #   argument (a number) and returns the (logged) value of a
 #   distribution
 # - theta.init: the initial value of theta, a number
@@ -13,9 +13,9 @@ Below, you can find an example of how to code a Metropolis sampler. Some bits ar
 # distribution
 my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations) {
 
-    # evaluate the function "target.dist" at "theta.init", and assign to
+    # evaluate the function "target" at "theta.init", and assign to
     # a variable called target.theta.current.
-    target.theta.current <- target.dist(init.theta)
+    target.theta.current <- target(init.theta)
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted runs
@@ -37,7 +37,7 @@ my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations) {
         names(theta.proposed) <- names(theta.current)
 
         target.theta.proposed <- # INSERT HERE: evaluate the function
-            # target.dist at the proposed theta and assign to a
+            # target at the proposed theta and assign to a
             # variable called "target.theta.proposed"
 
         log.acceptance <- # INSERT HERE: compute Metropolis ratio

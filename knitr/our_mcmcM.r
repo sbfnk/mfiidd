@@ -1,6 +1,6 @@
 # @knitr our_mcmcMH
 # This is a function that takes four parameters:
-# - target.dist: the target distribution, a function that takes one
+# - target: the target distribution, a function that takes one
 #   argument (a number) and returns the (logged) value of a
 #   distribution
 # - theta.init: the initial value of theta, a number
@@ -9,11 +9,11 @@
 # - n.iterations: the number of iterations
 # The function returns a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations) {
+my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 
-    # evaluate the function "target.dist" at "theta.init", and assign to
+    # evaluate the function "target" at "theta.init", and assign to
     # a variable called target.theta.current.
-    target.theta.current <- target.dist(init.theta)
+    target.theta.current <- target(init.theta)
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted runs
@@ -37,9 +37,9 @@ my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations) {
         # theta.current
         names(theta.proposed) <- names(theta.current)
 
-        # evaluate the function target.dist at the proposed theta and
+        # evaluate the function target at the proposed theta and
         # assign to a variable called target.theta.proposed
-        target.theta.proposed <- target.dist(theta.proposed)
+        target.theta.proposed <- target(theta.proposed)
 
         # compute Metropolis-Hastings ratio (acceptance probability). Since
         # the multivariate Gaussian is symmetric, we don't need to consider
@@ -71,7 +71,7 @@ my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations) {
         samples <- c(samples, theta.current)
 
         # print current state of chain and acceptance rate
-        cat("chain:", theta.current,
+        cat("iteration:", i.iteration, "chain:", theta.current,
             "acceptance rate:", accepted / i.iteration, "\n")
 
     }
