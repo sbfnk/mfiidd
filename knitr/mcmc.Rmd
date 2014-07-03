@@ -17,8 +17,7 @@ The aim of this session is to learn how you can fit a deterministic model to dat
 
 # Using the Metropolis-Hastings algorithm with more than one parameter
 
-
-Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 1) a function that can evaluate the target distribution at any value of its parameter, 2) an initial value for the parameter, 3) the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler) and 4) the number of iterations for which to run the sampler. The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
+**Code it yourself**: Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 1) a function that can evaluate the target distribution at any value of its parameter, 2) an initial value for the parameter, 3) the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler) and 4) the number of iterations for which to run the sampler. The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
 
 Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
@@ -33,9 +32,9 @@ A few useful tips: To draw a random number from a Gaussian distribution, you can
 # - n.iterations: the number of iterations
 # The function should return a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target.dist, init.theta, proposal.sd, n.iterations) {
+my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 
-    # evaluate the function "target.dist" at parameter value "init.theta"
+    # evaluate the function "target" at parameter value "init.theta"
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted runs
@@ -91,19 +90,19 @@ We can now sample from `dnorm.log` using our MCMC sampler
 starting.value <- 1 # starting value for MCMC
 sigma <- 1 # standard deviation of MCMC
 iter <- 10000
-trace <- my_mcmcMH(target.dist = dnorm.log, init.theta = starting.value,
+trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value,
                    proposal.sd = sigma, n.iterations = iter)
 ```
 
 We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
 
-```{r caption = "", fig.width = 10}
+```{r plot_trace, caption = "", fig.width = 10}
 plot(trace, type = "l")
 ```
 
 And you can plot a histogram of the samples generated using
 
-```{r caption = ""}
+```{r hist_trace, caption = ""}
 hist(trace)
 ```
 
@@ -121,9 +120,9 @@ Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a f
 my_logPosterior_epi1 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR,
-                        theta = theta,
-                        state.init = c(S = 999, I = 1, R = 0),
-                        data = epi1))
+                           theta = theta,
+                           state.init = c(S = 999, I = 1, R = 0),
+                           data = epi1))
 
 }
 ```
@@ -131,14 +130,14 @@ my_logPosterior_epi1 <- function(theta) {
 We can test that this function returns the value of the posterior for a given value of $R_0$.
 
 ```{r}
-my_logPosterior_R0(c(R0 = 3, D.inf = 2))
+my_logPosterior_epi1(c(R0 = 3, D.inf = 2))
 ```
 
-We can now generate samples from `my_logPosterior_R0` using `my_mcmcMH`. Can you work out the command to do this? If have any problems with this, have a look at our [solution](generate_samples.md).
+We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If have any problems with this, have a look at our [solution](generate_samples.md).
 
 Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample medians (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
 
-Try different starting values for $R_0$, for the standard deviation of the (Gaussian) proposal distribution $q(\theta'|\theta)$, and for the number of iterations. Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on  parameters:
+Try different starting values for $R_0$, for the standard deviation of the (Gaussian) proposal distribution $q(\theta'|\theta)$, and for the number of iterations. Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:
 
 1. What is your best estimate of $R_0$? Does this match you estimate from the previous session?
 2. What determines the acceptance rate?
@@ -151,5 +150,5 @@ In the next session we will look at all of these issues in more detail.
 I don't have anything here, let me know if you have ideas.
 
 <div>
-Previous: [Introduction](introduction.md) Next: [MCMC diagnostics](mcmc_diagnostics.md) (not there yet)
+Previous: [Introduction](introduction.md) Next: [MCMC diagnostics](mcmc_diagnostics.md)
 </div>
