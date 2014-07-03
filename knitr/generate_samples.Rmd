@@ -1,0 +1,12 @@
+An example command to generate samples from `my_posterior_R0` using `my_mcmcMH` is:
+
+```{r echo=FALSE}
+read_chunk('generate_samples.r')
+```
+
+```{r generate_samples,eval = FALSE}
+```
+
+You can copy and paste this command into your **R** session, and proceed from there.
+
+[Return](mcmc.md#sampling-from-a-posterior-distribution) to the MCMC session.

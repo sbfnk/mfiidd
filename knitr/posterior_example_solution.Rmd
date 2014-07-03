@@ -9,4 +9,4 @@ read_chunk('our_posterior.r')
 
 You can copy and paste the function into your **R** session, and proceed from there.
 
-[Return](introduction.md#calculate-the-posterior) to the practical session.
+[Return](introduction.md#calculate-the-posterior) to the introductory practical session.

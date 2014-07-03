@@ -1,0 +1,12 @@
+Here is a possible solution for the Metropolis sampler.
+
+```{r echo=FALSE}
+read_chunk('our_mcmcM.r')
+```
+
+```{r our_mcmcMH}
+```
+
+You can copy and paste the function into your **R** session, and proceed from there.
+
+[Return](mcmc.md#the-metropolis-hastings-sampler) to the MCMC session.

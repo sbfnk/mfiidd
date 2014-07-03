@@ -1,193 +1,154 @@
-# Practical session: Fitting a deterministic model with MCMC
+% Practical session: Fitting a deterministic model with MCMC
 
-```{r echo=FALSE,results="hide"}
-library(fitcourseR)
-library(deSolve)
-example(fitmodel)
+```{r echo=FALSE,results="hide",message=FALSE}
+opts_chunk$set(fig.cap='')
+library(fitR)
+example(SIR)
+example(SIR_reporting)
 ```
 
-## Introduction
+# Objectives
 
-For this session, you will fit a deterministic SIR model to a recent measles outbreak in Europe, making use of the model simulation and likelihood functions from the last session. The data is in the "measles" data set, and can be loaded with
+The aim of this session is to learn how you can fit a deterministic model to data using MCMC with the Metropolis-Hastings algorithm. More specifically, in this session you will
+
+1. use MCMC to fit a model with more than one free parameter to a data set
+2. learn to assess the output of MCMC runs using `ggmcmc`
+3. explore ways to improve the performance of the MCMC sampler
+
+# Using the Metropolis-Hastings algorithm with more than one parameter
+
+**Code it yourself**: Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 1) a function that can evaluate the target distribution at any value of its parameter, 2) an initial value for the parameter, 3) the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler) and 4) the number of iterations for which to run the sampler. The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
+
+Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
+
+A few useful tips: To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a random number between 0 and 1, you can use `runif(n = 1)`. Also, you will find it useful to keep track of the number of accepted samples as we will later use the proportion of accepted runs to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. -->
 
 ```{r}
-data(measles)
-```
+# This is a function that takes four arguments:
+# - target: the target distribution, a function that takes one argument
+#           (a number) and returns the (logged) value of a distribution
+# - theta.init: the initial value of theta, a number
+# - proposal.sd: the standard deviation of (Gaussian) proposal distribution
+# - n.iterations: the number of iterations
+# The function should return a vector of samples of theta from the target
+# distribution
+my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 
-You can look at the data set with
+    # evaluate the function "target" at parameter value "init.theta"
 
-```{r results="hide"}
-measles
-```
+    # initialise variables to store the current value of theta, the
+    # vector of samples, and the number of accepted runs
 
-or visualise them using `plot` or `ggplot`, e.g.
+    # repeat n.iterations times:
 
-```{r results="hide", fig.keep="none"}
-library(ggplot2)
-ggplot(measles, aes(x = time, y = Inc)) + geom_point()
-```
+    # - draw a new theta from the (Gaussian) proposal distribution
+    #   with standard deviation sd. Note that 'rnorm' returns an unnamed
+    #    vector, but the 'fitmodel' functions use names in the parameter
+    #    vector, so you'll have to set the names of the proposed theta
 
-You will use the likelihood and model simulation functions from the last session.
+    # - evaluate the function target_dist at the proposed theta
 
-## Prior
+    # - calculate the Metropolis-Hastings ratio
 
-First, you need to decide on the prior distribution of the different parameters, such as `R0`, the infectious period, etc. The `fitparam` class has a structure set up for this: you can pass a prior distribution by setting the `prior` parameter. This expects an R `list` with two elements: `distribution`, a name of a density function for the prior distribution, and `parameter`, a named vector of parameters to pass to the `distribution` functions. Distribution functions in R start with the letter `d`. Common ones which might be useful for prior distributions are `dunif` and `dnorm`. A good resource for the most commonly used probability distributions can be found in the [R tutorial ebook](http://www.r-tutor.com/elementary-statistics/probability-distributions).
+    # - draw a random number between 0 and 1
 
-Example:
-```{r}
-R0 <- fitparam(name = "R0",
-               value = 2,
-               prior = list(distribution = "dunif",
-                            parameters = c(min = 1, max = 5)))
-```
-To calculate the model prior, you have to take the product of all individual model prior (or sum the logged priors). There is already a function to do this for you, called `compositeLogPrior`. It takes a list of `fitparam` objects and returns the composite prior from the specified prior distributions.
+    # - accept or reject by comparing the random number to the
+    #   Metropolis-Hastings ratio (acceptance probability); if accept,
+    #   change the current value of theta to the proposed theta,
+    #   update the current value of the target and keep track of the
+    #   number of accepted proposals
 
-Example: if you have fitparam objects `R0` and `infectious.period` defined,
+    # add the current theta to the vector of samples
 
-```{r}
-compositeLogPrior(list(R0))
-```
-
-Using this, write a function to calculate the prior:
-```{r}
-my_logPrior <- function(list.fitparam) {
-
-    ## calculate the composite prior for the given parameter list
-
-    ## return the logged prior probability
+    # return the trace of the chain (i.e., the vector of samples)
 }
 ```
 
-```{r echo=FALSE}
-my_logPrior <- function(list.fitparam) {
+```{r echo = FALSE}
+source('our_mcmcM.r')
+```
 
-    ## calculate the composite prior for the given parameter list
+If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.md).
 
-    ## return the logged prior probability
-    return(compositeLogPrior(list.fitparam))
+# Sampling from a simple distribution
+
+In principle, we can use the Metropolis-Hastings sampler to sample from any target distribution. Let us test this: imagine you didn't know how to draw random numbers from a normal distribution. You could use the Metropolis-Hastings sampler to do this. In **R**, the function to evaluate the probability density of a number under a normal distribution is called `dnorm`.
+
+There is one small extra step we have to do before we can sample from `dnorm`. Remember that the we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas `dnorm`, by default, returns the (un-logged) probability density directly.
+
+We can, however, instruct `dnorm` to return the logarithm of the probability density using the argument `log = TRUE`, and we use a *wrapper* function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution
+
+```{r}
+dnorm.log <- function(theta) {
+   return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }
 ```
 
-Once you have done this, you can pass the prior function to a `fitmodel` object. For example, if you have two fitparam objects `R0` and `infectious.period`, and a function `my_logPrior`, you can call
+We can now sample from `dnorm.log` using our MCMC sampler
+
+```{r results = "hide"}
+starting.value <- 1 # starting value for MCMC
+sigma <- 1 # standard deviation of MCMC
+iter <- 10000
+trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value,
+                   proposal.sd = sigma, n.iterations = iter)
+```
+
+We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
+
+```{r plot_trace, caption = "", fig.width = 10}
+plot(trace, type = "l")
+```
+
+And you can plot a histogram of the samples generated using
+
+```{r hist_trace, caption = ""}
+hist(trace)
+```
+
+This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
+
+# Sampling from a posterior distribution
+
+We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
+
+Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `d.inf` is the second parameter in `init.theta`) is 0.
+
+Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a function that just takes one parameter `theta`. Again, we us a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, with fixed initial conditions $X_0$.
 
 ```{r}
-my_SIR <- fitmodel(name = "SIR",
-                   state.variables = c("S", "I", "R"),
-                   list.fitparam = list(R0),
-                   log.prior.fitparam = my_logPrior)
-```
+my_logPosterior_epi1 <- function(theta) {
 
-`fitmodel` converts the prior function into a function that takes a named parameter vector `theta`, available as `SIR$log.prior` (see the `fitmodel` documentation). You can then use this to evaluate the prior at different parameter values:
-
-```{r}
-my_SIR$log.prior(c(R0 = 3))
-```
-
-You will probably get a different value, depending on your prior function.
-
-## Posterior
-
-```{r echo=FALSE}
-my_SIR <- SIR
-```
-
-To calculate the posterior for a given parameter, write a function that takes a vector `theta` of named parameters and returns a logged posterior probability.
-
-```{r}
-my_posterior <- function(fitmodel, theta) {
-
-    ## calculate the fitmodel prior for parameter theta
-
-    ## calculate the fitmodel likelihood for parameter theta
-
-    ## return the logged posterior probability
-}
-```
-
-```{r echo=FALSE,results="hide"}
-my_posterior <- function(fitmodel, theta) {
-    prior <- fitmodel$log.prior(theta)
-
-    state.init <- fitmodel$initialise.state(theta)
-
-    trajectory <- fitmodel$simulate.model(theta, state.init, fitmodel$data$time)
-    likelihood <- fitmodel$log.likelihood(fitmodel$data, theta, trajectory)
-
-    return(prior + likelihood)
-}
-```
-
-When called with a `fitmodel` and a vector of named parameters `theta`, it should return the value of the posterior at that value of `theta`, e.g.
-
-```{r}
-theta <- c(R0 = 15, IP = 2, rho = 0.5, pI0 = 35 / 7.3e+6, pR0 = 0.9, N = 7.3e+6)
-my_posterior(my_SIR, theta)
-```
-
-You will probably get a different value, depending on your prior and likelihood functions.
-
-## MCMC
-
-To sample from a distribution using MCMC, write a function that takes a target distribution like your posterior (i.e., a function that takes one argument, `theta`), an initial `init.theta`, a covariance matrix and the number of iterations. It should evaluate the target function at `init.theta` and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
-
-To draw a random vector from a multivariate Gaussian proposal distribution, you can use the function `rmvnorm`, see `?rmvnorm`. To draw a random number between 0 and 1, you can use `runif(n = 1)`.
-
-```{r}
-my_mcmc <- function(target.dist, init.theta, covariance.matrix, n.iterations) {
-
-    ## evaluate the function target_dist at init_theta
-
-    ## repeat n_iterations times:
-
-    ## - draw a new theta from the (multivariate Gaussian) proposal distribution
-
-    ## - evaluate the function target_dist at the proposed theta
-
-    ## - draw a random number between 0 and 1
-
-    ## - accept or reject by comparing the random number to the acceptance probability
-
-    ## return the chain (i.e., the value of the current theta at every iteration)
+    return(my_logPosterior(fitmodel = SIR,
+                           theta = theta,
+                           state.init = c(S = 999, I = 1, R = 0),
+                           data = epi1))
 
 }
 ```
 
-You will probably find it useful to save the state of the chain (i.e., the value of `theta` at every iteration) and the current acceptance probability (i.e., the proportion of proposed `theta`s that are being accepted) in a data frame or vector.
-
-To get the covariance matrix, you can use the `sd.proposal` argument of `fitparam`, e.g. This sets the covariance matrix to be diagonal, that is the proposals for each parameter will not depend on the other parameters, but will be independently normally distributed, with the standard deviation given by `sd.proposal`.
+We can test that this function returns the value of the posterior for a given value of $R_0$.
 
 ```{r}
-R0 <- fitparam(name = "R0",
-               value = 2,
-               prior = list(distribution = "dunif",
-                            parameters = c(min = 1, max = 5)),
-               sd.proposal = 0.1)
+my_logPosterior_epi1(c(R0 = 3, D.inf = 2))
 ```
 
-Once you pass this to a `fitmodel` (in `parameters`), it will return the covariance matrix containing all the parameters in `fitmodel$gaussian.proposal$covmat`.
+We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If have any problems with this, have a look at our [solution](generate_samples.md).
 
-```{r echo=FALSE}
-my_logLikelihood <- SIR_logLikelihood
-my_simulateDeterministic <- SIR_simulateDeterministic
-my_initialiseState <- SIR_initialiseState
-```
+Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample medians (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
 
-```{r}
-my_SIR <- fitmodel(name = "SIR",
-                   state.variables = c("S", "I", "R", "Inc"),
-                   list.fitparam = list(R0, InfectiousPeriod, ReportingRate, PopSize,
-                                        proportionI0, proportionR0),
-                   log.prior.fitparam = my_logPrior,
-                   log.likelihood = my_logLikelihood,
-                   simulate.model = my_simulateDeterministic,
-                   initialise.state = my_initialiseState,
-                   data = measles,
-                   verbose = F)
-my_SIR$gaussian.proposal$covmat
-```
+Try different starting values for $R_0$, for the standard deviation of the (Gaussian) proposal distribution $q(\theta'|\theta)$, and for the number of iterations. Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:
 
-You will probably see a different matrix, depending on the proposal standard deviations you have set.
+1. What is your best estimate of $R_0$? Does this match you estimate from the previous session?
+2. What determines the acceptance rate?
+3. How many iterations do you need to get a good estimate for $R_0$?
 
+In the next session we will look at all of these issues in more detail.
 
-Previous: [Data and likelihood](data_likelihood.md) Next: [Tristan da Cunha outbreak](play_with_seitl.md)
+# Going further
 
+I don't have anything here, let me know if you have ideas.
+
+<div>
+Previous: [Introduction](introduction.md) Next: [MCMC diagnostics](mcmc_diagnostics.md)
+</div>

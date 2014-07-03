@@ -12,6 +12,7 @@ test/testground.txt
 
 # Emacs stuff
 auto
+.#*
 
 # Latex stuff
 *.aux
@@ -21,4 +22,10 @@ auto
 *.synctex.gz
 *.out
 
-knitr/cache/*
+
+# knitr stuff
+knitr/*.md
+knitr/*.html
+knitr/*.pdf
+knitr/figure
+knitr/cache
