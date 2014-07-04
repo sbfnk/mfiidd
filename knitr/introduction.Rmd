@@ -63,9 +63,9 @@ To simulate a model run, we use the `simulate` contained within a `fitmodel`. To
 
 ```{r}
 parameters <- c(R0 = 3, D.inf = 2)
-state.init <- c(S = 999, I = 1, R = 0)
+init.state <- c(S = 999, I = 1, R = 0)
 times <- 1:100
-traj <- SIR$simulate(parameters, state.init, times)
+traj <- SIR$simulate(parameters, init.state, times)
 ```
 
 We can now look at the output of the model run
@@ -143,7 +143,7 @@ plotTraj(data = epi1)
 To calculate the log-likelihood of a set of parameters and initial conditions, we can use `trajLogLike`. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial conditions.
 
 ```{r}
-trajLogLike(SIR, parameters, state.init, epi1)
+trajLogLike(SIR, parameters, init.state, epi1)
 ```
 
 You will need this later to calculate the posterior as a function of the parameters.
@@ -161,7 +161,7 @@ Of course, you might see a different number, as the result of this command is th
 To generate a whole trajectory, we can use `genObsTraj`, analogously to the `trajLogLike` function used above. The `genObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then the `genObsPoint` function at every time point to generate a observations. It returns the simulated trajectory, with an added column for the observations.
 
 ```{r}
-obs.traj <- genObsTraj(SIR, parameters, state.init, epi1$time)
+obs.traj <- genObsTraj(SIR, parameters, init.state, epi1$time)
 head(obs.traj)
 ```
 
@@ -176,16 +176,16 @@ If you run this multiple times, you will find that the outcome is different ever
 # - fitmodel, a fitmodel object that defines the model dynamics,
 #   prior and likelihoods.
 # - theta, a named vector of parameters
-# - state.init,  a named vector of initial conditions
+# - init.state,  a named vector of initial conditions
 # - data, the data set we are fitting the model to
 # It should return the posterior for the given model, parameters,
 # initial conditions and data.
-my_logPosterior <- function(fitmodel, theta, state.init, data) {
+my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
     # calculate the fitmodel prior for parameter theta
 
     # calculate the fitmodel likelihood for parameter theta and
-    # initial conditions state.init, with respect to the data set data.
+    # initial conditions init.state, with respect to the data set data.
 
     # return the logged posterior probability
 }
@@ -200,7 +200,7 @@ If you have trouble filling any of the empty bits in, have a look at our [more g
 Once you are done with this, check that your function returns a sensible value.
 
 ```{r}
-my_logPosterior(SIR, parameters, state.init, epi1)
+my_logPosterior(SIR, parameters, init.state, epi1)
 ```
 
 # Assess the model fit
@@ -208,7 +208,7 @@ my_logPosterior(SIR, parameters, state.init, epi1)
 You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial conditions using `genObsTraj` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
 
 ```{r plotfit_epi1, message = FALSE}
-plotFit(SIR, theta, state.init, epi1)
+plotFit(SIR, theta, init.state, epi1)
 ```
 
 Clearly, not a very good fit on this occasion. In the next section, you will explore the posterior distribution to find a better one.

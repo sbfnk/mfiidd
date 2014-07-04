@@ -7,31 +7,31 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 	#########################################################################################
 
 	# This is the basic reproduction number, its high value reflect the high contact rate among islanders.
-	R0 <- fitparam(name="R0",value=10,support=c(0,Inf),sd.proposal=1,prior=list(distribution="dunif",parameters=c(min=1,max=100))) 
+	R0 <- fitparam(name="R0",value=10,support=c(0,Inf),sd.proposal=1,prior=list(distribution="dunif",parameters=c(min=1,max=100)))
 
 	# The latent period
-	LatentPeriod <- fitparam(name="LP",value=2,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=7))) 
+	LatentPeriod <- fitparam(name="LP",value=2,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=7)))
 
 	# The infectious period
-	InfectiousPeriod <- fitparam(name="IP",value=3,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=30))) 
+	InfectiousPeriod <- fitparam(name="IP",value=3,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=30)))
 
 	# The duration of the temporary protection against reinfection
-	TemporaryImmunePeriod  <- fitparam(name="TIP",value=10,support=c(0,Inf),sd.proposal=2,prior=list(distribution="dunif",parameters=c(min=0,max=50))) 
+	TemporaryImmunePeriod  <- fitparam(name="TIP",value=10,support=c(0,Inf),sd.proposal=2,prior=list(distribution="dunif",parameters=c(min=0,max=50)))
 
 	# The probability to acquire a long-term protection following completion of the temporary immunity
-	ProbLongTermImmunity <- fitparam(name="alpha",value=0.5,support=c(0,1),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=1))) 
+	ProbLongTermImmunity <- fitparam(name="alpha",value=0.5,support=c(0,1),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=1)))
 
 	# The intensity of the case reporting
-	ReportingRate <- fitparam(name="rho",value=0.7,support=c(0,2),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=2))) 
+	ReportingRate <- fitparam(name="rho",value=0.7,support=c(0,2),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=2)))
 
 	# The initial proportion of infectious individuals
-	proportionI0 <- fitparam(name="pI0",value=2/284,support=c(0,1),sd.proposal=1/284,prior=list(distribution="dunif",parameters=c(min=1/284,max=5/284))) 
-	
+	proportionI0 <- fitparam(name="pI0",value=2/284,support=c(0,1),sd.proposal=1/284,prior=list(distribution="dunif",parameters=c(min=1/284,max=5/284)))
+
 	# The initial proportion of fully protected individuals
-	proportionL0 <- fitparam(name="pL0",value=0.1,support=c(0,1),sd.proposal=0.01,prior=list(distribution="dunif",parameters=c(min=0.0,max=0.5))) 
-	
-	# The population size (note that this parameter has less arguments since it is fixed)	
-	PopSize <- fitparam(name="N",value=284) 
+	proportionL0 <- fitparam(name="pL0",value=0.1,support=c(0,1),sd.proposal=0.01,prior=list(distribution="dunif",parameters=c(min=0.0,max=0.5)))
+
+	# The population size (note that this parameter has less arguments since it is fixed)
+	PopSize <- fitparam(name="N",value=284)
 
 	#########################################################################################
 	# We define the vector of state variable names
@@ -57,9 +57,9 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 	}
 
 	#########################################################################################
-	# And finally we create a fitmodel 
-	# Note that all the functions with names starting by SEITL_ are already coded in the 
-	# package and can be considered as blackboxes. 
+	# And finally we create a fitmodel
+	# Note that all the functions with names starting by SEITL_ are already coded in the
+	# package and can be considered as blackboxes.
 	# Of course, feel free to have a look at their code and documentation.
 	#########################################################################################
 
@@ -67,15 +67,15 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 		verbose=verbose,
 		name="SEITL",
 		state.variables=state.variables,
-		list.fitparam=list(R0,LatentPeriod,InfectiousPeriod,TemporaryImmunePeriod,ProbLongTermImmunity,ReportingRate,proportionI0,proportionL0,PopSize), 
+		list.fitparam=list(R0,LatentPeriod,InfectiousPeriod,TemporaryImmunePeriod,ProbLongTermImmunity,ReportingRate,proportionI0,proportionL0,PopSize),
 		initialise.state=SEITL_initialiseState,
 		log.prior.fitparam=SEITL_logPrior,
-		simulate.model=simulate.model, 
-		generate.observation=SEITL_generateObservation, 
-		data=data, 
+		simulate.model=simulate.model,
+		generate.observation=SEITL_generateObservation,
+		data=data,
 		log.likelihood=SEITL_logLikelihood,
 		distance.ABC=SEITL_distanceOscillation
-		) 
+		)
 
 
 	# Return the fitmodel object
@@ -185,7 +185,7 @@ Just using the 6th and 7th summary and distance
 ABCacceptance <- function(theta,fitmodel,tol) {
 
     # simulate model
-	simu <- fitmodel$simulate.model(theta=theta, state.init=fitmodel$initialise.state(theta),times=c(0,fitmodel$data$time))
+	simu <- fitmodel$simulate.model(theta=theta, init.state=fitmodel$initialise.state(theta),times=c(0,fitmodel$data$time))
 
     # generate observation
 	simu.obs <- fitmodel$generate.observation(model.traj=simu, theta=theta)
@@ -229,4 +229,3 @@ my_SEITL <- createSEITL(deterministic=FALSE, verbose=FALSE)
 ABCacceptance(my_SEITL$theta,my_SEITL,tol=c(0,0,0,0,0,10,1))
 
 ```
-

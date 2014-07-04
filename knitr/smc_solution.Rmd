@@ -1,4 +1,3 @@
-
 ```{r eval=FALSE}
 
 # The particle filter returns an estimate of the marginal log-likelihood.
@@ -10,7 +9,7 @@ my_particleFilter <- function(fitmodel, n.particles)
 {
 
 	############################################################################################
-	## This function compute the marginal log.likelihood of the data (fitmodel$data) 
+	## This function compute the marginal log.likelihood of the data (fitmodel$data)
 	## given the parameters (fitmodel$theta) using a particle filter
 	############################################################################################
 
@@ -31,7 +30,7 @@ my_particleFilter <- function(fitmodel, n.particles)
 
     # particle states can be stored in a list
     state.particles <- rep(list(initialise.particle),n.particles)
-    # weight: initially equal for all the particles 
+    # weight: initially equal for all the particles
     # particle weight can be stored in a vector
     weight.particles <- rep(1/n.particles,length=n.particles)
 
@@ -52,12 +51,12 @@ my_particleFilter <- function(fitmodel, n.particles)
 
         # propagate particles to the next observation time
         for(p in 1:n.particles){
-            
-            # extract current state of the particle 
+
+            # extract current state of the particle
             current.state.particle <- state.particles[[p]]
 
             # simulate from current observation time to next observation time
-            traj <- fitmodel$simulate.model(theta=theta,state.init=current.state.particle,times=c(current.time,next.time))
+            traj <- fitmodel$simulate.model(theta=theta,init.state=current.state.particle,times=c(current.time,next.time))
 
             # compute particle weight
             weight.particles[p] <- exp(fitmodel$log.likelihood( data=data, model.traj=traj, theta= theta))

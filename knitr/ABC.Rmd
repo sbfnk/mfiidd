@@ -1,14 +1,14 @@
 # Inference with ABC
 
 The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model.
-To illustrate ABC, you are going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model, so ABC could be an attractive alternative. 
+To illustrate ABC, you are going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model, so ABC could be an attractive alternative.
 
 There are two approximation steps at the core of ABC:
 
 * it replaces observations with summary statistics. Unless these summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic), this leads to a possibly less informative posterior density.
 * it's a simulation-based approximation of the posterior. Unless the acceptance tolerances are equal to 0, this leads to biased samples from the posterior.
 
-On the other hand, we have seen in a previous session that MCMC provides unbiased samples from the true posterior at little cost for the deterministic SEITL model. You will end this session by fitting this deterministic model with ABC and assess the accuracy of your ABC posterior distribution by comparing it with the true posterior. 
+On the other hand, we have seen in a previous session that MCMC provides unbiased samples from the true posterior at little cost for the deterministic SEITL model. You will end this session by fitting this deterministic model with ABC and assess the accuracy of your ABC posterior distribution by comparing it with the true posterior.
 
 
 ```{r echo=FALSE}
@@ -20,31 +20,31 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 	#########################################################################################
 
 	# This is the basic reproduction number, its high value reflect the high contact rate among islanders.
-	R0 <- fitparam(name="R0",value=10,support=c(0,Inf),sd.proposal=1,prior=list(distribution="dunif",parameters=c(min=1,max=100))) 
+	R0 <- fitparam(name="R0",value=10,support=c(0,Inf),sd.proposal=1,prior=list(distribution="dunif",parameters=c(min=1,max=100)))
 
 	# The latent period
-	LatentPeriod <- fitparam(name="LP",value=2,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=7))) 
+	LatentPeriod <- fitparam(name="LP",value=2,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=7)))
 
 	# The infectious period
-	InfectiousPeriod <- fitparam(name="IP",value=3,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=30))) 
+	InfectiousPeriod <- fitparam(name="IP",value=3,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=30)))
 
 	# The duration of the temporary protection against reinfection
-	TemporaryImmunePeriod  <- fitparam(name="TIP",value=10,support=c(0,Inf),sd.proposal=2,prior=list(distribution="dunif",parameters=c(min=0,max=50))) 
+	TemporaryImmunePeriod  <- fitparam(name="TIP",value=10,support=c(0,Inf),sd.proposal=2,prior=list(distribution="dunif",parameters=c(min=0,max=50)))
 
 	# The probability to acquire a long-term protection following completion of the temporary immunity
-	ProbLongTermImmunity <- fitparam(name="alpha",value=0.5,support=c(0,1),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=1))) 
+	ProbLongTermImmunity <- fitparam(name="alpha",value=0.5,support=c(0,1),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=1)))
 
 	# The intensity of the case reporting
-	ReportingRate <- fitparam(name="rho",value=0.7,support=c(0,2),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=2))) 
+	ReportingRate <- fitparam(name="rho",value=0.7,support=c(0,2),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=2)))
 
 	# The initial proportion of infectious individuals
-	proportionI0 <- fitparam(name="pI0",value=2/284,support=c(0,1),sd.proposal=1/284,prior=list(distribution="dunif",parameters=c(min=1/284,max=5/284))) 
-	
+	proportionI0 <- fitparam(name="pI0",value=2/284,support=c(0,1),sd.proposal=1/284,prior=list(distribution="dunif",parameters=c(min=1/284,max=5/284)))
+
 	# The initial proportion of fully protected individuals
-	proportionL0 <- fitparam(name="pL0",value=0.1,support=c(0,1),sd.proposal=0.01,prior=list(distribution="dunif",parameters=c(min=0.0,max=0.5))) 
-	
-	# The population size (note that this parameter has less arguments since it is fixed)	
-	PopSize <- fitparam(name="N",value=284) 
+	proportionL0 <- fitparam(name="pL0",value=0.1,support=c(0,1),sd.proposal=0.01,prior=list(distribution="dunif",parameters=c(min=0.0,max=0.5)))
+
+	# The population size (note that this parameter has less arguments since it is fixed)
+	PopSize <- fitparam(name="N",value=284)
 
 	#########################################################################################
 	# We define the vector of state variable names
@@ -70,9 +70,9 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 	}
 
 	#########################################################################################
-	# And finally we create a fitmodel 
-	# Note that all the functions with names starting by SEITL_ are already coded in the 
-	# package and can be considered as blackboxes. 
+	# And finally we create a fitmodel
+	# Note that all the functions with names starting by SEITL_ are already coded in the
+	# package and can be considered as blackboxes.
 	# Of course, feel free to have a look at their code and documentation.
 	#########################################################################################
 
@@ -80,15 +80,15 @@ createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
 		verbose=verbose,
 		name="SEITL",
 		state.variables=state.variables,
-		list.fitparam=list(R0,LatentPeriod,InfectiousPeriod,TemporaryImmunePeriod,ProbLongTermImmunity,ReportingRate,proportionI0,proportionL0,PopSize), 
+		list.fitparam=list(R0,LatentPeriod,InfectiousPeriod,TemporaryImmunePeriod,ProbLongTermImmunity,ReportingRate,proportionI0,proportionL0,PopSize),
 		initialise.state=SEITL_initialiseState,
 		log.prior.fitparam=SEITL_logPrior,
-		simulate.model=simulate.model, 
-		generate.observation=SEITL_generateObservation, 
-		data=data, 
+		simulate.model=simulate.model,
+		generate.observation=SEITL_generateObservation,
+		data=data,
 		log.likelihood=SEITL_logLikelihood,
 		distance.ABC=SEITL_distanceOscillation
-		) 
+		)
 
 
 	# Return the fitmodel object
@@ -123,7 +123,7 @@ inc.data <- my_SEITL$data$Inc
 
 # code
 my_summaryStat1 <- function(time,inc){
-	
+
 }
 
 # test
@@ -142,7 +142,7 @@ The second step is to compare your data with your simulation with distance funct
 You can perform a simulation as follows:
 
 ```{r }
-simu <- my_SEITL$simulate.model(theta=my_SEITL$theta, state.init=my_SEITL$initialise.state(my_SEITL$theta),times=c(0,my_SEITL$data$time))
+simu <- my_SEITL$simulate.model(theta=my_SEITL$theta, init.state=my_SEITL$initialise.state(my_SEITL$theta),times=c(0,my_SEITL$data$time))
 head(simu)
 ```
 
@@ -170,7 +170,7 @@ Now, you can write three functions that will take your observed and simulated su
 ```{r eval=FALSE}
 
 my_distance1 <- function(data,simu) {
-	
+
 
 }
 
@@ -205,7 +205,7 @@ ABCacceptance <- function(theta,fitmodel,tol) {
 
 ```
 
-Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate. 
+Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate.
 
 You can find an example of solution [here](ABC_example.md)
 
@@ -221,14 +221,3 @@ You can find an example of solution [here](ABC_example.md)
 
 
 Previous: [Run SMC](smc.md)
-
-
-
-
-
-
-
-
-
-
-

@@ -2,7 +2,7 @@ my_logPosterior_epi1 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR,
                         theta = theta,
-                        state.init = c(S = 999, I = 1, R = 0),
+                        init.state = c(S = 999, I = 1, R = 0),
                         data = epi1))
 
 }
@@ -14,7 +14,7 @@ my_logPosterior_epi3 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR,
                         theta = theta,
-                        state.init = c(S = 999, I = 1, R = 0),
+                        init.state = c(S = 999, I = 1, R = 0),
                         data = epi3))
 
 }
@@ -26,7 +26,7 @@ my_logPosterior_epi4 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR_reporting,
                         theta = theta,
-                        state.init = c(S = 999, I = 1, R = 0),
+                        init.state = c(S = 999, I = 1, R = 0),
                         data = epi4))
 
 }

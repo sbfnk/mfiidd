@@ -5,18 +5,18 @@ Below, you can find an example of how to code the posterior. Some bits are left 
 # - fitmodel, a fitmodel object that defines the model dynamics,
 #   prior and likelihoods.
 # - theta, a named vector of parameters
-# - state.init,  a named vector of initial conditions
+# - init.state,  a named vector of initial conditions
 # - data, the data set we are fitting the model to
 # It should return the posterior for the given model, parameters,
 # initial conditions and data.
-my_logPosterior <- function(fitmodel, theta, state.init, data) {
+my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
     log.prior <- # INSERT HERE: calculate the fitmodel prior for
         # parameter vector theta using fitmodel$logPrior, and assign
         # to variable log.prior
 
     log.likelihood <- # INSERT HERE: calculate the likelihood of theta
-        # and state.init with respect to the data using trajLogLike
+        # and init.state with respect to the data using trajLogLike
         # and assign to a variable log.likelihood
 
     log.posterior <- # INSERT HERE: calulate the log-posterior using the
