@@ -27,7 +27,7 @@ A few useful tips: To draw a random number from a Gaussian distribution, you can
 # This is a function that takes four arguments:
 # - target: the target distribution, a function that takes one argument
 #           (a number) and returns the (logged) value of a distribution
-# - theta.init: the initial value of theta, a number
+# - init.theta: the initial value of theta, a number
 # - proposal.sd: the standard deviation of (Gaussian) proposal distribution
 # - n.iterations: the number of iterations
 # The function should return a vector of samples of theta from the target

@@ -206,7 +206,7 @@ Can you notice any differences? If so, which model seems to provide the best fit
 
 As you will see in the next session, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. This can lead to a waste of time and computational resources:
 
-1. If you initialise the MCMC with a `theta.init` far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.
+1. If you initialise the MCMC with a `init.theta` far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.
 2. If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in poor mixing and sub-optimal acceptance rate and you will have to thin a lot your chain.
 
 In this context, it might be useful to run a MCMC on the deterministic model first, which is fast, and then learn from the output of this chain to initialise the chain for the fit of the stochastic model. The rational for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.
@@ -219,7 +219,7 @@ To save time, half of the group will fit the deterministic SEITL model and the o
 
 Here you could use the function `my_mcmcMH` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.
 
-__Take 5 min__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_mcmcMH` (`target`, `theta.init`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.
+__Take 5 min__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_mcmcMH` (`target`, `init.theta`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.
 
 The next step is to write a wrapper function to evaluate the posterior at a given `theta` value. Here again, you could wrap the function `my_posterior` that you have already coded and pass it to `mcmcMH` so that it returns a sample of `theta` from the posterior distribution.
 However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`s. Although this could be done by running `trajLogLike` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_posterior` so we could just use it. This is exactly what the function `logPosterior` does for you.
@@ -248,7 +248,7 @@ my_posteriorTdC <- function(theta){
 }
 
 # theta to initialise the MCMC
-theta.init <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
+init.theta <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
 
 # diagonal elements of the covariance matrix for the Gaussian proposal
 proposal.sd <- c("R0"=1, "D.lat"=0.5 , "D.inf"=0.5, "alpha"=0.1, "D.imm"=2, "rho"=0.1)
@@ -274,7 +274,7 @@ Then you should be able to run `mcmcMH`:
 # run the MCMC
 my_mcmc.TdC <- mcmcMH(
 	target=my_posteriorTdC,
-	theta.init=theta.init,
+	init.theta=init.theta,
 	proposal.sd=proposal.sd,
 	limits=list(lower=lower,upper=upper),
 	n.iterations=n.iterations,
