@@ -134,21 +134,8 @@ code > span.er { color: #ff0000; font-weight: bold; }
     <span class="dt">rho =</span> <span class="fl">0.85</span>)
 init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
 <span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971)</code></pre>
-<<<<<<< HEAD
 <p><img src="figure/SEITL_model/oneTraj.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>You can also display all states variables (not only the observation) by passing <code>all.vars=TRUE</code></p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971, 
-    <span class="dt">all.vars =</span> <span class="ot">TRUE</span>)</code></pre>
-<p><img src="figure/SEITL_model/allVars.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>Although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy <code>obs</code> time-series. You can appreciate the variability of the observation process by plotting several replicates (use the argument <code>n.replicates</code>):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971, 
-    <span class="dt">n.replicates =</span> <span class="dv">100</span>)</code></pre>
-<p><img src="figure/SEITL_model/manyObs.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>By default, this function plots the mean, median as well as the <span class="math">\(95^\mathrm{th}\)</span> and <span class="math">\(50^\mathrm{th}\)</span> percentiles of the replicated simulations. Alternatively, you can visualize all the simulated trajectories by passing <code>summary=FALSE</code>:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971, 
-=======
-<pre><code>## Error: inherits(fitmodel, &quot;fitmodel&quot;) is not TRUE</code></pre>
-<p>You can also display all states variables (not only the observation) by passing <code>all.vars=TRUE</code></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971,
     <span class="dt">all.vars =</span> <span class="ot">TRUE</span>)</code></pre>
 <p><img src="figure/SEITL_model/allVars.png" title="" alt="" style="display: block; margin: auto;" /></p>
@@ -158,7 +145,6 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <p><img src="figure/SEITL_model/manyObs.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>By default, this function plots the mean, median as well as the <span class="math">\(95^\mathrm{th}\)</span> and <span class="math">\(50^\mathrm{th}\)</span> percentiles of the replicated simulations. Alternatively, you can visualize all the simulated trajectories by passing <code>summary=FALSE</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971,
->>>>>>> FETCH_HEAD
     <span class="dt">n.replicates =</span> <span class="dv">100</span>, <span class="dt">summary =</span> <span class="ot">FALSE</span>)</code></pre>
 <p><img src="figure/SEITL_model/allTraj.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>Now, <strong>take 10 min</strong> to get yourself familiar with the function <code>plotFit</code> and explore the dynamics of your model for different parameter and initial state values. In particular, try different values for <span class="math">\(R_0\in[2-15]\)</span> and <span class="math">\(\alpha\in[0.3-1]\)</span>. For which values of <span class="math">\(R_0\)</span> and <span class="math">\(\alpha\)</span> do you get a descent fit?</p>
@@ -211,13 +197,8 @@ my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
 
     my_fitmodel &lt;-<span class="st"> </span>SEITL_deter
     my_init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-<<<<<<< HEAD
-    
-    <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> my_init.state, 
-=======
 
     <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> my_init.state,
->>>>>>> FETCH_HEAD
         <span class="dt">data =</span> FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
 
 }
@@ -242,15 +223,9 @@ adapt.shape.start &lt;-<span class="st"> </span><span class="dv">200</span></cod
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="TODO">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
-<<<<<<< HEAD
-my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC, <span class="dt">init.theta =</span> init.theta, <span class="dt">proposal.sd =</span> proposal.sd, 
-    <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> lower, <span class="dt">upper =</span> upper), <span class="dt">n.iterations =</span> n.iterations, 
-    <span class="dt">adapt.size.start =</span> adapt.size.start, <span class="dt">adapt.size.cooling =</span> adapt.size.cooling, 
-=======
-my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC, <span class="dt">theta.init =</span> theta.init, <span class="dt">proposal.sd =</span> proposal.sd,
+my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC, <span class="dt">init.theta =</span> init.theta, <span class="dt">proposal.sd =</span> proposal.sd,
     <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> lower, <span class="dt">upper =</span> upper), <span class="dt">n.iterations =</span> n.iterations,
     <span class="dt">adapt.size.start =</span> adapt.size.start, <span class="dt">adapt.size.cooling =</span> adapt.size.cooling,
->>>>>>> FETCH_HEAD
     <span class="dt">adapt.shape.start =</span> adapt.shape.start)</code></pre>
 <p>Which should print some informations as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?</p>
 <p>Note that we have set-up the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform less iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.</p>
@@ -311,8 +286,7 @@ theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =
 <li>The Poisson process: see bottom of page 3 of this <a href="http://data.princeton.edu/wws509/notes/c4.pdf">reference</a> for more details.</li>
 </ul>
 <div>
-<pre><code># Navigate
-Previous: [Run MCMC](mcmc.html) Next: [Run a SMC](smc.html)</code></pre>
+Previous: <a href="mcmc_diagnostics.html">MCMC Diagnostics</a> Next: <a href="smc.html">SMC</a>
 </div>
 </body>
 </html>
