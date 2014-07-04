@@ -3,7 +3,7 @@
 # - target: the target distribution, a function that takes one
 #   argument (a number) and returns the (logged) value of a
 #   distribution
-# - theta.init: the initial value of theta, a number
+# - init.theta: the initial value of theta, a number
 # - proposal.sd: the standard deviation of (Gaussian) proposal
 #   distribution
 # - n.iterations: the number of iterations
@@ -11,7 +11,7 @@
 # distribution
 my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 
-    # evaluate the function "target" at "theta.init", and assign to
+    # evaluate the function "target" at "init.theta", and assign to
     # a variable called target.theta.current.
     target.theta.current <- target(init.theta)
 
