@@ -22,10 +22,10 @@ auto
 *.synctex.gz
 *.out
 
+
 # knitr stuff
 knitr/*.md
 knitr/*.html
 knitr/*.pdf
 knitr/figure
 knitr/cache
-

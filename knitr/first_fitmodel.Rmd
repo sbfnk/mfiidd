@@ -47,17 +47,17 @@ Your `SIR` object should contain 4 non `NULL` elements: `name`, `theta`, `state.
 It might be useful to first write down the system of ordinary differential equations (ODEs). Now, write a function to simulate your model deterministically, you will use the function `ode()` of the `R` package `deSolve`.
 
 ```{r eval=FALSE}
-SIR_simulateDeterministic <- function(theta,state.init,times) {
+SIR_simulateDeterministic <- function(theta,init.state,times) {
     # The following function compute the derivative of the ODE system
     SIR_ode <- function(time,state,theta) {
- 
+
     # type ?ode for guidance on what to put here
- 
+
     }
- 
+
     # simulate and return a data.frame
-    trajectory <- data.frame(ode(y=state.init,times=times,func=SIR_ode,parms=theta))
- 
+    trajectory <- data.frame(ode(y=init.state,times=times,func=SIR_ode,parms=theta))
+
     return(trajectory)
  }
 ```
@@ -85,6 +85,3 @@ Type `?plotModelTraj` for more potting options.
 
 # Navigate
 Previous: [Overview of fitcourseR](fitcourseR.md) Next: [Data and likelihood](data_likelihood.md)
-
-
-

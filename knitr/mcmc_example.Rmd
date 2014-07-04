@@ -5,7 +5,7 @@ Below, you can find an example of how to code a Metropolis sampler. Some bits ar
 # - target: the target distribution, a function that takes one
 #   argument (a number) and returns the (logged) value of a
 #   distribution
-# - theta.init: the initial value of theta, a number
+# - init.theta: the initial value of theta, a number
 # - proposal.sd: the standard deviation of (Gaussian) proposal
 #   distribution
 # - n.iterations: the number of iterations
@@ -13,14 +13,14 @@ Below, you can find an example of how to code a Metropolis sampler. Some bits ar
 # distribution
 my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations) {
 
-    # evaluate the function "target" at "theta.init", and assign to
+    # evaluate the function "target" at "init.theta", and assign to
     # a variable called target.theta.current.
     target.theta.current <- target(init.theta)
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted runs
-    theta.current <- theta.init
-    samples <- theta.init
+    theta.current <- init.theta
+    samples <- init.theta
     accepted <- 0
 
     # run MCMC for n.iteration interations

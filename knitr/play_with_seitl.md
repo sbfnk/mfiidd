@@ -1,17 +1,9 @@
 % The SEITL model
 
-```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_model/", fig.retina=1 ,fig.path="figure/SEITL_model/", fig.cap='', fig.height=3, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE)
-```
 
 
-```{r fitR, echo=FALSE, results="hide", warning=FALSE}
-library(fitR)
-# dir_example <- "/Users/Tonton/edu/Fit_course/fitR/inst/examples"
-# source(file.path(dir_example,"example-SEITL-deter.r"))
-# source(file.path(dir_example,"example-SEITL-sto.r"))
-set.seed(1234)
-```
+
+
 
 # Objectives
 
@@ -37,11 +29,28 @@ Among the 284 islanders, 273 (96%) experienced at least one attack and 92 (32%) 
 
 The dataset of daily incidence can be loaded and plotted as follows:
 
-```{r data}
+
+```r
 data(FluTdC1971)
 head(FluTdC1971)
-ggplot(data=FluTdC1971, aes(x=date, y=obs)) + geom_bar(stat="identity") + theme_bw()
 ```
+
+```
+##         date time obs
+## 1 1971-08-13    1   0
+## 2 1971-08-14    2   1
+## 3 1971-08-15    3   0
+## 4 1971-08-16    4  10
+## 5 1971-08-17    5   6
+## 6 1971-08-18    6  32
+```
+
+```r
+ggplot(data = FluTdC1971, aes(x = date, y = obs)) + geom_bar(stat = "identity") +
+    theme_bw()
+```
+
+<img src="figure/SEITL_model/data.png" title="" alt="" style="display: block; margin: auto;" />
 
 # SEITL model
 
@@ -84,7 +93,8 @@ $$
 
 The deterministic SEITL model is already implemented as a `fitmodel` object, which can be loaded into your **R** session by typing:
 
-```{r eval=FALSE, results="hide"}
+
+```r
 example(SEITL_deter)
 ```
 
@@ -107,30 +117,48 @@ Based on these informations and the description of the outbreak, propose one or 
 
 In the previous practical you have simulated trajectories using `genObsTraj` and then plot them with `plotTraj`. Actually, the function `plotFit` combine these two steps by simulating and displaying model trajectories against the data:
 
-```{r oneTraj, results="hide"}
-theta.bad.guess <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.9, "D.imm"=13, "rho"=0.85)
-init.state.bad.guess <- c("S"=250,"E"=0,"I"=4,"T"=0,"L"=30,"Inc"=0)
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971)
+
+```r
+theta.bad.guess <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13,
+    rho = 0.85)
+init.state.bad.guess <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+plotFit(SEITL_deter, theta.bad.guess, init.state.bad.guess, data = FluTdC1971)
+```
+
+```
+## Error: inherits(fitmodel, "fitmodel") is not TRUE
 ```
 
 You can also display all states variables (not only the observation) by passing `all.vars=TRUE`
 
-```{r allVars, fig.height=6,fig.width=10, results="hide"}
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971,all.vars=TRUE)
+
+```r
+plotFit(SEITL_deter, theta.bad.guess, init.state.bad.guess, data = FluTdC1971,
+    all.vars = TRUE)
 ```
+
+<img src="figure/SEITL_model/allVars.png" title="" alt="" style="display: block; margin: auto;" />
 
 Although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy `obs` time-series.
 You can appreciate the variability of the observation process by plotting several replicates (use the argument `n.replicates`):
 
-```{r manyObs, fig.height=3.5, results="hide"}
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100)
+
+```r
+plotFit(SEITL_deter, theta.bad.guess, init.state.bad.guess, data = FluTdC1971,
+    n.replicates = 100)
 ```
+
+<img src="figure/SEITL_model/manyObs.png" title="" alt="" style="display: block; margin: auto;" />
 
 By default, this function plots the mean, median as well as the $95^\mathrm{th}$ and $50^\mathrm{th}$ percentiles of the replicated simulations. Alternatively, you can visualize all the simulated trajectories by passing `summary=FALSE`:
 
-```{r allTraj, results="hide"}
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100, summary=FALSE)
+
+```r
+plotFit(SEITL_deter, theta.bad.guess, init.state.bad.guess, data = FluTdC1971,
+    n.replicates = 100, summary = FALSE)
 ```
+
+<img src="figure/SEITL_model/allTraj.png" title="" alt="" style="display: block; margin: auto;" />
 
 Now, __take 10 min__ to get yourself familiar with the function `plotFit` and explore the dynamics of your model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a descent fit?
 
@@ -143,7 +171,8 @@ Once you have a descent fit, you should note the low prevalence between the two 
 
 The stochastic SEITL model is already implemented as a `fitmodel` object, which can be loaded into your **R** session by typing:
 
-```{r eval=FALSE, results="hide"}
+
+```r
 example(SEITL_sto)
 ```
 
@@ -159,31 +188,7 @@ What differences do you notice between stochastic and deterministic simulations?
 
 So far, we have assumed that the time spent in each compartment was following an [exponential distribution](http://en.wikipedia.org/wiki/Exponential_distribution). This distribution has the well known property of being memoryless, which means that the probability of leaving a compartment doesn't depend on the time already spent in this compartment. Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response. In order to include a memory effect, it is common to replace the exponential distribution by an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution). This distribution is parametrised by its mean $m$ and shape $k$ and can be modelled by $k$ consecutive sub-stages, each being exponentially distributed with mean $m/k$. As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
 
-```{r erlang, echo=FALSE, fig.width=5, fig.height=5}
-
-library(ggplot2)
-library(plyr)
-
-m <- 2
-x <- seq(0,4*m,0.01)
-all_k <- c(1,2,5,20)
-names(all_k) <- all_k
-
-df_dist <- ldply(all_k,function(k){
-	return(data.frame(x=x,density=dgamma(x,shape=k,scale=m/k)))
-}, .id="k")
-
-lab <- paste("k==",all_k,sep="")
-
-p <- ggplot(data=df_dist,aes(x=x,y=density,group=k))
-p <- p + geom_line(aes(colour=k, linetype=k),position="identity",alpha=1)
-p <- p + scale_colour_brewer("Shape",palette="Dark2")
-p <- p + scale_linetype("Shape")
-p <- p + scale_x_continuous("time")+scale_y_continuous("density")
-p <- p + theme_bw() + theme(legend.position="top")
-print(p)
-
-```
+<img src="figure/SEITL_model/erlang.png" title="" alt="" style="display: block; margin: auto;" />
 
 We can extend the SEITL as follows:
 
@@ -192,7 +197,8 @@ We can extend the SEITL as follows:
 
 The deterministic and stochastic SEIT2L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
 
-```{r eval=FALSE, results="hide"}
+
+```r
 example(SEIT2L_deter)
 example(SEIT2L_sto)
 ```
@@ -206,7 +212,7 @@ Can you notice any differences? If so, which model seems to provide the best fit
 
 As you will see in the next session, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. This can lead to a waste of time and computational resources:
 
-1. If you initialise the MCMC with a `init.theta` far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.
+1. If you initialise the MCMC with a `theta.init` far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.
 2. If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in poor mixing and sub-optimal acceptance rate and you will have to thin a lot your chain.
 
 In this context, it might be useful to run a MCMC on the deterministic model first, which is fast, and then learn from the output of this chain to initialise the chain for the fit of the stochastic model. The rational for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.
@@ -219,7 +225,7 @@ To save time, half of the group will fit the deterministic SEITL model and the o
 
 Here you could use the function `my_mcmcMH` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.
 
-__Take 5 min__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_mcmcMH` (`target`, `init.theta`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.
+__Take 5 min__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_mcmcMH` (`target`, `theta.init`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.
 
 The next step is to write a wrapper function to evaluate the posterior at a given `theta` value. Here again, you could wrap the function `my_posterior` that you have already coded and pass it to `mcmcMH` so that it returns a sample of `theta` from the posterior distribution.
 However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`s. Although this could be done by running `trajLogLike` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_posterior` so we could just use it. This is exactly what the function `logPosterior` does for you.
@@ -232,30 +238,31 @@ __Take 5 min__ to look at the code of `logPosterior`. As you can see, this funct
 
 Now, __take 15 min__ to prepare all the inputs to be able to run `mcmcMH` to fit your model. You should proceed as follows:
 
-```{r set-mcmc, eval=FALSE}
 
+```r
 # the fitmodel
 example(SEITL_deter)
 
 # wrapper for posterior
-my_posteriorTdC <- function(theta){
+my_posteriorTdC <- function(theta) {
 
-	my_fitmodel <- SEITL_deter
-	my_init.state <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
+    my_fitmodel <- SEITL_deter
+    my_init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 
-	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, data=FluTdC1971, margLogLike = trajLogLike))
+    return(logPosterior(fitmodel = my_fitmodel, theta = theta, init.state = my_init.state,
+        data = FluTdC1971, margLogLike = trajLogLike))
 
 }
 
 # theta to initialise the MCMC
-init.theta <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
+theta.init <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.8, D.imm = 16, rho = 0.85)
 
 # diagonal elements of the covariance matrix for the Gaussian proposal
-proposal.sd <- c("R0"=1, "D.lat"=0.5 , "D.inf"=0.5, "alpha"=0.1, "D.imm"=2, "rho"=0.1)
+proposal.sd <- c(R0 = 1, D.lat = 0.5, D.inf = 0.5, alpha = 0.1, D.imm = 2, rho = 0.1)
 
 # lower and upper limits of each parameter
-lower <- c("R0"=0, "D.lat"=0 , "D.inf"=0, "alpha"=0, "D.imm"=0, "rho"=0)
-upper <- c("R0"=Inf, "D.lat"=Inf , "D.inf"=Inf, "alpha"=1, "D.imm"=Inf, "rho"=1)
+lower <- c(R0 = 0, D.lat = 0, D.inf = 0, alpha = 0, D.imm = 0, rho = 0)
+upper <- c(R0 = Inf, D.lat = Inf, D.inf = Inf, alpha = 1, D.imm = Inf, rho = 1)
 
 # number of iterations for the MCMC
 n.iterations <- 5000
@@ -270,18 +277,13 @@ If you have trouble filling some of the empty bits, have a look at our [example]
 
 Then you should be able to run `mcmcMH`:
 
-```{r run-mcmc, eval=FALSE}
-# run the MCMC
-my_mcmc.TdC <- mcmcMH(
-	target=my_posteriorTdC,
-	init.theta=init.theta,
-	proposal.sd=proposal.sd,
-	limits=list(lower=lower,upper=upper),
-	n.iterations=n.iterations,
-	adapt.size.start=adapt.size.start,
-	adapt.size.cooling=adapt.size.cooling,
-	adapt.shape.start=adapt.shape.start)
 
+```r
+# run the MCMC
+my_mcmc.TdC <- mcmcMH(target = my_posteriorTdC, theta.init = theta.init, proposal.sd = proposal.sd,
+    limits = list(lower = lower, upper = upper), n.iterations = n.iterations,
+    adapt.size.start = adapt.size.start, adapt.size.cooling = adapt.size.cooling,
+    adapt.shape.start = adapt.shape.start)
 ```
 
 Which should print some informations as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?
@@ -304,7 +306,8 @@ You can find a grouped documentation for these three functions by typing `?acfpl
 
 __Take 10 min__ to analyse the trace returned by `mcmcMH`. Remember that, with the notation above, the trace can be accessed by `my_mcmc.TdC$trace` and then converted to a `mcmc` object so that the `coda` functions recognize it:
 
-```{r coda-trace, eval=FALSE}
+
+```r
 # convert to mcmc object
 my_trace <- mcmc(my_mcmc.TdC$trace)
 # plot the trace
@@ -318,36 +321,48 @@ You should have noticed that the effective sample size (ESS) is quite small ($<1
 
 To save time, we have run 2 chains of 100 000 iterations starting from different initial `theta` values:
 
-```{r theta-init, eval=FALSE}
-theta1=c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
-theta2=c("R0"=20, "D.lat"=2 , "D.inf"=2, "alpha"=0.1, "D.imm"=8, "rho"=0.3)
+
+```r
+theta1 = c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.8, D.imm = 16, rho = 0.85)
+theta2 = c(R0 = 20, D.lat = 2, D.inf = 2, alpha = 0.1, D.imm = 8, rho = 0.3)
 ```
 
 Each chain took 5 hours on a scientific computing cluster and can be loaded as follows:
 
-```{r load-trace, collapse=TRUE}
+
+```r
 data(mcmc_TdC_deter_longRun)
-# this should load 2 objects in your environment: mcmc_SEITL_theta1 and mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMH
+# this should load 2 objects in your environment: mcmc_SEITL_theta1 and
+# mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMH
 names(mcmc_SEITL_theta1)
+## [1] "trace"            "acceptance.rate"  "covmat.empirical"
 # the trace contain 9 variables for 100000 iterations
 dim(mcmc_SEITL_theta1$trace)
+## [1] 100001      9
 # let's have a look at it
 head(mcmc_SEITL_theta1$trace)
+##      R0 D.lat D.inf  alpha D.imm    rho log.prior log.likelihood
+## 1 2.000 2.000 2.000 0.8000 16.00 0.8500    -12.81         -445.8
+## 2 2.000 2.000 2.000 0.8000 16.00 0.8500    -12.81         -445.8
+## 3 3.291 1.928 2.140 0.8244 19.15 0.8684    -12.81         -442.7
+## 4 3.644 1.868 1.899 0.8099 18.47 0.8769    -12.81         -438.2
+## 5 5.094 1.938 1.497 0.7237 16.55 0.7971    -12.81         -329.7
+## 6 5.405 1.981 1.826 0.5987 16.95 0.7286    -12.81         -220.3
+##   log.posterior
+## 1        -458.6
+## 2        -458.6
+## 3        -455.5
+## 4        -451.0
+## 5        -342.5
+## 6        -233.1
 ```
 
-Make sure you choose a chain with a different initial `theta` than your neighbour and __take 10 min__ to analyse it and compare your posterior distributions. If you found similar posterior distributions, that means that you can join the two chains to make your posterior even more accurate. __Take 5 min__ to do so. Hint: 'coda' knows how to deal with list of `mcmc` objects and most functions will work with these `mcmc.list` objects. Alternatively, you can use 'rbind' to bind two data frames.
+Make sure you choose a chain with a different initial `theta` than your neighbour and __take 10 min__ to analyse it and compare your posterior distributions. If you found similar posterior distributions, that means that you can join the two chains to make your posterior even more accurate. __Take 5 min__ to do so. Hint: 'coda' knows how to deal with list of `mcmc` objects and most functions will work for these `mcmc.list` objects.
 
-Have a look at our solution.
 
 ## Correlation
 
-high D.inf
-unif prior
-informative priors
-analyse
-
 ## Model selection
-
 
 
 
