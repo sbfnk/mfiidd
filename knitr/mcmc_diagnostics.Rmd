@@ -15,8 +15,6 @@ The aim of this session is to learn how to interpret the results of MCMC samplin
 2. explore strategies for improving the performance of an Metropolis-Hastings sampler
 3. learn about posterior predictive checks to assess the goodness of fit
 
-
-
 # Sampling more than one parameter
 
 <!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
@@ -35,7 +33,7 @@ You can visualise the `epi3` data set with
 plotTraj(data = epi3)
 ```
 
-You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_wrap` wrapper function to fit to data set `epi3`. Try a few values for the vector of standard deviations `proposal.sd` and see if how this affects the acceptance rate.
+You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_epi1` wrapper function to fit to data set `epi3` -- if you have trouble with that, you can use our [solution](epi3_wrapper.md). Try a few values for the vector of standard deviations `proposal.sd` and see if how this affects the acceptance rate.
 
 To get good acceptance rates, it is sometimes a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
 
@@ -149,16 +147,31 @@ It is usually difficult to tell for how long one should run the chain. If the tr
 
 There are no general rules for how long one needs to run the chain, but generally it is a good idea to start the chain from different starting points and make sure they converge to the same density plots. In fact, it is a good idea to memorise that one should *always* run multiple chains. Secondly, one decide in advance on the number of samples one wants from the underlying distribution, and run the chain until the effective sample size reaches that number. In practice, however, this is a somewhat arbitrary decision, and apart from careful diagnosis and running multiple chains there is not much one can do to get a reliable estimate of the necessary number of iterations.
 
-# Improving the performance of the sampler
+# Adapting the proposal distribution
+
+The best proposal distribution is the one that best matches the underlying target distribution. While we cannot know this in advance, we can use trial MCMC runs of to learn about the underlying target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.
+
+We have provided you with a function, `mcmcMH`, which does exactly the same as your `my_mcmcMH` function, but provides some additional functionality. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
+
+```{r message = FALSE}
+trace <- mcmcMH(target = my_logPosterior_epi3,
+                theta.init = c(R0 = 1, D.inf = 2),
+                n.iterations = 1000)
+```
+
+```{r}
+trace$covmat.empirical
+```
 
 ## Truncated proposal distributions
 
 Not necessary here probably
 
 
-## Adaptive proposal steps
+## Automating adaptation
 
 Test from mcmcMH (rename to adaptive?)
+
 
 # Assessing a fit
 
