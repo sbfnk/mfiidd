@@ -128,27 +128,27 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li>Between 20 and 30% of the infection with influenza are asymptomatic.</li>
 <li>There is very limited cross-immunity between influenza viruses A/H1N1 and A/H3N2.</li>
 </ol>
-<p>Based on these informations and the description of the outbreak, propose one or more set(s) of values for the parameters (<code>theta</code>) and initial state (<code>state.init</code>) of the model? You can also use our 3 sets of values that can be loaded by typing <code>example(SEITL_guess_values)</code>.</p>
+<p>Based on these informations and the description of the outbreak, propose one or more set(s) of values for the parameters (<code>theta</code>) and initial state (<code>init.state</code>) of the model? You can also use our 3 sets of values that can be loaded by typing <code>example(SEITL_guess_values)</code>.</p>
 <p>In the previous practical you have simulated trajectories using <code>genObsTraj</code> and then plot them with <code>plotTraj</code>. Actually, the function <code>plotFit</code> combine these two steps by simulating and displaying model trajectories against the data:</p>
 <pre class="sourceCode r"><code class="sourceCode r">theta.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.9</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, 
     <span class="dt">rho =</span> <span class="fl">0.85</span>)
-state.init.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-<span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971)</code></pre>
-<pre><code>## Error: inherits(fitmodel, &quot;fitmodel&quot;) is not TRUE</code></pre>
+init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+<span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971)</code></pre>
+<p><img src="figure/SEITL_model/oneTraj.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>You can also display all states variables (not only the observation) by passing <code>all.vars=TRUE</code></p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971, 
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971, 
     <span class="dt">all.vars =</span> <span class="ot">TRUE</span>)</code></pre>
 <p><img src="figure/SEITL_model/allVars.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>Although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy <code>obs</code> time-series. You can appreciate the variability of the observation process by plotting several replicates (use the argument <code>n.replicates</code>):</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971, 
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971, 
     <span class="dt">n.replicates =</span> <span class="dv">100</span>)</code></pre>
 <p><img src="figure/SEITL_model/manyObs.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>By default, this function plots the mean, median as well as the <span class="math">\(95^\mathrm{th}\)</span> and <span class="math">\(50^\mathrm{th}\)</span> percentiles of the replicated simulations. Alternatively, you can visualize all the simulated trajectories by passing <code>summary=FALSE</code>:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, state.init.bad.guess, <span class="dt">data =</span> FluTdC1971, 
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEITL_deter, theta.bad.guess, init.state.bad.guess, <span class="dt">data =</span> FluTdC1971, 
     <span class="dt">n.replicates =</span> <span class="dv">100</span>, <span class="dt">summary =</span> <span class="ot">FALSE</span>)</code></pre>
 <p><img src="figure/SEITL_model/allTraj.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>Now, <strong>take 10 min</strong> to get yourself familiar with the function <code>plotFit</code> and explore the dynamics of your model for different parameter and initial state values. In particular, try different values for <span class="math">\(R_0\in[2-15]\)</span> and <span class="math">\(\alpha\in[0.3-1]\)</span>. For which values of <span class="math">\(R_0\)</span> and <span class="math">\(\alpha\)</span> do you get a descent fit?</p>
-<p>If you didn't get a descent fit, try <code>theta.guess3</code> and <code>state.init.guess3</code> that you can load by typing <code>example(SEITL_guess_values)</code>.</p>
+<p>If you didn't get a descent fit, try <code>theta.guess3</code> and <code>init.state.guess3</code> that you can load by typing <code>example(SEITL_guess_values)</code>.</p>
 <p>Once you have a descent fit, you should note the low prevalence between the two waves. This suggests that the continuous approximation made by the deterministic model might not be appropriate and that we should use a stochastic model. In contrast to deterministic models, stochastic models explicitly take into account the discrete nature of individuals.</p>
 <h2 id="stochastic-simulations">Stochastic simulations</h2>
 <p>The stochastic SEITL model is already implemented as a <code>fitmodel</code> object, which can be loaded into your <strong>R</strong> session by typing:</p>
@@ -168,12 +168,12 @@ state.init.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEIT2L_deter)
 <span class="kw">example</span>(SEIT2L_sto)</code></pre>
 <p><strong>Take 5 min</strong> to have a look at the function <code>simulate</code> of these SEIT2L models and make sure you understand how the Erlang distribution for the <span class="math">\(T\)</span> compartment is coded.</p>
-<p>Now, <strong>take 10 min</strong> to compare the dynamics of the SEITL and SEIT2L model using <code>plotFit</code>. Use your best guess from the previous exercise as well as stochastic and deterministic simulations. Note that although SEITL and SEIT2L share the same parameters, their state variables differ so you need to modify the <code>state.init</code> of SEIT2L accordingly.</p>
+<p>Now, <strong>take 10 min</strong> to compare the dynamics of the SEITL and SEIT2L model using <code>plotFit</code>. Use your best guess from the previous exercise as well as stochastic and deterministic simulations. Note that although SEITL and SEIT2L share the same parameters, their state variables differ so you need to modify the <code>init.state</code> of SEIT2L accordingly.</p>
 <p>Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes as you change the distribution of the <span class="math">\(T\)</span> compartment?</p>
 <h1 id="fitting-the-deterministic-models">Fitting the deterministic models</h1>
 <p>As you will see in the next session, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. This can lead to a waste of time and computational resources:</p>
 <ol style="list-style-type: decimal">
-<li>If you initialise the MCMC with a <code>theta.init</code> far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.</li>
+<li>If you initialise the MCMC with a <code>init.theta</code> far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.</li>
 <li>If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in poor mixing and sub-optimal acceptance rate and you will have to thin a lot your chain.</li>
 </ol>
 <p>In this context, it might be useful to run a MCMC on the deterministic model first, which is fast, and then learn from the output of this chain to initialise the chain for the fit of the stochastic model. The rational for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.</p>
@@ -181,9 +181,9 @@ state.init.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <p>To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL, the same command work for the SEIT2L model by adjusting the name of the command (i.e. 'example(SEIT2L_deter)' instead of 'example(SEITL_deter)').</p>
 <h2 id="run-a-mcmc">Run a MCMC</h2>
 <p>Here you could use the function <code>my_mcmcMH</code> that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.</p>
-<p><strong>Take 5 min</strong> to have a look at the adaptive MCMC implemented in the function <code>mcmcMH</code>. As you can see, this function takes similar arguments as your function <code>my_mcmcMH</code> (<code>target</code>, <code>theta.init</code>, <code>proposal.sd</code> and <code>n.iterations</code>) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of <code>mcmcMH</code>. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.</p>
+<p><strong>Take 5 min</strong> to have a look at the adaptive MCMC implemented in the function <code>mcmcMH</code>. As you can see, this function takes similar arguments as your function <code>my_mcmcMH</code> (<code>target</code>, <code>init.theta</code>, <code>proposal.sd</code> and <code>n.iterations</code>) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of <code>mcmcMH</code>. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.</p>
 <p>The next step is to write a wrapper function to evaluate the posterior at a given <code>theta</code> value. Here again, you could wrap the function <code>my_posterior</code> that you have already coded and pass it to <code>mcmcMH</code> so that it returns a sample of <code>theta</code> from the posterior distribution. However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled <code>theta</code>s. Although this could be done by running <code>trajLogLike</code> on each returned <code>theta</code>, you might remember that the log-likelihood is actually computed in <code>my_posterior</code> so we could just use it. This is exactly what the function <code>logPosterior</code> does for you.</p>
-<p><strong>Take 5 min</strong> to look at the code of <code>logPosterior</code>. As you can see, this function takes similar arguments as your function <code>my_posterior</code> (<code>fitmodel</code>, <code>theta</code>, <code>state.init</code> and <code>data</code>) plus one called <code>margLogLike</code>, which is a function to compute the log-likelihood of <code>theta</code>. By default, it is set to <code>trajLogLike</code> so you don't really need to bother with this argument (actually it will be useful in the next session as we will need a different function than <code>trajLogLike</code> to compute the log-likelihood). Note also that this function returns a list of two elements:</p>
+<p><strong>Take 5 min</strong> to look at the code of <code>logPosterior</code>. As you can see, this function takes similar arguments as your function <code>my_posterior</code> (<code>fitmodel</code>, <code>theta</code>, <code>init.state</code> and <code>data</code>) plus one called <code>margLogLike</code>, which is a function to compute the log-likelihood of <code>theta</code>. By default, it is set to <code>trajLogLike</code> so you don't really need to bother with this argument (actually it will be useful in the next session as we will need a different function than <code>trajLogLike</code> to compute the log-likelihood). Note also that this function returns a list of two elements:</p>
 <ol style="list-style-type: decimal">
 <li><code>log.density</code>: the log of the posterior density</li>
 <li><code>trace</code>: a vector that contains, among other things, <code>theta</code> and its <code>log.likelihood</code>. All these information will be added to the <code>trace</code> data frame returned by <code>mcmcMH</code>.</li>
@@ -196,15 +196,15 @@ state.init.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
     
     my_fitmodel &lt;-<span class="st"> </span>SEITL_deter
-    my_state.init &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+    my_init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
     
-    <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">state.init =</span> my_state.init, 
+    <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> my_init.state, 
         <span class="dt">data =</span> FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
     
 }
 
 <span class="co"># theta to initialise the MCMC</span>
-theta.init &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">D.imm =</span> <span class="dv">16</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
+init.theta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">D.imm =</span> <span class="dv">16</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
 
 <span class="co"># diagonal elements of the covariance matrix for the Gaussian proposal</span>
 proposal.sd &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.lat =</span> <span class="fl">0.5</span>, <span class="dt">D.inf =</span> <span class="fl">0.5</span>, <span class="dt">alpha =</span> <span class="fl">0.1</span>, <span class="dt">D.imm =</span> <span class="dv">2</span>, <span class="dt">rho =</span> <span class="fl">0.1</span>)
@@ -223,7 +223,7 @@ adapt.shape.start &lt;-<span class="st"> </span><span class="dv">200</span></cod
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="TODO">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
-my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC, <span class="dt">theta.init =</span> theta.init, <span class="dt">proposal.sd =</span> proposal.sd, 
+my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC, <span class="dt">init.theta =</span> init.theta, <span class="dt">proposal.sd =</span> proposal.sd, 
     <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> lower, <span class="dt">upper =</span> upper), <span class="dt">n.iterations =</span> n.iterations, 
     <span class="dt">adapt.size.start =</span> adapt.size.start, <span class="dt">adapt.size.cooling =</span> adapt.size.cooling, 
     <span class="dt">adapt.shape.start =</span> adapt.shape.start)</code></pre>
@@ -275,8 +275,11 @@ theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =
 ## 4        -451.0
 ## 5        -342.5
 ## 6        -233.1</code></pre>
-<p>Make sure you choose a chain with a different initial <code>theta</code> than your neighbour and <strong>take 10 min</strong> to analyse it and compare your posterior distributions. If you found similar posterior distributions, that means that you can join the two chains to make your posterior even more accurate. <strong>Take 5 min</strong> to do so. Hint: 'coda' knows how to deal with list of <code>mcmc</code> objects and most functions will work for these <code>mcmc.list</code> objects.</p>
+<p>Make sure you choose a chain with a different initial <code>theta</code> than your neighbour and <strong>take 10 min</strong> to analyse it and compare your posterior distributions. If you found similar posterior distributions, that means that you can join the two chains to make your posterior even more accurate. <strong>Take 5 min</strong> to do so. Hint: 'coda' knows how to deal with list of <code>mcmc</code> objects and most functions will work with these <code>mcmc.list</code> objects. Alternatively, you can use 'rbind' to bind two data frames.</p>
+<p>Finally, you can assess the fit of your model by using the function <code>plotPosteriorFit</code>. <strong>Take 5 min</strong> to look at the documentation of this function.</p>
+<p>Have a look at our solution.</p>
 <h2 id="correlation">Correlation</h2>
+<p>You should have observed that high D.inf unif prior informative priors analyse</p>
 <h2 id="model-selection">Model selection</h2>
 <h1 id="to-go-further">To go further</h1>
 <ul>

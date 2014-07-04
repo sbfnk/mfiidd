@@ -1,0 +1,79 @@
+% Fitting the deterministic SEITL model
+
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_model_example/", fig.retina=1 ,fig.path="figure/SEITL_model_example/", fig.cap='', fig.height=3, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE)
+```
+
+```{r fitR, echo=FALSE, results="hide", warning=FALSE}
+library(fitR)
+set.seed(1234)
+```
+
+Here is an example of possible answers to the practical. Each section below correspond to a section of the practical.
+Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections. 
+Although our example refers to the SEITL model, the same command work for the SEIT2L model by adjusting the name of the command (i.e. 'example(SEIT2L_deter)' instead of 'example(SEITL_deter)').
+
+# Set the MCMC
+
+```{r set-mcmc, eval=FALSE}
+
+# the fitmodel
+example(SEITL_deter)
+
+# wrapper for posterior
+my_posteriorTdC <- function(theta){
+
+	my_fitmodel <- SEITL_deter
+	my_init.state <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0) 
+
+	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, data=FluTdC1971, margLogLike = trajLogLike))
+
+}
+
+# theta to initialise the MCMC
+init.theta <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
+
+# diagonal elements of the covariance matrix for the Gaussian proposal
+proposal.sd <- c("R0"=1, "D.lat"=0.5 , "D.inf"=0.5, "alpha"=0.1, "D.imm"=2, "rho"=0.1)
+
+# lower and upper limits of each parameter
+lower <- c("R0"=0, "D.lat"=0 , "D.inf"=0, "alpha"=0, "D.imm"=0, "rho"=0)
+upper <- c("R0"=Inf, "D.lat"=Inf , "D.inf"=Inf, "alpha"=1, "D.imm"=Inf, "rho"=1)
+
+# number of iterations for the MCMC
+n.iterations <- 5000
+
+# additional parameters for the adaptive MCMC, see ?mcmcMH for more details
+adapt.size.start <- 100 
+adapt.size.cooling <- 0.999
+adapt.shape.start <- 200
+```
+
+# Run a MCMC
+
+If you didn't manage to run the MCMC you can obtain:
+
+```{r load-trace, collapse=TRUE}
+data(mcmc_TdC_deter_shortRun)
+# this should load 2 objects in your environment: mcmc_SEITL_theta1 and mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMH
+names(mcmc_SEITL)
+# the trace contain 9 variables for 100000 iterations
+dim(mcmc_SEITL$trace)
+# let's have a look at it
+head(mcmc_SEITL$trace)
+```
+
+
+# Short run analysis
+
+
+# Long run analysis
+
+
+# Correlations
+
+
+# Informative priors.
+
+
+# Model selection
