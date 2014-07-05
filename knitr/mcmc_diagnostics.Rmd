@@ -69,7 +69,7 @@ This provides the following information:
 2. Empirical (sample) standard deviation
 3. "Naive" standard error, that is the standard error of the mean (adjusting for sample size). See the [Wikipedia](http://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean) page of the Standard error.
 4. the time-series standard error, which corrects (3) for autocorrelations
-5. quantifies for each variable
+5. quantiles for each variable
 
 We can also compute the rejection rate (that is 1 minus the acceptance rate).
 
@@ -156,6 +156,7 @@ We have provided you with a function, `mcmcMH`, which does exactly the same as y
 ```{r message = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
+                proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000)
 ```
 
@@ -163,14 +164,28 @@ trace <- mcmcMH(target = my_logPosterior_epi3,
 trace$covmat.empirical
 ```
 
+The diagonal elements of this matrix tells you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about *correlations* in the parameters. In this case, there is positive correlation between $R_0$ and $D_\mathrm{inf}$, that is greater values of $R_0$ in accepted proposals tend to coincide with greater values of $D_\mathrm{info}$. Can you think of why that is the case? We will come back to the issue of correlations and their impact on assessing model fits tomorrow.
+
 ## Truncated proposal distributions
 
-Not necessary here probably
+Often, we have situations where parameters are constrained to remain between certain values. For example, negative values do not make sense for the basic reproduction number $R_0$ of the duration of infection $D_\mathrm{inf}$, and probabilities have to stay between 0 and 1. We call the values that a parameter can, *in principle*, take the *support* of a parameter. This is different from the prior distribution which encodes our prior knowledge of likely values of a parameter among the values it can take.
 
+If we ignore the limited support that parameters can have, we might waste MCMC steps, for example when the random draw from the proposal distribution suggests a step to a negative value of a parameter with positive support (e.g., $R_0$). In this case, proposals are rejected not because the parameter fails to match the data, but because they are in *impossible* parts of the parameter space.
+
+In order to prevent such jumps, it makes sense to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. In the `mcmcMH` function which we provided in the `fitR` package, we use the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. The limits to use in the proposal distribution can be specified with the `limits` argument to mcmcMH, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write.
+
+```{r message = FALSE}
+trace <- mcmcMH(target = my_logPosterior_epi3,
+                init.theta = c(R0 = 1, D.inf = 2),
+                proposal.sd = c(0.1, 0.01),
+                n.iterations = 1000,
+                limits = list(lower = c(0, 0)))
+```
+
+Try a proposal distribution with a wide proposal distribution, and with or without limits. Do the limits make a difference to the acceptance rate?
 
 ## Automating adaptation
 
-Test from mcmcMH (rename to adaptive?)
 
 
 # Assessing a fit
