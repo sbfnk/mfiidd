@@ -145,14 +145,14 @@ To draw a random vector from a multivariate Gaussian proposal distribution, you 
 ## This is a function that takes four parameters:
 ## - target: the target distribution, a function that takes one argument
 ##           (a vector) and returns the (logged) value of a distribution
-## - theta.init: the initial value of theta, a named vector
+## - init.theta: the initial value of theta, a named vector
 ## - covmat.proposal: the covariance matrix of the (Gaussian) proposal distribution,
 ##                    in the same order as in the "target" vector
 ## - n.iterations: the number of iterations
 ## it returns an MCMC trace (value of theta and target(theta) at every MCMC step)
-my_mcmc <- function(target, theta.init, covmat.proposal, n.iterations) {
+my_mcmc <- function(target, init.theta, covmat.proposal, n.iterations) {
 
-    ## evaluate the function "target" at "theta.init"
+    ## evaluate the function "target" at "init.theta"
 
     ## repeat n.iterations times:
 
@@ -195,7 +195,7 @@ sigma <- matrix(sample.sd, nrow = 1)
 
 starting.value <- c(x = 1)
 iter <- 1000
-trace <- my_mcmc(target = dnorm.log, theta.init = starting.value, 
+trace <- my_mcmc(target = dnorm.log, init.theta = starting.value,
                  covmat.proposal = sigma, n.iterations = iter)
 ```
 

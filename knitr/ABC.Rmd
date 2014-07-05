@@ -142,7 +142,9 @@ The second step is to compare your data with your simulation with distance funct
 You can perform a simulation as follows:
 
 ```{r }
-simu <- my_SEITL$simulate.model(theta=my_SEITL$theta, init.state=my_SEITL$initialise.state(my_SEITL$theta),times=c(0,my_SEITL$data$time))
+theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
+init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+simu <- genObsTraj(SEITL_sto, theta, init.state, FluTdC1971$time)
 head(simu)
 ```
 

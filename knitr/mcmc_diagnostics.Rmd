@@ -155,7 +155,7 @@ We have provided you with a function, `mcmcMH`, which does exactly the same as y
 
 ```{r message = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
-                theta.init = c(R0 = 1, D.inf = 2),
+                init.theta = c(R0 = 1, D.inf = 2),
                 n.iterations = 1000)
 ```
 
