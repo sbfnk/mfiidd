@@ -49,3 +49,13 @@ SEIT2L_sto$logPrior <- function(theta) {
 
 }
 
+mcmc.abc.trial <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = theta, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+
+epsilon <- unname(quantile(mcmc.abc.trial$trace$distance, probs = 0.01))
+init.theta.26 <- unlist(mcmc.abc.trial$trace[which.min(mcmc.abc.trial$trace$distance), 1:6])
+
+time.mcmc.abc.26 <- system.time(mcmc.abc.26 <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = init.theta.26, proposal.sd = init.theta.26/100, n.iterations = 1000000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.8 <- unname(quantile(mcmc.abc.26$trace$distance, probs = 0.01))
+init.theta.8 <- unlist(mcmc.abc.26$trace[which.min(mcmc.abc.26$trace$distance), 1:6])
+
