@@ -1,4 +1,9 @@
-# Inference with ABC
+% Inference with ABC
+
+```{r echo=FALSE,results="hide",message=FALSE}
+opts_chunk$set(fig.cap='')
+library(fitR)
+```
 
 The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model.
 To illustrate ABC, you are going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model, so ABC could be an attractive alternative.
