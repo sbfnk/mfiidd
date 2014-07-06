@@ -241,8 +241,8 @@ Now, __take 15 min__ to prepare all the inputs to be able to run `mcmcMH` to fit
 # wrapper for posterior
 my_posteriorTdC <- function(theta) {
     
-    my_fitmodel  # <- FILL HERE
-    my_init.state  # <- FILL HERE
+    my_fitmodel  # <- INSERT HERE
+    my_init.state  # <- INSERT HERE
     
     return(logPosterior(fitmodel = my_fitmodel, theta = theta, init.state = my_init.state, 
         data = FluTdC1971, margLogLike = trajLogLike))
@@ -250,24 +250,24 @@ my_posteriorTdC <- function(theta) {
 }
 
 # theta to initialise the MCMC
-init.theta  # <- FILL HERE
+init.theta  # <- INSERT HERE
 
 # diagonal elements of the covariance matrix for the Gaussian proposal (in
 # the same order as init.theta)
-proposal.sd  # <- FILL HERE
+proposal.sd  # <- INSERT HERE
 
 
 # lower and upper limits of each parameter (must be named vectors)
-lower  # <- FILL HERE
-upper  # <- FILL HERE
+lower  # <- INSERT HERE
+upper  # <- INSERT HERE
 
 # number of iterations for the MCMC
-n.iterations  # <- FILL HERE
+n.iterations  # <- INSERT HERE
 
 # additional parameters for the adaptive MCMC, see ?mcmcMH for more details
-adapt.size.start  # <- FILL HERE
-adapt.size.cooling  # <- FILL HERE
-adapt.shape.start  # <- FILL HERE
+adapt.size.start  # <- INSERT HERE
+adapt.size.cooling  # <- INSERT HERE
+adapt.shape.start  # <- INSERT HERE
 ```
 
 If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
@@ -357,7 +357,7 @@ head(mcmc_SEITL_theta1$trace)
 ## 6        -233.1
 ```
 
-__Take 15 min__ to analyse both chains together. 
+__Take 15 min__ to analyse both chains together.
 
 __Hint__: the function `mcmc.list` of `coda` can be used to combine several `mcmc` objects into a `mcmc.list` object. Diagnostic functions which act on `mcmc` objects may also be applied to `mcmc.list` objects. In general, the chains will be combined, if this makes sense, otherwise the diagnostic function will be applied separately to each chain in the list.
 
@@ -399,6 +399,8 @@ names(mcmc_SEITL_infoPrior_theta2)
 ```
 __Take 15 min__ to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?
 
+A solution can be found [here](example_mcmc_seitl.md#informative-priors).
+
 ## Model selection
 
 We can compare the SEITL and SEIT2L models using the deviance information criterion ([DIC](http://en.wikipedia.org/wiki/Deviance_information_criterion)). 
@@ -432,5 +434,5 @@ You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/
 
 <div>
 # Navigate
-Previous: [Run MCMC](mcmc.md) Next: [Run a SMC](smc.md)
+Previous: [MCMC diagnostics](mcmc_diagnostics.md) Next: [Particle MCMC](smc.md)
 </div>

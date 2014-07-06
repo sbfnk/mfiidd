@@ -332,7 +332,7 @@ dim(mcmc_SEITL_theta1$trace)
 head(mcmc_SEITL_theta1$trace)
 ```
 
-__Take 15 min__ to analyse both chains together. 
+__Take 15 min__ to analyse both chains together.
 
 __Hint__: the function `mcmc.list` of `coda` can be used to combine several `mcmc` objects into a `mcmc.list` object. Diagnostic functions which act on `mcmc` objects may also be applied to `mcmc.list` objects. In general, the chains will be combined, if this makes sense, otherwise the diagnostic function will be applied separately to each chain in the list.
 
@@ -370,6 +370,8 @@ names(mcmc_SEITL_infoPrior_theta1)
 names(mcmc_SEITL_infoPrior_theta2)
 ``` 
 __Take 15 min__ to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?
+
+A solution can be found [here](example_mcmc_seitl.md#informative-priors).
 
 ## Model selection
 

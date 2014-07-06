@@ -193,8 +193,8 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># wrapper for posterior</span>
 my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
     
-    my_fitmodel  <span class="co"># &lt;- FILL HERE</span>
-    my_init.state  <span class="co"># &lt;- FILL HERE</span>
+    my_fitmodel  <span class="co"># &lt;- INSERT HERE</span>
+    my_init.state  <span class="co"># &lt;- INSERT HERE</span>
     
     <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> my_init.state, 
         <span class="dt">data =</span> FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
@@ -202,24 +202,24 @@ my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
 }
 
 <span class="co"># theta to initialise the MCMC</span>
-init.theta  <span class="co"># &lt;- FILL HERE</span>
+init.theta  <span class="co"># &lt;- INSERT HERE</span>
 
 <span class="co"># diagonal elements of the covariance matrix for the Gaussian proposal (in</span>
 <span class="co"># the same order as init.theta)</span>
-proposal.sd  <span class="co"># &lt;- FILL HERE</span>
+proposal.sd  <span class="co"># &lt;- INSERT HERE</span>
 
 
 <span class="co"># lower and upper limits of each parameter (must be named vectors)</span>
-lower  <span class="co"># &lt;- FILL HERE</span>
-upper  <span class="co"># &lt;- FILL HERE</span>
+lower  <span class="co"># &lt;- INSERT HERE</span>
+upper  <span class="co"># &lt;- INSERT HERE</span>
 
 <span class="co"># number of iterations for the MCMC</span>
-n.iterations  <span class="co"># &lt;- FILL HERE</span>
+n.iterations  <span class="co"># &lt;- INSERT HERE</span>
 
 <span class="co"># additional parameters for the adaptive MCMC, see ?mcmcMH for more details</span>
-adapt.size.start  <span class="co"># &lt;- FILL HERE</span>
-adapt.size.cooling  <span class="co"># &lt;- FILL HERE</span>
-adapt.shape.start  <span class="co"># &lt;- FILL HERE</span></code></pre>
+adapt.size.start  <span class="co"># &lt;- INSERT HERE</span>
+adapt.size.cooling  <span class="co"># &lt;- INSERT HERE</span>
+adapt.shape.start  <span class="co"># &lt;- INSERT HERE</span></code></pre>
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="example_mcmc_seitl.html#setting-the-mcmc">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
@@ -300,6 +300,7 @@ theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =
 <span class="kw">names</span>(mcmc_SEITL_infoPrior_theta2)
 ## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;</code></pre>
 <p><strong>Take 15 min</strong> to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?</p>
+<p>A solution can be found <a href="example_mcmc_seitl.html#informative-priors">here</a>.</p>
 <h2 id="model-selection">Model selection</h2>
 <p>We can compare the SEITL and SEIT2L models using the deviance information criterion (<a href="http://en.wikipedia.org/wiki/Deviance_information_criterion">DIC</a>).</p>
 <p>The deviance of a parameter set <span class="math">\(\theta\)</span> is defined as <span class="math">\[
@@ -318,7 +319,7 @@ D(\theta)=-2\log(p(y|\theta)) + C
 </ul>
 <div>
 <h1>Navigate</h1>
-Previous: <a href="mcmc.html">Run MCMC</a> Next: <a href="smc.html">Run a SMC</a>
+Previous: <a href="mcmc_diagnostics.html">MCMC diagnostics</a> Next: <a href="smc.html">Particle MCMC</a>
 </div>
 </body>
 </html>
