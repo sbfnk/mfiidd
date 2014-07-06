@@ -313,44 +313,32 @@ You can now go back to the [practical](play_with_seitl.md#model-selection) for t
 
 # Model selection
 
+```{r dic, collapse=TRUE}
+# combine the two chains in a data frame
+trace.combined <- ldply(trace.info.burn.thin)
 
-```{r dic}
+# take the mean of theta
+theta.bar <- colMeans(trace.combined[SEIT2L_deter$theta.names])
+print(theta.bar)
 
-# trace.info1 <- mcmc(mcmc_SEIT2L_infoPrior_theta1$trace)
-# trace.info2 <- mcmc(mcmc_SEIT2L_infoPrior_theta2$trace)
-
-# combine in a mcmc.list
-# trace.info <- mcmc.list(trace.info1,trace.info2)
-
-# burn and thin as the chain with uniform prior (see above sections)
-trace.info.burn.thin <-  burnAndThin(trace.info, burn=5000, thin=40)
-
-
-x <- ldply(trace.info.burn.thin)
-
-theta_bar <- colMeans(x[SEIT2L_deter$theta.names])
-
+# compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-init.state <- c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0 , L = 0, Inc = 0)
+log.like.theta.bar <- trajLogLike(SEITL_deter,theta.bar, init.state, data=FluTdC1971)
+print(log.like.theta.bar)
 
-ll_theta_bar <- trajLogLike(SEIT2L_deter,theta_bar, init.state, data=FluTdC1971)
+# and its deviance
+D.theta.bar <- -2*log.like.theta.bar
+print(D.theta.bar)
 
-D_theta_bar <- -2*ll_theta_bar
+# the effective number of parameters
+p.D <- var(-2*trace.combined$log.likelihood)/2
+print(p.D)
 
-p_D <- 1/2*var(-2*x$log.likelihood)
-
-DIC <- D_theta_bar + 2*p_D
-
-# SEITL: 301
-# SEIT2L: 280
-
-# Delta DIC= 21
-
+# and finally the DIC
+DIC <- D.theta.bar + 2*p.D
+print(DIC)
 ```
-
-
-
-
+Follow this [link](play_with_seitl.md#model-selection) to go back to the practical.
 
 
 

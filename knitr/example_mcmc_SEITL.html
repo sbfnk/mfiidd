@@ -441,32 +441,35 @@ trace.info.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin<
 <p><span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span> have very different posterior. This is expected since there is an informative prior on <span class="math">\(D_{inf}\)</span> and <span class="math">\(R_0\)</span> is strongly correlated to <span class="math">\(D_{inf}\)</span>. Note also that the mode of all other parameters have changed, though less than <span class="math">\(D_{inf}\)</span> and <span class="math">\(R_0\)</span>. This illustrate the influence that one prior can have on the full posterior distribution.</p>
 <p>You can now go back to the <a href="play_with_seitl.html#model-selection">practical</a> for the final exercise of the session.</p>
 <h1 id="model-selection">Model selection</h1>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># trace.info1 &lt;- mcmc(mcmc_SEIT2L_infoPrior_theta1$trace) trace.info2 &lt;-</span>
-<span class="co"># mcmc(mcmc_SEIT2L_infoPrior_theta2$trace)</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># combine the two chains in a data frame</span>
+trace.combined &lt;-<span class="st"> </span><span class="kw">ldply</span>(trace.info.burn.thin)
 
-<span class="co"># combine in a mcmc.list trace.info &lt;- mcmc.list(trace.info1,trace.info2)</span>
+<span class="co"># take the mean of theta</span>
+theta.bar &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace.combined[SEIT2L_deter$theta.names])
+<span class="kw">print</span>(theta.bar)
+##     R0  D.lat  D.inf  alpha  D.imm    rho 
+## 7.6251 1.2904 3.6665 0.4751 9.1354 0.6469
 
-<span class="co"># burn and thin as the chain with uniform prior (see above sections)</span>
-trace.info.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.info, <span class="dt">burn =</span> <span class="dv">5000</span>, <span class="dt">thin =</span> <span class="dv">40</span>)
-
-
-x &lt;-<span class="st"> </span><span class="kw">ldply</span>(trace.info.burn.thin)
-
-theta_bar &lt;-<span class="st"> </span><span class="kw">colMeans</span>(x[SEIT2L_deter$theta.names])
-
+<span class="co"># compute its log-likelihood</span>
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+log.like.theta.bar &lt;-<span class="st"> </span><span class="kw">trajLogLike</span>(SEITL_deter, theta.bar, init.state, <span class="dt">data =</span> FluTdC1971)
+<span class="kw">print</span>(log.like.theta.bar)
+## [1] -142.8
 
-ll_theta_bar &lt;-<span class="st"> </span><span class="kw">trajLogLike</span>(SEIT2L_deter, theta_bar, init.state, <span class="dt">data =</span> FluTdC1971)
+<span class="co"># and its deviance</span>
+D.theta.bar &lt;-<span class="st"> </span>-<span class="dv">2</span> *<span class="st"> </span>log.like.theta.bar
+<span class="kw">print</span>(D.theta.bar)
+## [1] 285.7
 
-D_theta_bar &lt;-<span class="st"> </span>-<span class="dv">2</span> *<span class="st"> </span>ll_theta_bar
+<span class="co"># the number of independent parameters</span>
+p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">2</span> *<span class="st"> </span>trace.combined$log.likelihood)/<span class="dv">2</span>
+<span class="kw">print</span>(p.D)
+## [1] 8.117
 
-p_D &lt;-<span class="st"> </span><span class="dv">1</span>/<span class="dv">2</span> *<span class="st"> </span><span class="kw">var</span>(-<span class="dv">2</span> *<span class="st"> </span>x$log.likelihood)
-
-DIC &lt;-<span class="st"> </span>D_theta_bar +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>p_D
-
-<span class="co"># SEITL: 301 SEIT2L: 280</span>
-
-<span class="co"># Delta DIC= 21</span></code></pre>
+<span class="co"># and finally the DIC</span>
+DIC &lt;-<span class="st"> </span>D.theta.bar +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>p.D
+<span class="kw">print</span>(DIC)
+## [1] 301.9</code></pre>
+<p>Follow this <a href="play_with_seitl.html#model-selection">link</a> to go back to the practical.</p>
 </body>
 </html>

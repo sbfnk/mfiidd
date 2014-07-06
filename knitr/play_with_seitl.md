@@ -241,25 +241,33 @@ Now, __take 15 min__ to prepare all the inputs to be able to run `mcmcMH` to fit
 # wrapper for posterior
 my_posteriorTdC <- function(theta) {
     
-    ## my_fitmodel <- ?  my_init.state <- ?
+    my_fitmodel  # <- FILL HERE
+    my_init.state  # <- FILL HERE
     
     return(logPosterior(fitmodel = my_fitmodel, theta = theta, init.state = my_init.state, 
         data = FluTdC1971, margLogLike = trajLogLike))
     
 }
 
-# theta to initialise the MCMC init.theta <-
+# theta to initialise the MCMC
+init.theta  # <- FILL HERE
 
 # diagonal elements of the covariance matrix for the Gaussian proposal (in
-# the same order as init.theta) proposal.sd <- ?
+# the same order as init.theta)
+proposal.sd  # <- FILL HERE
 
-# lower and upper limits of each parameter (must be named vectors) lower <-
-# ?  upper <- ?
 
-# number of iterations for the MCMC n.iterations <- ?
+# lower and upper limits of each parameter (must be named vectors)
+lower  # <- FILL HERE
+upper  # <- FILL HERE
+
+# number of iterations for the MCMC
+n.iterations  # <- FILL HERE
 
 # additional parameters for the adaptive MCMC, see ?mcmcMH for more details
-# adapt.size.start <- ?  adapt.size.cooling <- ?  adapt.shape.start <- ?
+adapt.size.start  # <- FILL HERE
+adapt.size.cooling  # <- FILL HERE
+adapt.shape.start  # <- FILL HERE
 ```
 
 If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
@@ -395,30 +403,32 @@ __Take 15 min__ to perform the same analysis as before and compare the posterior
 
 We can compare the SEITL and SEIT2L models using the deviance information criterion ([DIC](http://en.wikipedia.org/wiki/Deviance_information_criterion)). 
 
-The deviance of a given `theta` is
+The deviance of a parameter set $\theta$ is defined as
 $$
 D(\theta)=-2\log(p(y|\theta)) + C
 $$
-where $p(y|\theta)$ is the likelihood and $C$ is a constant that will cancel out when comparing two models.
+where $p(y|\theta)$ is the likelihood of $\theta$ and $C$ is a constant that will cancel out when comparing two models.
 
 The DIC can be computed as
 $$
 \mathrm{DIC}=D(\bar\theta) + 2p_D
 $$
-Where $\bar\theta$ is the mean of `theta` with respect to the posterior distribution, and $p_D$ is the number of independent parameters.
-Actually, we have the following proxy for the number of independent parameters:
+where $\bar\theta$ is the mean of $\theta$ with respect to the posterior distribution, and $p_D$ is the effective number of parameters, which is approximately equal to: 
 $$p_D=\frac{1}{2}\hat{\mathrm{var}}(D(\theta))$$
 that is half of the variance of the deviance with respect to the posterior distribution.
 
-Compute the DIC for your model and compare it with the one of the other model. __Do we need to have the same prior information?__
+The idea is that models with smaller DIC should be preferred to models with larger DIC. Models are penalized both by the value of $D(\bar\theta)$, which favors a good fit, but also by the effective number of parameters $p_D$. Since $D(\bar\theta)$ will decrease as the number of parameters in a model increases, the $p_D$ term compensates for this effect by favouring models with a smaller number of effective parameters.
+
+Compute the DIC for your model. A solution is provided [here](example_mcmc_seitl.md#model-selection). 
 
 
-
-
+Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial?
+You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/) on DIC to decide which model is the best. 
 
 # To go further
 
 * The Poisson process: see bottom of page 3 of this [reference](http://data.princeton.edu/wws509/notes/c4.pdf) for more details.
+* Posterior predictive checks?
 
 <div>
 # Navigate

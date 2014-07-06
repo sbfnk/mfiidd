@@ -193,25 +193,33 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># wrapper for posterior</span>
 my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
     
-    ## my_fitmodel &lt;- ?  my_init.state &lt;- ?
+    my_fitmodel  <span class="co"># &lt;- FILL HERE</span>
+    my_init.state  <span class="co"># &lt;- FILL HERE</span>
     
     <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> my_init.state, 
         <span class="dt">data =</span> FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
     
 }
 
-<span class="co"># theta to initialise the MCMC init.theta &lt;-</span>
+<span class="co"># theta to initialise the MCMC</span>
+init.theta  <span class="co"># &lt;- FILL HERE</span>
 
 <span class="co"># diagonal elements of the covariance matrix for the Gaussian proposal (in</span>
-<span class="co"># the same order as init.theta) proposal.sd &lt;- ?</span>
+<span class="co"># the same order as init.theta)</span>
+proposal.sd  <span class="co"># &lt;- FILL HERE</span>
 
-<span class="co"># lower and upper limits of each parameter (must be named vectors) lower &lt;-</span>
-<span class="co"># ?  upper &lt;- ?</span>
 
-<span class="co"># number of iterations for the MCMC n.iterations &lt;- ?</span>
+<span class="co"># lower and upper limits of each parameter (must be named vectors)</span>
+lower  <span class="co"># &lt;- FILL HERE</span>
+upper  <span class="co"># &lt;- FILL HERE</span>
+
+<span class="co"># number of iterations for the MCMC</span>
+n.iterations  <span class="co"># &lt;- FILL HERE</span>
 
 <span class="co"># additional parameters for the adaptive MCMC, see ?mcmcMH for more details</span>
-<span class="co"># adapt.size.start &lt;- ?  adapt.size.cooling &lt;- ?  adapt.shape.start &lt;- ?</span></code></pre>
+adapt.size.start  <span class="co"># &lt;- FILL HERE</span>
+adapt.size.cooling  <span class="co"># &lt;- FILL HERE</span>
+adapt.shape.start  <span class="co"># &lt;- FILL HERE</span></code></pre>
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="example_mcmc_seitl.html#setting-the-mcmc">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
@@ -294,16 +302,19 @@ theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =
 <p><strong>Take 15 min</strong> to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?</p>
 <h2 id="model-selection">Model selection</h2>
 <p>We can compare the SEITL and SEIT2L models using the deviance information criterion (<a href="http://en.wikipedia.org/wiki/Deviance_information_criterion">DIC</a>).</p>
-<p>The deviance of a given <code>theta</code> is <span class="math">\[
+<p>The deviance of a parameter set <span class="math">\(\theta\)</span> is defined as <span class="math">\[
 D(\theta)=-2\log(p(y|\theta)) + C
-\]</span> where <span class="math">\(p(y|\theta)\)</span> is the likelihood and <span class="math">\(C\)</span> is a constant that will cancel out when comparing two models.</p>
+\]</span> where <span class="math">\(p(y|\theta)\)</span> is the likelihood of <span class="math">\(\theta\)</span> and <span class="math">\(C\)</span> is a constant that will cancel out when comparing two models.</p>
 <p>The DIC can be computed as <span class="math">\[
 \mathrm{DIC}=D(\bar\theta) + 2p_D
-\]</span> Where <span class="math">\(\bar\theta\)</span> is the mean of <code>theta</code> with respect to the posterior distribution, and <span class="math">\(p_D\)</span> is the number of independent parameters. Actually, we have the following proxy for the number of independent parameters: <span class="math">\[p_D=\frac{1}{2}\hat{\mathrm{var}}(D(\theta))\]</span> that is half of the variance of the deviance with respect to the posterior distribution.</p>
-<p>Compute the DIC for your model and compare it with the one of the other model. <strong>Do we need to have the same prior information?</strong></p>
+\]</span> where <span class="math">\(\bar\theta\)</span> is the mean of <span class="math">\(\theta\)</span> with respect to the posterior distribution, and <span class="math">\(p_D\)</span> is the effective number of parameters, which is approximately equal to: <span class="math">\[p_D=\frac{1}{2}\hat{\mathrm{var}}(D(\theta))\]</span> that is half of the variance of the deviance with respect to the posterior distribution.</p>
+<p>The idea is that models with smaller DIC should be preferred to models with larger DIC. Models are penalized both by the value of <span class="math">\(D(\bar\theta)\)</span>, which favors a good fit, but also by the effective number of parameters <span class="math">\(p_D\)</span>. Since <span class="math">\(D(\bar\theta)\)</span> will decrease as the number of parameters in a model increases, the <span class="math">\(p_D\)</span> term compensates for this effect by favouring models with a smaller number of effective parameters.</p>
+<p>Compute the DIC for your model. A solution is provided <a href="example_mcmc_seitl.html#model-selection">here</a>.</p>
+<p>Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial? You can have a look at the <a href="http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/">MRC FAQ</a> on DIC to decide which model is the best.</p>
 <h1 id="to-go-further">To go further</h1>
 <ul>
 <li>The Poisson process: see bottom of page 3 of this <a href="http://data.princeton.edu/wws509/notes/c4.pdf">reference</a> for more details.</li>
+<li>Posterior predictive checks?</li>
 </ul>
 <div>
 <h1>Navigate</h1>
