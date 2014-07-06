@@ -1,6 +1,19 @@
-# Particle filter
+% The particle MCMC
 
-## Coding the particle filter
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, cache.path="cache/smc/", fig.retina=1 ,fig.path="figure/smc/", fig.cap='', fig.height=3, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
+```{r fitR, echo=FALSE, results="hide"}
+library(fitR)
+set.seed(1234)
+```
+
+# Objectives
+
+The aim of this session is to fit the stochastic SEIT2L model to the Tristan da Cunha outbreak. More specifically, 
+
+# Coding the particle filter
 
 Copy and past the skeleton of the particle filter algorithm on your R script file.
 
@@ -64,7 +77,7 @@ my_particleFilter <- function(fitmodel, n.particles)
 
 If you have trouble in writing the algorithm from scratch, you can use our more guided [example](smc_example.md).
 
-## Using the particle filter
+# Using the particle filter
 
 ```{r eval=FALSE}
 my_seitlSto <- createSEITL(deterministic=FALSE)
@@ -80,11 +93,11 @@ If you have too many particles, then you will have a very good estimate of your 
 So ideally you want just enough particles to have a fairly stable estimate of your log-likelihood. Can you think of an idea how to calibrate the number of particles?
 
 
-## Plug the particle filter into your MCMC.
+# Plug the particle filter into your MCMC.
 
 You can now write a new posterior function that will make use of `my_particleFilter`. Then you'll be able to use your `mcmc` to sample from this posterior and fit your SEITL stochastic model to the Tristan da Cunha outbreak.
 
-## Going further
+# Going further
 
 * Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns these filtered trajectories. Alternatively, there is a function in the package that will do it for you (see `?bootstrapParticleFilter`).
 
