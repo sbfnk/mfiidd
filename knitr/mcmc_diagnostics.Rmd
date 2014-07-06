@@ -69,7 +69,7 @@ This provides the following information:
 2. Empirical (sample) standard deviation
 3. "Naive" standard error, that is the standard error of the mean (adjusting for sample size). See the [Wikipedia](http://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean) page of the Standard error.
 4. the time-series standard error, which corrects (3) for autocorrelations
-5. quantifies for each variable
+5. quantiles for each variable
 
 We can also compute the rejection rate (that is 1 minus the acceptance rate).
 
@@ -147,15 +147,82 @@ It is usually difficult to tell for how long one should run the chain. If the tr
 
 There are no general rules for how long one needs to run the chain, but generally it is a good idea to start the chain from different starting points and make sure they converge to the same density plots. In fact, it is a good idea to memorise that one should *always* run multiple chains. Secondly, one decide in advance on the number of samples one wants from the underlying distribution, and run the chain until the effective sample size reaches that number. In practice, however, this is a somewhat arbitrary decision, and apart from careful diagnosis and running multiple chains there is not much one can do to get a reliable estimate of the necessary number of iterations.
 
-# Adapting the proposal distribution
+# Improving mixing
+
+Getting an MCMC sampler to mix well is, arguably, the most difficult and most important task for using it efficiently. We will discuss two ways for improving mixing: dealing with parameters with limited support and adaptive MCMC.
+
+## Dealing with parameters with limited support
+
+Often, we have situations where parameters are constrained to remain between certain values. For example, negative values do not make sense for the basic reproduction number $R_0$ of the duration of infection $D_\mathrm{inf}$, and probabilities have to stay between 0 and 1. We call the values that a parameter can, *in principle*, take the *support* of a parameter. This is different from the prior distribution which encodes our prior knowledge of likely values of a parameter among the values it can take.
+
+If we ignore the limited support that parameters can have, we might waste MCMC steps, for example when the random draw from the proposal distribution suggests a step to a negative value of a parameter with positive support (e.g., $R_0$). In this case, proposals are rejected not because the parameter fails to match the data, but because they are in *impossible* parts of the parameter space.
+
+### Transforming parameters
+
+A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for *rates*, such as the ones in the SIR model. A way to force a parameter to be positive is to *transform* them to the log-scale, that is to run MCMC on $\log{R_0} instead of $R_0$. When calculating the model, we can use the exponential function to transform the parameter back.
+
+You can load an SIR model where the parameters are estimated on the log-scale using
+
+```{r message = FALSE, results = "hide"}
+example(SIR_exp)
+```
+
+You can, again, use a wrapper function and use MCMC to explore the parameters.
+
+```{r message = FALSE}
+my_logPosterior_exp_epi3 <- function(theta) {
+
+    return(my_logPosterior(fitmodel = SIR_exp,
+                           theta = theta,
+                           init.state = c(S = 999, I = 1, R = 0),
+                           data = epi3))
+
+}
+trace <- mcmcMH(target = my_logPosterior_exp_epi3,
+                init.theta = c(R0 = log(1), D.inf = log(2)),
+                proposal.sd = c(0.1, 0.01),
+                n.iterations = 1000)
+```
+
+Does this make a difference to acceptance rates?
+
+### Truncated proposal distributions
+
+Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. In the `mcmcMH` function which we provided in the `fitR` package, we use the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. The limits to use in the proposal distribution can be specified with the `limits` argument to mcmcMH, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write.
+
+```{r message = FALSE}
+trace <- mcmcMH(target = my_logPosterior_epi3,
+                init.theta = c(R0 = 1, D.inf = 2),
+                proposal.sd = c(0.1, 0.01),
+                n.iterations = 1000,
+                limits = list(lower = c(R0 = 0, D.inf = 0)))
+```
+
+Try a proposal distribution with a wide proposal distribution, and with or without limits. Do the limits make a difference to the acceptance rate?
+
+
+## Adapting the proposal distribution
 
 The best proposal distribution is the one that best matches the underlying target distribution. While we cannot know this in advance, we can use trial MCMC runs of to learn about the underlying target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.
 
 We have provided you with a function, `mcmcMH`, which does exactly the same as your `my_mcmcMH` function, but provides some additional functionality. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
+```{r echo = FALSE}
+source('our_posterior.r')
+my_logPosterior_epi3 <- function(theta) {
+
+    return(my_logPosterior(fitmodel = SIR,
+                           theta = theta,
+                           init.state = c(S = 999, I = 1, R = 0),
+                           data = epi3))
+
+}
+```
+
 ```{r message = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
-                theta.init = c(R0 = 1, D.inf = 2),
+                init.theta = c(R0 = 1, D.inf = 2),
+                proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000)
 ```
 
@@ -163,19 +230,26 @@ trace <- mcmcMH(target = my_logPosterior_epi3,
 trace$covmat.empirical
 ```
 
-## Truncated proposal distributions
+The diagonal elements of this matrix tells you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about *correlations* in the parameters. In this case, there is positive correlation between $R_0$ and $D_\mathrm{inf}$, that is greater values of $R_0$ in accepted proposals tend to coincide with greater values of $D_\mathrm{info}$. Can you think of why that is the case? We will come back to the issue of correlations and their impact on assessing model fits tomorrow.
 
-Not necessary here probably
+Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the `mcmcMH` function. This takes three parameters relating to adaptive MCMC: `adaptive.size.start`, `adaptive.shape.start` and `adapt.size.cooling`.
 
+The idea is this: we let the MCMC run for a while and monitor the acceptance rate. After `adapt.size.start` iterations, we start adapting the *size* of the proposal distribution, that is we scale it to larger/smaller steps depending if the acceptance is too small/large. This is done until `adapt.size.shape` proposals have been accepted, at which point we take the empirical covariance matrix and start adapting the *shape* to it. Over time, we make fewer and fewer changes to the size, because if we kept adapting e size we would break the Metropolis-Hastings algorithm. This is regulated by `adapt.size.cooling`. The closer this is to 1, the slower we stop adapting the size (and, accordingly, the longer we have to run the chain.
 
-## Automating adaptation
+Try a run of adaptive MCMC using
 
-Test from mcmcMH (rename to adaptive?)
+```{r message = FALSE}
+trace <- mcmcMH(target = my_logPosterior_epi3,
+                init.theta = c(R0 = 1, D.inf = 2),
+                proposal.sd = c(1, 0.5),
+                n.iterations = 5000,
+                adapt.size.start = 100,
+                adapt.shape.start = 500,
+                adapt.size.cooling=0.999,
+                limits = list(lower = c(R0 = 0, D.inf = 0)))
+```
 
-
-# Assessing a fit
-
-Posterior predictive checks
+Take note of the acceptance rate when the adaptive sampler starts adapting the size first, and then the shape. Have a look at the trace plots (see above) and the effect that adaptation has. Does it work in ensuring good mixing?
 
 <div>
 Previous: [MCMC](mcmc.md) Next: [Tristan da Cunha](mcmc_diagnostics.md) (not there yet)

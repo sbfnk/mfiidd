@@ -1,114 +1,31 @@
-# Inference with ABC
+% Inference with ABC
+
+```{r echo=FALSE,results="hide",message=FALSE}
+opts_chunk$set(fig.cap='')
+library(fitR)
+```
 
 The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model.
-To illustrate ABC, you are going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model, so ABC could be an attractive alternative.
+To illustrate ABC, you are going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative.
 
 There are two approximation steps at the core of ABC:
 
 * it replaces observations with summary statistics. Unless these summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic), this leads to a possibly less informative posterior density.
-* it's a simulation-based approximation of the posterior. Unless the acceptance tolerances are equal to 0, this leads to biased samples from the posterior.
+* we are accepting simulations that are within an *acceptance window* of the data. Unless the acceptance tolerances are equal to 0, this leads to biased samples from the posterior.
 
 On the other hand, we have seen in a previous session that MCMC provides unbiased samples from the true posterior at little cost for the deterministic SEITL model. You will end this session by fitting this deterministic model with ABC and assess the accuracy of your ABC posterior distribution by comparing it with the true posterior.
 
+As before, you can load the stochastic SEITL model and the Tristan da Cunha data set with
 
-```{r echo=FALSE}
-
-createSEITL <- function(deterministic=TRUE, verbose=TRUE) {
-
-	#########################################################################################
-	# First we define all model parameters (theta) using fitparam objects.
-	#########################################################################################
-
-	# This is the basic reproduction number, its high value reflect the high contact rate among islanders.
-	R0 <- fitparam(name="R0",value=10,support=c(0,Inf),sd.proposal=1,prior=list(distribution="dunif",parameters=c(min=1,max=100)))
-
-	# The latent period
-	LatentPeriod <- fitparam(name="LP",value=2,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=7)))
-
-	# The infectious period
-	InfectiousPeriod <- fitparam(name="IP",value=3,support=c(0,Inf),sd.proposal=0.5,prior=list(distribution="dunif",parameters=c(min=0,max=30)))
-
-	# The duration of the temporary protection against reinfection
-	TemporaryImmunePeriod  <- fitparam(name="TIP",value=10,support=c(0,Inf),sd.proposal=2,prior=list(distribution="dunif",parameters=c(min=0,max=50)))
-
-	# The probability to acquire a long-term protection following completion of the temporary immunity
-	ProbLongTermImmunity <- fitparam(name="alpha",value=0.5,support=c(0,1),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=1)))
-
-	# The intensity of the case reporting
-	ReportingRate <- fitparam(name="rho",value=0.7,support=c(0,2),sd.proposal=0.1,prior=list(distribution="dunif",parameters=c(min=0,max=2)))
-
-	# The initial proportion of infectious individuals
-	proportionI0 <- fitparam(name="pI0",value=2/284,support=c(0,1),sd.proposal=1/284,prior=list(distribution="dunif",parameters=c(min=1/284,max=5/284)))
-
-	# The initial proportion of fully protected individuals
-	proportionL0 <- fitparam(name="pL0",value=0.1,support=c(0,1),sd.proposal=0.01,prior=list(distribution="dunif",parameters=c(min=0.0,max=0.5)))
-
-	# The population size (note that this parameter has less arguments since it is fixed)
-	PopSize <- fitparam(name="N",value=284)
-
-	#########################################################################################
-	# We define the vector of state variable names
-	#########################################################################################
-
-	state.variables <- c("S","E","I","T","L","Inc")
-
-	#########################################################################################
-	# We load and rename the data to have column names: "time" and "Inc"
-	#########################################################################################
-
-	data("FluTdC1971",envir = environment())
-	data <- rename(FluTdC1971,c("day"="time","incidence"="Inc"))[c("time","Inc")]
-
-	#########################################################################################
-	# Then we choose a simulator (deterministic or stochastic)
-	#########################################################################################
-
-	if(deterministic){
-		simulate.model <- SEITL_simulateDeterministic
-	}else{
-		simulate.model <- SEITL_simulateStochastic
-	}
-
-	#########################################################################################
-	# And finally we create a fitmodel
-	# Note that all the functions with names starting by SEITL_ are already coded in the
-	# package and can be considered as blackboxes.
-	# Of course, feel free to have a look at their code and documentation.
-	#########################################################################################
-
-	SEITL <- fitmodel(
-		verbose=verbose,
-		name="SEITL",
-		state.variables=state.variables,
-		list.fitparam=list(R0,LatentPeriod,InfectiousPeriod,TemporaryImmunePeriod,ProbLongTermImmunity,ReportingRate,proportionI0,proportionL0,PopSize),
-		initialise.state=SEITL_initialiseState,
-		log.prior.fitparam=SEITL_logPrior,
-		simulate.model=simulate.model,
-		generate.observation=SEITL_generateObservation,
-		data=data,
-		log.likelihood=SEITL_logLikelihood,
-		distance.ABC=SEITL_distanceOscillation
-		)
-
-
-	# Return the fitmodel object
-	return(SEITL)
-}
-
+```{r results="hide"}
+example(SEITL_sto)
+data(FluTdC1971)
 ```
 
-```{r plot_TdC_data, fig.path='knitr/figure/'}
-library(fitcourseR)
+You can plot the Tristan da Cunha data with
 
-# create fitmodel with the function of yesterday
-my_SEITL <- createSEITL(deterministic=FALSE, verbose=FALSE)
-
-# print data
-p <- ggplot(data=my_SEITL$data,aes(x=time,y=Inc))
-p <- p + geom_line(colour="red")
-p <- p + geom_point(colour="red",size=4)
-print(p)
-
+```{r ABC_plot_TdC_data, fig.height = 5, fig.width = 5}
+plotTraj(data = FluTdC1971)
 ```
 
 ## Summary statistics
@@ -139,46 +56,39 @@ Can you check whether your summary statistics are [sufficient](http://en.wikiped
 ## Distance between observed and simulated summary statistics
 
 The second step is to compare your data with your simulation with distance functions between your observed and simulated summary statistics.
-You can perform a simulation as follows:
+You can generate an observation trajectory as follows:
 
 ```{r }
-simu <- my_SEITL$simulate.model(theta=my_SEITL$theta, init.state=my_SEITL$initialise.state(my_SEITL$theta),times=c(0,my_SEITL$data$time))
+theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
+init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+simu <- genObsTraj(SEITL_sto, theta, init.state, FluTdC1971$time)
 head(simu)
-```
-
-Then generate an observation:
-
-```{r }
-simu.obs <- my_SEITL$generate.observation(model.traj=simu, theta=my_SEITL$theta)
-head(simu.obs)
 ```
 
 And compute the set of summary statistics:
 
 ```{r eval=FALSE}
-time.simu <- simu.obs$time[-1] # remove initial time
-inc.simu <- simu.obs$observation[-1] # remove initial state
-
-ss1.simu <- my_summaryStat1(time=time.simu,inc=inc.simu)
+ss1.simu <- my_summaryStat1(trajectory = simu)
 
 # compute ss2.simu etc.
 
 ```
 
-Now, you can write three functions that will take your observed and simulated summary statistics and return their distance
+Now, you can write a function that will take your observed and simulated summary statistics and return their distance
 
 ```{r eval=FALSE}
-
-my_distance1 <- function(data,simu) {
-
-
+my_distance <- function(data, simu) {
+    # compute summary statistics for data
+    # compute summary statistics for simulation
+    # compute a distance between the summary statistics
 }
+```
 
+Test that your summary distance function returns a sensible value
+
+```{r}
 # test
-d1 <- my_distance1(data=ss1.data,simu=ss1.simu)
-
-# write other distance functions
-
+dist <- my_distance(data = FluTdC1971, simu = simu)
 ```
 
 ## ABC acceptance function
@@ -186,6 +96,7 @@ d1 <- my_distance1(data=ss1.data,simu=ss1.simu)
 Now you can write a function that will decide, for a given vector of tolerances, whether you should accept or reject your parameter theta.
 
 ```{r eval=FALSE}
+```
 
 ABCacceptance <- function(theta,fitmodel,tol) {
 

@@ -5,19 +5,19 @@ Here is a possible solution for the Metropolis sampler.
 ## This is a function that takes four parameters:
 ## - target: the target distribution, a function that takes one argument
 ##           (a vector) and returns the (logged) value of a distribution
-## - theta.init: the initial value of theta, a named vector
+## - init.theta: the initial value of theta, a named vector
 ## - covmat.proposal: the covariance matrix of the (Gaussian) proposal distribution,
 ##                    in the same order as in the "target" vector
 ## - n.iterations: the number of iterations
 ## it returns an MCMC trace (value of theta and target(theta) at every MCMC step)
 
-our_mcmcM <- function(target, theta.init, covmat.proposal, n.iterations) {
+our_mcmcM <- function(target, init.theta, covmat.proposal, n.iterations) {
 
     ## initialise theta
-    theta.current <- theta.init
-    theta.proposed <- theta.init
+    theta.current <- init.theta
+    theta.proposed <- init.theta
 
-    ## evaluate the function "target" at "theta.init", and assign to 
+    ## evaluate the function "target" at "init.theta", and assign to
     ## a variable called target.theta.current
     target.theta.current <- target(theta.current)
 
@@ -30,10 +30,10 @@ our_mcmcM <- function(target, theta.init, covmat.proposal, n.iterations) {
     ## run MCMC for n.iteration interations
     for (i.iteration in seq_len(n.iterations)) {
 
-        ## draw a new theta from the (multivariate Gaussian) proposal 
-        ## distribution and assign to a variable called theta.proposed. 
+        ## draw a new theta from the (multivariate Gaussian) proposal
+        ## distribution and assign to a variable called theta.proposed.
         ## See "?rmvnorm for help.
-        theta.proposed <- rmvnorm(n = 1, mean = theta.current, 
+        theta.proposed <- rmvnorm(n = 1, mean = theta.current,
                                   sigma = covmat.proposal)
 
         ## evaluate the function target at the proposed theta and
@@ -50,7 +50,7 @@ our_mcmcM <- function(target, theta.init, covmat.proposal, n.iterations) {
         r <- runif(1)
 
         ## calculate acceptance ratio. This is easiest if you assume
-        ## the target function to return the logarithm of the 
+        ## the target function to return the logarithm of the
         ## distribution value. Assign the result to a variable called
         ## log.acceptance
         log.acceptance <- target.theta.proposed - target.theta.current
