@@ -12,7 +12,7 @@ example(SIR_reporting)
 The aim of this session is to learn how you can fit a deterministic model to data using MCMC with the Metropolis-Hastings algorithm. More specifically, in this session you will
 
 1. use MCMC to fit a model with more than one free parameter to a data set
-2. learn to assess the output of MCMC runs using `ggmcmc`
+2. learn to assess the output of MCMC runs using the `coda` package
 3. explore ways to improve the performance of the MCMC sampler
 
 # Using the Metropolis-Hastings algorithm with more than one parameter
