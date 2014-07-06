@@ -263,7 +263,7 @@ my_posteriorTdC <- function(theta){
 ## adapt.shape.start <- ?
 ```
 
-If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
+If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_SEITL.md#setting-the-mcmc).
 
 Then you should be able to run `mcmcMH`:
 
@@ -284,11 +284,11 @@ Which should print some informations as the chain runs: acceptance rate, state o
 
 Note that we have set-up the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform less iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.
 
-__Take 10 min__ to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
+__Take 10 min__ to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_SEITL.md#setting-the-mcmc).
 
 ## Short run analysis
 
-Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package. You didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_seitl.md#run-a-mcmc).
+Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package. You didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_SEITL.md#run-a-mcmc).
 
 Note that because there are more than 6 parameters to look at, the `coda` functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels takes too much space). Fortunately, `coda` has another set of functions to make the plots more compacts:
 
@@ -309,7 +309,7 @@ xyplot(my_trace)
 
 Are you surprised by the trace of the log-prior? Determine what burning and thinning would be appropriate for your trace. Try to compare the thinned and unthinned traces (e.g. posterior estimates, density). Do you think it is important to thin?
 
-If you are not sure about how to analyse your trace, have a look at our [example](example_mcmc_seitl.md#short-run-analysis).
+If you are not sure about how to analyse your trace, have a look at our [example](example_mcmc_SEITL.md#short-run-analysis).
 
 ## Long run analysis
 
@@ -334,7 +334,7 @@ dim(mcmc_SEITL_theta1$trace)
 head(mcmc_SEITL_theta1$trace)
 ```
 
-__Take 15 min__ to analyse both chains together. 
+__Take 15 min__ to analyse both chains together.
 
 __Hint__: the function `mcmc.list` of `coda` can be used to combine several `mcmc` objects into a `mcmc.list` object. Diagnostic functions which act on `mcmc` objects may also be applied to `mcmc.list` objects. In general, the chains will be combined, if this makes sense, otherwise the diagnostic function will be applied separately to each chain in the list.
 
@@ -342,7 +342,7 @@ Did the chains converged to the same distribution? What advantage can you see in
 
 Finally, you should also assess the fit of your model by using the function `plotPosteriorFit`. This function takes a sample of `theta` from the trace, simulate some observations and plot them against the data, thus allowing you to assess the fit. __Take 10 min__ to look at the documentation of this function and assess your fit, in particular try the different options for the argument `posterior.summary`. 
 
-Once again, if you are not sure how to complete these steps, have a look at our [example](example_mcmc_seitl.md#long-run-analysis).
+Once again, if you are not sure how to complete these steps, have a look at our [example](example_mcmc_SEITL.md#long-run-analysis).
 
 ## Correlations
 
@@ -356,7 +356,7 @@ As previously stated, both the latent and infectious period have been estimated 
 
 If not, modify `SEITL_deter` accordingly and re-run a short MCMC for 5000 iterations. Can you notice a difference in the posterior?
 
-A solution can be found [here](example_mcmc_seitl.md#correlations).
+A solution can be found [here](example_mcmc_SEITL.md#correlations).
 
 ## Informative priors
 
