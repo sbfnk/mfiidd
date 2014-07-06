@@ -82,7 +82,7 @@ $$
 The deterministic SEITL model is already implemented as a `fitmodel` object, which can be loaded into your **R** session by typing:
 
 ```{r results="hide"}
-example(SEITL_deter)
+example(SEITL_deterministic)
 ```
 
 __Take 5 min__ to look at the different elements of the model. In particular, you might be interested in how the daily incidence is computed in the function `SEITL_deter$simulate` and how the likelihood function `SEITL_deter$pointLogLike` accounts for under-reporting.
@@ -141,7 +141,7 @@ Once you have a descent fit, you should note the low prevalence between the two 
 The stochastic SEITL model is already implemented as a `fitmodel` object, which can be loaded into your **R** session by typing:
 
 ```{r results="hide"}
-example(SEITL_sto)
+example(SEITL_stochastic)
 ```
 
 As you can read from the loading messages, `SEITL_sto` mainly differs from `SEITL_deter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm takes a list of transitions (`SEITL_transitions`) and a function to compute the transition rate (`SEITL_rateFunc`). __Take 5 min__ to have a look at the function `SEITL_sto$simulate` and make sure you understand all the transitions and rates.
@@ -190,8 +190,8 @@ We can extend the SEITL as follows:
 The deterministic and stochastic SEIT2L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
 
 ```{r results="hide"}
-example(SEIT2L_deter)
-example(SEIT2L_sto)
+example(SEIT2L_deterministic)
+example(SEIT2L_stochastic)
 ```
 __Take 5 min__ to have a look at the function `simulate` of these SEIT2L models and make sure you understand how the Erlang distribution for the $T$ compartment is coded.
 
@@ -210,7 +210,7 @@ In this context, it might be useful to run a MCMC on the deterministic model fir
 
 So the objective of the last part of this session is to fit the deterministic SEITL and SEIT2L models to the Tristan da Cunha outbreak. This will prepare the next session and enable us to compare both models and assess whether one is significantly better than the other.
 
-To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. `example(SEIT2L_deter)` instead of `example(SEITL_deter)`).
+To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. `example(SEIT2L_deterministic)` instead of `example(SEITL_deterministic)`).
 
 ## Run a MCMC
 
@@ -229,36 +229,38 @@ __Take 5 min__ to look at the code of `logPosterior`. As you can see, this funct
 
 Now, __take 15 min__ to prepare all the inputs to be able to run `mcmcMH` to fit your model. You should proceed as follows:
 
-```{r set-mcmc, eval=FALSE, tidy=TRUE}
+```{r set-mcmc, eval=FALSE, tidy=FALSE}
 
 # wrapper for posterior
 my_posteriorTdC <- function(theta){
 
-	my_fitmodel # <- INSERT HERE
-	my_init.state # <- INSERT HERE
+	my_fitmodel <- # INSERT HERE
+	my_init.state <- # INSERT HERE
 
-	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, data=FluTdC1971, margLogLike = trajLogLike))
+	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state,
+		data=FluTdC1971, margLogLike = trajLogLike))
 
 }
 
 # theta to initialise the MCMC
-init.theta # <- INSERT HERE
+init.theta <- # INSERT HERE
 
-# diagonal elements of the covariance matrix for the Gaussian proposal (in the same order as init.theta)
-proposal.sd # <- INSERT HERE
+# diagonal elements of the covariance matrix for the Gaussian proposal
+# Must be in the same order as init.theta
+proposal.sd <- # INSERT HERE
 
 
 # lower and upper limits of each parameter (must be named vectors)
-lower # <- INSERT HERE
-upper # <- INSERT HERE
+lower <- # INSERT HERE
+upper <- # INSERT HERE
 
 # number of iterations for the MCMC
-n.iterations # <- INSERT HERE
+n.iterations <- # INSERT HERE
 
 # additional parameters for the adaptive MCMC, see ?mcmcMH for more details
-adapt.size.start # <- INSERT HERE
-adapt.size.cooling # <- INSERT HERE
-adapt.shape.start # <- INSERT HERE
+adapt.size.start <- # INSERT HERE
+adapt.size.cooling <- # INSERT HERE
+adapt.shape.start <- # INSERT HERE
 ```
 
 If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
@@ -381,7 +383,7 @@ The deviance of a parameter set $\theta$ is defined as
 $$
 D(\theta)=-2\log(p(y|\theta)) + C
 $$
-where $p(y|\theta)$ is the likelihood of $\theta$ and $C$ is a constant that will cancel out when comparing two models.
+where $p(y|\theta)$ is the likelihood of the data given $\theta$ and $C$ is a constant that will cancel out when comparing two models.
 
 The DIC can be computed as
 $$
@@ -406,5 +408,5 @@ You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/
 
 <div>
 # Navigate
-Previous: [MCMC diagnostics](mcmc_diagnostics.md) Next: [Particle MCMC](smc.md)
+Previous: [MCMC diagnostics](mcmc_diagnostics.md) Next: [Particle MCMC](pmcmc.md)
 </div>

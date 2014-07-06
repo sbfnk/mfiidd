@@ -1,6 +1,4 @@
-Below, you can find an example of how to code a particle filter. Some bits are left out for you to fill in (marked "INSERT HERE"). Each "INSERT HERE" statement requires one line of code. If you struggle, you can find a link to a solution below the function.
-
-```{r smc-guided-example, eval=FALSE}
+## @knitr our_smc
 # This is a function that takes four parameters:
 # - fitmodel: a fitmodel object
 # - theta: named numeric vector. Values of the parameters for which the marginal log-likelihood is desired.
@@ -15,11 +13,11 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
     margLogLike <- 0
 
     # Particle states can be stored in a list
-    state.particles <- # INSERT HERE
+    state.particles  <- rep(list(init.state),n.particles)
 
     # Weight: initially equal for all the particles 
     # particle weight can be stored in a vector
-    weight.particles <- # INSERT HERE
+    weight.particles <- rep(1/n.particles,length=n.particles)
 
     # Initialise time variable
     current.time <- 0
@@ -28,12 +26,12 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
     for(i in seq_len(nrow(data))){
 
         # Extract next data point (must be a vector)
-        data.point <- # INSERT HERE 
+        data.point <- unlist(data[i, ])
         next.time <- data.point["time"]
 
         # Resample particles according to their weights. 
         # You can use the `sample` function of R (normalization of the weights is done in the function)
-        index.resampled <- # INSERT HERE
+        index.resampled <- sample(x=n.particles,size=n.particles,replace=TRUE,prob=weight.particles)
         state.particles <- state.particles[index.resampled]
 
         ## Loop over particles: propagate and weight
@@ -44,15 +42,15 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
 
             # Propagate the particle from current observation time 
             # to the next one using the function `fitmodel$simulate`
-            traj <- # INSERT HERE
+            traj <- fitmodel$simulate(theta=theta,init.state=current.state.particle,times=c(current.time,next.time))
 
-            # Extract state of the model at next observation time.
-            # Make sure that model.point is a vector
-            model.point <- # INSERT HERE
+            # Extract state of the model at next observation time
+            # Also make sure that model.point is a vector
+            model.point <- unlist(traj[2,fitmodel$state.names])
 
             # Weight the particle with the likelihood of the observed 
             # data point using the function `fitmodel$pointLogLike`
-            weight.particles[p] <- # INSERT HERE 
+            weight.particles[p] <- exp(fitmodel$pointLogLike(data.point=data.point, model.point=model.point, theta=theta))
 
             # Update state of the p particle
             state.particles[[p]] <- model.point
@@ -62,17 +60,12 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
         # Increment time
         current.time <- next.time
 
-        ## Increment the marginal log-likelihood 
+        ## Increment the marginal log-likelihood
         # Add the log of the mean of the particles weights
-        margLogLike <- margLogLike + # INSERT HERE
+        margLogLike <- margLogLike + log(mean(weight.particles))
     }
 
     ## Return marginal log-likelihood
     return(margLogLike)
 
 }
-
-```
-
-If you run into any problems, have a look at our [solution](smc_example_solution.md), otherwise [return](pmcmc.md) to the pMCMC practical.
-

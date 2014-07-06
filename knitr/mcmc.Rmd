@@ -80,7 +80,7 @@ We can, however, instruct `dnorm` to return the logarithm of the probability den
 
 ```{r}
 dnorm.log <- function(theta) {
-   return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
+ return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }
 ```
 
@@ -91,38 +91,38 @@ starting.value <- 1 # starting value for MCMC
 sigma <- 1 # standard deviation of MCMC
 iter <- 10000
 trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value,
-                   proposal.sd = sigma, n.iterations = iter)
+ proposal.sd = sigma, n.iterations = iter)
 ```
 
-We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
+ We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
 
-```{r plot_trace, caption = "", fig.width = 10}
-plot(trace, type = "l")
-```
+ ```{r plot_trace, caption = "", fig.width = 10}
+ plot(trace, type = "l")
+ ```
 
-And you can plot a histogram of the samples generated using
+ And you can plot a histogram of the samples generated using
 
-```{r hist_trace, caption = ""}
-hist(trace)
-```
+ ```{r hist_trace, caption = ""}
+ hist(trace)
+ ```
 
-This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
+ This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
 
 # Sampling from a posterior distribution
 
-We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
+ We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
 
-Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `d.inf` is the second parameter in `init.theta`) is 0.
+ Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `d.inf` is the second parameter in `init.theta`) is 0.
 
-Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a function that just takes one parameter `theta`. Again, we us a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, with fixed initial conditions $X_0$.
+ Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a function that just takes one parameter `theta`. Again, we us a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, with fixed initial conditions $X_0$.
 
-```{r}
-my_logPosterior_epi1 <- function(theta) {
+ ```{r}
+ my_logPosterior_epi1 <- function(theta) {
 
-    return(my_logPosterior(fitmodel = SIR,
-                           theta = theta,
-                           init.state = c(S = 999, I = 1, R = 0),
-                           data = epi1))
+  return(my_logPosterior(fitmodel = SIR,
+   theta = theta,
+   init.state = c(S = 999, I = 1, R = 0),
+   data = epi1))
 
 }
 ```

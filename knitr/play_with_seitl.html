@@ -116,7 +116,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li>The dataset is incomplete: only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate <span class="math">\(\rho\)</span>. Since this reporting rate is unknown (we can only presume that it should be below 85%) we will include it as an additional parameter.</li>
 </ul>
 <p>The deterministic SEITL model is already implemented as a <code>fitmodel</code> object, which can be loaded into your <strong>R</strong> session by typing:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_deter)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_deterministic)</code></pre>
 <p><strong>Take 5 min</strong> to look at the different elements of the model. In particular, you might be interested in how the daily incidence is computed in the function <code>SEITL_deter$simulate</code> and how the likelihood function <code>SEITL_deter$pointLogLike</code> accounts for under-reporting.</p>
 <h1 id="deterministic-vs-stochastic-simulations">Deterministic vs Stochastic simulations</h1>
 <h2 id="deterministic-simulations">Deterministic simulations</h2>
@@ -153,7 +153,7 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <p>Once you have a descent fit, you should note the low prevalence between the two waves. This suggests that the continuous approximation made by the deterministic model might not be appropriate and that we should use a stochastic model. In contrast to deterministic models, stochastic models explicitly take into account the discrete nature of individuals.</p>
 <h2 id="stochastic-simulations">Stochastic simulations</h2>
 <p>The stochastic SEITL model is already implemented as a <code>fitmodel</code> object, which can be loaded into your <strong>R</strong> session by typing:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_sto)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_stochastic)</code></pre>
 <p>As you can read from the loading messages, <code>SEITL_sto</code> mainly differs from <code>SEITL_deter</code> through the <code>simulate</code> function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm takes a list of transitions (<code>SEITL_transitions</code>) and a function to compute the transition rate (<code>SEITL_rateFunc</code>). <strong>Take 5 min</strong> to have a look at the function <code>SEITL_sto$simulate</code> and make sure you understand all the transitions and rates.</p>
 <p>If you are curious about how the stochastic model is simulated, you can have a look at the code of the function <code>simulateModelStochastic</code>. You will note that it calls the function <code>ssa.adaptivetau</code> of the <strong>R</strong> package <code>adaptivetau</code>, and then process the returned data frame in order to extract the state of the model at the desired observation times given by <code>times</code>.</p>
 <p>Then <strong>take 10 min</strong> to explore the dynamics of the stochastic SEITL model with the function <code>plotFit</code>. Note that <code>SEITL_sto</code> has the same <code>theta.names</code> and <code>state.names</code> as <code>SEITL_deter</code>, which means that you can use the same parameters and initial state vectors as in the previous section. In addition, you can plot the time-series of the proportion of faded out simulations by passing <code>p.extinction=TRUE</code> to <code>plotFit</code>.</p>
@@ -166,8 +166,8 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 <img src="figure/SEITL_model/SEIT2L.png" alt="The SEIT2L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spend in the T compartment (temporary protection) follow an Erlang distribution with mean D_\mathrm{imm}=1/\tau and shape equal to 2." /><p class="caption">The SEIT2L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spend in the <span class="math">\(T\)</span> compartment (temporary protection) follow an Erlang distribution with mean <span class="math">\(D_\mathrm{imm}=1/\tau\)</span> and shape equal to 2.</p>
 </div>
 <p>The deterministic and stochastic SEIT2L models are already implemented as <code>fitmodel</code> objects, which can be loaded into your <strong>R</strong> session by typing:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEIT2L_deter)
-<span class="kw">example</span>(SEIT2L_sto)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEIT2L_deterministic)
+<span class="kw">example</span>(SEIT2L_stochastic)</code></pre>
 <p><strong>Take 5 min</strong> to have a look at the function <code>simulate</code> of these SEIT2L models and make sure you understand how the Erlang distribution for the <span class="math">\(T\)</span> compartment is coded.</p>
 <p>Now, <strong>take 10 min</strong> to compare the dynamics of the SEITL and SEIT2L model using <code>plotFit</code>. Use your best guess from the previous exercise as well as stochastic and deterministic simulations. Note that although SEITL and SEIT2L share the same parameters, their state variables differ so you need to modify the <code>init.state</code> of SEIT2L accordingly.</p>
 <p>Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes as you change the distribution of the <span class="math">\(T\)</span> compartment?</p>
@@ -179,7 +179,7 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 </ol>
 <p>In this context, it might be useful to run a MCMC on the deterministic model first, which is fast, and then learn from the output of this chain to initialise the chain for the fit of the stochastic model. The rational for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.</p>
 <p>So the objective of the last part of this session is to fit the deterministic SEITL and SEIT2L models to the Tristan da Cunha outbreak. This will prepare the next session and enable us to compare both models and assess whether one is significantly better than the other.</p>
-<p>To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. <code>example(SEIT2L_deter)</code> instead of <code>example(SEITL_deter)</code>).</p>
+<p>To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. <code>example(SEIT2L_deterministic)</code> instead of <code>example(SEITL_deterministic)</code>).</p>
 <h2 id="run-a-mcmc">Run a MCMC</h2>
 <p>Here you could use the function <code>my_mcmcMH</code> that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.</p>
 <p><strong>Take 5 min</strong> to have a look at the adaptive MCMC implemented in the function <code>mcmcMH</code>. As you can see, this function takes similar arguments as your function <code>my_mcmcMH</code> (<code>target</code>, <code>init.theta</code>, <code>proposal.sd</code> and <code>n.iterations</code>) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of <code>mcmcMH</code>. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.</p>
@@ -191,35 +191,35 @@ init.state.bad.guess &lt;-<span class="st"> </span><span class="kw">c</span>(<sp
 </ol>
 <p>Now, <strong>take 15 min</strong> to prepare all the inputs to be able to run <code>mcmcMH</code> to fit your model. You should proceed as follows:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># wrapper for posterior</span>
-my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
-    
-    my_fitmodel  <span class="co"># &lt;- INSERT HERE</span>
-    my_init.state  <span class="co"># &lt;- INSERT HERE</span>
-    
-    <span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel =</span> my_fitmodel, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> my_init.state, 
-        <span class="dt">data =</span> FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
-    
+my_posteriorTdC &lt;-<span class="st"> </span>function(theta){
+
+    my_fitmodel &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+<span class="st">    </span>my_init.state &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+
+<span class="st">    </span><span class="kw">return</span>(<span class="kw">logPosterior</span>(<span class="dt">fitmodel=</span> my_fitmodel, <span class="dt">theta=</span>theta, <span class="dt">init.state=</span> my_init.state,
+        <span class="dt">data=</span>FluTdC1971, <span class="dt">margLogLike =</span> trajLogLike))
+
 }
 
 <span class="co"># theta to initialise the MCMC</span>
-init.theta  <span class="co"># &lt;- INSERT HERE</span>
+init.theta &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
 
-<span class="co"># diagonal elements of the covariance matrix for the Gaussian proposal (in</span>
-<span class="co"># the same order as init.theta)</span>
-proposal.sd  <span class="co"># &lt;- INSERT HERE</span>
+<span class="co"># diagonal elements of the covariance matrix for the Gaussian proposal</span>
+<span class="co"># Must be in the same order as init.theta</span>
+proposal.sd &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
 
 
 <span class="co"># lower and upper limits of each parameter (must be named vectors)</span>
-lower  <span class="co"># &lt;- INSERT HERE</span>
-upper  <span class="co"># &lt;- INSERT HERE</span>
+lower &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+upper &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
 
 <span class="co"># number of iterations for the MCMC</span>
-n.iterations  <span class="co"># &lt;- INSERT HERE</span>
+n.iterations &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
 
 <span class="co"># additional parameters for the adaptive MCMC, see ?mcmcMH for more details</span>
-adapt.size.start  <span class="co"># &lt;- INSERT HERE</span>
-adapt.size.cooling  <span class="co"># &lt;- INSERT HERE</span>
-adapt.shape.start  <span class="co"># &lt;- INSERT HERE</span></code></pre>
+adapt.size.start &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+adapt.size.cooling &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+adapt.shape.start &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span></code></pre>
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="example_mcmc_seitl.html#setting-the-mcmc">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
@@ -305,7 +305,7 @@ theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =
 <p>We can compare the SEITL and SEIT2L models using the deviance information criterion (<a href="http://en.wikipedia.org/wiki/Deviance_information_criterion">DIC</a>).</p>
 <p>The deviance of a parameter set <span class="math">\(\theta\)</span> is defined as <span class="math">\[
 D(\theta)=-2\log(p(y|\theta)) + C
-\]</span> where <span class="math">\(p(y|\theta)\)</span> is the likelihood of <span class="math">\(\theta\)</span> and <span class="math">\(C\)</span> is a constant that will cancel out when comparing two models.</p>
+\]</span> where <span class="math">\(p(y|\theta)\)</span> is the likelihood of the data given <span class="math">\(\theta\)</span> and <span class="math">\(C\)</span> is a constant that will cancel out when comparing two models.</p>
 <p>The DIC can be computed as <span class="math">\[
 \mathrm{DIC}=D(\bar\theta) + 2p_D
 \]</span> where <span class="math">\(\bar\theta\)</span> is the mean of <span class="math">\(\theta\)</span> with respect to the posterior distribution, and <span class="math">\(p_D\)</span> is the effective number of parameters, which is approximately equal to: <span class="math">\[p_D=\frac{1}{2}\hat{\mathrm{var}}(D(\theta))\]</span> that is half of the variance of the deviance with respect to the posterior distribution.</p>
@@ -319,7 +319,7 @@ D(\theta)=-2\log(p(y|\theta)) + C
 </ul>
 <div>
 <h1>Navigate</h1>
-Previous: <a href="mcmc_diagnostics.html">MCMC diagnostics</a> Next: <a href="smc.html">Particle MCMC</a>
+Previous: <a href="mcmc_diagnostics.html">MCMC diagnostics</a> Next: <a href="pmcmc.html">Particle MCMC</a>
 </div>
 </body>
 </html>
