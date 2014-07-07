@@ -30,12 +30,12 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <body>
 <p>An example command to generate samples from <code>my_posterior_R0</code> using <code>my_mcmcMH</code> is:</p>
 <pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">my_mcmcMH</span>(<span class="dt">target =</span> my_logPosterior_epi1, <span class="co"># target distribution</span>
-                   <span class="dt">init.theta =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>), <span class="co"># intiial parameter guess</span>
+                   <span class="dt">init.theta =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>), <span class="co"># intial parameter guess</span>
                    <span class="dt">proposal.sd =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="dv">0</span>), <span class="co"># standard deviation of</span>
                        <span class="co"># Gaussian proposals: 0.1 for the first</span>
                        <span class="co"># parameter of init.theta (R0), 0 for the</span>
                        <span class="co"># second (D.inf,  which we keep fixed)</span>
-                   <span class="dt">n.iterations =</span> <span class="dv">1000</span>) <span class="co"># number of interations</span></code></pre>
+                   <span class="dt">n.iterations =</span> <span class="dv">1000</span>) <span class="co"># number of iterations</span></code></pre>
 <p>You can copy and paste this command into your <strong>R</strong> session, and proceed from there.</p>
 <p><a href="mcmc.html#sampling-from-a-posterior-distribution">Return</a> to the MCMC session.</p>
 </body>

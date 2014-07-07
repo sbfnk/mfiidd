@@ -134,7 +134,7 @@ trace &lt;-<span class="st"> </span><span class="kw">my_mcmcMH</span>(<span clas
 <pre><code>## [1] -3777</code></pre>
 <p>We can now generate samples from <code>my_logPosterior_epi1</code> using <code>my_mcmcMH</code>. Can you work out the command to do this? If you have any problems with this, have a look at our <a href="generate_samples.html">solution</a>.</p>
 <p>Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of <span class="math">\(R_0\)</span> (using <code>mean(trace)</code>), sample median (using <code>median(trace)</code>), 95% credible intervals (using <code>quantile(trace, probs=c(0.025, 0.975))</code>) and other properties.</p>
-<p>Try to re-run your MCMC with different values for <code>init.theta</code> (the starting values for <span class="math">\(R_0\)</span> and <span class="math">\(D_\mathrm{inf}\)</span>), for <code>proposal.sd</code> (the standard deviation of the (Gaussian) proposal distribution <span class="math">\(q(\theta&#39;|\theta)\)</span>), and for <code>iter</code> (the number of iterations). Look at plots generated using <code>plot</code> and <code>hist</code> (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:</p>
+<p>Try to re-run your MCMC with different values for <code>init.theta</code> (the starting values for <span class="math">\(R_0\)</span> and <span class="math">\(D_\mathrm{inf}\)</span>), for <code>proposal.sd</code> (the standard deviation of the Gaussian proposal distribution <span class="math">\(q(\theta&#39;|\theta)\)</span>), and for <code>iter</code> (the number of iterations). Look at plots generated using <code>plot</code> and <code>hist</code> (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:</p>
 <ol style="list-style-type: decimal">
 <li>What is your best estimate of <span class="math">\(R_0\)</span>? Does this match you estimate from the previous session?</li>
 <li>What determines the acceptance rate?</li>
@@ -142,9 +142,9 @@ trace &lt;-<span class="st"> </span><span class="kw">my_mcmcMH</span>(<span clas
 </ol>
 <p>In the next session we will look at all of these issues in more detail.</p>
 <h1 id="going-further">Going further</h1>
-<p>Try changing the my_mcmcMH function to use different proposal distributions from a normal distributions (e.g., using <code>runif</code> or <code>rlnorm</code> instead of <code>rnorm</code>). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?</p>
+<p>Try changing the <code>my_mcmcMH</code> function to use different proposal distributions from a normal distributions (e.g., using <code>runif</code> or <code>rlnorm</code> instead of <code>rnorm</code>). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?</p>
 <div>
-<pre><code>Previous: [Introduction](introduction.html) Next: [MCMC diagnostics](mcmc_diagnostics.html)</code></pre>
+Previous: <a href="introduction.html">Introduction</a> Next: <a href="mcmc_diagnostics.html">MCMC diagnostics</a>
 </div>
 </body>
 </html>
