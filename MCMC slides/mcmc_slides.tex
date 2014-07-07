@@ -34,7 +34,7 @@
 \begin{frame}[label=sec-5-1]{Recap. on Bayesian inference}
 This morning we saw that the \alert{posterior distribution} of $\theta$, given observed data is
 
-$$ p(\theta | data) \propto p(data |\theta) p(\theta)$$\\~\\
+$$ p(\theta | \text{data}) \propto p(\text{data}|\theta) p(\theta)$$\\~\\
 
 Our aim is to draw samples from this distribution.
 \end{frame}
@@ -197,7 +197,8 @@ The algorithm proceeds as follows:\\
 \item In Markov Chain Monte Carlo (MCMC) we do not define one proposal density $q(\theta) \geqslant f(\theta)$.\\~\\
 \item Rather we build up a \alert{chain} of samples where each proposed $\theta^*$ depends on the previous one \\~\\
  i.e the proposal density takes the form $q(\theta^* | \theta)$\\~\\
-\item A commonly used MCMC algorithm is \alert{Metropolis-Hastings}
+\item A commonly used MCMC algorithm is \alert{Metropolis-Hastings} (M-H).\\~\\
+\item The acceptance rate of M-H is carefully derived to ensure \alert{unbiased samples}.
 \end{itemize}
 \end{frame}
 
@@ -554,9 +555,9 @@ For accurate and efficient MCMC we tune the variance and covariance of the propo
 If \alert {variance is too small}, the chain will be slow to reach the target distribution.
 \begin{columns}[c] 
 \column{.5\textwidth} 
-Seb's figure here 
+\includegraphics[width=0.8\linewidth]{Var1}
 \column{.5\textwidth}
-Seb's figure here 
+\includegraphics[width=0.8\linewidth]{Trace1}
 \end{columns}  
 \end{frame}
 
@@ -564,9 +565,9 @@ Seb's figure here
 If \alert{variance is too high}, many proposed values will be rejected and the chain will \textit{stick} in one place for many steps.
 \begin{columns}[c] 
 \column{.5\textwidth} 
-Seb's figure here 
+\includegraphics[width=0.8\linewidth]{Var2}
 \column{.5\textwidth}
-Seb's figure here 
+\includegraphics[width=0.8\linewidth]{Trace2}
 \end{columns}  
 \end{frame}
 
@@ -574,10 +575,10 @@ Seb's figure here
 If \alert{variance is just right}, the chain will efficiently explore the full shape of the target distribution.
 \begin{columns}[c] 
 \column{.5\textwidth} 
-Seb's figure here 
+\includegraphics[width=0.8\linewidth]{Var3}
 \column{.5\textwidth}
-Seb's figure here 
-\end{columns} 
+\includegraphics[width=0.8\linewidth]{Trace3}
+\end{columns}  
 Try several different proposal distributions (\alert{pilot runs}), aiming for an acceptance rate between 24\%  and 40\%. 
 \end{frame}
 
@@ -601,14 +602,17 @@ Two-stage adaptation
 \end{frame}
 
 \begin{frame}[label=sec-8-8]{Burn-in}
+\begin{columns}[c] 
+\column{.6\textwidth} 
 \begin{itemize}
-\item We can start our MCMC chain anywhere.
-\item It can take a while to reach and explore the target density $f(\theta)$.
-\item Throw away early samples: \alert{burn-in} phase.
-\item How much to discard?
+\item We can start our MCMC chain anywhere. \\~\\
+\item It can take a while to reach and explore the target density $f(\theta)$. \\~\\
+\item Throw away early samples: \alert{burn-in} phase. \\~\\
+\item How much to discard? \\~\\
 \end{itemize}
-Seb's figure here 
-%\includegraphics[width=.7\linewidth]{Burn}
+\column{.5\textwidth} 
+\includegraphics[width=1\linewidth]{Burn}
+\end{columns}
 \end{frame} 
 
 \begin{frame}[label=sec-8-9]{MCMC sample size}
