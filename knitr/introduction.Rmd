@@ -10,13 +10,13 @@ set.seed(1234)
 ```
 
 # Objectives
-The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as the `POMP` **R** package. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
+The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
 
 In this session, you will
 
 1. familiarise yourselves with the structure of models in the `fitR` package
 2. combine the prior and likelihood to calculate the posterior for a simple SIR model
-3. explore the posterior for a model that has a single parameter
+3. explore the posterior of a model that has a single parameter
 
 The first part will be mostly about introducting you to the structure we have set up -- you won't have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.
 
@@ -34,13 +34,13 @@ $$
 \end{cases}
 $$
 
-where $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
+where $S$, $I$ and $R$ stand for the susceptible, infected and recovered compartments, respectively, $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
 
 ```{r results="hide"}
 data(SIR)
 ```
 
-This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `SIR` model. If at any time something breaks, you can always go back to the original model by typing `data(SIR)`.
+This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `SIR` model. If at any time something goes wrong, you can always go back to the original model by typing `data(SIR)`.
 
 To see the objects that the `SIR` model contains, type
 
@@ -64,7 +64,7 @@ Moreover, each `fitmodel` contains four functions: `simulate` to run the model, 
 
 ## Simulate
 
-To simulate a model run, we use the `simulate` contained within a `fitmodel`. To run the SIR model, we have to provide parameter values, initial state and the times at which we want model output.
+To simulate a model run, we use the `simulate` command which comes with a `fitmodel` (see above). To run the SIR model, we have to provide parameter values, initial state and the times at which we want model output.
 
 ```{r }
 theta <- c(R0 = 3, D.inf = 2)
@@ -79,6 +79,8 @@ We can now look at the output of the model run
 head(traj)
 ```
 
+`head` prints the first few rows of the data set. If you just type `traj` (without the `head`), you'll see the whole trajectory.
+
 To visualise a model, you can use `plotTraj`
 
 ```{r traj_sir_sim,fig.width = 10}
@@ -87,7 +89,7 @@ plotTraj(traj)
 
 Try running the model with different values of the parameters and initial state, and output times.
 
-Remember that if you want more detail on what the `simulate` and `plotTraj` functions do, you can always look at their implementation by typing their function name. To look at the `simulate` function of SIR, type
+Remember that if you want more detail on what the functions contained in a `fitmodel` do, type the function name after `SIR$` (or whichever `fitmodel` object you are looking at; for now, we consider `SIR`). For example, to look at the `simulate` function of `SIR`, type
 
 ```{r eval=F}
 SIR$simulate
@@ -99,7 +101,7 @@ This is the key function that encodes the dynamic model we would like to fit to 
 
 To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
 
-```{r }
+```{r}
 SIR$logPrior(theta)
 ```
 
@@ -113,10 +115,10 @@ You will see that this calculates the prior of the parameters using uniform dist
 
 ## Likelihood
 
-The `pointLogLike` function is used to evaluate the likelihood of a data point
+The `pointLogLike` function is used to evaluate the likelihood of a data point. For example, the probability of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
 
 ```{r }
-SIR$pointLogLike(data.point = c(obs = 13), model.point = c(I = 24), theta)
+SIR$pointLogLike(data.point = c(obs = 18), model.point = c(I = 31), theta)
 ```
 
 Have a look at the `pointLogLike` function by typing
@@ -125,9 +127,9 @@ Have a look at the `pointLogLike` function by typing
 SIR$pointLogLike
 ```
 
-You will see that this calculates the likelihood of a data point by taking its `obs` member (an observation) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point. In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence. For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$pointLogLike` answers the question: what is the (logged) probability of observing 18 cases when the prevalence is 31? For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
 
-Let's load a test data set using
+Let's load a test data set contained in the `fitR` package using
 
 ```{r}
 data(epi)
@@ -139,26 +141,28 @@ This contains several epidemic data sets. The first one, called `epi1`, has been
 head(epi1)
 ```
 
-`head` prints the first few rows of the data set. If you just type `epi1` (without the `head`), you'll see the whole dataset. The observations ("obs") in the `epi1` data set are based on observed prevalence ("I"). You can plot the data using
+The observations ("obs") in the `epi1` data set are based on observed prevalence ("I"). You can plot the data using
 
 ```{r traj_epi1}
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial state.
+To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a `fitmodel`, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial state.
 
 ```{r }
 trajLogLike(SIR, theta, init.state, epi1)
 ```
 
-You will need this later to calculate the posterior as a function of the parameters.
+Of course, you might get a different number here if you played with the parameters. You will later need the `trajLogLike` function to calculate the posterior as a function of the parameters.
 
 ## Generate observations
 
-The function `genObsPoint` generates a single observation from a single point in a model trajectory. In that sense, it can be seen as the inverse of `pointLogLike`. Whereas `pointlogLike` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes the model and generates a (randomly sampled) data point.
+The function `genObsPoint` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment, and for Approximate Bayesian Computation.
+
+`genObsPoint` can be seen as the inverse of `pointLogLike`. Whereas `pointLogLike` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes the model and generates a (randomly sampled) data point. In that, it differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `genObsPoint` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a random observed prevalence on the basis of a true prevalence of 31, we can write
 
 ```{r}
-SIR$genObsPoint(model.point = c(I = 24), theta)
+SIR$genObsPoint(model.point = c(I = 31), theta)
 ```
 
 Of course, you might see a different number, as the result of this command is the outcome of a random draw.
@@ -172,7 +176,7 @@ head(obs.traj)
 
 If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `genObsPoint` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `genObsTraj` would be the same every time.
 
-Now you have completed the overview of a `fitmodel` object, you are going use it to code a function that will evaluate the posterior.
+Now you have completed the overview of a `fitmodel` object, you are going use some parts of it to code a function that will evaluate the posterior.
 
 # Calculate the posterior
 
