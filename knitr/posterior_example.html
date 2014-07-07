@@ -33,26 +33,26 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="co"># - fitmodel, a fitmodel object that defines the model dynamics,</span>
 <span class="co">#   prior and likelihoods.</span>
 <span class="co"># - theta, a named vector of parameters</span>
-<span class="co"># - init.state,  a named vector of initial conditions</span>
+<span class="co"># - init.state,  a named vector of initial state</span>
 <span class="co"># - data, the data set we are fitting the model to</span>
 <span class="co"># It should return the posterior for the given model, parameters,</span>
-<span class="co"># initial conditions and data.</span>
-my_posterior &lt;-<span class="st"> </span>function(fitmodel, theta, init.state, data) {
+<span class="co"># initial state and data.</span>
+my_logPosterior &lt;-<span class="st"> </span>function(fitmodel, theta, init.state, data) {
 
-    log.prior &lt;-<span class="st"> </span><span class="co"># INSERT HERE: calculate the fitmodel prior for</span>
-<span class="st">        </span><span class="co"># parameter vector theta using fitmodel$logPrior, and assign</span>
-<span class="st">        </span><span class="co"># to variable log.prior</span>
+    log.prior &lt;-<span class="st"> </span><span class="co"># INSERT HERE: calculate the fitmodel log-prior</span>
+<span class="st">        </span><span class="co"># of `theta` using `fitmodel$logPrior`, and assign</span>
+<span class="st">        </span><span class="co"># to variable `log.prior`</span>
 
-<span class="st">    </span>log.likelihood &lt;-<span class="st"> </span><span class="co"># INSERT HERE: calculate the likelihood of theta and init.state</span>
-<span class="st">        </span><span class="co"># with respect to the data using trajLogLike and assign to a</span>
-<span class="st">        </span><span class="co"># variable log.likelihood</span>
+<span class="st">    </span>log.likelihood &lt;-<span class="st"> </span><span class="co"># INSERT HERE: calculate the log-likelihood of `theta`</span>
+<span class="st">        </span><span class="co"># and `init.state` with respect to the data using `trajLogLike`</span>
+<span class="st">        </span><span class="co"># and assign to a variable `log.likelihood`</span>
 
-<span class="st">    </span>posterior &lt;-<span class="st"> </span><span class="co"># INSERT HERE: calulate the posterior using the</span>
+<span class="st">    </span>log.posterior &lt;-<span class="st"> </span><span class="co"># INSERT HERE: calulate the log-posterior using the</span>
 <span class="st">        </span><span class="co"># log-prior and log-likelihood</span>
 
-<span class="st">    </span><span class="kw">return</span>(posterior)
+<span class="st">    </span><span class="kw">return</span>(log.posterior)
 
 }</code></pre>
-<p>If you run into any problems, have a look at our <a href="posterior_example_solution.html">solution</a>.</p>
+<p>If you run into any problems, have a look at our <a href="posterior_example_solution.html">solution</a>. Otherwise, <a href="introduction.html#calculate-the-posterior">return to the practical</a>.</p>
 </body>
 </html>

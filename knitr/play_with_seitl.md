@@ -90,7 +90,7 @@ The deterministic SEITL model is already implemented as a `fitmodel` object, whi
 
 
 ```r
-example(SEITL_deterministic)
+data(SEITL_deter)
 ```
 
 __Take 5 min__ to look at the different elements of the model. In particular, you might be interested in how the daily incidence is computed in the function `SEITL_deter$simulate` and how the likelihood function `SEITL_deter$pointLogLike` accounts for under-reporting.
@@ -166,14 +166,14 @@ The stochastic SEITL model is already implemented as a `fitmodel` object, which 
 
 
 ```r
-example(SEITL_stochastic)
+data(SEITL_stoch)
 ```
 
-As you can read from the loading messages, `SEITL_sto` mainly differs from `SEITL_deter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm takes a list of transitions (`SEITL_transitions`) and a function to compute the transition rate (`SEITL_rateFunc`). __Take 5 min__ to have a look at the function `SEITL_sto$simulate` and make sure you understand all the transitions and rates.
+As you can read from the loading messages, `SEITL_stoch` mainly differs from `SEITL_deter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm takes a list of transitions (`SEITL_transitions`) and a function to compute the transition rate (`SEITL_rateFunc`). __Take 5 min__ to have a look at the function `SEITL_stoch$simulate` and make sure you understand all the transitions and rates.
 
 If you are curious about how the stochastic model is simulated, you can have a look at the code of the function `simulateModelStochastic`. You will note that it calls the function `ssa.adaptivetau` of the **R** package `adaptivetau`, and then process the returned data frame in order to extract the state of the model at the desired observation times given by `times`.
 
-Then __take 10 min__ to explore the dynamics of the stochastic SEITL model with the function `plotFit`. Note that `SEITL_sto` has the same `theta.names` and `state.names` as `SEITL_deter`, which means that you can use the same parameters and initial state vectors as in the previous section. In addition, you can plot the time-series of the proportion of faded out simulations by passing `p.extinction=TRUE` to `plotFit`.
+Then __take 10 min__ to explore the dynamics of the stochastic SEITL model with the function `plotFit`. Note that `SEITL_stoch` has the same `theta.names` and `state.names` as `SEITL_deter`, which means that you can use the same parameters and initial state vectors as in the previous section. In addition, you can plot the time-series of the proportion of faded out simulations by passing `p.extinction=TRUE` to `plotFit`.
 
 What differences do you notice between stochastic and deterministic simulations? Conclude on the role of demographic stochasticity on the dynamics of the SEITL model.
 
@@ -192,8 +192,8 @@ The deterministic and stochastic SEIT2L models are already implemented as `fitmo
 
 
 ```r
-example(SEIT2L_deterministic)
-example(SEIT2L_stochastic)
+data(SEIT2L_deter)
+data(SEIT2L_stoch)
 ```
 __Take 5 min__ to have a look at the function `simulate` of these SEIT2L models and make sure you understand how the Erlang distribution for the $T$ compartment is coded.
 
@@ -212,7 +212,7 @@ In this context, it might be useful to run a MCMC on the deterministic model fir
 
 So the objective of the last part of this session is to fit the deterministic SEITL and SEIT2L models to the Tristan da Cunha outbreak. This will prepare the next session and enable us to compare both models and assess whether one is significantly better than the other.
 
-To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. `example(SEIT2L_deterministic)` instead of `example(SEITL_deterministic)`).
+To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. `data(SEIT2L_deter)` instead of `data(SEITL_deter)`).
 
 ## Run a MCMC
 
@@ -422,10 +422,24 @@ Compute the DIC for your model. A solution is provided [here](example_mcmc_seitl
 Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial?
 You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/) on DIC to decide which model is the best. 
 
+# Summary
+
+1. Short preliminary run to tune MCMC parameters (adaptive parameters, thinning)
+2. Long run with multiple chains
+3. Assess convergence of the chains, combine estimates
+4. Look at correlations, interpret the difference prior/posterior
+5. Compute DIC
+6. Posterior predcitive checks
+
+SEIT2L better than SEITL, informative prior are useful to fix the high correlation between R0 and Dinf. In the next session we will focus on this model with informative priors.
+
+Importance of stochasticity.
+
 # To go further
 
 * The Poisson process: see bottom of page 3 of this [reference](http://data.princeton.edu/wws509/notes/c4.pdf) for more details.
 * Posterior predictive checks?
+* Modify the SEIT2L model
 
 <div>
 # Navigate

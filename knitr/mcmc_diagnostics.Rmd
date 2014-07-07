@@ -108,8 +108,7 @@ In the trace plots, we want to try to avoid flat bits (where the sampler stays i
 If we want to get a more detailed view of the posterior distribution (i.e., the density of the samples) around its maximum, we can cut the burn-in period out using the `burnAndThin` command:
 
 ```{r trace_burned, fig.width = 10, fig.height = 10}
-trace <- burnAndThin(mcmc.epi3$trace, burn = 1000)
-mcmc.trace.burned <- mcmc(trace, start = 1000)
+mcmc.trace.burned <- burnAndThin(mcmc.trace, burn = 1000)
 plot(mcmc.trace.burned)
 ```
 
@@ -126,9 +125,8 @@ autocorr.plot(mcmc.trace.burned)
 In this case, the autocorrelations drop with increasing $k$, which is a good sign. If autocorrelations are too strong, we can *thin* the MCMC chain, that is we discard $n$ samples for every sample that we keep. To do this, again we use `burnAndThin` and pass $n$ as `thin` argument:
 
 ```{r trace_burned_thinned, fig.width = 10, fig.height = 10}
-trace <- burnAndThin(mcmc.epi3$trace, burn = 1000, thin = 5)
-mcmc.trace.burned <- mcmc(trace, start = 1000, thin = 5)
-autocorr.plot(mcmc.trace.burned)
+mcmc.trace.burned.thinned <- burnAndThin(mcmc.trace.burned, thin = 5)
+autocorr.plot(mcmc.trace.burned.thinned)
 ```
 
 It has been argued that thinning is actually not very useful, unless one wants to reduce the amount of memory and storage space in long chains. Instead of thinning to, say, keep only 1 out every 10 samples, it is usually more efficient to just run a chain 10 times as long.
@@ -140,7 +138,7 @@ Above, we have assessed burn-in based on a glance at the trace plots. There are 
 One other way of diagnosing burn-in is via the effective sample size (ESS). The samples in the burn-in are not very informative, and if the burn-in period is estimated to be too short this will reduce the ESS size. On the other hand, if the burn-in period is estimated to be too long, informative samples are being thrown away, again reducing the ESS. The ESS should be maximised at the "correct" estimate of the burn in. We can plot ESS against burn-in:
 
 ```{r test_burn_in, fig.width = 8, fig.height = 5}
-plotESSBurn(mcmc.epi3$trace)
+plotESSBurn(mcmc.trace)
 ```
 
 A good optimal burn-in length would be when the last parameter has its ESS maximised, that is at around 500 here.

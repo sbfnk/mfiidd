@@ -1,13 +1,16 @@
 % Introduction to model fitting in R
 
-```{r echo=FALSE,message=FALSE}
-opts_chunk$set(fig.cap='', fig.height=5, fig.width=5)
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, cache.path="cache/introduction/", fig.height=5, fig.width=5, fig.retina=1 ,fig.path="figure/introduction/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
+```{r firR, echo=FALSE}
 library(fitR)
 set.seed(1234)
 ```
 
 # Objectives
-The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as POMP. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
+The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as the `POMP` **R** package. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
 
 In this session, you will
 
@@ -22,11 +25,13 @@ The first part will be mostly about introducting you to the structure we have se
 First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$. The model equations are
 
 $$
+\begin{cases}
 \begin{aligned}
 \frac{dS}{dt} &= - \beta S \frac{I}{N}\\
 \frac{dI}{dt} &= \beta S \frac{I}{N} - \nu I\\
 \frac{dR}{dt} &= \nu I\\
 \end{aligned}
+\end{cases}
 $$
 
 where $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
@@ -43,34 +48,34 @@ To see the objects that the `SIR` model contains, type
 names(SIR)
 ```
 
-A fitmodel object provides its description, as well as the names of its model variables and parameters. These can be accessed with
+A `fitmodel` object provides its description, as well as the names of its state variables and parameters. These can be accessed with
 
-```{r}
+```{r }
 SIR$name
 SIR$state.names
 SIR$theta.names
 ```
 
-Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `generateObs` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
+Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `genObsPoint` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
 
-```{r eval=FALSE}
+```{r eval=FALSE, tidy=FALSE}
 ?fitmodel
 ```
 
 ## Simulate
 
-To simulate a model run, we use the `simulate` contained within a `fitmodel`. To run the SIR model, we have to provide parameter values, initial conditions and the times at which we want model output.
+To simulate a model run, we use the `simulate` contained within a `fitmodel`. To run the SIR model, we have to provide parameter values, initial state and the times at which we want model output.
 
-```{r}
-parameters <- c(R0 = 3, D.inf = 2)
+```{r }
+theta <- c(R0 = 3, D.inf = 2)
 init.state <- c(S = 999, I = 1, R = 0)
 times <- 1:100
-traj <- SIR$simulate(parameters, init.state, times)
+traj <- SIR$simulate(theta, init.state, times)
 ```
 
 We can now look at the output of the model run
 
-```{r}
+```{r }
 head(traj)
 ```
 
@@ -80,7 +85,7 @@ To visualise a model, you can use `plotTraj`
 plotTraj(traj)
 ```
 
-Try running the model with different values of the parameters and initial conditions, and output times.
+Try running the model with different values of the parameters and initial state, and output times.
 
 Remember that if you want more detail on what the `simulate` and `plotTraj` functions do, you can always look at their implementation by typing their function name. To look at the `simulate` function of SIR, type
 
@@ -94,8 +99,8 @@ This is the key function that encodes the dynamic model we would like to fit to 
 
 To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
 
-```{r}
-SIR$logPrior(parameters)
+```{r }
+SIR$logPrior(theta)
 ```
 
 Have a look at the `logPrior` function by typing
@@ -104,14 +109,14 @@ Have a look at the `logPrior` function by typing
 SIR$logPrior
 ```
 
-You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D$ (between 0 and 30). At the moment, just have a look at it and make sure you understand it. Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
+You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D_\mathrm{inf}$ (between 0 and 30). At the moment, just have a look at it and make sure you understand it. Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
 
 ## Likelihood
 
 The `pointLogLike` function is used to evaluate the likelihood of a data point
 
-```{r}
-SIR$pointLogLike(data.point = c(obs = 13), model.point = c(I = 24), parameters)
+```{r }
+SIR$pointLogLike(data.point = c(obs = 13), model.point = c(I = 24), theta)
 ```
 
 Have a look at the `pointLogLike` function by typing
@@ -120,7 +125,7 @@ Have a look at the `pointLogLike` function by typing
 SIR$pointLogLike
 ```
 
-You will see that this calculates the likelihood of a data point taking its "obs" member (an observation) and evaluating it with respect to a Poisson distribution centred around the "I" member of the model point. In other words, it assumes that the observations follows a Poisson distribution centred around the current prevalence. For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+You will see that this calculates the likelihood of a data point by taking its `obs` member (an observation) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point. In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence. For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
 
 Let's load a test data set using
 
@@ -128,9 +133,9 @@ Let's load a test data set using
 data(epi)
 ```
 
-This is contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. For now, you can look at this data set using
+This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. For now, you can look at this data set using
 
-```{r}
+```{r }
 head(epi1)
 ```
 
@@ -140,10 +145,10 @@ head(epi1)
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial conditions, we can use `trajLogLike`. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial conditions.
+To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial state.
 
-```{r}
-trajLogLike(SIR, parameters, init.state, epi1)
+```{r }
+trajLogLike(SIR, theta, init.state, epi1)
 ```
 
 You will need this later to calculate the posterior as a function of the parameters.
@@ -153,39 +158,41 @@ You will need this later to calculate the posterior as a function of the paramet
 The function `genObsPoint` generates a single observation from a single point in a model trajectory. In that sense, it can be seen as the inverse of `pointLogLike`. Whereas `pointlogLike` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes the model and generates a (randomly sampled) data point.
 
 ```{r}
-SIR$genObsPoint(model.point = c(I = 24), parameters)
+SIR$genObsPoint(model.point = c(I = 24), theta)
 ```
 
 Of course, you might see a different number, as the result of this command is the outcome of a random draw.
 
-To generate a whole trajectory, we can use `genObsTraj`, analogously to the `trajLogLike` function used above. The `genObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then the `genObsPoint` function at every time point to generate a observations. It returns the simulated trajectory, with an added column for the observations.
+To generate a whole trajectory with simulated observation, we have implemented a function called `genObsTraj`, which can be seen as the inverse of `trajLogLike`. The `genObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `genObsPoint` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
 
-```{r}
-obs.traj <- genObsTraj(SIR, parameters, init.state, epi1$time)
+```{r }
+obs.traj <- genObsTraj(SIR, theta, init.state, epi1$time)
 head(obs.traj)
 ```
 
 If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `genObsPoint` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `genObsTraj` would be the same every time.
 
+Now you have completed the overview of a `fitmodel` object, you are going use it to code a function that will evaluate the posterior.
+
 # Calculate the posterior
 
-**Code it yourself**: We are now ready to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
+**Code it yourself**: Write a function to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to a normalisation constant) for a given set of parameters and initial state, with respect to a data set. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
 ```{r eval = FALSE}
 # This is a function that takes 4 arguments:
 # - fitmodel, a fitmodel object that defines the model dynamics,
 #   prior and likelihoods.
 # - theta, a named vector of parameters
-# - init.state,  a named vector of initial conditions
+# - init.state,  a named vector of initial state
 # - data, the data set we are fitting the model to
 # It should return the posterior for the given model, parameters,
-# initial conditions and data.
+# initial state and data.
 my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
-    # calculate the fitmodel prior for parameter theta
+    # calculate the `fitmodel` log-prior for parameter `theta`
 
-    # calculate the fitmodel likelihood for parameter theta and
-    # initial conditions init.state, with respect to the data set data.
+    # calculate the `fitmodel` log-likelihood for parameter `theta` and
+    # initial state `init.state`, with respect to the data set `data`.
 
     # return the logged posterior probability
 }
@@ -199,13 +206,13 @@ If you have trouble filling any of the empty bits in, have a look at our [more g
 
 Once you are done with this, check that your function returns a sensible value.
 
-```{r}
-my_logPosterior(SIR, parameters, init.state, epi1)
+```{r }
+my_logPosterior(SIR, theta, init.state, epi1)
 ```
 
 # Assess the model fit
 
-You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial conditions using `genObsTraj` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
+You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial state using `genObsTraj` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
 
 ```{r plotfit_epi1, message = FALSE}
 plotFit(SIR, theta, init.state, epi1)
@@ -215,7 +222,7 @@ Clearly, not a very good fit on this occasion. In the next section, you will exp
 
 # Explore the posterior
 
-Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the `my_logPosterior` function you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised? Does the model fit the data (looking at `plotFit`)?
+Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the function `my_logPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised? Does the model fit the data (looking at `plotFit`)?
 
 You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$logPrior` and `SIR$pointLogLike` by typing
 
@@ -239,11 +246,11 @@ Try different distributions for the prior and likelihood distributions (you coul
 
 If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, `epi2`, which you can have a look at with
 
-```{r eval = FALSE}
-epi2
+```{r }
+head(epi2)
 ```
 
-This was created with infectious period 2 and a reporting rate of 10%. Can you estimate $R_0$?
+This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate $R_0$?
 
 <div>
 # Navigate

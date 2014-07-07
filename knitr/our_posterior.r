@@ -3,10 +3,10 @@
 # - fitmodel, a fitmodel object that defines the model dynamics,
 #   prior and likelihoods.
 # - theta, a named vector of parameters
-# - init.state,  a named vector of initial conditions
+# - init.state,  a named vector of initial state
 # - data, the data set we are fitting the model to
 # It returns the posterior for the given model, parameters, initial
-# conditions and data.
+# state and data.
 my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
     # calculate the fitmodel prior for parameter vector theta using

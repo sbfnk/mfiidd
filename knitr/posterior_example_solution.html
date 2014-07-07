@@ -33,27 +33,27 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="co"># - fitmodel, a fitmodel object that defines the model dynamics,</span>
 <span class="co">#   prior and likelihoods.</span>
 <span class="co"># - theta, a named vector of parameters</span>
-<span class="co"># - init.state,  a named vector of initial conditions</span>
+<span class="co"># - init.state,  a named vector of initial state</span>
 <span class="co"># - data, the data set we are fitting the model to</span>
-<span class="co"># It should return the posterior for the given model, parameters,</span>
-<span class="co"># initial conditions and data.</span>
-my_posterior &lt;-<span class="st"> </span>function(fitmodel, theta, init.state, data) {
+<span class="co"># It returns the posterior for the given model, parameters, initial</span>
+<span class="co"># state and data.</span>
+my_logPosterior &lt;-<span class="st"> </span>function(fitmodel, theta, init.state, data) {
 
     <span class="co"># calculate the fitmodel prior for parameter vector theta using</span>
     <span class="co"># fitmodel$logPrior, and assign to variable log.prior</span>
-    log.prior &lt;-<span class="st"> </span>model$<span class="kw">logPrior</span>(theta)
+    log.prior &lt;-<span class="st"> </span>fitmodel$<span class="kw">logPrior</span>(theta)
 
     <span class="co"># calculate the fitmodel prior for parameter vector theta using</span>
     <span class="co"># fitmodel$logPrior, and assign to variable log.prior</span>
     log.likelihood &lt;-<span class="st"> </span><span class="kw">trajLogLike</span>(fitmodel, theta, init.state, data)
 
-    <span class="co"># calulate the posterior using the log-prior and log-likelihood</span>
-    posterior &lt;-<span class="st"> </span>log.prior +<span class="st"> </span>log.likelihood
+    <span class="co"># calulate the log-posterior using the log-prior and log-likelihood</span>
+    log.posterior &lt;-<span class="st"> </span>log.prior +<span class="st"> </span>log.likelihood
 
-    <span class="kw">return</span>(posterior)
+    <span class="kw">return</span>(log.posterior)
 
 }</code></pre>
 <p>You can copy and paste the function into your <strong>R</strong> session, and proceed from there.</p>
-<p><a href="introduction.html#calculate-the-posterior">Return</a> to the practical session.</p>
+<p><a href="introduction.html#calculate-the-posterior">Return</a> to the introductory practical session.</p>
 </body>
 </html>
