@@ -1,0 +1,13 @@
+Here is how you can wrap a log-posterior function for the `SIR` model fitted to the `epi3` data set, with fixed initial conditions of 999 susceptibles, 1 infected, and 0 recovered.
+
+```{r echo=FALSE}
+read_chunk('epi3_wrapper.r')
+```
+
+```{r epi3_wrapper}
+```
+
+You can copy and paste the function into your **R** session, and proceed from there.
+
+[Return](mcmc_diagnostics.md#sampling-more-than-one-parameter) to the MCMC diagnostics session.
+
