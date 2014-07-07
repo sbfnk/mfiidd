@@ -49,13 +49,62 @@ SEIT2L_sto$logPrior <- function(theta) {
 
 }
 
-mcmc.abc.trial <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = theta, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+time.mcmc.abc.trial <- system.time(mcmc.abc.trial <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = theta, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)), proposal.sd = rep(1, 6)))
 
 epsilon <- unname(quantile(mcmc.abc.trial$trace$distance, probs = 0.01))
-init.theta.26 <- unlist(mcmc.abc.trial$trace[which.min(mcmc.abc.trial$trace$distance), 1:6])
+init.theta.further <- unlist(mcmc.abc.trial$trace[which.min(mcmc.abc.trial$trace$distance), 1:6])
 
-time.mcmc.abc.26 <- system.time(mcmc.abc.26 <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = init.theta.26, proposal.sd = init.theta.26/100, n.iterations = 1000000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+time.mcmc.abc.further <- system.time(mcmc.abc.further <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = init.theta.further, proposal.sd = init.theta.further/10, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
 
-epsilon.8 <- unname(quantile(mcmc.abc.26$trace$distance, probs = 0.01))
-init.theta.8 <- unlist(mcmc.abc.26$trace[which.min(mcmc.abc.26$trace$distance), 1:6])
+theta.abc <- summary(mcmc(mcmc.abc.further$trace))$statistics[, 1]
 
+epsilon.further <- unname(quantile(mcmc.abc.further$trace$distance, probs = 0.01))
+init.theta.further2 <- unlist(mcmc.abc.further$trace[which.min(mcmc.abc.further$trace$distance), 1:6])
+
+time.mcmc.abc.further2 <- system.time(mcmc.abc.further2 <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = init.theta.further, proposal.sd = init.theta.further/10, n.iterations = 100000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.further2 <- unname(quantile(mcmc.abc.further2$trace$distance, probs = 0.1))
+init.theta.further3 <- unlist(mcmc.abc.further2$trace[which.min(mcmc.abc.further2$trace$distance), 1:6])
+
+time.mcmc.abc.further3 <- system.time(mcmc.abc.further3 <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = init.theta.further3, proposal.sd = init.theta.further3/10, n.iterations = 100000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+time.mcmc.abcvec.trial <- system.time(mcmc.abcvec.trial <- mcmcMH(target = my_ABCVecLogPosterior_try_tdc, init.theta = theta, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)), proposal.sd = rep(1, 6)))
+
+epsilon <- unname(quantile(mcmc.abcvec.trial$trace$distance, probs = 0.01))
+init.theta.further <- unlist(mcmc.abcvec.trial$trace[which.min(mcmc.abcvec.trial$trace$distance), 1:6])
+
+time.mcmc.abcvec.further <- system.time(mcmc.abcvec.further <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = init.theta.further, proposal.sd = init.theta.further/10, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.further <- unname(quantile(mcmc.abcvec.further$trace$distance, probs = 0.01))
+init.theta.further2 <- unlist(mcmc.abcvec.further$trace[which.min(mcmc.abcvec.further$trace$distance), 1:6])
+
+time.mcmc.abcvec.further2 <- system.time(mcmc.abcvec.further2 <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = init.theta.further2, proposal.sd = init.theta.further2/10, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.further2 <- unname(quantile(mcmc.abcvec.further2$trace$distance, probs = 0.1))
+init.theta.further3 <- unlist(mcmc.abcvec.further2$trace[which.min(mcmc.abcvec.further2$trace$distance), 1:6])
+
+time.mcmc.abcvec.further3 <- system.time(mcmc.abcvec.further3 <- mcmcMH(target = my_ABClogPosterior_try_tdc, init.theta = init.theta.further3, proposal.sd = init.theta.further3/10, n.iterations = 100000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+time.mcmc.abc.in.trial <- system.time(mcmc.abc.in.trial <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = theta, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)), proposal.sd = rep(1, 6)))
+
+epsilon.in <- unname(quantile(mcmc.abc.in.trial$trace$distance, probs = 0.01))
+init.theta.in.further <- unlist(mcmc.abc.in.trial$trace[which.min(mcmc.abc.in.trial$trace$distance), 1:6])
+
+time.mcmc.abc.in.further <- system.time(mcmc.abc.in.further <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = init.theta.in.further, proposal.sd = init.theta.in.further/10, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.in.further <- unname(quantile(mcmc.abc.in.further$trace$distance, probs = 0.01))
+init.theta.in2 <- unlist(mcmc.abc.in.further$trace[which.min(mcmc.abc.in.further$trace$distance), 1:6])
+
+time.mcmc.abc.in2 <- system.time(mcmc.abc.in2 <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = init.theta.in.further, proposal.sd = init.theta.in.further/10, n.iterations = 10000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.in2 <- unname(quantile(mcmc.abc.in2$trace$distance, probs = 0.01))
+init.theta.in3 <- unlist(mcmc.abc.in.further$trace[which.min(mcmc.abc.in.further$trace$distance), 1:6])
+
+time.mcmc.abc.in3 <- system.time(mcmc.abc.in3 <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = init.theta.in3, n.iterations = 100000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+epsilon.in3 <- unname(quantile(mcmc.abc.in3$trace$distance, probs = 0.1))
+init.theta.in4 <- unlist(mcmc.abc.in3$trace[which.min(mcmc.abc.in3$trace$distance), 1:6])
+
+time.mcmc.abc.in4 <- system.time(mcmc.abc.in4 <- mcmcMH(target = my_ABCLogPosterior_try_tdc, init.theta = init.theta.in4, n.iterations = 1000000, limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0), upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1))))
+
+SEITL_pomp
