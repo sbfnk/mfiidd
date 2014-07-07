@@ -12,7 +12,7 @@ set.seed(1234)
 
 # Objectives
 
-The aim of this session is to familiarise yourselves with the SEITL model. This model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971. Given the small population size of this island (284 habs), demographic stochasticity is expected to play a significant role in the dynamics of the epidemic so that the use of a stochastic model is recommended. However, as you will see in the next lecture, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. We will therefore close this session by fitting the deterministic SEITL model. Actually, this will be useful to prepare the next session, when you will fit the stochastic model.
+The aim of this session is to familiarise yourselves with the SEITL model. This model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971. Given the small population size of this island (284 inhabitants), *demographic stochasticity* is expected to play a significant role in the dynamics of the epidemic so that the use of a stochastic model is recommended. However, as you will see in the next lecture, fitting a stochastic model is computationally much more intensive than fitting a deterministic model. To be able to compare the two, we will close this session by fitting the deterministic SEITL model. This will be useful to prepare the next session, when you will fit the stochastic model.
 
 In this session you will
 
@@ -26,11 +26,11 @@ But first of all, let's have a look at the data.
 
 ![](figure/SEITL_model/TdC.png)
 
-[Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean. It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas. Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island. These ships were often the cause of introduction of new diseases into the population (Samuels1963). Focusing on influenza, no epidemic has been reported since an epidemic of A/H1N1 in 1954. In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.
+[Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean. It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas. Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island. These ships were often the cause of introduction of new diseases into the population (Samuels, 1963). As for influenza, no epidemic had been reported since an epidemic of A/H1N1 in 1954. In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.
 
-On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha. Three of them developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing. Various family gatherings welcomed their disembarkation and in the ensuing days, an epidemic started to spread rapidly throughout the whole island population. After three weeks of propagation, while the epidemic was declining, some islanders developed second attacks and a second peak of cases was recorded. The epidemic faded out after this second wave and lasted a total of 59 days.
+On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha. Three of them developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing. Various family gatherings welcomed their disembarkation and in the ensuing days an epidemic started to spread rapidly throughout the whole island population. After three weeks of propagation, while the epidemic was declining, some islanders developed second attacks and a second peak of cases was recorded. The epidemic faded out after this second wave and lasted a total of 59 days.
 
-Among the 284 islanders, 273 (96%) experienced at least one attack and 92 (32%) experienced two attacks. Unfortunately, only 312 of the 365 attacks (85%) are known to within a single day of accuracy and constitute the dataset reported by Mantle \& Tyrrell in 1973 (ref:Mantle1973}.
+Among the 284 islanders, 273 (96%) experienced at least one attack and 92 (32%) experienced two attacks. Unfortunately, only 312 of the 365 attacks (85%) are known to within a single day of accuracy and constitute the dataset reported by Mantle \& Tyrrell in 1973.
 
 The dataset of daily incidence can be loaded and plotted as follows:
 
@@ -73,15 +73,15 @@ $$
 
 where $\beta=R_0/D_\mathrm{inf}$, $\epsilon=1/D_\mathrm{lat}$, $\nu = 1/D_\mathrm{inf}$, $\tau=1/D_\mathrm{imm}$ and $N = S + I + R$ is constant.
 
-However, in order to account for the type of data reported during the outbreak we need to add one state variable and one parameter to the model:
+In order to fit the SEITL model to the data we have from the outbreak we need to add one state variable and one parameter to the model:
 
-* The dataset represents daily incidence counts: we need to create a $6^\mathrm{th}$ state variable - called $\mathrm{Inc}$ - to track the number of daily new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable:
+* The dataset represents daily incidence counts: we need to create a $6^\mathrm{th}$ state variable - called $\mathrm{Inc}$ - to track the (cumulative) number of daily new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable:
 $$
 \frac{d\mathrm{Inc}}{dt} = \epsilon E
 $$
 * The dataset is incomplete: only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate $\rho$. Since this reporting rate is unknown (we can only presume that it should be below 85%) we will include it as an additional parameter.
 
-The deterministic SEITL model is already implemented as a `fitmodel` object, which can be loaded into your **R** session by typing:
+The deterministic SEITL model is already implemented as a `fitmodel` object called `SEITL_deter`, which can be loaded into your **R** session by typing:
 
 ```{r results="hide"}
 data(SEITL_deter)
@@ -93,18 +93,18 @@ __Take 5 min__ to look at the different elements of the model. In particular, yo
 
 ## Deterministic simulations
 
-Now, let's assess whether the deterministic SEITL model can reproduce the two-wave outbreak of Tristan da Cunha. You can start simulating the model using guess values for the initial state and the parameters. To give you some hints, here is a summary of information on influenza found in the literature:
+Now, let's assess whether the deterministic SEITL model can reproduce the two-wave outbreak of Tristan da Cunha. You can start simulating the model using guess values for the initial state and the parameters. To give you some hints, here is a summary of information on influenza that can be found in the literature:
 
-1. The $R_0$ of influenza is commonly estimated around 2. However, it can be significantly larger ($R_0>10$) in close knit communities due to their exceptional contact rates.
+1. The $R_0$ of influenza is commonly estimated around 2. However, it can be significantly larger ($R_0>10$) in close-knit communities with exceptional contact rates.
 2. Both the average latent and infectious periods for influenza have been estimated around 2 days each.
 3. The down-regulation of the cellular response is completed 15 days after symptom onset on average.
 4. Serological surveys have shown that the seroconversion rate to influenza (probability to develop specific antibodies) is around 80%. However, it is likely that __not__ all seroconvereted individuals acquire a long-term protective humoral immunity.
 5. Between 20 and 30% of the infection with influenza are asymptomatic.
 6. There is very limited cross-immunity between influenza viruses A/H1N1 and A/H3N2.
 
-Based on these informations and the description of the outbreak, propose one or more set(s) of values for the parameters (`theta`) and initial state (`init.state`) of the model? You can also use our 3 sets of values that can be loaded by typing `example(SEITL_guess_values)`.
+Based on these informations and the description of the outbreak, can you think of one or more set(s) of values for the parameters (`theta`) and initial state (`init.state`) of the model? You can also use our 3 sets of values that can be loaded by typing `example(SEITL_guess_values)`, which loads and displays the parameter values and initial conditions of the 3 sets.
 
-In the previous practical you have simulated trajectories using `genObsTraj` and then plot them with `plotTraj`. Actually, the function `plotFit` combine these two steps by simulating and displaying model trajectories against the data:
+You can use the `plotFit` function you encountered in the first practical to generate an observation trajectory (by simulating the model and then sampling observations around the model points using `genObsTraj` and displaying it  against the data:
 
 ```{r oneTraj, results="hide"}
 theta.bad.guess <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.9, "D.imm"=13, "rho"=0.85)
@@ -112,7 +112,7 @@ init.state.bad.guess <- c("S"=250,"E"=0,"I"=4,"T"=0,"L"=30,"Inc"=0)
 plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971)
 ```
 
-You can also display all states variables (not only the observation) by passing `all.vars=TRUE`
+You can display all states variables (not only the sampled observations) by passing `all.vars=TRUE`
 
 ```{r allVars, fig.height=6,fig.width=10, results="hide"}
 plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971,all.vars=TRUE)
@@ -131,16 +131,16 @@ By default, this function plots the mean, median as well as the $95^\mathrm{th}$
 plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100, summary=FALSE)
 ```
 
-Now, __take 10 min__ to get yourself familiar with the function `plotFit` and explore the dynamics of your model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a descent fit?
+Now, __take 10 min__ to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
 
-If you didn't get a descent fit, try `theta.guess3` and `init.state.guess3` that you can load by typing `example(SEITL_guess_values)`.
+If you didn't get a decent fit, try `theta.guess3` and `init.state.guess3` that you can load by typing `example(SEITL_guess_values)`.
 
-Once you have a descent fit, you should note the low prevalence between the two waves. This suggests that the continuous approximation made by the deterministic model might not be appropriate and that we should use a stochastic model. In contrast to deterministic models, stochastic models explicitly take into account the discrete nature of individuals.
+You will find that it is hard to reproduce the low incidence in the data with the model. Later, we will test if this can be better reproduced with a stochastic model which models explicitly takes into account the discrete nature of individuals.
 
 
 ## Stochastic simulations
 
-The stochastic SEITL model is already implemented as a `fitmodel` object, which can be loaded into your **R** session by typing:
+The stochastic SEITL model is already implemented as a `fitmodel` object called `SEITL_sto`, which can be loaded into your **R** session by typing:
 
 ```{r results="hide"}
 data(SEITL_stoch)
