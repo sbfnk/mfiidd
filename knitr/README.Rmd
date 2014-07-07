@@ -27,9 +27,9 @@ library(fitR)
 1. [Introduction](introduction.md)
 2. [MCMC](mcmc.md)
 2. [MCMC diagnostics](mcmc_diagnostics.md)
-5. [Tristan da Cunha outbreak](play_with_seitl.md) (not there yet)
-6. [Run a SMC](smc.md) (not there yet)
-7. [ABC inference](ABC.md) (not there yet)
+5. [Tristan da Cunha outbreak](play_with_seitl.md)
+6. [Particle filter and pMCMC](pmcmc.md)
+7. [Approximate Bayesian Computation](ABC.md)
 
 # Navigate
 Next: [Introduction](introduction.md)

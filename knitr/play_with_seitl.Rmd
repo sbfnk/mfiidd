@@ -408,5 +408,5 @@ You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/
 
 <div>
 # Navigate
-Previous: [MCMC diagnostics](mcmc_diagnostics.md) Next: [Particle MCMC](pmcmc.md)
+Previous: [MCMC diagnostics](mcmc_diagnostics.md) Next: [Particle filter and pMCMC](pmcmc.md)
 </div>

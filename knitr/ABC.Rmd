@@ -131,4 +131,4 @@ You can find an example of solution [here](ABC_example.md)
 [Review of ABC in practice](http://membres-timc.imag.fr/Michael.Blum/publications/CsilleryTREE10.pdf)
 
 
-Previous: [Run SMC](smc.md)
+Previous: [Particle Filter and pMCMC](pmcmc.md)

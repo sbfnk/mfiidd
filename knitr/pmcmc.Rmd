@@ -229,5 +229,5 @@ Have a look at our [solution](pmcmc_solution.md#stochastic-vs-deterministic-fit)
 
 <div>
 # Navigate
-Previous: [Tristan da Cunha outbreak](play_with_seitl.md) Next: [Inference with ABC](ABC.md)
+Previous: [Tristan da Cunha outbreak](play_with_seitl.md) Next: [Approximate Bayesian Computation](ABC.md)
 </div>

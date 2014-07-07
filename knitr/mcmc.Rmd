@@ -1,7 +1,10 @@
 % Practical session: Fitting a deterministic model with MCMC
 
-```{r echo=FALSE,results="hide",message=FALSE}
-opts_chunk$set(fig.cap='')
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, cache.path="cache/mcmc/", fig.retina=1 ,fig.path="figure/mcmc/", fig.cap='', dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
+```{r load, echo=FALSE,results="hide",message=FALSE}
 library(fitR)
 example(SIR)
 example(SIR_reporting)

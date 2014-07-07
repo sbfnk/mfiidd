@@ -1,5 +1,9 @@
 % Practical session: MCMC diagnostics
 
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=T, cache.path="cache/mcmc_diagnostics/", fig.retina=1 ,fig.path="figure/mcmc_diagnostics/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
 ```{r echo=FALSE,results="hide",message=FALSE}
 opts_chunk$set(fig.cap='')
 library(fitR)
@@ -159,7 +163,7 @@ If we ignore the limited support that parameters can have, we might waste MCMC s
 
 ### Transforming parameters
 
-A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for *rates*, such as the ones in the SIR model. A way to force a parameter to be positive is to *transform* them to the log-scale, that is to run MCMC on $\log{R_0} instead of $R_0$. When calculating the model, we can use the exponential function to transform the parameter back.
+A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for *rates*, such as the ones in the SIR model. A way to force a parameter to be positive is to *transform* them to the log-scale, that is to run MCMC on $\log{R_0}$ instead of $R_0$. When calculating the model, we can use the exponential function to transform the parameter back.
 
 You can load an SIR model where the parameters are estimated on the log-scale using
 
@@ -219,7 +223,7 @@ my_logPosterior_epi3 <- function(theta) {
 }
 ```
 
-```{r message = FALSE}
+```{r message = FALSE, warn = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(0.1, 0.01),
@@ -252,5 +256,5 @@ trace <- mcmcMH(target = my_logPosterior_epi3,
 Take note of the acceptance rate when the adaptive sampler starts adapting the size first, and then the shape. Have a look at the trace plots (see above) and the effect that adaptation has. Does it work in ensuring good mixing?
 
 <div>
-Previous: [MCMC](mcmc.md) Next: [Tristan da Cunha](mcmc_diagnostics.md) (not there yet)
+Previous: [MCMC](mcmc.md) Next: [Tristan da Cunha](play_with_seitl.md)
 </div>
