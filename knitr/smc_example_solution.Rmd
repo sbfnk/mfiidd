@@ -9,4 +9,4 @@ read_chunk('our_smc.r')
 
 You can copy and paste the function into your **R** session, and proceed from there.
 
-[Return](pmcmc.md) to the pMCMC practical.
+[Return](pmcmc.md#run-a-particle-filter) to the pMCMC practical.

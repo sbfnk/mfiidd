@@ -46,19 +46,19 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </div>
 <h1 id="objectives">Objectives</h1>
 <p>The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC). As you saw in the lecture, fitting a model with a likelihood approach requires:</p>
-<ol style="list-style-type: decimal">
+<ul>
 <li>To explore the parameter space efficiently</li>
 <li>To evaluate the likelihood at a given parameter</li>
-</ol>
-<p>In the <a href="play_with_seitl.html#fitting-the-deterministic-models">previous session</a>, you have used the function <code>mcmcMH</code> to explore the parameter space with a Metropolis-Hastings algorithm and the function <code>trajLogLike</code> to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the <code>mcmcMH</code> function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function will be the particle filter.</p>
+</ul>
+<p>In the <a href="play_with_seitl.html#fitting-the-deterministic-models">previous session</a>, you have used the function <code>mcmcMH</code> to explore the parameter space with a Metropolis-Hastings algorithm and the function <code>trajLogLike</code> to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the <code>mcmcMH</code> function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter.</p>
 <p>In this session you will:</p>
 <ol style="list-style-type: decimal">
 <li>code a particle filter to estimate the likelihood of a stochastic model</li>
-<li>learn to how choose the number of particles</li>
-<li>fit the stochastic SEIT2L model to the Tristan da Cunha outbreak and compare the posterior with the results obtained with the deterministic SEIT2L model of the previous session.</li>
+<li>learn how to calibrate the number of particles</li>
+<li>fit the stochastic SEIT2L model to the Tristan da Cunha outbreak with a pMCMC</li>
 </ol>
 <h1 id="code-a-particle-filter">Code a particle filter</h1>
-<p>Before running a pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data for a given proposed <code>theta</code>.</p>
+<p>Before running a pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data at a given proposed <code>theta</code>.</p>
 <p>Below you can find the skeleton of such a function. We have inserted comments at each step of the algorithm. If you are struggling at any point, follow the link below the code for a more guided example.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes four parameters:</span>
 <span class="co"># - fitmodel: a fitmodel object</span>
@@ -92,7 +92,7 @@ my_particleFilter &lt;-<span class="st"> </span>function(fitmodel, theta, init.s
     <span class="co"># sum of the log of the mean of the weights at each observation time</span>
 
 }</code></pre>
-<p>If you have trouble filling any of the empty bits in, have a look at our <a href="smc_example.html">more guided example</a>.</p>
+<p>If you have trouble filling any of the empty bits, have a look at our <a href="smc_example.html">more guided example</a>.</p>
 <h1 id="run-a-particle-filter">Run a particle filter</h1>
 <p>Try to run your particle filter with the following inputs:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load SEIT2L_sto</span>
@@ -111,17 +111,17 @@ init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="
 <span class="co"># run the particle filter with 20 particles</span>
 <span class="kw">my_particleFilter</span>(SEIT2L_sto, theta, init.state, <span class="dt">data =</span> FluTdC1971, <span class="dt">n.particles =</span> <span class="dv">20</span>)
 ## [1] -125.8</code></pre>
-<p>Does your particle filter returns the same value for the marginal log-likelihood? Can you explain why?</p>
+<p>Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?</p>
 <p>What can you notice when you:</p>
 <ul>
 <li>Run several replicates with the same number of particles<br /></li>
 <li>Increase the number of particles</li>
-<li>Decrease the number of particles</li>
+<li>Decrease the number of particles (try with one particle)</li>
 <li>Change <code>theta</code></li>
 </ul>
 <h1 id="calibrate-the-number-of-particles">Calibrate the number of particles</h1>
 <p>Can you think of and implement an algorithm to calibrate the number of particles?</p>
-<p>Compare your approach with ours and determine an optimal number of particles.</p>
+<p>Compare your approach with <a href="pmcmc_solution.html#calibrate-the-number-of-particles">ours</a> and determine an optimal number of particles.</p>
 <h1 id="run-a-pmcmc">Run a pMCMC</h1>
 <p>You can now write a new wrapper for the function <code>logPosterior</code> that will take <code>margLogLike = my_particleFilter</code> as argument. This wrapper will then be passed to <code>mcmcMH</code>.</p>
 <p>Note that the function <code>logPosterior</code> doesn't take a 'n.particles' argument so you might wonder how to specify it to <code>my_particleFilter</code>? Have a look at the documentation of <code>logPosterior</code>. You should notice the <code>...</code> argument, which allows you to pass any extra argument to the function <code>margLogLike</code>.</p>

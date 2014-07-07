@@ -13,20 +13,20 @@ set.seed(1234)
 
 The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC). As you saw in the lecture, fitting a model with a likelihood approach requires:
 
-1. To explore the parameter space efficiently
-2. To evaluate the likelihood at a given parameter 
+* To explore the parameter space efficiently
+* To evaluate the likelihood at a given parameter 
 
-In the [previous session](play_with_seitl.md#fitting-the-deterministic-models), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `trajLogLike` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function will be the particle filter. 
+In the [previous session](play_with_seitl.md#fitting-the-deterministic-models), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `trajLogLike` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
 
 In this session you will:
 
 1. code a particle filter to estimate the likelihood of a stochastic model
-2. learn to how choose the number of particles
-3. fit the stochastic SEIT2L model to the Tristan da Cunha outbreak and compare the posterior with the results obtained with the deterministic SEIT2L model of the previous session.
+2. learn how to calibrate the number of particles
+3. fit the stochastic SEIT2L model to the Tristan da Cunha outbreak with a pMCMC
 
 # Code a particle filter
 
-Before running a pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data for a given proposed `theta`.
+Before running a pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data at a given proposed `theta`.
 
 Below you can find the skeleton of such a function. We have inserted comments at each step of the algorithm. If you are struggling at any point, follow the link below the code for a more guided example.
 
@@ -68,7 +68,7 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
 source("our_smc.r")
 ```
 
-If you have trouble filling any of the empty bits in, have a look at our [more guided example](smc_example.md).
+If you have trouble filling any of the empty bits, have a look at our [more guided example](smc_example.md).
 
 # Run a particle filter
 
@@ -91,28 +91,28 @@ init.state <- c("S"=279,"E"=0,"I"=2,"T1"=3,"T2"=0,"L"=0,"Inc"=0)
 my_particleFilter(SEIT2L_sto,theta,init.state, data=FluTdC1971, n.particles=20)
 ```
 
-Does your particle filter returns the same value for the marginal log-likelihood? Can you explain why?
+Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?
 
 What can you notice when you:
 
 * Run several replicates with the same number of particles  
 * Increase the number of particles
-* Decrease the number of particles
+* Decrease the number of particles (try with one particle)
 * Change `theta`
 
 # Calibrate the number of particles
 
 Can you think of and implement an algorithm to calibrate the number of particles? 
 
-Compare your approach with ours and determine an optimal number of particles. 
+Compare your approach with [ours](pmcmc_solution.md#calibrate-the-number-of-particles) and determine an optimal number of particles. 
 
 # Run a pMCMC
 
 You can now write a new wrapper for the function `logPosterior` that will take `margLogLike = my_particleFilter` as argument. This wrapper will then be passed to `mcmcMH`.
 
-Note that the function `logPosterior` doesn't take a 'n.particles' argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `logPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
+Note that the function `logPosterior` doesn't have a `n.particles` argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `logPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
 
-You have probably noticed that running `my_particleFilter` is costly. As we mentioned in the [previous session](play_with_seitl.md#fitting-the-deterministic-models) this can lead to a waste of time and computational resources if we initialise the `mcmcMH` with poor parameter values (`init.theta`) and covariance matrix of the Gaussian proposal (`covmat`).
+You have probably noticed that running `my_particleFilter` is time consuming. As we mentioned in the [previous session](play_with_seitl.md#fitting-the-deterministic-models) this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target. 
 
 In order to efficiently initialise your pMCMC, you can make use the results of the fit of the deterministic SEIT2L model of the previous session. Remember that you can load these results as follows:
 
@@ -121,7 +121,10 @@ data(mcmc_TdC_deter_longRun)
 # this should load 2 objects in your environment: mcmc_SEIT2L_infoPrior_theta1 and mcmc_SEIT2L_infoPrior_theta2. Each one is a list of 3 elements returned by mcmcMH
 names(mcmc_SEIT2L_infoPrior_theta1)
 ```
-You can now set the variables below:
+
+In the previous session, you have initialised `mcmcMH` with a diagonal covariance matrix for the Gaussian proposal using the argument `proposal.sd`. Actually, you can also pass a non-diagonal covariance matrix, accounting for correlations, by using the argument `covmat` (type `?mcmcMH` for more details).
+
+You can now set the pMCMC by filling the empty bits below:
 
 ```{r set-pmcmc, eval=FALSE, tidy=FALSE}
 
@@ -175,9 +178,9 @@ my_pMCMC <- mcmcMH(
 
 # Analyse a pMCMC with 50 particles
 
-If you have run a pMCMC you should have noticed that it takes quite a lot of time due to the particle filter at each iterations. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 50 particles.
+If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 50 particles.
 
-To save time, we have run 5 chains in parallel. Each chain was started from a different `init.theta` and run for 3000 iterations. The `init.theta` were chosen close to the mean posterior estimates of the deterministic fit and it's empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific cluster and can be loaded as follows:
+To save time, we have run 5 chains in parallel for you. Each chain was started from a different `init.theta` and ran for 3000 iterations. The `init.theta` were chosen close to the mean posterior estimates of the deterministic fit and it's empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
 data(pmcmc_SEIT2L_infoPrior_n50)
@@ -202,7 +205,7 @@ You can compare your conclusions with [ours](pmcmc_solution.md#analyse-a-pmcmc-w
 
 # Analyse a pMCMC with 400 particles
 
-Let's increase the number of particles to 400, which is suggested by the calibration analysis. Again, to save time we have run 5 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific cluster and can be loaded and stored in a `mcmc.list` object as follows:
+Let's increase the number of particles to 400, which is suggested by the calibration analysis. Again, to save time we have run 5 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a `mcmc.list` object as follows:
 
 ```{r load-trace-400, collapse=TRUE}
 # load
@@ -211,21 +214,21 @@ data(pmcmc_SEIT2L_infoPrior_n400)
 trace <- mcmc.list(lapply(pmcmc_SEIT2L_infoPrior_n50, function(chain) {mcmc(chain$trace)}))
 ``` 
 
-Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions of both sets of runs using the function `plotPosteriorDensity`.
+Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions with 50 and 400 particles using the function `plotPosteriorDensity`.
 
-Have a look at our [solution](pmcmc_solution.md#analyse-a-pmcmc-with-400-particles).
+You can also have a look at our [solution](pmcmc_solution.md#analyse-a-pmcmc-with-400-particles) if that helps.
 
 # Stochastic vs deterministic fit
 
 Finally, compare the posterior of the deterministic and stochastic SEIT2L models. Was it worth fitting a stochastic model to this outbreak?
 
-Have a look at our [solution](pmcmc_solution.md#stochastic-vs-deterministic-fit).
+Check your answer [here](pmcmc_solution.md#stochastic-vs-deterministic-fit).
 
 # Going further
 
 * Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns these filtered trajectories. Alternatively, there is a function in the package that will do it for you (see `?bootstrapParticleFilter`).
 
-* You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of `bootstrapParticleFilter`. Actually, all the test run were performed on a scientific cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.
+* You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of `bootstrapParticleFilter`. Actually, all the test run were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.
 
 <div>
 # Navigate
