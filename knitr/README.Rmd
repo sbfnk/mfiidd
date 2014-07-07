@@ -14,7 +14,7 @@ library(devtools)
 install_github("sbfnk/fitR")
 ```
 
-Then you can check that everything went fine by loading the package into your `R` session:
+Then you can check that the installation completed successfully by loading the package into your `R` session:
 
 ```{r}
 library(fitR)
