@@ -45,10 +45,10 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </div>
 <p>Here is an example of possible answers to the practical on fitting the deterministic SEITL model to the Tristan da Cunha outbreak.</p>
 <p>Each section below correspond to a section of the practical. Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections.</p>
-<p>Although our example refers to the SEITL model, the same commands work for the SEIT2L model (i.e. <code>example(SEIT2L_deter)</code> instead of <code>example(SEITL_deter)</code>).</p>
+<p>Although our example refers to the SEITL model, the same commands work for the SEIT2L model (i.e. <code>example(SEIT2L_deterministic)</code> instead of <code>example(SEITL_deterministic)</code>).</p>
 <h1 id="setting-the-mcmc">Setting the MCMC</h1>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the fitmodel</span>
-<span class="kw">example</span>(SEITL_deter)
+<span class="kw">example</span>(SEITL_deterministic)
 
 <span class="co"># wrapper for posterior</span>
 my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
@@ -303,18 +303,18 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 ##            rho      log.prior log.likelihood  log.posterior 
 ##           7164              0           5612           5612
 
-<span class="co"># thinning</span>
+<span class="co"># autocorrelation</span>
 <span class="kw">acfplot</span>(trace.burn)</code></pre>
 <p><img src="figure/SEITL_model_example/long-run-burn.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>Again, given the very high ESS, we can be quite generous in our choice of the thinning.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># let&#39;s keep 1 iteration every 40</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Thinning: let&#39;s keep 1 iteration every 40</span>
 trace.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.burn, <span class="dt">thin =</span> <span class="dv">40</span>)
 <span class="kw">xyplot</span>(trace.burn.thin)</code></pre>
 <p><img src="figure/SEITL_model_example/long-run-thin.png" title="" alt="" style="display: block; margin: auto;" /> However, let's compare the thinned and unthinnned distributions.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Note that plotPosteriorDensity can&#39;t take a list of mcmc.list.  Instead,</span>
-<span class="co"># we pass the unthinned and thinned traces of the chain that started at</span>
-<span class="co"># theta1</span>
-<span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unthinned =</span> trace.burn[[<span class="dv">1</span>]], <span class="dt">thinned =</span> trace.burn.thin[[<span class="dv">1</span>]]))</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Note that plotPosteriorDensity can take a list of mcmc.list and will plot</span>
+<span class="co"># the different mcmc.list by combining their elements Let&#39;s plot the</span>
+<span class="co"># combined unthinned trace vs the combined thinned trace.</span>
+<span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unthinned =</span> trace.burn, <span class="dt">thinned =</span> trace.burn.thin))</code></pre>
 <p><img src="figure/SEITL_model_example/long-run-compare-thin.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!</p>
 <p>In fact, there are several references that show that the longer (unthinned) chain usually yields better estimates of the true posterior than the shorter thinned chain, even for percentiles in the tail of the distribution. That said, thinning can be useful for other reasons, such as memory or time constraints in post-chain processing.</p>

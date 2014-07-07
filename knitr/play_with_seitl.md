@@ -33,9 +33,6 @@ The dataset of daily incidence can be loaded and plotted as follows:
 ```r
 data(FluTdC1971)
 head(FluTdC1971)
-```
-
-```
 ##         date time obs
 ## 1 1971-08-13    1   0
 ## 2 1971-08-14    2   1
@@ -43,11 +40,9 @@ head(FluTdC1971)
 ## 4 1971-08-16    4  10
 ## 5 1971-08-17    5   6
 ## 6 1971-08-18    6  32
-```
 
-```r
-ggplot(data = FluTdC1971, aes(x = date, y = obs)) + geom_bar(stat = "identity") + 
-    theme_bw()
+# plot daily observed incidence
+plotTraj(data = FluTdC1971)
 ```
 
 <img src="figure/SEITL_model/data.png" title="" alt="" style="display: block; margin: auto;" />

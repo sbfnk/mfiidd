@@ -34,10 +34,12 @@ Among the 284 islanders, 273 (96%) experienced at least one attack and 92 (32%) 
 
 The dataset of daily incidence can be loaded and plotted as follows:
 
-```{r data}
+```{r data, collapse=TRUE}
 data(FluTdC1971)
 head(FluTdC1971)
-ggplot(data=FluTdC1971, aes(x=date, y=obs)) + geom_bar(stat="identity") + theme_bw()
+
+# plot daily observed incidence
+plotTraj(data=FluTdC1971)
 ```
 
 # SEITL model
@@ -156,7 +158,7 @@ What differences do you notice between stochastic and deterministic simulations?
 
 So far, we have assumed that the time spent in each compartment was following an [exponential distribution](http://en.wikipedia.org/wiki/Exponential_distribution). This distribution has the well known property of being memoryless, which means that the probability of leaving a compartment doesn't depend on the time already spent in this compartment. Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response. In order to include a memory effect, it is common to replace the exponential distribution by an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution). This distribution is parametrised by its mean $m$ and shape $k$ and can be modelled by $k$ consecutive sub-stages, each being exponentially distributed with mean $m/k$. As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
 
-```{r erlang, echo=FALSE, fig.width=5, fig.height=5}
+```{r erlang, echo=FALSE, fig.width=10, fig.height=5}
 
 library(ggplot2)
 library(plyr)
@@ -167,16 +169,18 @@ all_k <- c(1,2,5,20)
 names(all_k) <- all_k
 
 df_dist <- ldply(all_k,function(k){
-	return(data.frame(x=x,density=dgamma(x,shape=k,scale=m/k)))
+	return(data.frame(x=x,density=dgamma(x,shape=k,scale=m/k),probability=pgamma(x,shape=k,scale=m/k)))
 }, .id="k")
 
 lab <- paste("k==",all_k,sep="")
 
-p <- ggplot(data=df_dist,aes(x=x,y=density,group=k))
+df_plot <- melt(df_dist,measure.vars=c("density","probability"))
+
+p <- ggplot(data=df_plot,aes(x=x,y=value,group=k)) + facet_wrap(~variable,scale="free_y")
 p <- p + geom_line(aes(colour=k, linetype=k),position="identity",alpha=1)
 p <- p + scale_colour_brewer("Shape",palette="Dark2")
 p <- p + scale_linetype("Shape")
-p <- p + scale_x_continuous("time")+scale_y_continuous("density")
+p <- p + scale_x_continuous("time spent in the compartment")
 p <- p + theme_bw() + theme(legend.position="top")
 print(p)
 
@@ -401,10 +405,24 @@ Compute the DIC for your model. A solution is provided [here](example_mcmc_seitl
 Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial?
 You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/) on DIC to decide which model is the best. 
 
+# Summary
+
+1. Short preliminary run to tune MCMC parameters (adaptive parameters, thinning)
+2. Long run with multiple chains
+3. Assess convergence of the chains, combine estimates
+4. Look at correlations, interpret the difference prior/posterior
+5. Compute DIC
+6. Posterior predcitive checks
+
+SEIT2L better than SEITL, informative prior are useful to fix the high correlation between R0 and Dinf. In the next session we will focus on this model with informative priors.
+
+Importance of stochasticity.
+
 # To go further
 
 * The Poisson process: see bottom of page 3 of this [reference](http://data.princeton.edu/wws509/notes/c4.pdf) for more details.
 * Posterior predictive checks?
+* Modify the SEIT2L model
 
 <div>
 # Navigate

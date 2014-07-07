@@ -71,16 +71,17 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>Among the 284 islanders, 273 (96%) experienced at least one attack and 92 (32%) experienced two attacks. Unfortunately, only 312 of the 365 attacks (85%) are known to within a single day of accuracy and constitute the dataset reported by Mantle &amp; Tyrrell in 1973 (ref:Mantle1973}.</p>
 <p>The dataset of daily incidence can be loaded and plotted as follows:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(FluTdC1971)
-<span class="kw">head</span>(FluTdC1971)</code></pre>
-<pre><code>##         date time obs
+<span class="kw">head</span>(FluTdC1971)
+##         date time obs
 ## 1 1971-08-13    1   0
 ## 2 1971-08-14    2   1
 ## 3 1971-08-15    3   0
 ## 4 1971-08-16    4  10
 ## 5 1971-08-17    5   6
-## 6 1971-08-18    6  32</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> FluTdC1971, <span class="kw">aes</span>(<span class="dt">x =</span> date, <span class="dt">y =</span> obs)) +<span class="st"> </span><span class="kw">geom_bar</span>(<span class="dt">stat =</span> <span class="st">&quot;identity&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">theme_bw</span>()</code></pre>
+## 6 1971-08-18    6  32
+
+<span class="co"># plot daily observed incidence</span>
+<span class="kw">plotTraj</span>(<span class="dt">data =</span> FluTdC1971)</code></pre>
 <p><img src="figure/SEITL_model/data.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <h1 id="seitl-model">SEITL model</h1>
 <p>One possible explanation for the rapid reinfections reported during this two-wave outbreak is that following recovery from a first infection, some islanders did not develop a long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain that was still circulating. This can be modelled as follows:</p>

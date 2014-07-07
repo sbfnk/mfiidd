@@ -176,23 +176,23 @@ trace.burn <- burnAndThin(trace, burn=5000)
 # removing the burning increases the ESS
 effectiveSize(trace.burn)
 
-# thinning
+# autocorrelation
 acfplot(trace.burn)
 ```
 
 Again, given the very high ESS, we can be quite generous in our choice of the thinning.
 
 ```{r long-run-thin}
-# let's keep 1 iteration every 40
+# Thinning: let's keep 1 iteration every 40
 trace.burn.thin <- burnAndThin(trace.burn, thin=40)
 xyplot(trace.burn.thin)
 ```
 However, let's compare the thinned and unthinnned distributions. 
 
 ```{r long-run-compare-thin}
-# Note that plotPosteriorDensity can't take a list of mcmc.list.
-# Instead, we pass the unthinned and thinned traces of the chain that started at theta1
-plotPosteriorDensity(list(unthinned=trace.burn[[1]],thinned=trace.burn.thin[[1]]))
+# Note that plotPosteriorDensity can take a list of mcmc.list and will plot the different mcmc.list by combining their elements
+# Let's plot the combined unthinned trace vs the combined thinned trace.
+plotPosteriorDensity(list(unthinned=trace.burn,thinned=trace.burn.thin))
 ```
 
 In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!
