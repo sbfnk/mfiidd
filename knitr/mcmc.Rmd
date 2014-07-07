@@ -31,7 +31,7 @@ The function should evaluate the target distribution at the given initial parame
 
 Below you will find the skeleton of such a function. We have inserted comments before every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
-__A few useful tips:__ To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a uniform random number between 0 and 1, you can use `runif(n = 1)`. Also, you will find useful to keep track of the number of accepted proposal steps as we will use it later to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. -->
+__A few useful tips:__ To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a uniform random number between 0 and 1, you can use `runif(n = 1)`. Also, you will find it useful to keep track of the number of accepted proposal steps as we will use it later to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. -->
 
 ```{r eval=FALSE}
 # This is a function that takes four arguments:
@@ -159,11 +159,11 @@ You should get the same number unless you changed the `SIR$pointLogLike` functio
 
 We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If you have any problems with this, have a look at our [solution](generate_samples.md).
 
-Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample median (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
+Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample median (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
 
 Try to re-run your MCMC with different values for `init.theta` (the starting values for $R_0$ and $D_\mathrm{inf}$), for `proposal.sd` (the standard deviation of the Gaussian proposal distribution $q(\theta'|\theta)$), and for `iter` (the number of iterations). Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:
 
-1. What is your best estimate of $R_0$? Does this match you estimate from the previous session?
+1. What is your best estimate of $R_0$? Does this match your estimate from the previous session?
 2. What determines the acceptance rate?
 3. How many iterations do you need to get a good estimate for $R_0$?
 
