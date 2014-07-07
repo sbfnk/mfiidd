@@ -20,13 +20,20 @@ The aim of this session is to learn how you can fit a deterministic model to dat
 
 # Using the Metropolis-Hastings algorithm with more than one parameter
 
-**Code it yourself**: Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 1) a function that can evaluate the target distribution at any value of its parameter, 2) an initial value for the parameter, 3) the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler) and 4) the number of iterations for which to run the sampler. The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
+**Code it yourself**: Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 
+
+1. a function that can evaluate the target distribution at any value of its parameter
+2. an initial value for the parameter
+3. the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler)
+4. the number of iterations for which to run the sampler. 
+
+The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
 
 Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
-A few useful tips: To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a random number between 0 and 1, you can use `runif(n = 1)`. Also, you will find it useful to keep track of the number of accepted samples as we will later use the proportion of accepted runs to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. -->
+__A few useful tips:__ To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a random number between 0 and 1, you can use `runif(n = 1)`. Also, you will find useful to keep track of the number of accepted proposal steps as we will use it later to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. -->
 
-```{r}
+```{r tidy=FALSE}
 # This is a function that takes four arguments:
 # - target: the target distribution, a function that takes one argument
 #           (a number) and returns the (logged) value of a distribution
@@ -40,14 +47,14 @@ my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
     # evaluate the function "target" at parameter value "init.theta"
 
     # initialise variables to store the current value of theta, the
-    # vector of samples, and the number of accepted runs
+    # vector of samples, and the number of accepted proposals
 
     # repeat n.iterations times:
 
     # - draw a new theta from the (Gaussian) proposal distribution
     #   with standard deviation sd. Note that 'rnorm' returns an unnamed
-    #    vector, but the 'fitmodel' functions use names in the parameter
-    #    vector, so you'll have to set the names of the proposed theta
+    #   vector, but the 'fitmodel' functions use names in the parameter
+    #   vector, so you'll have to set the names of the proposed theta
 
     # - evaluate the function target_dist at the proposed theta
 
@@ -77,13 +84,13 @@ If you have trouble filling any of the empty bits in, have a look at our [more g
 
 In principle, we can use the Metropolis-Hastings sampler to sample from any target distribution. Let us test this: imagine you didn't know how to draw random numbers from a normal distribution. You could use the Metropolis-Hastings sampler to do this. In **R**, the function to evaluate the probability density of a number under a normal distribution is called `dnorm`.
 
-There is one small extra step we have to do before we can sample from `dnorm`. Remember that the we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas `dnorm`, by default, returns the (un-logged) probability density directly.
+There is one small extra step we have to do before we can sample from `dnorm`. Remember that we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas `dnorm`, by default, returns the (un-logged) probability density.
 
 We can, however, instruct `dnorm` to return the logarithm of the probability density using the argument `log = TRUE`, and we use a *wrapper* function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution
 
 ```{r}
 dnorm.log <- function(theta) {
- return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
+   return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }
 ```
 
@@ -93,39 +100,38 @@ We can now sample from `dnorm.log` using our MCMC sampler
 starting.value <- 1 # starting value for MCMC
 sigma <- 1 # standard deviation of MCMC
 iter <- 10000
-trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value,
- proposal.sd = sigma, n.iterations = iter)
+trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value, proposal.sd = sigma, n.iterations = iter)
 ```
 
- We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
+We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
 
- ```{r plot_trace, caption = "", fig.width = 10}
- plot(trace, type = "l")
- ```
+```{r plot_trace, caption = "", fig.width = 10}
+plot(trace, type = "l")
+```
 
- And you can plot a histogram of the samples generated using
+And you can plot a histogram of the samples generated using
 
- ```{r hist_trace, caption = ""}
- hist(trace)
- ```
+```{r hist_trace, caption = ""}
+hist(trace)
+```
 
- This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
+This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
 
 # Sampling from a posterior distribution
 
- We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
+We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
 
- Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `d.inf` is the second parameter in `init.theta`) is 0.
+Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `D.inf` is the second parameter in `init.theta`) is 0.
 
- Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a function that just takes one parameter `theta`. Again, we us a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, with fixed initial conditions $X_0$.
+Lastly, `my_logPosterior` takes four parameters, and we have to turn it into a function that just takes one parameter `theta`. Again, we use a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, and for fixed `init.state`.
 
- ```{r}
- my_logPosterior_epi1 <- function(theta) {
+```{r}
+my_logPosterior_epi1 <- function(theta) {
 
   return(my_logPosterior(fitmodel = SIR,
-   theta = theta,
-   init.state = c(S = 999, I = 1, R = 0),
-   data = epi1))
+     theta = theta,
+     init.state = c(S = 999, I = 1, R = 0),
+     data = epi1))
 
 }
 ```
@@ -136,11 +142,11 @@ We can test that this function returns the value of the posterior for a given va
 my_logPosterior_epi1(c(R0 = 3, D.inf = 2))
 ```
 
-We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If have any problems with this, have a look at our [solution](generate_samples.md).
+We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If you have any problems with this, have a look at our [solution](generate_samples.md).
 
-Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample medians (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
+Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample median (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
 
-Try different starting values for $R_0$, for the standard deviation of the (Gaussian) proposal distribution $q(\theta'|\theta)$, and for the number of iterations. Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:
+Try to re-run your MCMC with different values for the initial $R_0$, for the standard deviation of the (Gaussian) proposal distribution $q(\theta'|\theta)$, and for the number of iterations. Look at the plots generated using `plot` and `hist` (see above), the summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:
 
 1. What is your best estimate of $R_0$? Does this match you estimate from the previous session?
 2. What determines the acceptance rate?

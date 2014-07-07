@@ -49,49 +49,58 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li>explore ways to improve the performance of the MCMC sampler</li>
 </ol>
 <h1 id="using-the-metropolis-hastings-algorithm-with-more-than-one-parameter">Using the Metropolis-Hastings algorithm with more than one parameter</h1>
-<p><strong>Code it yourself</strong>: Let us write a function that samples from an arbitrary <em>target distribution</em> using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution <span class="math">\(q(\theta&#39;|\theta)\)</span>. The function we want to write should take four arguments: 1) a function that can evaluate the target distribution at any value of its parameter, 2) an initial value for the parameter, 3) the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler) and 4) the number of iterations for which to run the sampler. The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.</p>
+<p><strong>Code it yourself</strong>: Let us write a function that samples from an arbitrary <em>target distribution</em> using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution <span class="math">\(q(\theta&#39;|\theta)\)</span>. The function we want to write should take four arguments:</p>
+<ol style="list-style-type: decimal">
+<li>a function that can evaluate the target distribution at any value of its parameter</li>
+<li>an initial value for the parameter</li>
+<li>the standard deviation of the (Gaussian) proposal distribution (i.e., the step size of the sampler)</li>
+<li>the number of iterations for which to run the sampler.</li>
+</ol>
+<p>The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.</p>
 <p>Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.</p>
-<p>A few useful tips: To draw a random number from a Gaussian distribution, you can use the function <code>rnorm</code>, see <code>?rnorm</code>. To draw a random number between 0 and 1, you can use <code>runif(n = 1)</code>. Also, you will find it useful to keep track of the number of accepted samples as we will later use the proportion of accepted runs to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. --></p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes four arguments: - target: the target</span>
-<span class="co"># distribution, a function that takes one argument (a number) and returns</span>
-<span class="co"># the (logged) value of a distribution - init.theta: the initial value of</span>
-<span class="co"># theta, a number - proposal.sd: the standard deviation of (Gaussian)</span>
-<span class="co"># proposal distribution - n.iterations: the number of iterations The</span>
-<span class="co"># function should return a vector of samples of theta from the target</span>
+<p><strong>A few useful tips:</strong> To draw a random number from a Gaussian distribution, you can use the function <code>rnorm</code>, see <code>?rnorm</code>. To draw a random number between 0 and 1, you can use <code>runif(n = 1)</code>. Also, you will find useful to keep track of the number of accepted proposal steps as we will use it later to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. --></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes four arguments:</span>
+<span class="co"># - target: the target distribution, a function that takes one argument</span>
+<span class="co">#           (a number) and returns the (logged) value of a distribution</span>
+<span class="co"># - init.theta: the initial value of theta, a number</span>
+<span class="co"># - proposal.sd: the standard deviation of (Gaussian) proposal distribution</span>
+<span class="co"># - n.iterations: the number of iterations</span>
+<span class="co"># The function should return a vector of samples of theta from the target</span>
 <span class="co"># distribution</span>
 my_mcmcMH &lt;-<span class="st"> </span>function(target, init.theta, proposal.sd, n.iterations) {
-    
-    <span class="co"># evaluate the function &#39;target&#39; at parameter value &#39;init.theta&#39;</span>
-    
-    <span class="co"># initialise variables to store the current value of theta, the vector of</span>
-    <span class="co"># samples, and the number of accepted runs</span>
-    
+
+    <span class="co"># evaluate the function &quot;target&quot; at parameter value &quot;init.theta&quot;</span>
+
+    <span class="co"># initialise variables to store the current value of theta, the</span>
+    <span class="co"># vector of samples, and the number of accepted proposals</span>
+
     <span class="co"># repeat n.iterations times:</span>
-    
-    <span class="co"># - draw a new theta from the (Gaussian) proposal distribution with standard</span>
-    <span class="co"># deviation sd. Note that &#39;rnorm&#39; returns an unnamed vector, but the</span>
-    <span class="co"># &#39;fitmodel&#39; functions use names in the parameter vector, so you&#39;ll have to</span>
-    <span class="co"># set the names of the proposed theta</span>
-    
+
+    <span class="co"># - draw a new theta from the (Gaussian) proposal distribution</span>
+    <span class="co">#   with standard deviation sd. Note that &#39;rnorm&#39; returns an unnamed</span>
+    <span class="co">#   vector, but the &#39;fitmodel&#39; functions use names in the parameter</span>
+    <span class="co">#   vector, so you&#39;ll have to set the names of the proposed theta</span>
+
     <span class="co"># - evaluate the function target_dist at the proposed theta</span>
-    
+
     <span class="co"># - calculate the Metropolis-Hastings ratio</span>
-    
+
     <span class="co"># - draw a random number between 0 and 1</span>
-    
+
     <span class="co"># - accept or reject by comparing the random number to the</span>
-    <span class="co"># Metropolis-Hastings ratio (acceptance probability); if accept, change the</span>
-    <span class="co"># current value of theta to the proposed theta, update the current value of</span>
-    <span class="co"># the target and keep track of the number of accepted proposals</span>
-    
+    <span class="co">#   Metropolis-Hastings ratio (acceptance probability); if accept,</span>
+    <span class="co">#   change the current value of theta to the proposed theta,</span>
+    <span class="co">#   update the current value of the target and keep track of the</span>
+    <span class="co">#   number of accepted proposals</span>
+
     <span class="co"># add the current theta to the vector of samples</span>
-    
+
     <span class="co"># return the trace of the chain (i.e., the vector of samples)</span>
 }</code></pre>
 <p>If you have trouble filling any of the empty bits in, have a look at our <a href="mcmc_example.html">more guided example</a>.</p>
 <h1 id="sampling-from-a-simple-distribution">Sampling from a simple distribution</h1>
 <p>In principle, we can use the Metropolis-Hastings sampler to sample from any target distribution. Let us test this: imagine you didn't know how to draw random numbers from a normal distribution. You could use the Metropolis-Hastings sampler to do this. In <strong>R</strong>, the function to evaluate the probability density of a number under a normal distribution is called <code>dnorm</code>.</p>
-<p>There is one small extra step we have to do before we can sample from <code>dnorm</code>. Remember that the we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas <code>dnorm</code>, by default, returns the (un-logged) probability density directly.</p>
+<p>There is one small extra step we have to do before we can sample from <code>dnorm</code>. Remember that we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas <code>dnorm</code>, by default, returns the (un-logged) probability density.</p>
 <p>We can, however, instruct <code>dnorm</code> to return the logarithm of the probability density using the argument <code>log = TRUE</code>, and we use a <em>wrapper</em> function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution</p>
 <pre class="sourceCode r"><code class="sourceCode r">dnorm.log &lt;-<span class="st"> </span>function(theta) {
     <span class="kw">return</span>(<span class="kw">dnorm</span>(<span class="dt">x =</span> theta, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1</span>, <span class="dt">log =</span> <span class="ot">TRUE</span>))
@@ -103,27 +112,28 @@ iter &lt;-<span class="st"> </span><span class="dv">10000</span>
 trace &lt;-<span class="st"> </span><span class="kw">my_mcmcMH</span>(<span class="dt">target =</span> dnorm.log, <span class="dt">init.theta =</span> starting.value, <span class="dt">proposal.sd =</span> sigma, 
     <span class="dt">n.iterations =</span> iter)</code></pre>
 <p>We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using</p>
-<p><code>r  plot(trace, type = &quot;l&quot;)</code></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(trace, <span class="dt">type =</span> <span class="st">&quot;l&quot;</span>)</code></pre>
 <p><img src="figure/mcmc/plot_trace.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>And you can plot a histogram of the samples generated using</p>
-<p><code>r  hist(trace)</code></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(trace)</code></pre>
 <p><img src="figure/mcmc/hist_trace.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for <code>init.theta</code> and <code>proposal.sd</code>. How do these affect the plots of the trace and the histogram?</p>
 <h1 id="sampling-from-a-posterior-distribution">Sampling from a posterior distribution</h1>
 <p>We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practicals. You should have a <code>my_logPosterior</code> function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our <a href="posterior_example_solution.html">solution</a>). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.</p>
-<p>Remember that we wrote <code>my_mcmcMH</code> to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number <span class="math">\(R_0\)</span> and the duration of infection <span class="math">\(D_\mathrm{inf}\)</span>. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of <span class="math">\(R_0\)</span>. We can do this by setting <code>sd.proposal</code> to a vector of standard deviations, where the second element (if <code>d.inf</code> is the second parameter in <code>init.theta</code>) is 0.</p>
-<p>Lastly, <code>my_logPosterior</code> takes four parameters, and we have to turn it into a function that just takes one parameter <code>theta</code>. Again, we us a wrapper function for this, which returns the posterior density for a given value of <code>theta</code> for the <code>SIR</code> model with respect to the <code>epi1</code> data set, with fixed initial conditions <span class="math">\(X_0\)</span>.</p>
-<p>```r my_logPosterior_epi1 &lt;- function(theta) {</p>
-<pre><code> return(my_logPosterior(fitmodel = SIR, theta = theta, init.state = c(S = 999, 
-     I = 1, R = 0), data = epi1))
- </code></pre>
-<p>} ```</p>
+<p>Remember that we wrote <code>my_mcmcMH</code> to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number <span class="math">\(R_0\)</span> and the duration of infection <span class="math">\(D_\mathrm{inf}\)</span>. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of <span class="math">\(R_0\)</span>. We can do this by setting <code>sd.proposal</code> to a vector of standard deviations, where the second element (if <code>D.inf</code> is the second parameter in <code>init.theta</code>) is 0.</p>
+<p>Lastly, <code>my_logPosterior</code> takes four parameters, and we have to turn it into a function that just takes one parameter <code>theta</code>. Again, we use a wrapper function for this, which returns the posterior density for a given value of <code>theta</code> for the <code>SIR</code> model with respect to the <code>epi1</code> data set, and for fixed <code>init.state</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">my_logPosterior_epi1 &lt;-<span class="st"> </span>function(theta) {
+    
+    <span class="kw">return</span>(<span class="kw">my_logPosterior</span>(<span class="dt">fitmodel =</span> SIR, <span class="dt">theta =</span> theta, <span class="dt">init.state =</span> <span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">999</span>, 
+        <span class="dt">I =</span> <span class="dv">1</span>, <span class="dt">R =</span> <span class="dv">0</span>), <span class="dt">data =</span> epi1))
+    
+}</code></pre>
 <p>We can test that this function returns the value of the posterior for a given value of <span class="math">\(R_0\)</span>.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">my_logPosterior_epi1</span>(<span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">3</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>))</code></pre>
 <pre><code>## [1] -3777</code></pre>
-<p>We can now generate samples from <code>my_logPosterior_epi1</code> using <code>my_mcmcMH</code>. Can you work out the command to do this? If have any problems with this, have a look at our <a href="generate_samples.html">solution</a>.</p>
-<p>Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of <span class="math">\(R_0\)</span> (using <code>mean(trace)</code>), sample medians (using <code>median(trace)</code>), 95% credible intervals (using <code>quantile(trace, probs=c(0.025, 0.975))</code>) and other properties.</p>
-<p>Try different starting values for <span class="math">\(R_0\)</span>, for the standard deviation of the (Gaussian) proposal distribution <span class="math">\(q(\theta&#39;|\theta)\)</span>, and for the number of iterations. Look at plots generated using <code>plot</code> and <code>hist</code> (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:</p>
+<p>We can now generate samples from <code>my_logPosterior_epi1</code> using <code>my_mcmcMH</code>. Can you work out the command to do this? If you have any problems with this, have a look at our <a href="generate_samples.html">solution</a>.</p>
+<p>Once you have generated the samples from the posterior distribtution, you can calculate summary statistics such as the sample mean of <span class="math">\(R_0\)</span> (using <code>mean(trace)</code>), sample median (using <code>median(trace)</code>), 95% credible intervals (using <code>quantile(trace, probs=c(0.025, 0.975))</code>) and other properties.</p>
+<p>Try to re-run your MCMC with different values for the initial <span class="math">\(R_0\)</span>, for the standard deviation of the (Gaussian) proposal distribution <span class="math">\(q(\theta&#39;|\theta)\)</span>, and for the number of iterations. Look at the plots generated using <code>plot</code> and <code>hist</code> (see above), the summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:</p>
 <ol style="list-style-type: decimal">
 <li>What is your best estimate of <span class="math">\(R_0\)</span>? Does this match you estimate from the previous session?</li>
 <li>What determines the acceptance rate?</li>

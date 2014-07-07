@@ -28,9 +28,9 @@ code > span.er { color: #ff0000; font-weight: bold; }
   <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
 </head>
 <body>
-<p>Here is a possible solution for the Metropolis sampler.</p>
+<p>Here is a possible solution for the Metropolis-Hastings sampler.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes four parameters:</span>
-<span class="co"># - target.dist: the target distribution, a function that takes one</span>
+<span class="co"># - target: the target distribution, a function that takes one</span>
 <span class="co">#   argument (a number) and returns the (logged) value of a</span>
 <span class="co">#   distribution</span>
 <span class="co"># - init.theta: the initial value of theta, a number</span>
@@ -39,11 +39,11 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="co"># - n.iterations: the number of iterations</span>
 <span class="co"># The function returns a vector of samples of theta from the target</span>
 <span class="co"># distribution</span>
-my_mcmcMH &lt;-<span class="st"> </span>function(target.dist, init.theta, proposal.sd, n.iterations) {
+my_mcmcMH &lt;-<span class="st"> </span>function(target, init.theta, proposal.sd, n.iterations) {
 
-    <span class="co"># evaluate the function &quot;target.dist&quot; at &quot;init.theta&quot;, and assign to</span>
+    <span class="co"># evaluate the function &quot;target&quot; at &quot;init.theta&quot;, and assign to</span>
     <span class="co"># a variable called target.theta.current.</span>
-    target.theta.current &lt;-<span class="st"> </span><span class="kw">target.dist</span>(init.theta)
+    target.theta.current &lt;-<span class="st"> </span><span class="kw">target</span>(init.theta)
 
     <span class="co"># initialise variables to store the current value of theta, the</span>
     <span class="co"># vector of samples, and the number of accepted runs</span>
@@ -67,9 +67,9 @@ my_mcmcMH &lt;-<span class="st"> </span>function(target.dist, init.theta, propos
         <span class="co"># theta.current</span>
         <span class="kw">names</span>(theta.proposed) &lt;-<span class="st"> </span><span class="kw">names</span>(theta.current)
 
-        <span class="co"># evaluate the function target.dist at the proposed theta and</span>
+        <span class="co"># evaluate the function target at the proposed theta and</span>
         <span class="co"># assign to a variable called target.theta.proposed</span>
-        target.theta.proposed &lt;-<span class="st"> </span><span class="kw">target.dist</span>(theta.proposed)
+        target.theta.proposed &lt;-<span class="st"> </span><span class="kw">target</span>(theta.proposed)
 
         <span class="co"># compute Metropolis-Hastings ratio (acceptance probability). Since</span>
         <span class="co"># the multivariate Gaussian is symmetric, we don&#39;t need to consider</span>
@@ -101,7 +101,7 @@ my_mcmcMH &lt;-<span class="st"> </span>function(target.dist, init.theta, propos
         samples &lt;-<span class="st"> </span><span class="kw">c</span>(samples, theta.current)
 
         <span class="co"># print current state of chain and acceptance rate</span>
-        <span class="kw">cat</span>(<span class="st">&quot;chain:&quot;</span>, theta.current,
+        <span class="kw">cat</span>(<span class="st">&quot;iteration:&quot;</span>, i.iteration, <span class="st">&quot;chain:&quot;</span>, theta.current,
             <span class="st">&quot;acceptance rate:&quot;</span>, accepted /<span class="st"> </span>i.iteration, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
 
     }

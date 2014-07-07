@@ -1,4 +1,4 @@
-Here is a possible solution for the Metropolis sampler.
+Here is a possible solution for the Metropolis-Hastings sampler.
 
 ```{r echo=FALSE}
 read_chunk('our_mcmcM.r')
