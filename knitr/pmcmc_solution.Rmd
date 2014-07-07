@@ -204,9 +204,7 @@ effectiveSize(trace)
 xyplot(trace)
 ```
 
-As in the analysis with 50 particles, the burning period is relatively short. However, with 400 particles the chains mix much better. Of course the chains take longer to run but because they mix better it becomes computationally more efficient to run many short chains in parallel, starting near the mode of the (deterministic) posterior, and combine them to increase the overall ESS.
-
-Here again we decide to carefully choose the burning period with `plotESSBurn`.
+As in the analysis with 50 particles, the burning period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burning period with `plotESSBurn`.
 
 ```{r analyse-n400-burn, collapse=TRUE}
 # Actually, it looks like no burning is needed:
@@ -229,18 +227,17 @@ All 5 chains seems to have converged to the same posterior, which are smoother t
 plotPosteriorDensity(list(n50=trace.burn.thin.n50,n400=trace.thin.n400))
 ```
 
-Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS. In addition, we can notice substantial differences in the location of the mode of $R_0$, which is shifted to the left with 50 particles. Finally, note that the log-likelihood is overestimated with 50 particles, which can be problematic when doing model selection as we would overestimate the fit of the model.
+Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS. Note the different location of the mode of $R_0$, which is shifted to the left with 50 particles. This is because 3 of the 5 chains with 50 particles show a posterior with lower $R_0$ (see figure above), whereas the remaining 2 seems to have converged to the same distribution as the pMCMC with 400 particles.
 
+Finally, note that the log-likelihood is overestimated with 50 particles, which can be problematic for model selection as we would overestimate the fit of the model.
 
-Overall, this confirms that the pMCMC works even with 50 particles but that it will require much more iterations
-
-
+Overall, this analysis confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles. Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 400 particles. The chains start at different `init.theta` near the mode of the deterministic posterior, and are then combined to increase the overall ESS.
 
 You can now return to the [practical](pmcmc.md#stochastic-vs-deterministic-fit) and proceed to the last section of this session.
 
 # Stochastic vs deterministic fit
 
-Here we compare the combined traces of the deterministic SEIT2L model (2 chains of $10^5$ iterations) with those obtained with the stochastic version (5 chains of $3000$ iterations). Both analysis assume informative priors.
+Here we compare the combined traces of the deterministic SEIT2L model (2 chains of $10^5$ iterations) with those obtained with the stochastic version (5 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
 
 ```{r sto-deter, collapse=TRUE}
 
@@ -262,7 +259,7 @@ plotPosteriorDensity(list(deter=trace.deter, sto=trace.thin.n400))
 
 Overall, the posterior distributions are quite different. This is especially true for $R_0$ and $D_{imm}$.
 In addition, the discrepancy in the posterior distribution of the log-likelihood seems to indicate that the stochastic model fits much better.
-We can verify this by computing the DIC of the stochastic SEIT2L model.
+We can quantify this by computing the DIC of the stochastic SEIT2L model.
 
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
@@ -274,7 +271,7 @@ print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T1 = 3, T2 =0, L = 0, Inc = 0)
-log.like.theta.bar <- -117.5994 # my_particleFilter(SEIT2L_sto,theta.bar, init.state, data=FluTdC1971, n.particles=400)
+log.like.theta.bar <- -117.5994 # TODO: replace by my_particleFilter(SEIT2L_sto,theta.bar, init.state, data=FluTdC1971, n.particles=400)
 print(log.like.theta.bar)
 
 # and its deviance
@@ -292,7 +289,7 @@ print(DIC)
 
 In the previous session, we found that the DIC of the deterministic SEIT2L model was equal to 280. The difference of 35 indicates that the stochastic model should strongly be preferred to the deterministic model.
 
-We can visually check this result by plooting the posterior fit of each model:
+We can visually check this result by plotting the posterior fit of each model:
 
 ```{r sto-deter-fit, results="hide"}
 
@@ -309,7 +306,7 @@ plotFit(SEIT2L_deter,theta.bar.deter,init.state,data=FluTdC1971,n=1000)
 Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.
 
 
-Already finished? why not [going further?](pmcmc.md#going-further)
+You've already finished? why not [going further?](pmcmc.md#going-further)
 
 
 
