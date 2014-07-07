@@ -172,41 +172,25 @@ The algorithm proceeds as follows:\\
 \begin{frame}[label=sec-5-9]{Rejection sampling}
 \begin{columns}[c] 
 \column{.5\textwidth}
-Rejection sampling works best if $q(\theta) \approx f(\theta)$ \\
-\\
-Requiring $q(\theta) \geqslant f(\theta)$ for all $\theta$ can make rejection rate v. high\\
-\\
-Even more limited in high dimensions
+\begin{itemize}
+\item Rejection sampling works best if $q(\theta) \approx f(\theta)$ \\~\\
+\item Requiring $q(\theta) \geqslant f(\theta)$ for all $\theta$ can make rejection rate v. high\\~\\
+\item Even more limited in high dimensions
+\end{itemize}
 
 \column{.5\textwidth}
 \includegraphics[width=.8\linewidth]{RS23.png}
 \end{columns}
 \end{frame}
 
-\begin{frame}[label=sec-5-10]{Rejection sampling}
-\begin{columns}[c] 
-\column{.5\textwidth}
-Rejection sampling works best if $q(\theta) \approx f(\theta)$ \\
-\\
-Requiring $q(\theta) \geqslant f(\theta)$ for all $\theta$ can make rejection rate v. high\\
-\\
-Even more limited in high dimensions
-
-\column{.5\textwidth}
-\includegraphics[width=.8\linewidth]{RS24.png}
-\end{columns}
-\end{frame}
 
 \section{What is Markov Chain Monte Carlo?}
 \label{sec-7}
 \begin{frame}[label=sec-7-1]{Markov Chain Monte Carlo}
 \begin{itemize}
-\item In Markov Chain Monte Carlo (MCMC) we do not define one proposal density $q(\theta) \geqslant f(\theta)$.\\
-\\
-\item Rather we build up a \alert{chain} of samples where each proposed $\theta^*$ depends on the previous one.\\
-\\
-\item The proposal density takes the form $q(\theta^* | \theta)$\\
-\\
+\item In Markov Chain Monte Carlo (MCMC) we do not define one proposal density $q(\theta) \geqslant f(\theta)$.\\~\\
+\item Rather we build up a \alert{chain} of samples where each proposed $\theta^*$ depends on the previous one.\\~\\
+\item The proposal density takes the form $q(\theta^* | \theta)$\\~\\
 \item A commonly used MCMC algorithm is \alert{Metropolis-Hastings}
 \end{itemize}
 \end{frame}
@@ -472,9 +456,9 @@ Try several different proposal distributions (\alert{pilot runs}), aiming for an
 Two-stage adaptation
 \begin{columns}[c] 
 \column{.5\textwidth} 
-\includegraphics[width=.8\linewidth]{MH7}
+\includegraphics[width=.8\linewidth]{MH7.jpg}
 \column{.5\textwidth} 
-\includegraphics[width=.8\linewidth]{MH8}
+\includegraphics[width=.8\linewidth]{MH8.jpg}
 \end{columns}
 \end{frame}
 
