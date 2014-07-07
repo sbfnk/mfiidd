@@ -4,7 +4,7 @@
 opts_chunk$set(cache=TRUE, cache.path="cache/introduction/", fig.height=5, fig.width=5, fig.retina=1 ,fig.path="figure/introduction/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
-```{r firR, echo=FALSE}
+```{r fitR, echo=FALSE}
 library(fitR)
 set.seed(1234)
 ```
@@ -18,7 +18,7 @@ In this session, you will
 2. combine the prior and likelihood to calculate the posterior for a simple SIR model
 3. explore the posterior of a model that has a single parameter
 
-The first part will be mostly about introducting you to the structure we have set up -- you won't have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.
+The first part will be mostly about introducing you to the structure we have set up -- you won't have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.
 
 # A simple SIR model
 
@@ -64,7 +64,7 @@ Moreover, each `fitmodel` contains four functions: `simulate` to run the model, 
 
 ## Simulate
 
-To simulate a model run, we use the `simulate` command which comes with a `fitmodel` (see above). To run the SIR model, we have to provide parameter values, initial state and the times at which we want model output.
+To simulate a model run, we use the `simulate` command which comes with a `fitmodel` (see above). To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.
 
 ```{r }
 theta <- c(R0 = 3, D.inf = 2)
@@ -115,9 +115,9 @@ You will see that this calculates the prior of the parameters using uniform dist
 
 ## Likelihood
 
-The `pointLogLike` function is used to evaluate the likelihood of a data point. For example, the probability of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
+The `pointLogLike` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
 
-```{r }
+```{r}
 SIR$pointLogLike(data.point = c(obs = 18), model.point = c(I = 31), theta)
 ```
 
@@ -147,7 +147,7 @@ The observations ("obs") in the `epi1` data set are based on observed prevalence
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a `fitmodel`, a parameter vector, an initial state and a data set and simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the likelihood $p(\mathrm{Data}|X_0, \theta)$ of the chosen set of parameters and initial state.
+To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
 
 ```{r }
 trajLogLike(SIR, theta, init.state, epi1)
