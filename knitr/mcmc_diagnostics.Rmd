@@ -33,7 +33,7 @@ The data set `epi3` was generated from an SIR model with unknown basic reproduct
 
 You can visualise the `epi3` data set with
 
-```{r fig.height = 5, fig.width = 5}
+```{r epi3_traj, fig.height = 5, fig.width = 5}
 plotTraj(data = epi3)
 ```
 
