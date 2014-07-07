@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Inference with ABC</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Inference with ABC</h1>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#summary-statistics">Summary statistics</a></li>
+<li><a href="#distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</a></li>
+<li><a href="#abc-acceptance-function">ABC acceptance function</a></li>
+<li><a href="#plug-it-into-your-posterior-and-run-mcmc">Plug it into your posterior and run MCMC</a></li>
+<li><a href="#comparison-with-likelihood-approach">Comparison with likelihood approach</a></li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+</div>
+<p>The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. To illustrate ABC, you are going to fit the <a href="play_with_seitl.html">SEITL model</a> to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative.</p>
+<p>There are two approximation steps at the core of ABC:</p>
+<ul>
+<li>it replaces observations with summary statistics. Unless these summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>, this leads to a possibly less informative posterior density.</li>
+<li>we are accepting simulations that are within an <em>acceptance window</em> of the data. Unless the acceptance tolerances are equal to 0, this leads to biased samples from the posterior.</li>
+</ul>
+<p>On the other hand, we have seen in a previous session that MCMC provides unbiased samples from the true posterior at little cost for the deterministic SEITL model. You will end this session by fitting this deterministic model with ABC and assess the accuracy of your ABC posterior distribution by comparing it with the true posterior.</p>
+<p>As before, you can load the stochastic SEITL model and the Tristan da Cunha data set with</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_sto)
+<span class="kw">data</span>(FluTdC1971)</code></pre>
+<p>You can plot the Tristan da Cunha data with</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotTraj</span>(<span class="dt">data =</span> FluTdC1971)</code></pre>
+<div class="figure">
+<img src="figure/ABC_plot_TdC_data.png" />
+</div>
+<h2 id="summary-statistics">Summary statistics</h2>
+<p>First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarize the data. Finally, code three functions that take your time series as input and return the values of your summary statistics.</p>
+<pre class="sourceCode r"><code class="sourceCode r">time.data &lt;-<span class="st"> </span>my_SEITL$data$time
+inc.data &lt;-<span class="st"> </span>my_SEITL$data$Inc
+
+<span class="co"># code</span>
+my_summaryStat1 &lt;-<span class="st"> </span>function(time,inc){
+
+}
+
+<span class="co"># test</span>
+ss1.data &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(<span class="dt">time=</span>time.data,<span class="dt">inc=</span>inc.data)
+
+<span class="co"># write other summary statistics</span></code></pre>
+<p>Can you check whether your summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>?</p>
+<h2 id="distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</h2>
+<p>The second step is to compare your data with your simulation with distance functions between your observed and simulated summary statistics. You can generate an observation trajectory as follows:</p>
+<pre class="sourceCode r"><code class="sourceCode r">theta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.9</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
+init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+simu &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(SEITL_sto, theta, init.state, FluTdC1971$time)
+<span class="kw">head</span>(simu)</code></pre>
+<pre><code>##   time   S  E I  T  L Inc obs
+## 1    1 250  0 4  0 30   0   0
+## 2    2 245  4 4  1 30   1   1
+## 3    3 239  7 3  5 30   3   2
+## 4    4 236  7 4  7 30   3   3
+## 5    5 229 11 5  9 30   3   4
+## 6    6 228  7 6 13 30   5   4</code></pre>
+<p>And compute the set of summary statistics:</p>
+<pre class="sourceCode r"><code class="sourceCode r">time.simu &lt;-<span class="st"> </span>simu.obs$time[-<span class="dv">1</span>] <span class="co"># remove initial time</span>
+inc.simu &lt;-<span class="st"> </span>simu.obs$observation[-<span class="dv">1</span>] <span class="co"># remove initial state</span>
+
+ss1.simu &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(<span class="dt">time=</span>time.simu,<span class="dt">inc=</span>inc.simu)
+
+<span class="co"># compute ss2.simu etc.</span></code></pre>
+<p>Now, you can write three functions that will take your observed and simulated summary statistics and return their distance</p>
+<pre class="sourceCode r"><code class="sourceCode r">my_distance1 &lt;-<span class="st"> </span>function(data,simu) {
+
+
+}
+
+<span class="co"># test</span>
+d1 &lt;-<span class="st"> </span><span class="kw">my_distance1</span>(<span class="dt">data=</span>ss1.data,<span class="dt">simu=</span>ss1.simu)
+
+<span class="co"># write other distance functions</span></code></pre>
+<h2 id="abc-acceptance-function">ABC acceptance function</h2>
+<p>Now you can write a function that will decide, for a given vector of tolerances, whether you should accept or reject your parameter theta.</p>
+<pre class="sourceCode r"><code class="sourceCode r">ABCacceptance &lt;-<span class="st"> </span>function(theta,fitmodel,tol) {
+
+    <span class="co"># simulate model</span>
+
+    <span class="co"># generate observation</span>
+
+    <span class="co"># compute data and simulated summary statistics</span>
+
+    <span class="co"># compute distances between summary statistics</span>
+
+    <span class="co"># check that distances are within the tolerances</span>
+
+    <span class="co"># return 0/1</span>
+
+}</code></pre>
+<p>Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate.</p>
+<p>You can find an example of solution <a href="ABC_example.html">here</a></p>
+<h2 id="plug-it-into-your-posterior-and-run-mcmc">Plug it into your posterior and run MCMC</h2>
+<h2 id="comparison-with-likelihood-approach">Comparison with likelihood approach</h2>
+<h2 id="reference">Reference</h2>
+<p><a href="http://membres-timc.imag.fr/Michael.Blum/publications/CsilleryTREE10.pdf">Review of ABC in practice</a></p>
+<p>Previous: <a href="smc.html">Run SMC</a></p>
+</body>
+</html>

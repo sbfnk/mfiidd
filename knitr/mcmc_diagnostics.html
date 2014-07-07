@@ -1,0 +1,234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Practical session: MCMC diagnostics</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+</head>
+<body>
+<div id="header">
+<h1 class="title">Practical session: MCMC diagnostics</h1>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#objectives">Objectives</a></li>
+<li><a href="#sampling-more-than-one-parameter">Sampling more than one parameter</a></li>
+<li><a href="#summary-statistics">Summary statistics</a></li>
+<li><a href="#diagnostics">Diagnostics</a><ul>
+<li><a href="#mixing">Mixing</a><ul>
+<li><a href="#trace-and-density-pots">Trace and density pots</a></li>
+<li><a href="#autocorrelations">Autocorrelations</a></li>
+</ul></li>
+<li><a href="#burn-in">Burn-in</a></li>
+<li><a href="#run-length">Run length</a></li>
+</ul></li>
+<li><a href="#improving-mixing">Improving mixing</a><ul>
+<li><a href="#dealing-with-parameters-with-limited-support">Dealing with parameters with limited support</a><ul>
+<li><a href="#transforming-parameters">Transforming parameters</a></li>
+<li><a href="#truncated-proposal-distributions">Truncated proposal distributions</a></li>
+</ul></li>
+<li><a href="#adapting-the-proposal-distribution">Adapting the proposal distribution</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="objectives">Objectives</h1>
+<p>The aim of this session is to learn how to interpret the results of MCMC sampling, as well as to improve the performance of the sampler. More specifically, you will</p>
+<ol style="list-style-type: decimal">
+<li>learn how to use <code>coda</code> for assessing and interpreting MCMC runs</li>
+<li>explore strategies for improving the performance of an Metropolis-Hastings sampler</li>
+<li>learn about posterior predictive checks to assess the goodness of fit</li>
+</ol>
+<h1 id="sampling-more-than-one-parameter">Sampling more than one parameter</h1>
+<!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
+
+<!-- The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`. -->
+
+<p>In the last practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, on the other hand, we are often faced with the need to fit models with a multitude of parameters, and our MCMC needs to sample from a posterior distribution that depends on all of them.</p>
+<p>Getting the acceptance rate to a desired value is much harder when dealing with multiple parameters, but there are a few strategies available for doing so, which we will learn about in this practical session.</p>
+<p>The data set <code>epi3</code> was generated from an SIR model with unknown basic reproduction number <span class="math">\(R_0\)</span> and infectious period <span class="math">\(D_\mathrm{inf}\)</span>. Try to use the MCMC sampler created in the previous session to generate samples that follow the the posterior density (if you didn't get to write your own MCMC sampler, use the own from our <a href="mcmc_example_solution.html">solution</a>).</p>
+<p>You can visualise the <code>epi3</code> data set with</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotTraj</span>(<span class="dt">data =</span> epi3)</code></pre>
+<div class="figure">
+<img src="figure/unnamed-chunk-2.png" />
+</div>
+<p>You can use the same command for <code>my_mcmcMH</code> you used in the previous practical session, but you need to change the <code>my_logPosterior_epi1</code> wrapper function to fit to data set <code>epi3</code> -- if you have trouble with that, you can use our <a href="epi3_wrapper.html">solution</a>. Try a few values for the vector of standard deviations <code>proposal.sd</code> and see if how this affects the acceptance rate.</p>
+<p>To get good acceptance rates, it is sometimes a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.</p>
+<p>We will now introduce you to how to use <code>coda</code> to diagnose MCMC runs. We suggest that, once you've read the sections on &quot;Summary statistics&quot; and &quot;Diagnostics&quot;, you spend at least a good half hour experimenting with the Metropolis-Hastings sampler. That is, you should try running MCMC on the <code>epi3</code> data set from different starting points, with different values for the step size (<code>proposal.sd</code>), and assess the impact on the summary statistics and plots introduced below . Experiment with burning and thinning (which we will introduce below), and see what impact they have. Take your time to fully understand the behaviour of the Metropolis-Hastings sampler -- this is what we well use throughout this course. You can also try to fit a model with reporting (<code>SIR_reporting</code>) to the <code>epi4</code> data set. This is a model with 3 parameters (the basic reproduction number <span class="math">\(R_0\)</span>, the infectious period <span class="math">\(D_\mathrm{inf}\)</span> and the reporting rate <span class="math">\(RR\)</span>. Don't only try to get the best fit -- it is worth also experimenting with what you need to do to break the sampler, i.e. get inconsistent results.</p>
+<h1 id="summary-statistics">Summary statistics</h1>
+<p>We now use the functions from the <code>coda</code> library to assess the MCMC runs. This usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters <code>init.theta</code> and step size <code>proposal.sd</code>. If you didn't get any MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the <code>mcmc.epi3</code> object, which you can load with <code>data(mcmc)</code>:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(mcmc)
+trace &lt;-<span class="st"> </span>mcmc.epi3$trace
+<span class="kw">head</span>(trace)</code></pre>
+<pre><code>##      R0 D.inf
+## 1 1.000 2.000
+## 2 1.000 2.000
+## 3 1.000 2.000
+## 4 1.002 1.895
+## 5 1.016 1.898
+## 6 1.023 1.826</code></pre>
+<p>This run was created using the commands shown <a href="mcmc_commands.html">here</a>. In the following, we assume that you assigned the result of <code>my_mcmcMH</code> to a variable called <code>trace</code>, but of course you can call this anything you like.</p>
+<p>To use <code>coda</code>, we first convert our trace to a format that <code>coda</code> understands. To this end, we use the <code>mcmc</code> command:</p>
+<pre class="sourceCode r"><code class="sourceCode r">mcmc.trace &lt;-<span class="st"> </span><span class="kw">mcmc</span>(trace)</code></pre>
+<p>We can get summary statics using <code>summary</code></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(mcmc.trace)</code></pre>
+<pre><code>## 
+## Iterations = 1:10001
+## Thinning interval = 1 
+## Number of chains = 1 
+## Sample size per chain = 10001 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##       Mean    SD Naive SE Time-series SE
+## R0    2.07 0.128  0.00128         0.0283
+## D.inf 3.10 0.257  0.00257         0.0702
+## 
+## 2. Quantiles for each variable:
+## 
+##       2.5%  25%  50%  75% 97.5%
+## R0    1.61 2.08 2.10 2.11  2.14
+## D.inf 2.14 3.12 3.15 3.18  3.24</code></pre>
+<p>This provides the following information:</p>
+<ol style="list-style-type: decimal">
+<li>Empirical (sample) mean</li>
+<li>Empirical (sample) standard deviation</li>
+<li>&quot;Naive&quot; standard error, that is the standard error of the mean (adjusting for sample size). See the <a href="http://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean">Wikipedia</a> page of the Standard error.</li>
+<li>the time-series standard error, which corrects (3) for autocorrelations</li>
+<li>quantiles for each variable</li>
+</ol>
+<p>We can also compute the rejection rate (that is 1 minus the acceptance rate).</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rejectionRate</span>(mcmc.trace)</code></pre>
+<pre><code>##     R0  D.inf 
+## 0.7793 0.7793</code></pre>
+<p>Lastly, we can compute the effective sample size, that is an estimate for the number of <em>independent</em> samples (taking into account autocorrelations) generated by the MCMC run</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">effectiveSize</span>(mcmc.trace)</code></pre>
+<pre><code>##    R0 D.inf 
+## 20.52 13.40</code></pre>
+<h1 id="diagnostics">Diagnostics</h1>
+<p>Whenever one runs MCMC, it is important to assess its performance. It is very difficult (arguably, impossible) to be fully sure that a particular set of MCMC runs provides reliable analysis, but, fortunately, there are ways to spot when things go wrong. We will look at assessing three aspects of MCMC: mixing, burn-in and run length</p>
+<h2 id="mixing">Mixing</h2>
+<p>We need to make sure that the MCMC sampler explores the parameter space <em>efficiently</em>, that is that it doesn't reject or accept too many proposals. If too many proposals are rejected, we need many simulations to generate a sufficient number of parameter samples. If too many proposals are accepted, we don't gain much information about the underlying distribution.</p>
+<h3 id="trace-and-density-pots">Trace and density pots</h3>
+<p>Trace plots provide an important tool for assessing mixing of a chain. Density plots are smoothed histograms of the samples, that is they show the function that we are trying to explore. We can get trace and density plots for all variables in an MCMC trace using <code>plot</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(mcmc.trace)</code></pre>
+<div class="figure">
+<img src="figure/trace.png" />
+</div>
+<p>In the trace plots, we want to try to avoid flat bits (where the sampler stays in the same place for too long) or too many consecutive steps in one direction. In this case, it looks like there was a burn-in of about 1000 iterations, after which the MCMC sampler seems to mix well, we also see that the sampler never moves beyond 2.2 for <span class="math">\(R_0\)</span>, and never beyond 3.5 for <span class="math">\(D_\mathrm{inf}\)</span>. To assess the reliability of our output, we should start chains with higher initial values of <span class="math">\(R_0\)</span> and <span class="math">\(D_\mathrm{inf}\)</span> and check that the sampler converges to the same estimates.</p>
+<p>If we want to get a more detailed view of the posterior distribution (i.e., the density of the samples) around its maximum, we can cut the burn-in period out using the <code>burnAndThin</code> command:</p>
+<pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(mcmc.epi3$trace, <span class="dt">burn =</span> <span class="dv">1000</span>)
+mcmc.trace.burned &lt;-<span class="st"> </span><span class="kw">mcmc</span>(trace, <span class="dt">start =</span> <span class="dv">1000</span>)
+<span class="kw">plot</span>(mcmc.trace.burned)</code></pre>
+<div class="figure">
+<img src="figure/trace_burned.png" />
+</div>
+<p>It is sometimes said that we are aiming for the trace to look like a &quot;warm, fuzzy caterpillar&quot;, that is the situation you can see here on the left.</p>
+<h3 id="autocorrelations">Autocorrelations</h3>
+<p>Another way to check for convergence is to look at the autocorrelations between the samples returned by our MCMC. The lag-<span class="math">\(k\)</span> autocorrelation is the correlation between every sample and the sample at which we were <span class="math">\(k\)</span> steps before. This autocorrelation should become smaller as <span class="math">\(k\)</span> increases. If, on the other hand, autocorrelation remains for higher values of <span class="math">\(k\)</span>, this indicates high degree of correlation between our samples and slow mixing.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">autocorr.plot</span>(mcmc.trace.burned)</code></pre>
+<div class="figure">
+<img src="figure/autocorrelations.png" />
+</div>
+<p>In this case, the autocorrelations drop with increasing <span class="math">\(k\)</span>, which is a good sign. If autocorrelations are too strong, we can <em>thin</em> the MCMC chain, that is we discard <span class="math">\(n\)</span> samples for every sample that we keep. To do this, again we use <code>burnAndThin</code> and pass <span class="math">\(n\)</span> as <code>thin</code> argument:</p>
+<pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(mcmc.epi3$trace, <span class="dt">burn =</span> <span class="dv">1000</span>, <span class="dt">thin =</span> <span class="dv">5</span>)
+mcmc.trace.burned &lt;-<span class="st"> </span><span class="kw">mcmc</span>(trace, <span class="dt">start =</span> <span class="dv">1000</span>, <span class="dt">thin =</span> <span class="dv">5</span>)
+<span class="kw">autocorr.plot</span>(mcmc.trace.burned)</code></pre>
+<div class="figure">
+<img src="figure/trace_burned_thinned.png" />
+</div>
+<p>It has been argued that thinning is actually not very useful, unless one wants to reduce the amount of memory and storage space in long chains. Instead of thinning to, say, keep only 1 out every 10 samples, it is usually more efficient to just run a chain 10 times as long.</p>
+<h2 id="burn-in">Burn-in</h2>
+<p>Above, we have assessed burn-in based on a glance at the trace plots. There are several diagnostics available to make this process more systematic, such as the Geweke diagnostic (<code>geweke.diag</code>), the Heidelberger-Welch diagnostic (<code>heidel.diag</code>), and the Raftery-Lewis diagnostic (<code>raftery.diag</code>). A discussion of these is beyond the scope and purpose of this session, but if you are interested have a look at the <strong>R</strong> help pages for these functions for more information.</p>
+<p>One other way of diagnosing burn-in is via the effective sample size (ESS). The samples in the burn-in are not very informative, and if the burn-in period is estimated to be too short this will reduce the ESS size. On the other hand, if the burn-in period is estimated to be too long, informative samples are being thrown away, again reducing the ESS. The ESS should be maximised at the &quot;correct&quot; estimate of the burn in. We can plot ESS against burn-in:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotESSBurn</span>(mcmc.epi3$trace)</code></pre>
+<div class="figure">
+<img src="figure/test_burn_in.png" />
+</div>
+<p>A good optimal burn-in length would be when the last parameter has its ESS maximised, that is at around 500 here.</p>
+<h2 id="run-length">Run length</h2>
+<p>It is usually difficult to tell for how long one should run the chain. If the trace of all parameters shows the &quot;caterpillar&quot;-like behaviour such as shown above, it is a good indication that the MCMC is efficiently sampling from a maximum in the underlying distribution, but the sampler might be stuck in a <em>local</em> maximum, and it might need more time to leave that maximum and reach other parts of the parameter space, with potentially other maxima.</p>
+<p>There are no general rules for how long one needs to run the chain, but generally it is a good idea to start the chain from different starting points and make sure they converge to the same density plots. In fact, it is a good idea to memorise that one should <em>always</em> run multiple chains. Secondly, one decide in advance on the number of samples one wants from the underlying distribution, and run the chain until the effective sample size reaches that number. In practice, however, this is a somewhat arbitrary decision, and apart from careful diagnosis and running multiple chains there is not much one can do to get a reliable estimate of the necessary number of iterations.</p>
+<h1 id="improving-mixing">Improving mixing</h1>
+<p>Getting an MCMC sampler to mix well is, arguably, the most difficult and most important task for using it efficiently. We will discuss two ways for improving mixing: dealing with parameters with limited support and adaptive MCMC.</p>
+<h2 id="dealing-with-parameters-with-limited-support">Dealing with parameters with limited support</h2>
+<p>Often, we have situations where parameters are constrained to remain between certain values. For example, negative values do not make sense for the basic reproduction number <span class="math">\(R_0\)</span> of the duration of infection <span class="math">\(D_\mathrm{inf}\)</span>, and probabilities have to stay between 0 and 1. We call the values that a parameter can, <em>in principle</em>, take the <em>support</em> of a parameter. This is different from the prior distribution which encodes our prior knowledge of likely values of a parameter among the values it can take.</p>
+<p>If we ignore the limited support that parameters can have, we might waste MCMC steps, for example when the random draw from the proposal distribution suggests a step to a negative value of a parameter with positive support (e.g., <span class="math">\(R_0\)</span>). In this case, proposals are rejected not because the parameter fails to match the data, but because they are in <em>impossible</em> parts of the parameter space.</p>
+<h3 id="transforming-parameters">Transforming parameters</h3>
+<p>A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for <em>rates</em>, such as the ones in the SIR model. A way to force a parameter to be positive is to <em>transform</em> them to the log-scale, that is to run MCMC on <span class="math">\(\log{R_0} instead of \)</span>R_0$. When calculating the model, we can use the exponential function to transform the parameter back.</p>
+<p>You can load an SIR model where the parameters are estimated on the log-scale using</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SIR_exp)</code></pre>
+<p>You can, again, use a wrapper function and use MCMC to explore the parameters.</p>
+<pre class="sourceCode r"><code class="sourceCode r">my_logPosterior_exp_epi3 &lt;-<span class="st"> </span>function(theta) {
+
+    <span class="kw">return</span>(<span class="kw">my_logPosterior</span>(<span class="dt">fitmodel =</span> SIR_exp,
+                           <span class="dt">theta =</span> theta,
+                           <span class="dt">init.state =</span> <span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">999</span>, <span class="dt">I =</span> <span class="dv">1</span>, <span class="dt">R =</span> <span class="dv">0</span>),
+                           <span class="dt">data =</span> epi3))
+
+}
+trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_logPosterior_exp_epi3,
+                <span class="dt">init.theta =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="kw">log</span>(<span class="dv">1</span>), <span class="dt">D.inf =</span> <span class="kw">log</span>(<span class="dv">2</span>)),
+                <span class="dt">proposal.sd =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.01</span>),
+                <span class="dt">n.iterations =</span> <span class="dv">1000</span>)</code></pre>
+<p>Does this make a difference to acceptance rates?</p>
+<h3 id="truncated-proposal-distributions">Truncated proposal distributions</h3>
+<p>Another way for dealing with parameters with limited support is to use <em>truncated</em> proposal distributions. There are <strong>R</strong> packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. In the <code>mcmcMH</code> function which we provided in the <code>fitR</code> package, we use the truncated multivariate normal random generator from the <code>tmvtnorm</code> package to draw proposals. The limits to use in the proposal distribution can be specified with the <code>limits</code> argument to mcmcMH, in which you can specified <code>lower</code> and/or <code>upper</code> limits. For example, to get a lower bound of 0 for <span class="math">\(R_0\)</span> and <span class="math">\(D_\mathrm{inf}\)</span>, we could write.</p>
+<pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_logPosterior_epi3,
+                <span class="dt">init.theta =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>),
+                <span class="dt">proposal.sd =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.01</span>),
+                <span class="dt">n.iterations =</span> <span class="dv">1000</span>,
+                <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>)))</code></pre>
+<p>Try a proposal distribution with a wide proposal distribution, and with or without limits. Do the limits make a difference to the acceptance rate?</p>
+<h2 id="adapting-the-proposal-distribution">Adapting the proposal distribution</h2>
+<p>The best proposal distribution is the one that best matches the underlying target distribution. While we cannot know this in advance, we can use trial MCMC runs of to learn about the underlying target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.</p>
+<p>We have provided you with a function, <code>mcmcMH</code>, which does exactly the same as your <code>my_mcmcMH</code> function, but provides some additional functionality. In particular, it calculates the <em>empirical</em> covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as <code>covmat.empirical</code>:</p>
+<pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_logPosterior_epi3,
+                <span class="dt">init.theta =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>),
+                <span class="dt">proposal.sd =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.01</span>),
+                <span class="dt">n.iterations =</span> <span class="dv">1000</span>)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">trace$covmat.empirical</code></pre>
+<pre><code>##             R0   D.inf
+## R0    0.009351 0.01364
+## D.inf 0.013643 0.03002</code></pre>
+<p>The diagonal elements of this matrix tells you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about <em>correlations</em> in the parameters. In this case, there is positive correlation between <span class="math">\(R_0\)</span> and <span class="math">\(D_\mathrm{inf}\)</span>, that is greater values of <span class="math">\(R_0\)</span> in accepted proposals tend to coincide with greater values of <span class="math">\(D_\mathrm{info}\)</span>. Can you think of why that is the case? We will come back to the issue of correlations and their impact on assessing model fits tomorrow.</p>
+<p>Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the <code>mcmcMH</code> function. This takes three parameters relating to adaptive MCMC: <code>adaptive.size.start</code>, <code>adaptive.shape.start</code> and <code>adapt.size.cooling</code>.</p>
+<p>The idea is this: we let the MCMC run for a while and monitor the acceptance rate. After <code>adapt.size.start</code> iterations, we start adapting the <em>size</em> of the proposal distribution, that is we scale it to larger/smaller steps depending if the acceptance is too small/large. This is done until <code>adapt.size.shape</code> proposals have been accepted, at which point we take the empirical covariance matrix and start adapting the <em>shape</em> to it. Over time, we make fewer and fewer changes to the size, because if we kept adapting e size we would break the Metropolis-Hastings algorithm. This is regulated by <code>adapt.size.cooling</code>. The closer this is to 1, the slower we stop adapting the size (and, accordingly, the longer we have to run the chain.</p>
+<p>Try a run of adaptive MCMC using</p>
+<pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_logPosterior_epi3,
+                <span class="dt">init.theta =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>),
+                <span class="dt">proposal.sd =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="fl">0.5</span>),
+                <span class="dt">n.iterations =</span> <span class="dv">5000</span>,
+                <span class="dt">adapt.size.start =</span> <span class="dv">100</span>,
+                <span class="dt">adapt.shape.start =</span> <span class="dv">500</span>,
+                <span class="dt">adapt.size.cooling=</span><span class="fl">0.999</span>,
+                <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>)))</code></pre>
+<p>Take note of the acceptance rate when the adaptive sampler starts adapting the size first, and then the shape. Have a look at the trace plots (see above) and the effect that adaptation has. Does it work in ensuring good mixing?</p>
+<div>
+Previous: <a href="mcmc.html">MCMC</a> Next: <a href="mcmc_diagnostics.html">Tristan da Cunha</a> (not there yet)
+</div>
+</body>
+</html>

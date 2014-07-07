@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Introduction to model fitting in R</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+</head>
+<body>
+<div id="header">
+<h1 class="title">Introduction to model fitting in R</h1>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#objectives">Objectives</a></li>
+<li><a href="#a-simple-sir-model">A simple SIR model</a><ul>
+<li><a href="#simulate">Simulate</a></li>
+<li><a href="#prior">Prior</a></li>
+<li><a href="#likelihood">Likelihood</a></li>
+<li><a href="#generate-observations">Generate observations</a></li>
+</ul></li>
+<li><a href="#calculate-the-posterior">Calculate the posterior</a></li>
+<li><a href="#explore-the-posterior">Explore the posterior</a></li>
+<li><a href="#going-further">Going further</a></li>
+</ul>
+</div>
+<h1 id="objectives">Objectives</h1>
+<p>The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the <code>fitR</code> package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite such as POMP. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.</p>
+<p>In this session, you will</p>
+<ol style="list-style-type: decimal">
+<li>familiarise yourselves with the structure of models in the <code>fitR</code> package</li>
+<li>combine the prior and likelihood to calculate the posterior for a simple SIR model</li>
+<li>explore the posterior for a model that has a single parameter</li>
+</ol>
+<h1 id="a-simple-sir-model">A simple SIR model</h1>
+<p>First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number <span class="math">\(R_0\)</span> and the infectious period <span class="math">\(D\)</span>. The model equations are</p>
+<p><span class="math">\[
+\begin{aligned}
+\frac{dS}{dt} &amp;= - \beta S \frac{I}{N}\\
+\frac{dI}{dt} &amp;= \beta S \frac{I}{N} - \nu I\\
+\frac{dR}{dt} &amp;= \nu I\\
+\end{aligned}
+\]</span></p>
+<p>where <span class="math">\(\beta=R_0/D\)</span>, <span class="math">\(\nu = 1/D\)</span> and <span class="math">\(N = S + I + R\)</span> is constant. To load this model into your <strong>R</strong> session, type</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SIR)</code></pre>
+<pre><code>## Error: unused arguments (state.names = SIR_state.names, theta.names =
+## SIR_theta.names, genObsPoint = SIR_genObsPoint, logPrior = SIR_logPrior,
+## pointLogLike = SIR_pointLogLike)</code></pre>
+<p>This will load a <code>fitmodel</code> object called <code>SIR</code> into your <strong>R</strong> session. A <code>fitmodel</code> is simply a collection of functions and variables that define a model. To see the objects that the <code>SIR</code> model contains, type</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(SIR)</code></pre>
+<pre><code>## [1] &quot;name&quot;         &quot;state.names&quot;  &quot;theta.names&quot;  &quot;simulate&quot;
+## [5] &quot;genObsPoint&quot;  &quot;logPrior&quot;     &quot;pointLogLike&quot;</code></pre>
+<p>A fitmodel object provides its description, as well as the names of its model variables and parameters. These can be accessed with</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$name</code></pre>
+<pre><code>## [1] &quot;SIR with constant population size&quot;</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$state.names</code></pre>
+<pre><code>## [1] &quot;S&quot; &quot;I&quot; &quot;R&quot;</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$theta.names</code></pre>
+<pre><code>## [1] &quot;R0&quot; &quot;D&quot;</code></pre>
+<p>Moreover, each <code>fitmodel</code> contains four functions: <code>simulate</code> to run the model, <code>logPrior</code> to calculate the logarithm of the prior, <code>pointLogLike</code> to calculate the log-likelihood of a given data point with respect to the model, and <code>generateObs</code> to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a <code>fitmodel</code>, you can do so by typing</p>
+<pre class="sourceCode r"><code class="sourceCode r">?fitmodel</code></pre>
+<h2 id="simulate">Simulate</h2>
+<p>To simulate a model run, we use the <code>simulate</code> contained within a <code>fitmodel</code>. To run the SIR model, we have to provide parameter values, initial conditions and the times at which we want model output.</p>
+<pre class="sourceCode r"><code class="sourceCode r">parameters &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">3</span>, <span class="dt">D =</span> <span class="fl">1.5</span>)
+init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">999</span>, <span class="dt">I =</span> <span class="dv">1</span>, <span class="dt">R =</span> <span class="dv">0</span>)
+times &lt;-<span class="st"> </span><span class="dv">1</span>:<span class="dv">100</span>
+traj &lt;-<span class="st"> </span>SIR$<span class="kw">simulate</span>(parameters, init.state, times)</code></pre>
+<p>We can now look at the output of the model run</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(traj)</code></pre>
+<pre><code>##   time     S       I       R
+## 1    1 999.0   1.000   0.000
+## 2    2 994.8   3.774   1.393
+## 3    3 979.4  13.997   6.606
+## 4    4 925.8  48.804  25.348
+## 5    5 775.1 140.292  84.572
+## 6    6 514.9 264.171 220.923</code></pre>
+<p>To visualise a model, you can use <code>plotTraj</code></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotTraj</span>(traj)</code></pre>
+<div class="figure">
+<img src="figure/unnamed-chunk-8.png" />
+</div>
+<p>Try running the model with different values of the parameters and initial conditions, and output times.</p>
+<p>Remember that if you want more detail on what the <code>simulate</code> and <code>plotTraj</code> functions do, you can always look at their implementation by typing their function name. To look at the <code>simulate</code> function of SIR, type</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$simulate</code></pre>
+<h2 id="prior">Prior</h2>
+<p>To evaluate the (logarithm of the) prior for a certain combination of parameters, use the <code>logPrior</code> function</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$<span class="kw">logPrior</span>(parameters)</code></pre>
+<pre><code>## [1] -7.996</code></pre>
+<p>Have a look at the <code>logPrior</code> function by typing</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$logPrior</code></pre>
+<p>You will see that this calculates the prior of the parameters using uniform distributions on <span class="math">\(R_0\)</span> (between 1 and 100) and <span class="math">\(D\)</span> (between 0 and 30).</p>
+<h2 id="likelihood">Likelihood</h2>
+<p>The <code>pointLogLike</code> function is used to evaluate the likelihood of a data point</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$<span class="kw">pointLogLike</span>(<span class="dt">data.point =</span> <span class="kw">c</span>(<span class="dt">obs =</span> <span class="dv">13</span>), <span class="dt">model.point =</span> <span class="kw">c</span>(<span class="dt">I =</span> <span class="dv">24</span>), parameters)</code></pre>
+<pre><code>## [1] -5.237</code></pre>
+<p>Have a look at the <code>pointLogLike</code> function by typing</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$pointLogLike</code></pre>
+<p>You will see that this calculates the likelihood of a data point taking its &quot;obs&quot; member (an observation) and evaluating it with respect to a Poisson distribution centred around the &quot;I&quot; member of the model point. In other words, it assumes that the observations follows a Poisson distribution centred around the current prevalence.</p>
+<p>Let's load a test data set using</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(epi)</code></pre>
+<p>This is contains several epidemic data sets. The first one, called <code>epi1</code>, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of <span class="math">\(R_0\)</span>. For now, you can look at this data set using</p>
+<pre class="sourceCode r"><code class="sourceCode r">epi1</code></pre>
+<pre><code>##    time obs
+## 1     1   3
+## 2     2   1
+## 3     3   1
+## 4     4   2
+## 5     5   5
+## 6     6   8
+## 7     7   9
+## 8     8  18
+## 9     9  26
+## 10   10  27
+## 11   11  38
+## 12   12  60
+## 13   13  81
+## 14   14  90
+## 15   15 111
+## 16   16 122
+## 17   17 123
+## 18   18 120
+## 19   19  92
+## 20   20 105
+## 21   21  84
+## 22   22  65
+## 23   23  66
+## 24   24  41
+## 25   25  52
+## 26   26  43
+## 27   27  29
+## 28   28  15
+## 29   29  12
+## 30   30  14
+## 31   31   7
+## 32   32   5
+## 33   33   9
+## 34   34   2
+## 35   35   4
+## 36   36   1
+## 37   37   1
+## 38   38   0</code></pre>
+<p>The observations (&quot;obs&quot;) are based on observed prevalence (&quot;I&quot;). You can plot the data using.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotTraj</span>(epi1)</code></pre>
+<div class="figure">
+<img src="figure/unnamed-chunk-16.png" />
+</div>
+<p>To calculate the log-likelihood of a set of parameters and initial conditions, we can use <code>trajLogLike</code>. This takes a model, a parameter vector, an initial state and a data set and simulates the model using the <code>simulate</code> function of the model with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the <code>pointLogLike</code> function of the model. The result returned is the likelihood <span class="math">\(p(\mathrm{Data}|X_0, \theta)\)</span> of the chosen set of parameters and initial conditions.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">trajLogLike</span>(SIR, parameters, init.state, epi1)</code></pre>
+<pre><code>## [1] -6792</code></pre>
+<h2 id="generate-observations">Generate observations</h2>
+<p>The function <code>genObsPoint</code> generates single observation point from a model point. In that sense, it can be seen as the inverse of <code>pointLogLike</code>. Whereas <code>loglikePoint</code> evaluates the log-likelihood at a data point with respect to the model, <code>genObsPoint</code> takes a (randomly sampled) data point from the model.</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$<span class="kw">genObsPoint</span>(<span class="dt">model.point =</span> <span class="kw">c</span>(<span class="dt">I =</span> <span class="dv">24</span>), parameters)</code></pre>
+<pre><code>## [1] 18</code></pre>
+<p>Of course, you might see a different number, as the result of this command is the outcome of a random draw.</p>
+<p>To generate a whole trajectory, we can use <code>genObsTraj</code>. This uses the <code>simulate</code> function to simulate the model, and then the <code>genObsPoint</code> function at every time point to generate a trajectory of observations. It returns the trajectory, with an added column for the observations.</p>
+<pre class="sourceCode r"><code class="sourceCode r">obs.traj &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(SIR, parameters, init.state, epi1$time)
+<span class="kw">head</span>(obs.traj)</code></pre>
+<pre><code>##   time     S       I       R obs
+## 1    1 999.0   1.000   0.000   1
+## 2    2 994.8   3.774   1.393   6
+## 3    3 979.4  13.997   6.606  15
+## 4    4 925.8  48.804  25.348  43
+## 5    5 775.1 140.292  84.572 146
+## 6    6 514.9 264.171 220.923 254</code></pre>
+<p>If you run this multiple times, you will find that the outcome is different every time. This is because the observations are outcomes of random draws from the (deterministic) model trajectory. If we changed <code>genObsPoint</code> to be deterministic (instead of a random draw from a Poisson distribution), the outcome of <code>genObsTraj</code> would be the same every time.</p>
+<h1 id="calculate-the-posterior">Calculate the posterior</h1>
+<p>We are now ready to calculate the value of the posterior <span class="math">\(p(\theta, X_0|\mathrm{Data})\)</span> (up to normalisation) for a given set of parameters and initial conditions, with respect to a data set. Let us write a function that does that. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling with at any point, click on the link below the code for some hints.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes 4 arguments:</span>
+<span class="co"># - fitmodel, a fitmodel object that defines the model dynamics,</span>
+<span class="co">#   prior and likelihoods.</span>
+<span class="co"># - theta, a named vector of parameters</span>
+<span class="co"># - init.state,  a named vector of initial conditions</span>
+<span class="co"># - data, the data set we are fitting the model to</span>
+<span class="co"># It should return the posterior for the given model, parameters,</span>
+<span class="co"># initial conditions and data.</span>
+my_posterior &lt;-<span class="st"> </span>function(fitmodel, theta, init.state, data) {
+
+    <span class="co"># calculate the fitmodel prior for parameter theta</span>
+
+    <span class="co"># calculate the fitmodel likelihood for parameter theta and</span>
+    <span class="co"># initial conditions init.state, with respect to the data set data.</span>
+
+    <span class="co"># return the logged posterior probability</span>
+}</code></pre>
+<p>If you have trouble filling any of the empty bits in, have a look at our <a href="posterior_example.html">more guided example</a>.</p>
+<p>Check that your function returns a sensible value.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">my_posterior</span>(SIR, parameters, init.state, epi1)</code></pre>
+<pre><code>## [1] -6800</code></pre>
+<h1 id="explore-the-posterior">Explore the posterior</h1>
+<p>Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, <span class="math">\(R_0\)</span>. As stated above, the infectious period of the <code>epi1</code> data set was 2. You can evaluate the posterior at different values of <span class="math">\(R_0\)</span> using the <code>my_posterior</code> function you wrote above (or the one provided by clicking through to our <a href="posterior_example_solution.html">solution</a>). In which range of <span class="math">\(R_0\)</span> is the posterior maximised?</p>
+<p>You can also change the prior and likelihood definitions of the <code>SIR</code> model. Remember that you can see the definition of <code>SIR$logPrior</code> and <code>SIR$pointLogLike</code> by typing</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$logPrior
+SIR$pointLogLike</code></pre>
+<p>To change the prior, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type</p>
+<pre class="sourceCode r"><code class="sourceCode r">SIR$pointLogLike &lt;-<span class="st"> </span>function(data.point, model.point, theta) {
+        <span class="co"># the prevalence is observed through a normally distributed process</span>
+        <span class="kw">return</span>(<span class="kw">dnorm</span>(<span class="dt">x =</span> data.point[[<span class="st">&quot;obs&quot;</span>]], <span class="dt">mean =</span> model.point[[<span class="st">&quot;I&quot;</span>]], <span class="dt">log =</span> <span class="ot">TRUE</span>))
+}</code></pre>
+<p>Try different distributions for the prior and likelihood distributions. Do they change the shape of the posterior?</p>
+<h1 id="going-further">Going further</h1>
+<p>If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, <code>epi2</code>, which you can have a look at with</p>
+<pre class="sourceCode r"><code class="sourceCode r">epi2</code></pre>
+<p>This was created with infectious period 2 and a reporting rate of 10%. Can you estimate <span class="math">\(R_0\)</span>?</p>
+<div>
+<h1>Navigate</h1>
+Previous: <a href="README.html">Installation</a> Next: <a href="mcmc.html">MCMC</a>
+</div>
+</body>
+</html>

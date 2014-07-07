@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+</head>
+<body>
+<p>Below, you can find an example of how to code a Metropolis sampler. Some bits are left out for you to fill in (marked &quot;INSERT HERE&quot;). Each &quot;INSERT HERE&quot; statement requires one line of code. If you struggle, you can find a link to a solution below the function.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes four parameters:</span>
+<span class="co"># - target.dist: the target distribution, a function that takes one</span>
+<span class="co">#   argument (a number) and returns the (logged) value of a</span>
+<span class="co">#   distribution</span>
+<span class="co"># - init.theta: the initial value of theta, a number</span>
+<span class="co"># - proposal.sd: the standard deviation of (Gaussian) proposal</span>
+<span class="co">#   distribution</span>
+<span class="co"># - n.iterations: the number of iterations</span>
+<span class="co"># The function returns a vector of samples of theta from the target</span>
+<span class="co"># distribution</span>
+my_mcmcMH &lt;-<span class="st"> </span>function(target, init.theta, covmat.proposal, n.iterations) {
+
+    <span class="co"># evaluate the function &quot;target.dist&quot; at &quot;init.theta&quot;, and assign to</span>
+    <span class="co"># a variable called target.theta.current.</span>
+    target.theta.current &lt;-<span class="st"> </span><span class="kw">target.dist</span>(init.theta)
+
+    <span class="co"># initialise variables to store the current value of theta, the</span>
+    <span class="co"># vector of samples, and the number of accepted runs</span>
+    theta.current &lt;-<span class="st"> </span>init.theta
+    samples &lt;-<span class="st"> </span>init.theta
+    accepted &lt;-<span class="st"> </span><span class="dv">0</span>
+
+    <span class="co"># run MCMC for n.iteration interations</span>
+    for (i.iteration in <span class="kw">seq_len</span>(n.iterations)) {
+
+        theta.proposed &lt;-<span class="st"> </span><span class="co"># INSERT HERE: draw a new theta from the</span>
+<span class="st">            </span><span class="co"># (Gaussian) proposal distribution and assign to a</span>
+<span class="st">            </span><span class="co"># variable called &quot;theta.proposed&quot;. See &quot;?rnorm for help.</span>
+
+<span class="st">        </span><span class="co"># &#39;rnorm&#39; returns an unnamed vector, but our the functions of</span>
+<span class="st">        </span><span class="co"># &#39;fitmodel&#39; need a named parameter vector. We therefore set</span>
+<span class="st">        </span><span class="co"># the names of theta.proposed to be the same as the names of</span>
+<span class="st">        </span><span class="co"># theta.current</span>
+<span class="st">        </span><span class="kw">names</span>(theta.proposed) &lt;-<span class="st"> </span><span class="kw">names</span>(theta.current)
+
+        target.theta.proposed &lt;-<span class="st"> </span><span class="co"># INSERT HERE: evaluate the function</span>
+<span class="st">            </span><span class="co"># target.dist at the proposed theta and assign to a</span>
+<span class="st">            </span><span class="co"># variable called &quot;target.theta.proposed&quot;</span>
+
+<span class="st">        </span>log.acceptance &lt;-<span class="st"> </span><span class="co"># INSERT HERE: compute Metropolis ratio</span>
+<span class="st">            </span><span class="co"># (acceptance probability). This is easiest if you assume</span>
+<span class="st">            </span><span class="co"># the target function to return the logarithm of the</span>
+<span class="st">            </span><span class="co"># distribution value. Assign the result to a variable</span>
+<span class="st">            </span><span class="co"># called &quot;log.acceptance&quot;</span>
+
+<span class="st">        </span>r &lt;-<span class="st"> </span><span class="co"># INSERT HERE: draw random number number between 0 and 1</span>
+<span class="st">            </span><span class="co"># using &quot;runif&quot; and assign to a variable called &quot;r&quot;.</span>
+
+<span class="st">        </span><span class="co"># test acceptance by comparing the random number to the</span>
+<span class="st">        </span><span class="co"># Metropolis-Hastings ratio (acceptance probability) (using</span>
+<span class="st">        </span><span class="co"># &quot;exp&quot; because we calculated the logarithm of the</span>
+<span class="st">        </span><span class="co"># Metropolis-Hastings ratio before)</span>
+<span class="st">        </span>if (r &lt;<span class="st"> </span><span class="kw">exp</span>(log.acceptance)) {
+
+            <span class="co"># if accepted:</span>
+            theta.current &lt;-<span class="st"> </span><span class="co"># INSERT HERE: change the current value</span>
+<span class="st">                </span><span class="co"># of theta to the proposed theta</span>
+
+<span class="st">            </span>target.theta.current &lt;-<span class="st"> </span><span class="co"># INSERT HERE: updated the current</span>
+<span class="st">                </span><span class="co"># value of the target</span>
+
+<span class="st">            </span><span class="co"># update number of accepted proposals</span>
+<span class="st">            </span>accepted &lt;-<span class="st"> </span>accepted +<span class="st"> </span><span class="dv">1</span>
+
+        }
+
+        <span class="co"># add the current theta to the vector of samples</span>
+        samples &lt;-<span class="st"> </span><span class="kw">c</span>(samples, theta.current)
+
+        <span class="co"># print current state of chain and acceptance rate</span>
+        <span class="kw">cat</span>(<span class="st">&quot;chain:&quot;</span>, theta.current,
+            <span class="st">&quot;acceptance rate:&quot;</span>, accepted /<span class="st"> </span>i.iteration, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+
+    }
+
+    <span class="kw">return</span>(samples)
+}</code></pre>
+<p>If you run into any problems, have a look at our <a href="mcmc_example_solution.html">solution</a>.</p>
+</body>
+</html>
