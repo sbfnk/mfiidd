@@ -91,7 +91,7 @@ plot(dnorm,
      ylab = "probability density")
 ```
 
-We want to generated sample numbers that follow the same distribution. There is one small extra step we have to do before we can sample from `dnorm`. Remember that we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas `dnorm`, by default, returns the (un-logged) probability density.
+We want to generate random numbers that follow the same distribution. There is one small extra step we have to do before we can sample from `dnorm`. Remember that we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas `dnorm`, by default, returns the (un-logged) probability density.
 
 We can, however, instruct `dnorm` to return the logarithm of the probability density using the argument `log = TRUE`, and we use a *wrapper* function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution
 
