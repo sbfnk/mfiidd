@@ -29,7 +29,7 @@ A simple calibration approach consists in plotting the mean, standard deviation 
 
 ```{r calibration-SMC, eval=FALSE}
 # load fitmodel, data and define init.state
-example(SEIT2L_stochastic)
+data(SEIT2L_stoch)
 data(FluTdC1971)
 init.state <- c("S"=279,"E"=0,"I"=2,"T1"=3,"T2"=0,"L"=0,"Inc"=0) 
 
@@ -52,7 +52,7 @@ for(n.particles in test.n.particles){
 	start.time  <- Sys.time()
 	for(i in 1:n.replicates){
 		# one Monte-Carlo estimate of the log-likelihood
-		sample.log.like[i] <- my_particleFilter(SEIT2L_sto,theta,init.state,FluTdC1971,n.particles)
+		sample.log.like[i] <- my_particleFilter(SEIT2L_stoch,theta,init.state,FluTdC1971,n.particles)
 	}
 	# end measuring time
 	end.time  <- Sys.time()
@@ -91,12 +91,12 @@ You can now return to the [practical](pmcmc.md#setting-the-pmcmc) and set your p
 
 ```{r set-mcmc, eval=FALSE}
 # the fitmodel
-example(SEIT2L_stochastic)
+data(SEIT2L_stoch)
 
 # wrapper for posterior
 my_posteriorSto <- function(theta){
 
-	my_fitmodel <- SEIT2L_sto
+	my_fitmodel <- SEIT2L_stoch
 	my_init.state <- c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0) 
 	my_n.particles <- 400 
 	# you can reduce the number of particles if your pMCMC is too slow
@@ -113,7 +113,7 @@ trace <- mcmc_SEITL_infoPrior_theta1$trace
 
 # we will start the pMCMC at the mean posterior estimate
 # of the deterministic fit
-init.theta <- colMeans(trace[SEIT2L_sto$theta.names])
+init.theta <- colMeans(trace[SEIT2L_stoch$theta.names])
 
 # and we take the empirical covariance matrix for the 
 # Gaussian kernel proposal
@@ -266,12 +266,12 @@ We can quantify this by computing the DIC of the stochastic SEIT2L model.
 trace.combined <- ldply(trace.thin.n400)
 
 # take the mean of theta
-theta.bar <- colMeans(trace.combined[SEIT2L_sto$theta.names])
+theta.bar <- colMeans(trace.combined[SEIT2L_stoch$theta.names])
 print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T1 = 3, T2 =0, L = 0, Inc = 0)
-log.like.theta.bar <- -117.5994 # TODO: replace by my_particleFilter(SEIT2L_sto,theta.bar, init.state, data=FluTdC1971, n.particles=400)
+log.like.theta.bar <- -117.5994 # TODO: replace by my_particleFilter(SEIT2L_stoch,theta.bar, init.state, data=FluTdC1971, n.particles=400)
 print(log.like.theta.bar)
 
 # and its deviance
@@ -297,7 +297,7 @@ We can visually check this result by plotting the posterior fit of each model:
 x <- summary(trace.deter)
 theta.bar.deter <- x$statistics[SEIT2L_deter$theta.names,"Mean"]
 
-plotFit(SEIT2L_sto,theta.bar,init.state,data=FluTdC1971,n=1000)
+plotFit(SEIT2L_stoch,theta.bar,init.state,data=FluTdC1971,n=1000)
 
 plotFit(SEIT2L_deter,theta.bar.deter,init.state,data=FluTdC1971,n=1000)
 

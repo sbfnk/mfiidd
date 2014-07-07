@@ -32,10 +32,10 @@ $$
 where $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
 
 ```{r results="hide"}
-example(SIR)
+data(SIR)
 ```
 
-This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `SIR` model. If at any time something breaks, you can always go back to the original model by typing `example(SIR)`.
+This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `SIR` model. If at any time something breaks, you can always go back to the original model by typing `data(SIR)`.
 
 To see the objects that the `SIR` model contains, type
 

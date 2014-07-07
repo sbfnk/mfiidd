@@ -18,7 +18,7 @@ On the other hand, we have seen in a previous session that MCMC provides unbiase
 As before, you can load the stochastic SEITL model and the Tristan da Cunha data set with
 
 ```{r results="hide"}
-example(SEITL_stochastic)
+data(SEITL_stoch)
 data(FluTdC1971)
 ```
 
@@ -61,7 +61,7 @@ You can generate an observation trajectory as follows:
 ```{r }
 theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
-simu <- genObsTraj(SEITL_sto, theta, init.state, FluTdC1971$time)
+simu <- genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time)
 head(simu)
 ```
 

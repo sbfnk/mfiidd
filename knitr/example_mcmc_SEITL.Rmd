@@ -13,14 +13,14 @@ Here is an example of possible answers to the practical on fitting the determini
 
 Each section below correspond to a section of the practical. Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections. 
 
-Although our example refers to the SEITL model, the same commands work for the SEIT2L model (i.e. `example(SEIT2L_deterministic)` instead of `example(SEITL_deterministic)`).
+Although our example refers to the SEITL model, the same commands work for the SEIT2L model (i.e. `data(SEIT2L_deter)` instead of `data(SEITL_deter)`).
 
 # Setting the MCMC
 
 ```{r set-mcmc, eval=FALSE}
 
 # the fitmodel
-example(SEITL_deterministic)
+data(SEITL_deter)
 
 # wrapper for posterior
 my_posteriorTdC <- function(theta){

@@ -6,8 +6,8 @@ opts_chunk$set(cache=TRUE, cache.path="cache/mcmc/", fig.retina=1 ,fig.path="fig
 
 ```{r load, echo=FALSE,results="hide",message=FALSE}
 library(fitR)
-example(SIR)
-example(SIR_reporting)
+data(SIR)
+data(SIR_reporting)
 ```
 
 # Objectives

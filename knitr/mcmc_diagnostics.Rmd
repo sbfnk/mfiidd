@@ -7,8 +7,8 @@ opts_chunk$set(cache=T, cache.path="cache/mcmc_diagnostics/", fig.retina=1 ,fig.
 ```{r echo=FALSE,results="hide",message=FALSE}
 opts_chunk$set(fig.cap='')
 library(fitR)
-example(SIR)
-example(SIR_reporting)
+data(SIR)
+data(SIR_reporting)
 ```
 
 # Objectives
@@ -168,7 +168,7 @@ A first way for dealing with parameters with limited support applies mostly to p
 You can load an SIR model where the parameters are estimated on the log-scale using
 
 ```{r message = FALSE, results = "hide"}
-example(SIR_exp)
+data(SIR_exp)
 ```
 
 You can, again, use a wrapper function and use MCMC to explore the parameters.

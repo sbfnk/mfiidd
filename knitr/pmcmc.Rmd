@@ -75,8 +75,8 @@ If you have trouble filling any of the empty bits, have a look at our [more guid
 Try to run your particle filter with the following inputs:
 
 ```{r try-PF, collapse=TRUE}
-# load SEIT2L_sto
-example(SEIT2L_stochastic)
+# load SEIT2L_stoch
+data(SEIT2L_stoch)
 
 # load data
 data(FluTdC1971)
@@ -88,7 +88,7 @@ theta <- c("R0"=7, "D.lat"=1 , "D.inf"=4, "alpha"=0.5, "D.imm"=10, "rho"=0.65)
 init.state <- c("S"=279,"E"=0,"I"=2,"T1"=3,"T2"=0,"L"=0,"Inc"=0) 
 
 # run the particle filter with 20 particles 
-my_particleFilter(SEIT2L_sto,theta,init.state, data=FluTdC1971, n.particles=20)
+my_particleFilter(SEIT2L_stoch,theta,init.state, data=FluTdC1971, n.particles=20)
 ```
 
 Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?
