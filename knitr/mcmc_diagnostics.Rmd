@@ -260,6 +260,24 @@ Don't worry if you see warnings -- this could be due to numerical errors in the 
 
 Take note of the acceptance rate when the adaptive sampler starts adapting the size first, and then the shape. Have a look at the trace plots (see above) and the effect that adaptation has. Does it work in ensuring good mixing?
 
+# Going further
+
+To read more about MCMC diagnostics, have a look at Cowles & Carlin's excellent [review](https://faculty.washington.edu/jmiyamot/p548/cowlesmk%20mcmc%20convergence%20diagnostics%20-%20a%20comparative%20review.pdf).
+
+You can also try fitting a model with (unknown) reporting rate to the `epi4` data set. To load an SIR model which takes underreporting into account, load the `SIR_reporting` model with
+
+```{r}
+data(SIR_reporting)
+```
+
+Have a look at the point observation probability function
+
+```{r eval = FALSE}
+SIR_reporting$pointLogLike
+```
+
+Can you fit this to the `epi4` data set?
+
 <div>
 Previous: [MCMC](mcmc.md) Next: [Tristan da Cunha](play_with_seitl.md)
 </div>
