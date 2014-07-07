@@ -41,7 +41,7 @@ You can use the same command for `my_mcmcMH` you used in the previous practical 
 
 To get good acceptance rates, it is sometimes a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
 
-We will now introduce you to how to use `coda` to diagnose MCMC runs. We suggest that, once you've read the sections on "Summary statistics" and "Diagnostics", you spend at least a good half hour experimenting with the Metropolis-Hastings sampler. That is, you should try running MCMC on the `epi3` data set from different starting points, with different values for the step size (`proposal.sd`), and assess the impact on the summary statistics and plots introduced below . Experiment with burning and thinning (which we will introduce below), and see what impact they have. Take your time to fully understand the behaviour of the Metropolis-Hastings sampler -- this is what we well use throughout this course. You can also try to fit a model with reporting (`SIR_reporting`) to the `epi4` data set. This is a model with 3 parameters (the basic reproduction number $R_0$, the infectious period $D_\mathrm{inf}$ and the reporting rate $RR$. Don't only try to get the best fit -- it is worth also experimenting with what you need to do to break the sampler, i.e. get inconsistent results.
+We will now introduce you to how to use `coda` to diagnose MCMC runs. We suggest that, once you've read the sections on "Summary statistics" and "Diagnostics", you spend at least a good half hour experimenting with the Metropolis-Hastings sampler. That is, you should try running MCMC on the `epi3` data set from different starting points, with different values for the step size (`proposal.sd`), and assess the impact on the summary statistics and plots introduced below . Experiment with burning and thinning (which we will introduce below), and see what impact they have. Take your time to fully understand the behaviour of the Metropolis-Hastings sampler -- this is what we will use throughout this course. You can also try to fit a model with reporting (`SIR_reporting`) to the `epi4` data set. This is a model with 3 parameters (the basic reproduction number $R_0$, the infectious period $D_\mathrm{inf}$ and the reporting rate $RR$). Don't only try to get the best fit -- it is worth also experimenting with what you need to do to break the sampler, i.e. get inconsistent results.
 
 # Summary statistics
 
@@ -71,7 +71,7 @@ This provides the following information:
 
 1. Empirical (sample) mean
 2. Empirical (sample) standard deviation
-3. "Naive" standard error, that is the standard error of the mean (adjusting for sample size). See the [Wikipedia](http://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean) page of the Standard error.
+3. "Naive" standard error, that is the standard error of the mean (adjusting for sample size). See the [Wikipedia](http://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean) page of the standard error.
 4. the time-series standard error, which corrects (3) for autocorrelations
 5. quantiles for each variable
 
@@ -135,7 +135,7 @@ It has been argued that thinning is actually not very useful, unless one wants t
 
 Above, we have assessed burn-in based on a glance at the trace plots. There are several diagnostics available to make this process more systematic, such as the Geweke diagnostic (`geweke.diag`), the Heidelberger-Welch diagnostic (`heidel.diag`), and the Raftery-Lewis diagnostic (`raftery.diag`). A discussion of these is beyond the scope and purpose of this session, but if you are interested have a look at the **R** help pages for these functions for more information.
 
-One other way of diagnosing burn-in is via the effective sample size (ESS). The samples in the burn-in are not very informative, and if the burn-in period is estimated to be too short this will reduce the ESS size. On the other hand, if the burn-in period is estimated to be too long, informative samples are being thrown away, again reducing the ESS. The ESS should be maximised at the "correct" estimate of the burn in. We can plot ESS against burn-in:
+One other way of diagnosing burn-in is via the effective sample size (ESS). The samples in the burn-in are not very informative, and if the burn-in period is estimated to be too short this will reduce the ESS size. On the other hand, if the burn-in period is estimated to be too long, informative samples are being thrown away, again reducing the ESS. The ESS should be maximised at the "correct" estimate of the burn-in. We can plot ESS against burn-in:
 
 ```{r test_burn_in, fig.width = 8, fig.height = 5}
 plotESSBurn(mcmc.trace)
@@ -147,7 +147,7 @@ A good optimal burn-in length would be when the last parameter has its ESS maxim
 
 It is usually difficult to tell for how long one should run the chain. If the trace of all parameters shows the "caterpillar"-like behaviour such as shown above, it is a good indication that the MCMC is efficiently sampling from a maximum in the underlying distribution, but the sampler might be stuck in a *local* maximum, and it might need more time to leave that maximum and reach other parts of the parameter space, with potentially other maxima.
 
-There are no general rules for how long one needs to run the chain, but generally it is a good idea to start the chain from different starting points and make sure they converge to the same density plots. In fact, it is a good idea to memorise that one should *always* run multiple chains. Secondly, one decide in advance on the number of samples one wants from the underlying distribution, and run the chain until the effective sample size reaches that number. In practice, however, this is a somewhat arbitrary decision, and apart from careful diagnosis and running multiple chains there is not much one can do to get a reliable estimate of the necessary number of iterations.
+There are no general rules for how long one needs to run the chain, but generally it is a good idea to start the chain from different starting points and make sure they converge to the same density plots. In fact, it is a good idea to memorise that one should *always* run multiple chains. Secondly, one decides in advance on the number of samples one wants from the underlying distribution, and run the chain until the effective sample size reaches that number. In practice, however, this is a somewhat arbitrary decision, and apart from careful diagnosis and running multiple chains there is not much one can do to get a reliable estimate of the necessary number of iterations.
 
 # Improving mixing
 
@@ -171,7 +171,12 @@ data(SIR_exp)
 
 You can, again, use a wrapper function and use MCMC to explore the parameters.
 
-```{r message = FALSE}
+```{r echo = FALSE, cache=FALSE}
+source('our_posterior.r')
+source('our_mcmcM.r')
+```
+
+```{r transform, message = FALSE}
 my_logPosterior_exp_epi3 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR_exp,
@@ -180,7 +185,7 @@ my_logPosterior_exp_epi3 <- function(theta) {
                            data = epi3))
 
 }
-trace <- mcmcMH(target = my_logPosterior_exp_epi3,
+trace <- my_mcmcMH(target = my_logPosterior_exp_epi3,
                 init.theta = c(R0 = log(1), D.inf = log(2)),
                 proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000)
@@ -192,7 +197,18 @@ Does this make a difference to acceptance rates?
 
 Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. In the `mcmcMH` function which we provided in the `fitR` package, we use the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. The limits to use in the proposal distribution can be specified with the `limits` argument to mcmcMH, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write.
 
-```{r message = FALSE}
+```{r echo = FALSE}
+my_logPosterior_epi3 <- function(theta) {
+
+    return(my_logPosterior(fitmodel = SIR,
+                           theta = theta,
+                           init.state = c(S = 999, I = 1, R = 0),
+                           data = epi3))
+
+}
+```
+
+```{r truncate, message = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(0.1, 0.01),
@@ -209,19 +225,8 @@ The best proposal distribution is the one that best matches the underlying targe
 
 We have provided you with a function, `mcmcMH`, which does exactly the same as your `my_mcmcMH` function, but provides some additional functionality. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
-```{r echo = FALSE}
-source('our_posterior.r')
-my_logPosterior_epi3 <- function(theta) {
 
-    return(my_logPosterior(fitmodel = SIR,
-                           theta = theta,
-                           init.state = c(S = 999, I = 1, R = 0),
-                           data = epi3))
-
-}
-```
-
-```{r message = FALSE, warn = FALSE}
+```{r adapt, message = FALSE, warn = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(0.1, 0.01),
@@ -232,7 +237,7 @@ trace <- mcmcMH(target = my_logPosterior_epi3,
 trace$covmat.empirical
 ```
 
-The diagonal elements of this matrix tells you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about *correlations* in the parameters. In this case, there is positive correlation between $R_0$ and $D_\mathrm{inf}$, that is greater values of $R_0$ in accepted proposals tend to coincide with greater values of $D_\mathrm{info}$. Can you think of why that is the case? We will come back to the issue of correlations and their impact on assessing model fits tomorrow.
+The diagonal elements of this matrix tell you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about *correlations* in the parameters. In this case, there is positive correlation between $R_0$ and $D_\mathrm{inf}$, that is greater values of $R_0$ in accepted proposals tend to coincide with greater values of $D_\mathrm{info}$. Can you think of why that is the case? We will come back to the issue of correlations and their impact on assessing model fits tomorrow.
 
 Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the `mcmcMH` function. This takes three parameters relating to adaptive MCMC: `adaptive.size.start`, `adaptive.shape.start` and `adapt.size.cooling`.
 
@@ -240,7 +245,7 @@ The idea is this: we let the MCMC run for a while and monitor the acceptance rat
 
 Try a run of adaptive MCMC using
 
-```{r message = FALSE, warn = FALSE}
+```{r adapt2, message = FALSE, warning = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(1, 0.5),
