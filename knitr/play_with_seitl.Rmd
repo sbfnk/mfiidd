@@ -379,7 +379,7 @@ __Take 15 min__ to perform the same analysis as before and compare the posterior
 
 A solution can be found [here](example_mcmc_seitl.md#informative-priors).
 
-## Model selection
+## Model comparison
 
 We can compare the SEITL and SEIT2L models using the deviance information criterion ([DIC](http://en.wikipedia.org/wiki/Deviance_information_criterion)). 
 
@@ -401,9 +401,78 @@ The idea is that models with smaller DIC should be preferred to models with larg
 
 Compute the DIC for your model. A solution is provided [here](example_mcmc_seitl.md#model-selection). 
 
-
 Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial?
 You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/) on DIC to decide which model is the best. 
+
+## Posterior predictive checks
+
+The DIC can only tells you which one of two or more models fit the data best; it doesn't give you any information on whether the model provides a good fit to the data /overall/.
+
+On way to assess the overall quality of a fit is given by *posterior predictive checks*. It works by choosing a test statistic of the data (i.e., the peak, final size, etc.) and running many model replicates from parameter values that have been sampled from the posterior. One then tests how often in the simulations the test statistic takes a value as extreme or more extreme than the value it takes in the data. This allows to compute a p-value (a frequentist quantity, strictly speaking). If the data come out as an extreme case of model output (that is, the chosen test statistic or a more extreme value only comes up very rarely in the simulations), it would indicate that the model is not a good fit to the data.
+
+Let's look at the maximum in the data
+
+```{r}
+  max(FluTdC1971$obs)
+```
+
+Now, write a function that takes as argument a data frame of parameter samples, the number of trajectories to evaluate, the model, initial conditions and a data set, and which returns the Bayesian p-value of the test statistic in the data with respect to the posterior samples.
+
+```{r eval = FALSE, tidy = FALSE}
+# This is a function that takes 4 arguments:
+# - trace, a data frame containing samples from the posterior
+#   distribution, one column per parameter 
+# - n.samples, the number of samples to take
+# - fitmodel, the model we use to generate replicates
+# - init.state, the initial state
+# - data, the data set we have fit the model to
+# It should return the two-sided p-value for the maximal observation
+# in the data with respect to the model.
+my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
+
+    # calculate maximum in obs column of data
+    
+    # draw n.samples random numbers between 1
+    # and n.samples using the `samples` function 
+
+    # initialise vector of model maxima
+    
+    ## for loop over sampled numbers
+
+        # get row from trace corresponding to sampled number
+
+        # use genObsTraj to generate observation trajectory using row
+        # from trace
+
+        # calculate maximum in model and add to vector of model maxima
+
+    ## end for loop
+
+    # calculate 2-sided p-value, that is the proportion of elements of
+    # max.model which are either greater or equal or less or equal
+    # (whichever is less) and  multiply by 2 (because it is a 2-sided
+    # test)
+
+    # return two-sided p-value
+}
+```
+
+```{r echo = FALSE}
+source("our_ppc.r")
+```
+
+Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,
+
+```{r}
+init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
+my_postPredCheck(trace = mcmc_SEITL_theta1$trace[SEITL_deter$theta.names],
+                 n.samples = 100,
+                 fitmodel = SEITL_deter,
+                 init.state = init.state,
+                 data = FluTdC1971)
+```
+
+Does the better model yield a "better" (higher) p-value?
 
 # Summary
 
@@ -412,7 +481,7 @@ You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/
 3. Assess convergence of the chains, combine estimates
 4. Look at correlations, interpret the difference prior/posterior
 5. Compute DIC
-6. Posterior predcitive checks
+6. Posterior predictive checks
 
 SEIT2L better than SEITL, informative prior are useful to fix the high correlation between R0 and Dinf. In the next session we will focus on this model with informative priors.
 

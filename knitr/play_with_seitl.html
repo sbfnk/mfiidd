@@ -48,8 +48,10 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><a href="#long-run-analysis">Long run analysis</a></li>
 <li><a href="#correlations">Correlations</a></li>
 <li><a href="#informative-priors">Informative priors</a></li>
-<li><a href="#model-selection">Model selection</a></li>
+<li><a href="#model-comparison">Model comparison</a></li>
+<li><a href="#posterior-predictive-checks">Posterior predictive checks</a></li>
 </ul></li>
+<li><a href="#summary">Summary</a></li>
 <li><a href="#to-go-further">To go further</a></li>
 </ul>
 </div>
@@ -302,7 +304,7 @@ theta2 =<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =
 ## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;</code></pre>
 <p><strong>Take 15 min</strong> to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?</p>
 <p>A solution can be found <a href="example_mcmc_seitl.html#informative-priors">here</a>.</p>
-<h2 id="model-selection">Model selection</h2>
+<h2 id="model-comparison">Model comparison</h2>
 <p>We can compare the SEITL and SEIT2L models using the deviance information criterion (<a href="http://en.wikipedia.org/wiki/Deviance_information_criterion">DIC</a>).</p>
 <p>The deviance of a parameter set <span class="math">\(\theta\)</span> is defined as <span class="math">\[
 D(\theta)=-2\log(p(y|\theta)) + C
@@ -313,14 +315,75 @@ D(\theta)=-2\log(p(y|\theta)) + C
 <p>The idea is that models with smaller DIC should be preferred to models with larger DIC. Models are penalized both by the value of <span class="math">\(D(\bar\theta)\)</span>, which favors a good fit, but also by the effective number of parameters <span class="math">\(p_D\)</span>. Since <span class="math">\(D(\bar\theta)\)</span> will decrease as the number of parameters in a model increases, the <span class="math">\(p_D\)</span> term compensates for this effect by favouring models with a smaller number of effective parameters.</p>
 <p>Compute the DIC for your model. A solution is provided <a href="example_mcmc_seitl.html#model-selection">here</a>.</p>
 <p>Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial? You can have a look at the <a href="http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/">MRC FAQ</a> on DIC to decide which model is the best.</p>
+<h2 id="posterior-predictive-checks">Posterior predictive checks</h2>
+<p>The DIC can only tells you which one of two or more models fit the data best; it doesn't give you any information on whether the model provides a good fit to the data /overall/.</p>
+<p>On way to assess the overall quality of a fit is given by <em>posterior predictive checks</em>. It works by choosing a test statistic of the data (i.e., the peak, final size, etc.) and running many model replicates from parameter values that have been sampled from the posterior. One then tests how often in the simulations the test statistic takes a value as extreme or more extreme than the value it takes in the data. This allows to compute a p-value (a frequentist quantity, strictly speaking). If the data come out as an extreme case of model output (that is, the chosen test statistic or a more extreme value only comes up very rarely in the simulations), it would indicate that the model is not a good fit to the data.</p>
+<p>Let's look at the maximum in the data</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">max</span>(FluTdC1971$obs)</code></pre>
+<pre><code>## [1] 47</code></pre>
+<p>Now, write a function that takes as argument a data frame of parameter samples, the number of trajectories to evaluate, the model, initial conditions and a data set, and which returns the Bayesian p-value of the test statistic in the data with respect to the posterior samples.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes 4 arguments:</span>
+<span class="co"># - trace, a data frame containing samples from the posterior</span>
+<span class="co">#   distribution, one column per parameter </span>
+<span class="co"># - n.samples, the number of samples to take</span>
+<span class="co"># - fitmodel, the model we use to generate replicates</span>
+<span class="co"># - init.state, the initial state</span>
+<span class="co"># - data, the data set we have fit the model to</span>
+<span class="co"># It should return the two-sided p-value for the maximal observation</span>
+<span class="co"># in the data with respect to the model.</span>
+my_postPredCheck &lt;-<span class="st"> </span>function(trace, n.samples, fitmodel, init.state, data) {
+
+    <span class="co"># calculate maximum in obs column of data</span>
+    
+    <span class="co"># draw n.samples random numbers between 1</span>
+    <span class="co"># and n.samples using the `samples` function </span>
+
+    <span class="co"># initialise vector of model maxima</span>
+    
+    ## for loop over sampled numbers
+
+        <span class="co"># get row from trace corresponding to sampled number</span>
+
+        <span class="co"># use genObsTraj to generate observation trajectory using row</span>
+        <span class="co"># from trace</span>
+
+        <span class="co"># calculate maximum in model and add to vector of model maxima</span>
+
+    ## end for loop
+
+    <span class="co"># calculate 2-sided p-value, that is the proportion of elements of</span>
+    <span class="co"># max.model which are either greater or equal or less or equal</span>
+    <span class="co"># (whichever is less) and  multiply by 2 (because it is a 2-sided</span>
+    <span class="co"># test)</span>
+
+    <span class="co"># return two-sided p-value</span>
+}</code></pre>
+<p>Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,</p>
+<pre class="sourceCode r"><code class="sourceCode r">init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+<span class="kw">my_postPredCheck</span>(<span class="dt">trace =</span> mcmc_SEITL_theta1$trace[SEITL_deter$theta.names], <span class="dt">n.samples =</span> <span class="dv">100</span>, 
+    <span class="dt">fitmodel =</span> SEITL_deter, <span class="dt">init.state =</span> init.state, <span class="dt">data =</span> FluTdC1971)</code></pre>
+<pre><code>## [1] 0.38</code></pre>
+<p>Does the better model yield a &quot;better&quot; (higher) p-value?</p>
+<h1 id="summary">Summary</h1>
+<ol style="list-style-type: decimal">
+<li>Short preliminary run to tune MCMC parameters (adaptive parameters, thinning)</li>
+<li>Long run with multiple chains</li>
+<li>Assess convergence of the chains, combine estimates</li>
+<li>Look at correlations, interpret the difference prior/posterior</li>
+<li>Compute DIC</li>
+<li>Posterior predictive checks</li>
+</ol>
+<p>SEIT2L better than SEITL, informative prior are useful to fix the high correlation between R0 and Dinf. In the next session we will focus on this model with informative priors.</p>
+<p>Importance of stochasticity.</p>
 <h1 id="to-go-further">To go further</h1>
 <ul>
 <li>The Poisson process: see bottom of page 3 of this <a href="http://data.princeton.edu/wws509/notes/c4.pdf">reference</a> for more details.</li>
 <li>Posterior predictive checks?</li>
+<li>Modify the SEIT2L model</li>
 </ul>
 <div>
 <h1>Navigate</h1>
-Previous: <a href="mcmc_diagnostics.html">MCMC diagnostics</a> Next: <a href="pmcmc.html">Particle MCMC</a>
+Previous: <a href="mcmc_diagnostics.html">MCMC diagnostics</a> Next: <a href="pmcmc.html">Particle filter and pMCMC</a>
 </div>
 </body>
 </html>
