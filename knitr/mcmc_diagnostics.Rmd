@@ -195,7 +195,9 @@ Does this make a difference to acceptance rates?
 
 ### Truncated proposal distributions
 
-Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. In the `mcmcMH` function which we provided in the `fitR` package, we use the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. The limits to use in the proposal distribution can be specified with the `limits` argument to mcmcMH, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write.
+Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. However, the use of such truncated distributions in the proposal kernel must be accounted for when computing the acceptance ratio. Otherwise your chain might not converge to the correct posterior distribution (see this [post](http://darrenjw.wordpress.com/tag/truncate/) for a detailed example).
+
+In the `fitR` package, we have implemented a function called `mcmcMH` that uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this truncated proposal to calculate the acceptance ratio (__maybe they can have a look?__). The limits to use in the proposal distribution can be specified with the `limits` argument to mcmcMH, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write.
 
 ```{r echo = FALSE}
 my_logPosterior_epi3 <- function(theta) {
@@ -221,9 +223,9 @@ Try a proposal distribution with a wide proposal distribution, and with or witho
 
 ## Adapting the proposal distribution
 
-The best proposal distribution is the one that best matches the underlying target distribution. While we cannot know this in advance, we can use trial MCMC runs of to learn about the underlying target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.
+The best proposal distribution is the one that best matches the target distribution. While we cannot know this in advance, we can use trial MCMC runs to learn about the target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.
 
-We have provided you with a function, `mcmcMH`, which does exactly the same as your `my_mcmcMH` function, but provides some additional functionality. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
+In addition to truncated proposal distributions, our function `mcmcMH` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
 
 ```{r adapt, message = FALSE, warn = FALSE}
