@@ -1,7 +1,7 @@
 % Practical session: MCMC diagnostics
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=T, cache.path="cache/mcmc_diagnostics/", fig.retina=1 ,fig.path="figure/mcmc_diagnostics/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, cache.path="cache/mcmc_diagnostics/", fig.retina=1 ,fig.path="figure/mcmc_diagnostics/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r echo=FALSE,results="hide",message=FALSE}
@@ -16,7 +16,7 @@ data(SIR_reporting)
 The aim of this session is to learn how to interpret the results of MCMC sampling, as well as to improve the performance of the sampler. More specifically, you will
 
 1. learn how to use `coda` for assessing and interpreting MCMC runs
-2. explore strategies for improving the performance of an Metropolis-Hastings sampler
+2. explore strategies for improving the performance of a Metropolis-Hastings sampler
 3. learn about posterior predictive checks to assess the goodness of fit
 
 # Sampling more than one parameter
@@ -29,7 +29,7 @@ In the last practical session, we worked through some simple examples where we s
 
 Getting the acceptance rate to a desired value is much harder when dealing with multiple parameters, but there are a few strategies available for doing so, which we will learn about in this practical session.
 
-The data set `epi3` was generated from an SIR model with unknown basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. Try to use the MCMC sampler created in the previous session to generate samples that follow the the posterior density (if you didn't get to write your own MCMC sampler, use the own from our [solution](mcmc_example_solution.md)).
+The data set `epi3` was generated from an SIR model with unknown basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. Try to use the MCMC sampler created in the previous session to generate samples that follow the posterior density (if you didn't get to write your own MCMC sampler, use the one from our [solution](mcmc_example_solution.md)).
 
 You can visualise the `epi3` data set with
 
@@ -37,7 +37,7 @@ You can visualise the `epi3` data set with
 plotTraj(data = epi3)
 ```
 
-You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_epi1` wrapper function to fit to data set `epi3` -- if you have trouble with that, you can use our [solution](epi3_wrapper.md). Try a few values for the vector of standard deviations `proposal.sd` and see if how this affects the acceptance rate.
+You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_epi1` wrapper function to fit to data set `epi3` -- if you have trouble with that, you can use our [solution](epi3_wrapper.md). Try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.
 
 To get good acceptance rates, it is sometimes a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rate. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
 
