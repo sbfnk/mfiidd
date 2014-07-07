@@ -140,7 +140,7 @@ trace &lt;-<span class="st"> </span>mcmc.epi3$trace
 mcmc.trace.burned &lt;-<span class="st"> </span><span class="kw">mcmc</span>(trace, <span class="dt">start =</span> <span class="dv">1000</span>)
 <span class="kw">plot</span>(mcmc.trace.burned)</code></pre>
 <p><img src="figure/mcmc_diagnostics/trace_burned.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>It is sometimes said that we are aiming for the trace to look like a &quot;warm, fuzzy caterpillar&quot;, that is the situation you can see here on the left.</p>
+<p>It is sometimes said that we are aiming for the trace to look like a <a href="http://www.hiltonpond.org/images/MothGiantLeopardCat01.jpg">hairy caterpillar</a>, that is the situation you can see here on the left.</p>
 <h3 id="autocorrelations">Autocorrelations</h3>
 <p>Another way to check for convergence is to look at the autocorrelations between the samples returned by our MCMC. The lag-<span class="math">\(k\)</span> autocorrelation is the correlation between every sample and the sample at which we were <span class="math">\(k\)</span> steps before. This autocorrelation should become smaller as <span class="math">\(k\)</span> increases. If, on the other hand, autocorrelation remains for higher values of <span class="math">\(k\)</span>, this indicates high degree of correlation between our samples and slow mixing.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">autocorr.plot</span>(mcmc.trace.burned)</code></pre>
