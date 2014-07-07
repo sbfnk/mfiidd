@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+</head>
+<body>
+<p>Below, you can find an example of how to code a particle filter. Some bits are left out for you to fill in (marked &quot;INSERT HERE&quot;). Each &quot;INSERT HERE&quot; statement requires one line of code. If you struggle, you can find a link to a solution below the function.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes four parameters:</span>
+<span class="co"># - fitmodel: a fitmodel object</span>
+<span class="co"># - theta: named numeric vector. Values of the parameters for which the marginal log-likelihood is desired.</span>
+<span class="co"># - init.state: named numeric vector. Initial values of the state variables.</span>
+<span class="co"># - data: data frame. Observation times and observed data.</span>
+<span class="co"># The function returns the value of the marginal log-likelihood</span>
+my_particleFilter &lt;-<span class="st"> </span>function(fitmodel, theta, init.state, data, n.particles) {
+
+    ## Initialisation of the algorithm
+
+    <span class="co"># Marginal log-likelihood is set to 0 and will be updated during the filtering steps</span>
+    margLogLike &lt;-<span class="st"> </span><span class="dv">0</span>
+
+    <span class="co"># Particle states can be stored in a list</span>
+    state.particles &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+
+<span class="st">    </span><span class="co"># Weight: initially equal for all the particles </span>
+<span class="st">    </span><span class="co"># particle weight can be stored in a vector</span>
+<span class="st">    </span>weight.particles &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+
+<span class="st">    </span><span class="co"># Initialise time variable</span>
+<span class="st">    </span>current.time &lt;-<span class="st"> </span><span class="dv">0</span>
+
+    ## Loop over observation times: resample, propagate, weight
+    for(i in <span class="kw">seq_len</span>(<span class="kw">nrow</span>(data))){
+
+        <span class="co"># Extract next data point (must be a vector)</span>
+        data.point &lt;-<span class="st"> </span><span class="co"># INSERT HERE </span>
+<span class="st">        </span>next.time &lt;-<span class="st"> </span>data.point[<span class="st">&quot;time&quot;</span>]
+
+        <span class="co"># Resample particles according to their weights. </span>
+        <span class="co"># You can use the `sample` function of R (normalization of the weights is done in the function)</span>
+        index.resampled &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+<span class="st">        </span>state.particles &lt;-<span class="st"> </span>state.particles[index.resampled]
+
+        ## Loop over particles: propagate and weight
+        for(p in <span class="dv">1</span>:n.particles){
+
+            <span class="co"># Extract current state of the particle </span>
+            current.state.particle &lt;-<span class="st"> </span>state.particles[[p]]
+
+            <span class="co"># Propagate the particle from current observation time </span>
+            <span class="co"># to the next one using the function `fitmodel$simulate`</span>
+            traj &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+
+<span class="st">            </span><span class="co"># Extract state of the model at next observation time.</span>
+<span class="st">            </span><span class="co"># Make sure that model.point is a vector</span>
+<span class="st">            </span>model.point &lt;-<span class="st"> </span><span class="co"># INSERT HERE</span>
+
+<span class="st">            </span><span class="co"># Weight the particle with the likelihood of the observed </span>
+<span class="st">            </span><span class="co"># data point using the function `fitmodel$pointLogLike`</span>
+<span class="st">            </span>weight.particles[p] &lt;-<span class="st"> </span><span class="co"># INSERT HERE </span>
+
+<span class="st">            </span><span class="co"># Update state of the p particle</span>
+<span class="st">            </span>state.particles[[p]] &lt;-<span class="st"> </span>model.point
+
+        }
+
+        <span class="co"># Increment time</span>
+        current.time &lt;-<span class="st"> </span>next.time
+
+        ## Increment the marginal log-likelihood 
+        <span class="co"># Add the log of the mean of the particles weights</span>
+        margLogLike &lt;-<span class="st"> </span>margLogLike +<span class="st"> </span><span class="co"># INSERT HERE</span>
+<span class="st">    </span>}
+
+    ## Return marginal log-likelihood
+    <span class="kw">return</span>(margLogLike)
+
+}</code></pre>
+<p>If you run into any problems, have a look at our <a href="smc_example_solution.html">solution</a>, otherwise <a href="pmcmc.html">return</a> to the pMCMC practical.</p>
+</body>
+</html>

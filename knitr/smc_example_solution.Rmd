@@ -1,0 +1,12 @@
+Here is a possible solution for the particle filter.
+
+```{r echo=FALSE}
+read_chunk('our_smc.r')
+```
+```{r our_smc}
+
+```
+
+You can copy and paste the function into your **R** session, and proceed from there.
+
+[Return](pmcmc.md) to the pMCMC practical.
