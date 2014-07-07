@@ -71,8 +71,8 @@ my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
         samples <- c(samples, theta.current)
 
         # print current state of chain and acceptance rate
-        cat("iteration:", i.iteration, "chain:", theta.current,
-            "acceptance rate:", accepted / i.iteration, "\n")
+        message("iteration: ", i.iteration, ", chain:", theta.current,
+                ", acceptance rate:", accepted / i.iteration)
 
     }
 
