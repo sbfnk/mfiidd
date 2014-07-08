@@ -8,6 +8,7 @@ opts_chunk$set(cache=TRUE, cache.path="cache/pmcmc/", fig.retina=1 ,fig.path="fi
 library(fitR)
 set.seed(1234)
 ```
+[Lecture slides](slides/smc_slides.pdf)
 
 # Objectives
 

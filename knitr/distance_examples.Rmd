@@ -7,6 +7,6 @@ read_chunk('distance_examples.r')
 ```{r distance_examples}
 ```
 
-Copy and paste any of these you would like to test, and rename (or assign) to `my_distance` (or replace this with one of the function names given here later when calling `computeDistanceABC` etc.)
+Copy and paste any of these you would like to test.
 
 [Return](ABC.md#distance-between-observed-and-simulated-summary-statistics) to the ABC session.

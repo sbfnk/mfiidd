@@ -10,12 +10,13 @@ set.seed(1234)
 ```
 # Objectives
 
-As you should have noticed in the previous session, several simulations are required to assess the dynamics of a stochastic model against a single one for a deterministic model. Because of that, you will see in the next session that fitting a stochastic model is also computationally much more intensive than fitting a deterministic model. This can lead to a waste of time and computational resources if:
 
-1. you initialise the MCMC with a `init.theta` far from the region of high posterior density. Indeed, the chain will take a long time to reach this region and you will have to burn a lot of iterations.
-2. the covariance matrix of the Gaussian proposal is very different from the posterior. This will result in poor mixing and sub-optimal acceptance rate and you will have to thin a lot your chain.
+As you should have noticed in the previous session, several simulations are required to assess the dynamics of a stochastic model against a single one for a deterministic model. Similarly, in the next session you will see that fitting a stochastic model is also computationally much more intensive than fitting a deterministic model. Because of this, we want to avoid wasting simulation runs, which could happen for two reasons:
 
-In this context, it might be useful to run a MCMC on the deterministic model first, which is fast, and then learn from the output of this chain to initialise the chain for fitting the stochastic model. The rational for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most situations, a similar dynamics.
+* If you initialise the MCMC with a `init.theta` far from the region of high posterior density, the chain might take a long time to reach this region and you will have to burn a lot of iterations.
+* If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in poor mixing and sub-optimal acceptance rates and you will have to run your chain for longer (or thin it).
+
+In this context, it can be useful to first run MCMC on the deterministic model, which can be computed faster, and learn from the output of this chain to initialise the chain for the fit of the stochastic model. The rationale for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.
 
 So in this session you will:
 
@@ -23,25 +24,25 @@ So in this session you will:
 2. learn on issues that arise when fitting a lot of parameters and how you can try to solve them.
 3. compare both models and assess whether the best one actually provides a good fit of the data.
 
-To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, although most of the examples will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. `data(SEIT2L_deter)` instead of `data(SEITL_deter)`).
+To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, although most of the examples will refer to the SEITL model, the same commands work for the SEIT2L model, e.g. `data(SEIT2L_deter)` instead of `data(SEITL_deter)`.
 
 
-# Run a MCMC
+# Run MCMC
 
-Here you could use the function `my_mcmcMH` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.
+Here you could use the function `my_mcmcMH` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Because of this, using the adaptive MCMC might be a better choice.
 
-__Take 5 min__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_mcmcMH` (`target`, `init.theta`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful to improve the covariance matrix of the Gaussian proposal when we will fit the stochastic model in the next session.
+__Take 5 minutes__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_mcmcMH` (`target`, `init.theta`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful for improving the covariance matrix of the Gaussian proposal in the next session, when we will fit the stochastic model.
 
-The next step is to write a wrapper function to evaluate the posterior at a given `theta` value. Here again, you could wrap the function `my_posterior` that you have already coded and pass it to `mcmcMH` so that it returns a sample of `theta` from the posterior distribution.
+The first step is to code a wrapper function to evaluate the posterior at a given `theta` value. Here again, you could wrap the function `my_posterior` that you have already coded and pass it to `mcmcMH` so that it returns samples of `theta` from the posterior distribution.
 However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`s. Although this could be done by running `trajLogLike` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_posterior` so we could just use it. This is exactly what the function `logPosterior` does for you.
 
-__Take 5 min__ to look at the code of `logPosterior`. As you can see, this function takes similar arguments as your function `my_posterior` (`fitmodel`, `theta`, `init.state` and `data`) plus one called `margLogLike`, which is a function to compute the log-likelihood of `theta`. By default, it is set to `trajLogLike` so you don't really need to bother with this argument in this session. However, it will be useful in the next session as we will need a different function than `trajLogLike` to compute the log-likelihood. Note also that this function returns a list of two elements:
+__Take 5 minutes__ to look at the code of `logPosterior`. As you can see, this function takes similar arguments as your function `my_posterior` (`fitmodel`, `theta`, `init.state` and `data`) plus one called `margLogLike`, which is a function to compute the log-likelihood of `theta`. By default, it is set to `trajLogLike` so you don't really need to bother with this argument in this session. However, it will be useful in the next session as we will need a different function than `trajLogLike` to compute the log-likelihood for a stochastic model. Note also that this function returns a list of two elements:
 
 1. `log.density`: the log of the posterior density
-2. `trace`: a vector that contains, among other things, `theta` and its `log.likelihood`. All these information will be added to the `trace` data frame returned by `mcmcMH`.
+2. `trace`: a vector that contains, among other things, `theta` and its `log.likelihood`. All this information will be collected in the `trace` data frame returned by `mcmcMH`.
 
 
-Now, __take 15 min__ to prepare all the inputs to be able to run `mcmcMH` and fit your model. You should proceed as follows:
+Now, __take 15 minutes__ to prepare all the inputs to be able to run `mcmcMH` and fit your model. You should proceed as follows:
 
 ```{r set-mcmc, eval=FALSE, tidy=FALSE}
 
@@ -94,17 +95,17 @@ my_mcmc.TdC <- mcmcMH(
 	adapt.shape.start=adapt.shape.start)
 ```
 
-Which should print some informations as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?
+This should print some information as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?
 
-Note that we have set-up the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform less iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.
+Note that we have set the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform fewer iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.
 
-__Take 10 min__ to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
+__Take 10 minutes__ to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
 
 # Short run analysis
 
-Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package. You didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_seitl.md#run-a-mcmc).
+Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package. You didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_seitl.md#run-mcmc).
 
-Note that because there are more than 6 parameters to look at, the `coda` functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels takes too much space). Fortunately, `coda` has another set of functions to make the plots more compacts:
+Note that because there are more than 6 parameters to look at, the `coda` functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels takes too much space). Fortunately, `coda` has another set of functions to make the plots more compact:
 
 * `xyplot` for the trace.
 * `densityplot` for the density.
@@ -112,7 +113,7 @@ Note that because there are more than 6 parameters to look at, the `coda` functi
 
 You can find a grouped documentation for these three functions by typing `?acfplot`.
 
-__Take 10 min__ to analyse the trace returned by `mcmcMH`. Remember that, with the notation above, the trace can be accessed by `my_mcmc.TdC$trace` and then converted to a `mcmc` object so that the `coda` functions recognize it:
+__Take 10 minutes__ to analyse the trace returned by `mcmcMH`. Remember that, with the notation above, the trace can be accessed by `my_mcmc.TdC$trace` and then converted to a `mcmc` object so that the `coda` functions recognize it:
 
 ```{r coda-trace, eval=FALSE}
 # convert to a mcmc object for coda
@@ -127,7 +128,7 @@ If you are not sure about how to analyse your trace, have a look at our [example
 
 # Long run analysis
 
-You should have noticed that the effective sample size (ESS) is quite small (<100) for your preliminary run. By contrast, the ESS was much higher for the SIR model of the previous session with a similar number of iterations. However, this model has only 2 parameters against 6 for the SEITL and SEIT2L models. Intuitively, the more parameters you have the bigger is the parameter space and the longer it takes to the MCMC algorithm to explore it (__some theoretical results?__). This is why we need to run a much longer chain to achieve a descent ESS (~1000).
+You should have noticed that the effective sample size (ESS) is quite small (<100) for your preliminary run. By contrast, the ESS was much higher for the SIR model of the previous session with a similar number of iterations. However, this model has only 2 parameters against 6 for the SEITL and SEIT2L models. Intuitively, the more parameters you have the bigger is the parameter space and the longer it takes to the MCMC algorithm to explore it (__some theoretical results?__). This is why we need to run a much longer chain to achieve a decent ESS (~1000).
 
 To save time, we have run 2 chains of 100 000 iterations starting from different initial `theta` values:
 
@@ -148,13 +149,13 @@ dim(mcmc_SEITL_theta1$trace)
 head(mcmc_SEITL_theta1$trace)
 ```
 
-__Take 15 min__ to analyse both chains together.
+__Take 15 minutes__ to analyse both chains together.
 
 __Hint__: the function `mcmc.list` of `coda` can be used to combine several `mcmc` objects into a `mcmc.list` object. Diagnostic functions which act on `mcmc` objects may also be applied to `mcmc.list` objects. In general, the chains will be combined, if this makes sense, otherwise the diagnostic function will be applied separately to each chain in the list.
 
-Did the chains converged to the same distribution? What advantage can you see in combining several independent chains? Record the mean, median and 95% credible intervals of each parameter.
+Did the chains converge to the same distribution? What advantage can you see in combining several independent chains? Record the mean, median and 95% credible intervals of each parameter.
 
-Finally, you should also assess the fit of your model by using the function `plotPosteriorFit`. This function takes a sample of `theta` from the trace, simulate some observations and plot them against the data, thus allowing you to assess the fit. __Take 10 min__ to look at the documentation of this function and assess your fit, in particular try the different options for the argument `posterior.summary`. 
+Finally, you should also assess the fit of your model by using the function `plotPosteriorFit`. This function takes a sample of `theta` from the trace, simulates some observations and plot them against the data, thus allowing you to assess the fit. __Take 10 minutes__ to look at the documentation of this function and assess your fit, in particular try the different options for the argument `posterior.summary`. 
 
 Once again, if you are not sure how to complete these steps, have a look at our [example](example_mcmc_seitl.md#long-run-analysis).
 
@@ -162,11 +163,11 @@ Once again, if you are not sure how to complete these steps, have a look at our 
 
 You can look at the correlations between your parameters using the function `levelplot` from the `coda` package. Note however that this function doesn't accept `mcmc.list` objects. 
 
-What parameters are strongly correlated?
+Which parameters are strongly correlated?
 
 You should have observed that, in contrast to the other parameters, the basic reproduction number ($R_0$) and the infectious period ($D_{inf}$) have wide 95% credible intervals. Can you explain why?
 
-As previously stated, both the latent and infectious period have been estimated around 2 days in empirical studies and are unlikely to last more than 5 days. Are your estimates in agreement with these previous studies? If not, did your approach took into account these prior informations when fitting your model?
+As previously stated, both the latent and infectious period have been estimated to be around 2 days in empirical studies and are unlikely to last more than 5 days. Are your estimates in agreement with these previous studies? If not, did your approach take into account this prior information when fitting your model?
 
 If not, modify `SEITL_deter` accordingly and re-run a short MCMC for 5000 iterations. Can you notice a difference in the posterior?
 
@@ -185,7 +186,7 @@ The corresponding outputs of `mcmcMH` were loaded with `data(mcmc_TdC_deter_long
 names(mcmc_SEITL_infoPrior_theta1)
 names(mcmc_SEITL_infoPrior_theta2)
 ``` 
-__Take 15 min__ to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?
+__Take 15 minutes__ to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?
 
 A solution can be found [here](example_mcmc_seitl.md#informative-priors).
 

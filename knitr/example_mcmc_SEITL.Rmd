@@ -53,11 +53,11 @@ adapt.size.cooling <- 0.999
 adapt.shape.start <- 200
 ```
 
-You can now go back to the [practical](play_with_seitl.md#run-a-mcmc) and try to run a MCMC with those settings.
+You can now go back to the [practical](mcmc_and_model_comparison.md#run-mcmc) and try to run MCMC with those settings.
 
-# Run a MCMC
+# Run MCMC
 
-If you didn't manage to run a MCMC, or it took too long to obtain a few thousand iterations, you can load our short-run as follows:
+If you didn't manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:
 
 ```{r load-trace, collapse=TRUE}
 data(mcmc_TdC_deter_shortRun)
@@ -68,7 +68,7 @@ dim(mcmc_SEITL$trace)
 # let's have a look at it
 head(mcmc_SEITL$trace)
 ```
-You can now go back to the [practical](play_with_seitl.md#short-run-analysis) and analyse this trace.
+You can now go back to the [practical](mcmc_and_model_comparison.md#short-run-analysis) and analyse this trace.
 
 # Short run analysis
 
@@ -138,13 +138,13 @@ They are very similar. So why thinning? This is because autocorrelation produces
 ```{r short-run-analysis-compare-density}
 plotPosteriorDensity(list(unthinned=trace.burn,thinned=trace.burn.thin))
 ```
-The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local "bumps" of the unthinned distribution are caused autocorrelated samples.
+The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local "bumps" of the unthinned distribution are caused by autocorrelated samples.
 
-You can now go back to the [practical](play_with_seitl.md#long-run-analysis) and perform a similar analysis for a long-run MCMC.
+You can now go back to the [practical](mcmc_and_model_comparison.md#long-run-analysis) and perform a similar analysis for a long-run MCMC.
 
 # Long run analysis
 
-Here is an example of analysis for our long run ($10^5$ iterations)
+Here is an example of an analysis for our long run ($10^5$ iterations)
 
 ```{r long-run-combine-traces, collapse=TRUE}
 # create mcmc objects for both traces
@@ -167,8 +167,8 @@ effectiveSize(trace)
 # plot the traces
 xyplot(trace)
 ```
-Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chains.
-Also, given the very high ESS we can reasonably choose a burning visually, say 5000 iterations.
+Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain.
+Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.
 
 ```{r long-run-burn, collapse=TRUE}
 trace.burn <- burnAndThin(trace, burn=5000)
@@ -211,7 +211,7 @@ Since the chains have converged to the same posterior, we can use the combined e
 summary(trace.burn.thin)
 ```
 
-Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with `summary` won't be meaningful for a parameter with multi-modal posterior. By contrast, for uni-modal posteriors, combining chains is an efficient way to increase the ESS and precision of the posterior estimates. Furthermore, running several "shorter" chains in parallel is faster than running one "long" chain.
+Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with `summary` won't be meaningful for a parameter with a multi-modal posterior. By contrast, for a uni-modal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates. Furthermore, running several "shorter" chains in parallel is faster than running one "long" chain.
 
 Finally, let's assess the fit of the deterministic SEITL model.
 
@@ -235,7 +235,7 @@ plotPosteriorFit(trace=trace,fitmodel=SEITL_deter,init.state=init.state,data=Flu
 
 Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.
 
-You can now go back to the [practical](play_with_seitl.md#correlations) and look at the posterior correlations between the parameters.
+You can now go back to the [practical](mcmc_and_model_comparison.md#correlations) and look at the posterior correlations between the parameters.
 
 # Correlations
 
@@ -283,7 +283,7 @@ SEITL_deter$logPrior <- function(theta) {
 
 Note the choice of a truncated normal distribution since $D_{lat}$ and $D_{inf}$ must be positive.
 
-You can now go back to the [practical](play_with_seitl.md#informative-priors) and run a MCMC with this informative prior.
+You can now go back to the [practical](mcmc_and_model_comparison.md#informative-priors) and run a MCMC with this informative prior.
 
 # Informative priors
 
@@ -309,7 +309,7 @@ plotPosteriorDensity(list(unif=trace.burn.thin, info=trace.info.burn.thin))
 
 $R_0$ and $D_{inf}$ have very different posterior. This is expected since there is an informative prior on $D_{inf}$ and $R_0$ is strongly correlated to $D_{inf}$. Note also that the mode of all other parameters have changed, though less than $D_{inf}$ and $R_0$. This illustrate the influence that one prior can have on the full posterior distribution.
 
-You can now go back to the [practical](play_with_seitl.md#model-selection) for the final exercise of the session.
+You can now go back to the [practical](mcmc_and_model_comparison.md#model-selection) for the final exercise of the session.
 
 # Model selection
 
@@ -338,7 +338,7 @@ print(p.D)
 DIC <- D.theta.bar + 2*p.D
 print(DIC)
 ```
-Follow this [link](play_with_seitl.md#model-selection) to go back to the practical.
+Follow this [link](mcmc_and_model_comparison.md#model-selection) to go back to the practical.
 
 
 

@@ -35,7 +35,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="TOC">
 <ul>
 <li><a href="#setting-the-mcmc">Setting the MCMC</a></li>
-<li><a href="#run-a-mcmc">Run a MCMC</a></li>
+<li><a href="#run-mcmc">Run MCMC</a></li>
 <li><a href="#short-run-analysis">Short run analysis</a></li>
 <li><a href="#long-run-analysis">Long run analysis</a></li>
 <li><a href="#correlations">Correlations</a></li>
@@ -45,10 +45,10 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </div>
 <p>Here is an example of possible answers to the practical on fitting the deterministic SEITL model to the Tristan da Cunha outbreak.</p>
 <p>Each section below correspond to a section of the practical. Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections.</p>
-<p>Although our example refers to the SEITL model, the same commands work for the SEIT2L model (i.e. <code>example(SEIT2L_deterministic)</code> instead of <code>example(SEITL_deterministic)</code>).</p>
+<p>Although our example refers to the SEITL model, the same commands work for the SEIT2L model (i.e. <code>data(SEIT2L_deter)</code> instead of <code>data(SEITL_deter)</code>).</p>
 <h1 id="setting-the-mcmc">Setting the MCMC</h1>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the fitmodel</span>
-<span class="kw">example</span>(SEITL_deterministic)
+<span class="kw">data</span>(SEITL_deter)
 
 <span class="co"># wrapper for posterior</span>
 my_posteriorTdC &lt;-<span class="st"> </span>function(theta) {
@@ -81,9 +81,9 @@ n.iterations &lt;-<span class="st"> </span><span class="dv">5000</span>
 adapt.size.start &lt;-<span class="st"> </span><span class="dv">100</span>
 adapt.size.cooling &lt;-<span class="st"> </span><span class="fl">0.999</span>
 adapt.shape.start &lt;-<span class="st"> </span><span class="dv">200</span></code></pre>
-<p>You can now go back to the <a href="play_with_seitl.html#run-a-mcmc">practical</a> and try to run a MCMC with those settings.</p>
-<h1 id="run-a-mcmc">Run a MCMC</h1>
-<p>If you didn't manage to run a MCMC, or it took too long to obtain a few thousand iterations, you can load our short-run as follows:</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#run-mcmc">practical</a> and try to run MCMC with those settings.</p>
+<h1 id="run-mcmc">Run MCMC</h1>
+<p>If you didn't manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(mcmc_TdC_deter_shortRun)
 <span class="co"># this should load 2 objects in your environment: mcmc_SEITL and</span>
 <span class="co"># mcmc_SEIT2L. Each one is a list of 3 elements returned by mcmcMH</span>
@@ -108,7 +108,7 @@ adapt.shape.start &lt;-<span class="st"> </span><span class="dv">200</span></cod
 ## 4        -431.0
 ## 5        -404.3
 ## 6        -296.1</code></pre>
-<p>You can now go back to the <a href="play_with_seitl.html#short-run-analysis">practical</a> and analyse this trace.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#short-run-analysis">practical</a> and analyse this trace.</p>
 <h1 id="short-run-analysis">Short run analysis</h1>
 <p>Here is an example of analysis for our preliminary run:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># convert to a mcmc object for coda</span>
@@ -228,10 +228,10 @@ trace.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span
 ## log.posterior  -158.212 -155.000 -153.798 -152.665 -151.779</code></pre>
 <p>They are very similar. So why thinning? This is because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function <code>plotPosteriorDensity</code> of the <code>fitR</code> package:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unthinned =</span> trace.burn, <span class="dt">thinned =</span> trace.burn.thin))</code></pre>
-<p><img src="figure/SEITL_model_example/short-run-analysis-compare-density.png" title="" alt="" style="display: block; margin: auto;" /> The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local &quot;bumps&quot; of the unthinned distribution are caused autocorrelated samples.</p>
-<p>You can now go back to the <a href="play_with_seitl.html#long-run-analysis">practical</a> and perform a similar analysis for a long-run MCMC.</p>
+<p><img src="figure/SEITL_model_example/short-run-analysis-compare-density.png" title="" alt="" style="display: block; margin: auto;" /> The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local &quot;bumps&quot; of the unthinned distribution are causedby autocorrelated samples.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#long-run-analysis">practical</a> and perform a similar analysis for a long-run MCMC.</p>
 <h1 id="long-run-analysis">Long run analysis</h1>
-<p>Here is an example of analysis for our long run (<span class="math">\(10^5\)</span> iterations)</p>
+<p>Here is an example of an analysis for our long run (<span class="math">\(10^5\)</span> iterations)</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create mcmc objects for both traces</span>
 trace1 &lt;-<span class="st"> </span><span class="kw">mcmc</span>(mcmc_SEITL_theta1$trace)
 trace2 &lt;-<span class="st"> </span><span class="kw">mcmc</span>(mcmc_SEITL_theta2$trace)
@@ -293,7 +293,7 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 
 <span class="co"># plot the traces</span>
 <span class="kw">xyplot</span>(trace)</code></pre>
-<p><img src="figure/SEITL_model_example/long-run-combine-traces.png" title="" alt="" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chains. Also, given the very high ESS we can reasonably choose a burning visually, say 5000 iterations.</p>
+<p><img src="figure/SEITL_model_example/long-run-combine-traces.png" title="" alt="" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain. Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.</p>
 <pre class="sourceCode r"><code class="sourceCode r">trace.burn &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace, <span class="dt">burn =</span> <span class="dv">5000</span>)
 
 <span class="co"># removing the burning increases the ESS</span>
@@ -355,7 +355,7 @@ trace.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span
 ## log.prior       -12.814  -12.814  -12.814  -12.814  -12.814
 ## log.likelihood -145.566 -142.129 -140.969 -140.023 -138.893
 ## log.posterior  -158.380 -154.943 -153.784 -152.837 -151.707</code></pre>
-<p>Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with <code>summary</code> won't be meaningful for a parameter with multi-modal posterior. By contrast, for uni-modal posteriors, combining chains is an efficient way to increase the ESS and precision of the posterior estimates. Furthermore, running several &quot;shorter&quot; chains in parallel is faster than running one &quot;long&quot; chain.</p>
+<p>Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with <code>summary</code> won't be meaningful for a parameter with a multi-modal posterior. By contrast, for a uni-modal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates. Furthermore, running several &quot;shorter&quot; chains in parallel is faster than running one &quot;long&quot; chain.</p>
 <p>Finally, let's assess the fit of the deterministic SEITL model.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load data</span>
 <span class="kw">data</span>(FluTdC1971)
@@ -380,7 +380,7 @@ init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="
     <span class="dt">data =</span> FluTdC1971, <span class="dt">posterior.summary =</span> <span class="st">&quot;max&quot;</span>)</code></pre>
 <p><img src="figure/SEITL_model_example/long-run-fit3.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p>Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.</p>
-<p>You can now go back to the <a href="play_with_seitl.html#correlations">practical</a> and look at the posterior correlations between the parameters.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#correlations">practical</a> and look at the posterior correlations between the parameters.</p>
 <h1 id="correlations">Correlations</h1>
 <p>The correlation of the posterior distribution can be plotted with <code>levelplot</code>.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># levelplot doesn&#39;t accept `mcmc.list`, we pass the first `mcmc` only.</span>
@@ -419,7 +419,7 @@ init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="
     
 }</code></pre>
 <p>Note the choice of a truncated normal distribution since <span class="math">\(D_{lat}\)</span> and <span class="math">\(D_{inf}\)</span> must be positive.</p>
-<p>You can now go back to the <a href="play_with_seitl.html#informative-priors">practical</a> and run a MCMC with this informative prior.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#informative-priors">practical</a> and run a MCMC with this informative prior.</p>
 <h1 id="informative-priors">Informative priors</h1>
 <p>Here we combine both chains with informative priors and compare the posterior distribution with the one above.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create mcmc object</span>
@@ -439,7 +439,7 @@ trace.info.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin<
 <span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unif =</span> trace.burn.thin, <span class="dt">info =</span> trace.info.burn.thin))</code></pre>
 <p><img src="figure/SEITL_model_example/info-prior-analysis2.png" title="" alt="" style="display: block; margin: auto;" /></p>
 <p><span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span> have very different posterior. This is expected since there is an informative prior on <span class="math">\(D_{inf}\)</span> and <span class="math">\(R_0\)</span> is strongly correlated to <span class="math">\(D_{inf}\)</span>. Note also that the mode of all other parameters have changed, though less than <span class="math">\(D_{inf}\)</span> and <span class="math">\(R_0\)</span>. This illustrate the influence that one prior can have on the full posterior distribution.</p>
-<p>You can now go back to the <a href="play_with_seitl.html#model-selection">practical</a> for the final exercise of the session.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#model-selection">practical</a> for the final exercise of the session.</p>
 <h1 id="model-selection">Model selection</h1>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># combine the two chains in a data frame</span>
 trace.combined &lt;-<span class="st"> </span><span class="kw">ldply</span>(trace.info.burn.thin)
@@ -470,6 +470,6 @@ p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">
 DIC &lt;-<span class="st"> </span>D.theta.bar +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>p.D
 <span class="kw">print</span>(DIC)
 ## [1] 301.9</code></pre>
-<p>Follow this <a href="play_with_seitl.html#model-selection">link</a> to go back to the practical.</p>
+<p>Follow this <a href="mcmc_and_model_comparison.html#model-selection">link</a> to go back to the practical.</p>
 </body>
 </html>

@@ -36,6 +36,8 @@ code > span.er { color: #ff0000; font-weight: bold; }
                        <span class="co"># parameter of init.theta (R0), 0 for the</span>
                        <span class="co"># second (D.inf,  which we keep fixed)</span>
                    <span class="dt">n.iterations =</span> <span class="dv">1000</span>) <span class="co"># number of iterations</span></code></pre>
+<p>This returns a vector -- to convert this into a matrix with two rows, type</p>
+<pre class="sourceCode r"><code class="sourceCode r">trace &lt;-<span class="st"> </span><span class="kw">matrix</span>(trace, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">byrow =</span> T)</code></pre>
 <p>You can copy and paste this command into your <strong>R</strong> session, and proceed from there.</p>
 <p><a href="mcmc.html#sampling-from-a-posterior-distribution">Return</a> to the MCMC session.</p>
 </body>
