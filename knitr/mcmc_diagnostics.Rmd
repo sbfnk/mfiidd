@@ -136,7 +136,7 @@ It has been argued that thinning is actually not very useful, unless one wants t
 
 ## Burn-in
 
-In the above example, we assessed burn-in based on a glance at the trace plots. There are several diagnostics available to make this process more systematic, such as the Geweke diagnostic (`geweke.diag`), the Heidelberger-Welch diagnostic (`heidel.diag`), and the Raftery-Lewis diagnostic (`raftery.diag`). A discussion of these is beyond the scope and purpose of this session, but if you are interested have a look at the **R** help pages for these functions (using `?geweke.diag` etc.) for more information.
+In the above example, we assessed burn-in based on a glance at the trace plots. There are several diagnostics available to make this process more systematic, such as the Geweke diagnostic (`geweke.diag`), the Heidelberger-Welch diagnostic (`heidel.diag`), and the Raftery-Lewis diagnostic (`raftery.diag`). A discussion of these is beyond the scope and purpose of this session, but if you are interested have a look at the **R** help pages for these functions (using `?geweke.diag` etc.) and the reference [below](#going-further) for more information.
 
 A better estimate for the best amount of burn-in is via the effective sample size (ESS), that is the uncorrelated equivalent number of samples to our number of autocorrelated samples . The samples in the burn-in are not very informative, and if the burn-in period is estimated to be too short this will reduce the ESS size. On the other hand, if the burn-in period is estimated to be too long, informative samples are being thrown away, again reducing the ESS. The ESS should be maximised at the "correct" estimate of the burn-in. We can plot ESS against burn-in:
 
