@@ -236,5 +236,5 @@ You might have noted that the `for()` loop over particles could be parallelized,
 
 <div>
 # Navigate
-Previous: [Tristan da Cunha outbreak](play_with_seitl.md) Next: [Approximate Bayesian Computation](ABC.md)
+Previous: [MCMC and model comparison](mcmc_and_model_comparison.md) Next: [Approximate Bayesian Computation](ABC.md)
 </div>

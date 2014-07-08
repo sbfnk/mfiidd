@@ -285,4 +285,4 @@ A [paper](http://www.genetics.org/content/182/4/1207.full.pdf) by Wegmann et al,
 
 A [recent review of ABC](http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002803) discussed many of the strengths and weaknesses of ABC, as well as recent developments.
 
-Previous: [Particle Filter and pMCMC](pmcmc.md)
+Previous: [Particle MCMC](pmcmc.md)
