@@ -9,6 +9,8 @@ library(fitR)
 set.seed(1234)
 ```
 
+[Lecture slides](slides/intro_slides.pdf)
+
 # Objectives
 The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the `fitR` package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
 
@@ -258,5 +260,7 @@ This was created with an infectious period 2 and a reporting rate of 10%. Can yo
 
 <div>
 # Navigate
-Previous: [Installation](README.md) Next: [MCMC](mcmc.md)
+<!-- Previous: [Installation](index.md) Next: [MCMC](mcmc.md) -->
+<!-- </div> -->
+Previous: [Installation](index.md) Next: MCMC
 </div>

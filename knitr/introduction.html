@@ -47,6 +47,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><a href="#going-further">Going further</a></li>
 </ul>
 </div>
+<p><a href="slides/intro_slides.pdf">Lecture slides</a></p>
 <h1 id="objectives">Objectives</h1>
 <p>The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the <code>fitR</code> package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.</p>
 <p>In this session, you will</p>
@@ -55,7 +56,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li>combine the prior and likelihood to calculate the posterior for a simple SIR model</li>
 <li>explore the posterior of a model that has a single parameter</li>
 </ol>
-<p>The first part will be mostly about introducting you to the structure we have set up -- you won't have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.</p>
+<p>The first part will be mostly about introducing you to the structure we have set up -- you won't have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.</p>
 <h1 id="a-simple-sir-model">A simple SIR model</h1>
 <p>First, we will work with a simple SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number <span class="math">\(R_0\)</span> and the infectious period <span class="math">\(D_\mathrm{inf}\)</span>. The model equations are</p>
 <p><span class="math">\[
@@ -84,7 +85,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>Moreover, each <code>fitmodel</code> contains four functions: <code>simulate</code> to run the model, <code>logPrior</code> to calculate the logarithm of the prior, <code>pointLogLike</code> to calculate the log-likelihood of a given data point with respect to the model, and <code>genObsPoint</code> to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a <code>fitmodel</code>, you can do so by typing</p>
 <pre class="sourceCode r"><code class="sourceCode r">?fitmodel</code></pre>
 <h2 id="simulate">Simulate</h2>
-<p>To simulate a model run, we use the <code>simulate</code> command which comes with a <code>fitmodel</code> (see above). To run the SIR model, we have to provide parameter values, initial state and the times at which we want model output.</p>
+<p>To simulate a model run, we use the <code>simulate</code> command which comes with a <code>fitmodel</code> (see above). To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.</p>
 <pre class="sourceCode r"><code class="sourceCode r">theta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">3</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>)
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">999</span>, <span class="dt">I =</span> <span class="dv">1</span>, <span class="dt">R =</span> <span class="dv">0</span>)
 times &lt;-<span class="st"> </span><span class="dv">1</span>:<span class="dv">100</span>
@@ -114,7 +115,7 @@ traj &lt;-<span class="st"> </span>SIR$<span class="kw">simulate</span>(theta, i
 <pre class="sourceCode r"><code class="sourceCode r">SIR$logPrior</code></pre>
 <p>You will see that this calculates the prior of the parameters using uniform distributions on <span class="math">\(R_0\)</span> (between 1 and 100) and <span class="math">\(D_\mathrm{inf}\)</span> (between 0 and 30). At the moment, just have a look at it and make sure you understand it. Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.</p>
 <h2 id="likelihood">Likelihood</h2>
-<p>The <code>pointLogLike</code> function is used to evaluate the likelihood of a data point. For example, the probability of observing a prevalence of 18 when there are 31 infectious people in the <code>SIR</code> model is</p>
+<p>The <code>pointLogLike</code> function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the <code>SIR</code> model is</p>
 <pre class="sourceCode r"><code class="sourceCode r">SIR$<span class="kw">pointLogLike</span>(<span class="dt">data.point =</span> <span class="kw">c</span>(<span class="dt">obs =</span> <span class="dv">18</span>), <span class="dt">model.point =</span> <span class="kw">c</span>(<span class="dt">I =</span> <span class="dv">31</span>), theta)</code></pre>
 <pre><code>## [1] -5.584</code></pre>
 <p>Have a look at the <code>pointLogLike</code> function by typing</p>
@@ -134,7 +135,7 @@ traj &lt;-<span class="st"> </span>SIR$<span class="kw">simulate</span>(theta, i
 <p>The observations (&quot;obs&quot;) in the <code>epi1</code> data set are based on observed prevalence (&quot;I&quot;). You can plot the data using</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotTraj</span>(<span class="dt">data =</span> epi1)</code></pre>
 <p><img src="figure/introduction/traj_epi1.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>To calculate the log-likelihood of a set of parameters and initial state, we can use <code>trajLogLike</code>. This takes a <code>fitmodel</code>, a parameter vector, an initial state and a data set and simulates the model using the <code>simulate</code> function of the <code>fitmodel</code> with the given parameters and initial state. It then evaluates the log-likelihood at every data point using the <code>pointLogLike</code> function of the model. The result returned is the likelihood <span class="math">\(p(\mathrm{Data}|X_0, \theta)\)</span> of the chosen set of parameters and initial state.</p>
+<p>To calculate the log-likelihood of a set of parameters and initial state, we can use <code>trajLogLike</code>. This takes a <code>fitmodel</code>, a parameter vector, an initial state and a data set. It then simulates the model using the <code>simulate</code> function of the <code>fitmodel</code> with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the <code>pointLogLike</code> function of the model. The result returned is the (log-)likelihood <span class="math">\(\log(p(\mathrm{Data}|X_0, \theta))\)</span> of the chosen set of parameters and initial state.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">trajLogLike</span>(SIR, theta, init.state, epi1)</code></pre>
 <pre><code>## [1] -3769</code></pre>
 <p>Of course, you might get a different number here if you played with the parameters. You will later need the <code>trajLogLike</code> function to calculate the posterior as a function of the parameters.</p>
@@ -205,7 +206,9 @@ SIR$pointLogLike</code></pre>
 <p>This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate <span class="math">\(R_0\)</span>?</p>
 <div>
 <h1>Navigate</h1>
-Previous: <a href="README.html">Installation</a> Next: <a href="mcmc.html">MCMC</a>
+<!-- Previous: [Installation](index.html) Next: [MCMC](mcmc.html) -->
+<!-- </div> -->
+Previous: <a href="index.html">Installation</a> Next: MCMC
 </div>
 </body>
 </html>
