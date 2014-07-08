@@ -33,15 +33,27 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </div>
 <div id="TOC">
 <ul>
+<li><a href="#objectives">Objectives</a></li>
+<li><a href="#background">Background</a><ul>
 <li><a href="#summary-statistics">Summary statistics</a></li>
 <li><a href="#distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</a></li>
-<li><a href="#abc-acceptance-function">ABC acceptance function</a></li>
-<li><a href="#plug-it-into-your-posterior-and-run-mcmc">Plug it into your posterior and run MCMC</a></li>
-<li><a href="#comparison-with-likelihood-approach">Comparison with likelihood approach</a></li>
-<li><a href="#reference">Reference</a></li>
+<li><a href="#abc-posterior-estimate">ABC posterior estimate</a></li>
+<li><a href="#run-mcmc">Run MCMC</a></li>
+<li><a href="#comparison-with-exact-posterior">Comparison with exact posterior</a></li>
+</ul></li>
+<li><a href="#going-further">Going further</a></li>
 </ul>
 </div>
-<p>The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. To illustrate ABC, you are going to fit the <a href="play_with_seitl.html">SEITL model</a> to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative.</p>
+<h1 id="objectives">Objectives</h1>
+<p>The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. More specifically, you will</p>
+<ol style="list-style-type: decimal">
+<li>write some functions to evaluate summary statistics</li>
+<li>use the summary statistics to calculate a distance between model runs and the data</li>
+<li>approximate the SEITL model posterior using ABC-MCMC</li>
+<li>compare an approximated posterior from ABC with the true posterior</li>
+</ol>
+<p>To illustrate ABC, you are again going to fit the <a href="play_with_seitl.html">SEITL model</a> to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative. Running and evaluating pMCMC and ABC on this same data set also gives us the chance to compare the two approaches.</p>
+<h1 id="background">Background</h1>
 <p>There are two approximation steps at the core of ABC:</p>
 <ul>
 <li>it replaces observations with summary statistics. Unless these summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>, this leads to a possibly less informative posterior density.</li>
@@ -49,81 +61,176 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </ul>
 <p>On the other hand, we have seen in a previous session that MCMC provides unbiased samples from the true posterior at little cost for the deterministic SEITL model. You will end this session by fitting this deterministic model with ABC and assess the accuracy of your ABC posterior distribution by comparing it with the true posterior.</p>
 <p>As before, you can load the stochastic SEITL model and the Tristan da Cunha data set with</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">example</span>(SEITL_sto)
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(SEITL_stoch)
 <span class="kw">data</span>(FluTdC1971)</code></pre>
-<p>You can plot the Tristan da Cunha data with</p>
+<p>Once again, you can plot the Tristan da Cunha data with</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotTraj</span>(<span class="dt">data =</span> FluTdC1971)</code></pre>
 <div class="figure">
-<img src="figure/ABC_plot_TdC_data.png" />
+<img src="figure/abc/ABC_plot_TdC_data.png" />
 </div>
 <h2 id="summary-statistics">Summary statistics</h2>
-<p>First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarize the data. Finally, code three functions that take your time series as input and return the values of your summary statistics.</p>
-<pre class="sourceCode r"><code class="sourceCode r">time.data &lt;-<span class="st"> </span>my_SEITL$data$time
-inc.data &lt;-<span class="st"> </span>my_SEITL$data$Inc
+<p>First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarise the data. Finally, code at least two functions that take a trajectory (with an <code>obs</code> column containing the observations) as input and return the values of your summary statistics.</p>
+<pre class="sourceCode r"><code class="sourceCode r">traj &lt;-<span class="st"> </span>FluTdC1971
 
-<span class="co"># code</span>
-my_summaryStat1 &lt;-<span class="st"> </span>function(time,inc){
-
+<span class="co"># a function that takes one parameter:</span>
+<span class="co"># - traj: a (model or data) trajectory of observations</span>
+my_summaryStat1 &lt;-<span class="st"> </span>function(traj){
+    <span class="co"># calculate summary statistic using the &quot;obs&quot; column in traj</span>
 }
 
 <span class="co"># test</span>
-ss1.data &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(<span class="dt">time=</span>time.data,<span class="dt">inc=</span>inc.data)
+ss1.data &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(traj)
 
 <span class="co"># write other summary statistics</span></code></pre>
+<p>If you have trouble coding these up yourself, have a look at some of our <a href="sumstat_examples.html">examples</a>.</p>
 <p>Can you check whether your summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>?</p>
 <h2 id="distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</h2>
-<p>The second step is to compare your data with your simulation with distance functions between your observed and simulated summary statistics. You can generate an observation trajectory as follows:</p>
+<p>The second step is to compare your data with your simulation using a distance functions between your observed and simulated summary statistics.</p>
+<p>You can generate an observation trajectory as follows:</p>
 <pre class="sourceCode r"><code class="sourceCode r">theta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.9</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-simu &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(SEITL_sto, theta, init.state, FluTdC1971$time)
+simu &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(SEITL_stoch, theta, init.state, FluTdC1971$time)
 <span class="kw">head</span>(simu)</code></pre>
-<pre><code>##   time   S  E I  T  L Inc obs
-## 1    1 250  0 4  0 30   0   0
-## 2    2 245  4 4  1 30   1   1
-## 3    3 239  7 3  5 30   3   2
-## 4    4 236  7 4  7 30   3   3
-## 5    5 229 11 5  9 30   3   4
-## 6    6 228  7 6 13 30   5   4</code></pre>
-<p>And compute the set of summary statistics:</p>
-<pre class="sourceCode r"><code class="sourceCode r">time.simu &lt;-<span class="st"> </span>simu.obs$time[-<span class="dv">1</span>] <span class="co"># remove initial time</span>
-inc.simu &lt;-<span class="st"> </span>simu.obs$observation[-<span class="dv">1</span>] <span class="co"># remove initial state</span>
-
-ss1.simu &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(<span class="dt">time=</span>time.simu,<span class="dt">inc=</span>inc.simu)
+<pre><code>##   time   S  E I T  L Inc obs
+## 1    1 250  0 4 0 30   0   0
+## 2    2 246  3 3 2 30   1   1
+## 3    3 243  6 2 3 30   0   0
+## 4    4 238  6 7 3 30   5   3
+## 5    5 229 14 6 5 30   1   4
+## 6    6 222 19 7 6 30   2   1</code></pre>
+<p>Using this, you can calculate your summary statistics on your data.</p>
+<pre class="sourceCode r"><code class="sourceCode r">ss1.simu &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(<span class="dt">trajectory =</span> simu)
 
 <span class="co"># compute ss2.simu etc.</span></code></pre>
-<p>Now, you can write three functions that will take your observed and simulated summary statistics and return their distance</p>
-<pre class="sourceCode r"><code class="sourceCode r">my_distance1 &lt;-<span class="st"> </span>function(data,simu) {
+<p>Now, you can write a function that will take your observed and simulated summary statistics and return their distance. In the most general case, you will want to write a distance function for each summary statistic. Here, let's write a single function that calculates the distance between all summary statistics and returns either a single (e.g., mean) distance or a vector of distances.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># a function that takes 5 arguments:</span>
+<span class="co"># - sum.stats: a list of functions to calculate summary statistics</span>
+<span class="co"># - data.obs: the trajectory of observations (data)</span>
+<span class="co"># - model.obs: a trajectory of simulated observations (model)</span>
+my_distance &lt;-<span class="st"> </span>function(sum.stats, data.obs, model.abs) {
 
+    ## loop over all summary stats in the list sum.stats
 
-}
+       <span class="co"># calculate the distance (e.g., absolute difference, relative</span>
+       <span class="co"># difference, squared distances etc)</span>
 
-<span class="co"># test</span>
-d1 &lt;-<span class="st"> </span><span class="kw">my_distance1</span>(<span class="dt">data=</span>ss1.data,<span class="dt">simu=</span>ss1.simu)
+    ## end loop
+    
+    <span class="co"># combine distances (sum, mean etc)</span>
 
-<span class="co"># write other distance functions</span></code></pre>
-<h2 id="abc-acceptance-function">ABC acceptance function</h2>
-<p>Now you can write a function that will decide, for a given vector of tolerances, whether you should accept or reject your parameter theta.</p>
-<pre class="sourceCode r"><code class="sourceCode r">ABCacceptance &lt;-<span class="st"> </span>function(theta,fitmodel,tol) {
-
-    <span class="co"># simulate model</span>
-
-    <span class="co"># generate observation</span>
-
-    <span class="co"># compute data and simulated summary statistics</span>
-
-    <span class="co"># compute distances between summary statistics</span>
-
-    <span class="co"># check that distances are within the tolerances</span>
-
-    <span class="co"># return 0/1</span>
-
+    <span class="co"># return an overall distance between the model and data</span>
+    <span class="co"># trajectories in terms of the summary statistics. E.g., a vector</span>
+    <span class="co"># of distances or a mean distance</span>
 }</code></pre>
-<p>Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate.</p>
-<p>You can find an example of solution <a href="ABC_example.html">here</a></p>
-<h2 id="plug-it-into-your-posterior-and-run-mcmc">Plug it into your posterior and run MCMC</h2>
-<h2 id="comparison-with-likelihood-approach">Comparison with likelihood approach</h2>
-<h2 id="reference">Reference</h2>
-<p><a href="http://membres-timc.imag.fr/Michael.Blum/publications/CsilleryTREE10.pdf">Review of ABC in practice</a></p>
-<p>Previous: <a href="smc.html">Run SMC</a></p>
+<p>If you have any trouble writing a function for the distance, have a look at our <a href="distance_examples.html">examples</a>.</p>
+<p>Test that your summary distance function returns a sensible value</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># test</span>
+dist &lt;-<span class="st"> </span><span class="kw">my_distance</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(my_summaryStat1, my_summaryStat2),
+                    <span class="dt">data.obs =</span> FluTdC1971,
+                    <span class="dt">model.obs =</span> simu)</code></pre>
+<p>Of course, you will get a different value from this, depending on your choice of distance function.</p>
+<p>You can now use the <code>computeDistanceABC</code> function provided in the <code>fitR</code> package to compute the distance between a <code>fitmodel</code> and the <code>data</code> for a single simulation using a given parameter vector <code>theta</code> and initial state <code>init.state</code>. Have a look at the code of <code>computeDistanceABC</code>; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as argument. We can test it using</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(my_summaryStat1, my_summaryStat2),
+                   <span class="dt">distanceABC =</span> my_distance,
+                   <span class="dt">fitmodel =</span> SEITL_stoch,
+                   <span class="dt">theta =</span> theta,
+                   <span class="dt">init.state =</span> init.state,
+                   <span class="dt">data =</span> FluTdC1971)</code></pre>
+<pre><code>## [1] 0.5286</code></pre>
+<p>The returned distance is the outcome of a single simulation run, so you will get a different result here, which will also depend on your choice of distance function and summary statistics.</p>
+<h2 id="abc-posterior-estimate">ABC posterior estimate</h2>
+<p>Lastly, you can use you can write a function that will return the approximated posterior value for a given parameter, based on a single model run.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># a function that takes 7 arguments:</span>
+<span class="co"># - epsilon: a vector (if the distance function returns a vector) or</span>
+<span class="co">#            single number, the tolerance for ABC</span>
+<span class="co"># - sum.stats: list of summary statistic functions</span>
+<span class="co"># - distanceABC: ABC distance function</span>
+<span class="co"># - fitmodel: model to compare to the data</span>
+<span class="co"># - theta: parameter vector</span>
+<span class="co"># - init.state: initial state for the simulation</span>
+<span class="co"># - data: data to compare the model to</span>
+my_ABCLogPosterior &lt;-<span class="st"> </span>function(epsilon, sum.stats, distanceABC,
+                               fitmodel, theta, init.state, data) {
+
+    <span class="co"># use computeDistanceABC to calculate a distance between the model</span>
+    <span class="co"># and data</span>
+
+    ## if the model distance is within the epsilon window
+
+        <span class="co"># set log.density to the prior</span>
+
+    ## else
+
+        <span class="co"># set log.density to -Inf</span>
+
+    ## end if
+
+    <span class="co"># return log.density, the ABC posterior approximation</span>
+}</code></pre>
+<p>We don't provide an intermediate solution in this case, but if you are struggling with this have a look at the <code>ABCLogPosterior</code> function that comes packaged in <code>fitR</code> by typing</p>
+<pre class="sourceCode r"><code class="sourceCode r">ABCLogPosterior</code></pre>
+<p>Once you have coded this function you can perform some tests to calibrate the tolerances.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ABCLogPosterior</span>(<span class="dt">epsilon =</span> <span class="dv">5</span>,
+                <span class="dt">sum.stats =</span> <span class="kw">list</span>(my_summaryStat1, my_summaryStat2),
+                <span class="dt">distanceABC =</span> my_distance,
+                <span class="dt">fitmodel =</span> SEITL_stoch,
+                <span class="dt">theta =</span> theta,
+                <span class="dt">init.state =</span> init.state,
+                <span class="dt">data =</span> FluTdC1971)</code></pre>
+<pre><code>## $log.density
+## [1] -12.81
+## 
+## $trace
+##          R0       D.lat       D.inf       alpha       D.imm         rho 
+##      2.0000      2.0000      2.0000      0.9000     13.0000      0.8500 
+##    distance log.density 
+##      0.6398    -12.8145</code></pre>
+<p>If your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.</p>
+<h2 id="run-mcmc">Run MCMC</h2>
+<p>We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding <a href="sumstat_examples.html">examples</a> and one of the distance functions from the other <a href="distance_examples.html">examples</a>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">my_ABCLogPosterior_tdc &lt;-<span class="st"> </span>function(theta) {
+
+    init.state =<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+
+    <span class="co"># log posterior with several summary statistics, distance given</span>
+    <span class="co"># by the mean relative distance in the summary statistics,</span>
+    <span class="co"># tolerance of 2</span>
+    log.posterior &lt;-
+<span class="st">        </span><span class="kw">ABCLogPosterior</span>(<span class="dt">epsilon =</span> <span class="dv">2</span>,
+                        <span class="dt">sum.stats =</span> <span class="kw">list</span>(<span class="dt">ssSize =</span> ssSize,
+                                         <span class="dt">ssMax =</span> ssMax,
+                                         <span class="dt">ssMaxTime =</span> ssMaxTime,
+                                         <span class="dt">ssSum_13_24 =</span> ssSum_13_24,
+                                         <span class="dt">ssMax_25_36 =</span> ssMax_25_36,
+                                         <span class="dt">ssSum_37_60 =</span> ssSum_37_60),
+                        <span class="dt">distanceABC =</span> ssMeanRelDistance,
+                        <span class="dt">fitmodel =</span> SEIT2L_stoch,
+                        <span class="dt">theta =</span> theta,
+                        <span class="dt">init.state =</span> init.state,
+                      <span class="dt">data =</span> FluTdC1971)
+
+    <span class="kw">return</span>(log.posterior)
+}</code></pre>
+<p>Change this function to your own liking, e.g. with different summary statistics, a different distance function, different tolerance etc. Test the function using</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">my_ABCLogPosterior_tdc</span>(theta)</code></pre>
+<pre><code>## $log.density
+## [1] -12.81
+## 
+## $trace
+##          R0       D.lat       D.inf       alpha       D.imm         rho 
+##       2.000       2.000       2.000       0.900      13.000       0.850 
+##    distance log.density 
+##       1.194     -12.814</code></pre>
+<p>(You will get a different value here, as this is the outcome of a random simulation)</p>
+<p>You can now plug this into the <code>mcmcMH</code> (or <code>my_mcmcMH</code>, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the <a href="abc_mcmc_solution.html">solution</a>.</p>
+<p>Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?</p>
+<h2 id="comparison-with-exact-posterior">Comparison with exact posterior</h2>
+<p>In the deterministic model, we can calculate the likelihood directly, and don't need an approximation. This is a good test case for the accuracy of ABC, as well as our summary statistics.</p>
+<p>Write a wrapper function <code>my_ABCLogPosterior_det</code> to calculate the posterior using the deterministic model by changing the <code>my_ABCLogPosterior_tdc</code> function.</p>
+<p>You can now explore this using the <code>mcmcMH</code> function, and the same command as before. Compare this to MCMC using the <code>SEITL2_deter</code> function directly (in a posterior wrapper function, as you did <a href="http://sfunk.net/mfiidd/play_with_seitl.html#run-a-mcmc">here</a>). Compare the two using <code>coda</code> plot functions. How good is your the ABC estimate using different summary statistics?</p>
+<h1 id="going-further">Going further</h1>
+<p>A <a href="http://www.genetics.org/content/182/4/1207.full.pdf">paper</a> by Wegmann et al, describes various improvements to the ABC-MCMC algorithm, for example an initial run of ~10000 parameter sets to calibrate the tolerance.</p>
+<p>A <a href="http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002803">recent review of ABC</a> discussed many of the strengths and weaknesses of ABC, as well as recent developments.</p>
+<p>Previous: <a href="pmcmc.html">Particle Filter and pMCMC</a></p>
 </body>
 </html>

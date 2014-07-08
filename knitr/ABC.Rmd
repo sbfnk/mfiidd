@@ -1,12 +1,27 @@
 % Inference with ABC
 
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, cache.path="cache/abc/", fig.retina=1 ,fig.path="figure/abc/", fig.cap='', tidy=FALSE)
+```
+
 ```{r echo=FALSE,results="hide",message=FALSE}
 opts_chunk$set(fig.cap='')
 library(fitR)
+set.seed(1234)
 ```
 
-The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model.
-To illustrate ABC, you are going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative.
+# Objectives
+
+The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. More specifically, you will
+
+1. write some functions to evaluate summary statistics
+2. use the summary statistics to calculate a distance between model runs and the data
+3. approximate the SEITL model posterior using ABC-MCMC
+4. compare an approximated posterior from ABC with the true posterior
+
+To illustrate ABC, you are again going to fit the [SEITL model](play_with_seitl.md) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative. Running and evaluating pMCMC and ABC on this same data set also gives us the chance to compare the two approaches.
+
+# Background
 
 There are two approximation steps at the core of ABC:
 
@@ -22,7 +37,7 @@ data(SEITL_stoch)
 data(FluTdC1971)
 ```
 
-You can plot the Tristan da Cunha data with
+Once again, you can plot the Tristan da Cunha data with
 
 ```{r ABC_plot_TdC_data, fig.height = 5, fig.width = 5}
 plotTraj(data = FluTdC1971)
@@ -30,42 +45,48 @@ plotTraj(data = FluTdC1971)
 
 ## Summary statistics
 
-First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarize the data. Finally, code three functions that take your time series as input and return the values of your summary statistics.
+First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarise the data. Finally, code at least two functions that take a trajectory (with an `obs` column containing the observations) as input and return the values of your summary statistics.
 
+```{r sumstat, eval=FALSE}
 
-```{r eval=FALSE}
+traj <- FluTdC1971
 
-time.data <- my_SEITL$data$time
-inc.data <- my_SEITL$data$Inc
-
-# code
-my_summaryStat1 <- function(time,inc){
-
+# a function that takes one parameter:
+# - traj: a (model or data) trajectory of observations
+my_summaryStat1 <- function(traj){
+    # calculate summary statistic using the "obs" column in traj
 }
 
 # test
-ss1.data <- my_summaryStat1(time=time.data,inc=inc.data)
+ss1.data <- my_summaryStat1(traj)
 
 # write other summary statistics
-
 ```
+
+```{r echo = FALSE, cache = FALSE}
+source("sumstat_examples.r")
+my_summaryStat1 <- ssSize
+my_summaryStat2 <- ssMax
+```
+
+If you have trouble coding these up yourself, have a look at some of our [examples](sumstat_examples.md).
 
 Can you check whether your summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic)?
 
-
 ## Distance between observed and simulated summary statistics
 
-The second step is to compare your data with your simulation with distance functions between your observed and simulated summary statistics.
+The second step is to compare your data with your simulation using a distance functions between your observed and simulated summary statistics.
+
 You can generate an observation trajectory as follows:
 
-```{r }
+```{r simu}
 theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 simu <- genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time)
 head(simu)
 ```
 
-And compute the set of summary statistics:
+Using this, you can calculate your summary statistics on your data.
 
 ```{r eval=FALSE}
 ss1.simu <- my_summaryStat1(trajectory = simu)
@@ -74,61 +95,194 @@ ss1.simu <- my_summaryStat1(trajectory = simu)
 
 ```
 
-Now, you can write a function that will take your observed and simulated summary statistics and return their distance
+Now, you can write a function that will take your observed and simulated summary statistics and return their distance. In the most general case, you will want to write a distance function for each summary statistic. Here, let's write a single function that calculates the distance between all summary statistics and returns either a single (e.g., mean) distance or a vector of distances.
 
 ```{r eval=FALSE}
-my_distance <- function(data, simu) {
-    # compute summary statistics for data
-    # compute summary statistics for simulation
-    # compute a distance between the summary statistics
+# a function that takes 5 arguments:
+# - sum.stats: a list of functions to calculate summary statistics
+# - data.obs: the trajectory of observations (data)
+# - model.obs: a trajectory of simulated observations (model)
+my_distance <- function(sum.stats, data.obs, model.abs) {
+
+    ## loop over all summary stats in the list sum.stats
+
+       # calculate the distance (e.g., absolute difference, relative
+       # difference, squared distances etc)
+
+    ## end loop
+    
+    # combine distances (sum, mean etc)
+
+    # return an overall distance between the model and data
+    # trajectories in terms of the summary statistics. E.g., a vector
+    # of distances or a mean distance
 }
 ```
+
+```{r echo = FALSE, cache = FALSE}
+source("distance_examples.r")
+my_distance <- ssMeanRelDistance
+```
+If you have any trouble writing a function for the distance, have a look at our [examples](distance_examples.md).
 
 Test that your summary distance function returns a sensible value
 
-```{r}
+```{r distance_test}
 # test
-dist <- my_distance(data = FluTdC1971, simu = simu)
+dist <- my_distance(sum.stats = list(my_summaryStat1, my_summaryStat2),
+                    data.obs = FluTdC1971,
+                    model.obs = simu)
 ```
 
-## ABC acceptance function
+Of course, you will get a different value from this, depending on your choice of distance function.
 
-Now you can write a function that will decide, for a given vector of tolerances, whether you should accept or reject your parameter theta.
+You can now use the `computeDistanceABC` function provided in the `fitR` package to compute the distance between a `fitmodel` and the `data` for a single simulation using a given parameter vector `theta` and initial state `init.state`. Have a look at the code of `computeDistanceABC`; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as argument. We can test it using
 
-```{r eval=FALSE}
+```{r computedistanceabc}
+computeDistanceABC(sum.stats = list(my_summaryStat1, my_summaryStat2),
+                   distanceABC = my_distance,
+                   fitmodel = SEITL_stoch,
+                   theta = theta,
+                   init.state = init.state,
+                   data = FluTdC1971)
 ```
 
-ABCacceptance <- function(theta,fitmodel,tol) {
+The returned distance is the outcome of a single simulation run, so you will get a different result here, which will also depend on your choice of distance function and summary statistics.
 
-	# simulate model
+## ABC posterior estimate
 
-	# generate observation
+Lastly, you can use you can write a function that will return the approximated posterior value for a given parameter, based on a single model run.
 
-	# compute data and simulated summary statistics
+```{r my_abclogpost, eval=FALSE}
+# a function that takes 7 arguments:
+# - epsilon: a vector (if the distance function returns a vector) or
+#            single number, the tolerance for ABC
+# - sum.stats: list of summary statistic functions
+# - distanceABC: ABC distance function
+# - fitmodel: model to compare to the data
+# - theta: parameter vector
+# - init.state: initial state for the simulation
+# - data: data to compare the model to
+my_ABCLogPosterior <- function(epsilon, sum.stats, distanceABC,
+                               fitmodel, theta, init.state, data) {
 
-	# compute distances between summary statistics
+    # use computeDistanceABC to calculate a distance between the model
+    # and data
 
-	# check that distances are within the tolerances
+    ## if the model distance is within the epsilon window
 
-	# return 0/1
+        # set log.density to the prior
 
+    ## else
+
+        # set log.density to -Inf
+
+    ## end if
+
+    # return log.density, the ABC posterior approximation
 }
-
 ```
 
-Once you have coded this function you can perform some tests to calibrate the tolerances. For instance, if your tolerances are too small you will have less biased samples but very low acceptance rate.
+We don't provide an intermediate solution in this case, but if you are struggling with this have a look at the `ABCLogPosterior` function that comes packaged in `fitR` by typing
 
-You can find an example of solution [here](ABC_example.md)
+```{r abclogpost_func, eval = FALSE}
+ABCLogPosterior
+```
 
-## Plug it into your posterior and run MCMC
+Once you have coded this function you can perform some tests to calibrate the tolerances.
 
+```{r abclogpost}
+ABCLogPosterior(epsilon = 5,
+                sum.stats = list(my_summaryStat1, my_summaryStat2),
+                distanceABC = my_distance,
+                fitmodel = SEITL_stoch,
+                theta = theta,
+                init.state = init.state,
+                data = FluTdC1971)
+```
 
-## Comparison with likelihood approach
+If your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.
 
+## Run MCMC
 
-## Reference
+We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding [examples](sumstat_examples.md) and one of the distance functions from the other [examples](distance_examples.md).
 
-[Review of ABC in practice](http://membres-timc.imag.fr/Michael.Blum/publications/CsilleryTREE10.pdf)
+```{r abc_wrapper}
+my_ABCLogPosterior_tdc <- function(theta) {
 
+    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
+
+    # log posterior with several summary statistics, distance given
+    # by the mean relative distance in the summary statistics,
+    # tolerance of 2
+    log.posterior <-
+        ABCLogPosterior(epsilon = 2,
+                        sum.stats = list(ssSize = ssSize,
+                                         ssMax = ssMax,
+                                         ssMaxTime = ssMaxTime,
+                                         ssSum_13_24 = ssSum_13_24,
+                                         ssMax_25_36 = ssMax_25_36,
+                                         ssSum_37_60 = ssSum_37_60),
+                        distanceABC = ssMeanRelDistance,
+                        fitmodel = SEIT2L_stoch,
+                        theta = theta,
+                        init.state = init.state,
+                      data = FluTdC1971)
+
+    return(log.posterior)
+}
+```
+
+Change this function to your own liking, e.g. with different summary statistics, a different distance function, different tolerance etc. Test the function using
+
+```{r abc_wrapper_test}
+my_ABCLogPosterior_tdc(theta)
+```
+
+(You will get a different value here, as this is the outcome of a random simulation)
+
+You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the [solution](abc_mcmc_solution.md).
+
+Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?
+
+## Comparison with exact posterior
+
+In the deterministic model, we can calculate the likelihood directly, and don't need an approximation. This is a good test case for the accuracy of ABC, as well as our summary statistics.
+
+Write a wrapper function `my_ABCLogPosterior_det` to calculate the posterior using the deterministic model by changing the `my_ABCLogPosterior_tdc` function.
+
+```{r abc_wrapper_det, echo = FALSE}
+my_ABCLogPosterior_tdc <- function(theta) {
+
+    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
+
+    # log posterior with several summary statistics, distance given
+    # by the mean relative distance in the summary statistics,
+    # tolerance of 2
+    log.posterior <-
+        ABCLogPosterior(epsilon = 2,
+                        sum.stats = list(ssSize = ssSize,
+                                           Max = ssMax,
+                                           MaxTime = ssMaxTime,
+                                           Sum_13_24 = ssSum_13_24,
+                                           Max_25_36 = ssMax_25_36,
+                                           Sum_37_60 = ssSum_37_60),
+                        distanceABC = ssMeanRelDistance,
+                        fitmodel = SEIT2L_deter,
+                        theta = theta,
+                        init.state = init.state,
+                        data = FluTdC1971)
+
+    return(log.posterior)
+}
+```
+
+You can now explore this using the `mcmcMH` function, and the same command as before. Compare this to MCMC using the `SEITL2_deter` function directly (in a posterior wrapper function, as you did [here](http://sfunk.net/mfiidd/play_with_seitl.md#run-a-mcmc)). Compare the two using `coda` plot functions. How good is your the ABC estimate using different summary statistics?
+
+# Going further
+
+A [paper](http://www.genetics.org/content/182/4/1207.full.pdf) by Wegmann et al, describes various improvements to the ABC-MCMC algorithm, for example an initial run of ~10000 parameter sets to calibrate the tolerance.
+
+A [recent review of ABC](http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002803) discussed many of the strengths and weaknesses of ABC, as well as recent developments.
 
 Previous: [Particle Filter and pMCMC](pmcmc.md)

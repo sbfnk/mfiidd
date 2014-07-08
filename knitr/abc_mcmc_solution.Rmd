@@ -1,0 +1,13 @@
+This is how you can run ABC-MCMC
+
+```{r abc_mcmc, eval = F}
+abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc,
+                    init.theta = theta,
+                    n.iterations = 1000,
+                    limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0),
+                                  upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+```
+
+You can copy and paste the function into your **R** session, and proceed from there.
+
+[Return](ABC.md#distance-between-observed-and-simulated-summary-statistics) to the ABC session.
