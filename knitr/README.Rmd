@@ -26,11 +26,11 @@ library(fitR)
 
 1. [Introduction](introduction.md)
 2. [MCMC](mcmc.md)
-2. [MCMC diagnostics](mcmc_diagnostics.md)
-5. [Modelling interlude](play_with_seitl.md)
-6. [MCMC and model comparison](mcmc_and_model_comparison.md)
-7. [Particle filter and pMCMC](pmcmc.md)
-8. [Approximate Bayesian Computation](ABC.md)
+3. [MCMC diagnostics](mcmc_diagnostics.md)
+4. [Modelling interlude](play_with_seitl.md)
+5. [MCMC and model comparison](mcmc_and_model_comparison.md)
+6. [Particle MCMC](pmcmc.md)
+7. [Approximate Bayesian Computation](ABC.md)
 
 # Navigate
 Next: [Introduction](introduction.md)
