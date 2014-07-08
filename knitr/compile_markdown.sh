@@ -1,24 +1,29 @@
 #!/bin/sh
 
-if [ ! -f $1 ]; then
-    echo "File $1 not found"
-    exit 1
-fi
-
 CURRENT_DIR=$(pwd)
 
-filename=$(basename $1)
-filebase=$(basename $1 .md)
-filepath=$(dirname $1)
+for I in $*;
+do
 
-cd $filepath
+    if [ ! -f $I ]; then
+        echo "File $I not found"
+        continue
+    fi
 
-# create pdf version
-pandoc --smart -f markdown-markdown_in_html_blocks   -o $filebase.pdf $filename
-# create HTML version
-pandoc --toc  --mathjax  -c github-pandoc.css -f markdown -t html -o $filebase.html $filename
+    filename=$(basename $I)
+    filebase=$(basename $I .md)
+    filepath=$(dirname $I)
 
-# convert links to HTML
-sed -i "" 's/\.md/.html/g' $filebase.html
+    cd $filepath
 
-cd $CURRENT_DIR
+    # create pdf version
+    pandoc --smart -f markdown-markdown_in_html_blocks   -o $filebase.pdf $filename
+    # create HTML version
+    pandoc --toc  --mathjax  -c github-pandoc.css -f markdown -t html -o $filebase.html $filename
+
+    # convert links to HTML
+    sed -i "" 's/\.md/.html/g' $filebase.html
+
+    cd $CURRENT_DIR
+
+done
