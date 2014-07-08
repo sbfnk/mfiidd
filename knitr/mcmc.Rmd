@@ -10,6 +10,8 @@ data(SIR)
 data(SIR_reporting)
 ```
 
+[Lecture slides](slides/mcmc_slides.pdf)
+
 # Objectives
 
 The aim of this session is to learn how to fit a deterministic model to data using MCMC with the Metropolis-Hastings algorithm. More specifically, in this session you will
