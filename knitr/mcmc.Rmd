@@ -127,7 +127,7 @@ hist(trace)
 
 Of course, since MCMC is based on sampling random numbers, your plot will look different.
 
-This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
+This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram? For more information can also look at our [discussion](mcmc_discussion.md) of this.
 
 # Sampling from a posterior distribution
 
@@ -161,7 +161,7 @@ You should get the same number unless you changed the `SIR$pointLogLike` functio
 
 We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If you have any problems with this, have a look at our [solution](generate_samples.md).
 
-Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace)`), sample median (using `median(trace)`), 95% credible intervals (using `quantile(trace, probs=c(0.025, 0.975))`) and other properties.
+Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace[, 1])`), sample median (using `median(trace[, 1])`), 95% credible intervals (using `quantile(trace[, 1], probs=c(0.025, 0.975))`) and other properties.
 
 Try to re-run your MCMC with different values for `init.theta` (the starting values for $R_0$ and $D_\mathrm{inf}$), for `proposal.sd` (the standard deviation of the Gaussian proposal distribution $q(\theta'|\theta)$), and for `iter` (the number of iterations). Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate. Check how the answers to the following questions depend on parameters:
 
