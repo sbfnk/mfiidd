@@ -1,5 +1,9 @@
 % Model fitting and inference for infectious disease dynamics
 
+## Lunch options
+
+[Local map](http://goo.gl/XEPxch)
+
 ## Required software
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.1.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
