@@ -219,7 +219,7 @@ Can you notice any differences? If so, which model seems to provide the best fit
 
 In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.
 
-# To go further
+# Going further
 
 * Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](http://data.princeton.edu/wws509/notes/c4.pdf).
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 2 and not 5 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT2L model. Does it fit better the data?
