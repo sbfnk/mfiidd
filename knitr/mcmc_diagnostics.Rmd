@@ -285,5 +285,6 @@ SIR_reporting$pointLogLike
 Can you fit this to the `epi4` data set?
 
 <div>
-Previous: [MCMC](mcmc.md) Next: [Modelling interlude](play_with_seitl.md)
+<!-- Previous: [MCMC](mcmc.md) Next: [Modelling interlude](play_with_seitl.md) -->
+Previous: [MCMC](mcmc.md) Next: Modelling interlude
 </div>
