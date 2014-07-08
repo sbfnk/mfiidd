@@ -21,6 +21,9 @@ So the objective of the last part of this session is to fit the deterministic SE
 
 To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT2L model. In the rest of the session, most of the example will refer to the SEITL model, the same commands work for the SEIT2L model (i.e. `data(SEIT2L_deter)` instead of `data(SEITL_deter)`).
 
+
+"learn how to fit / perform MCMC on models with > 2parameters?"
+
 # Run a MCMC
 
 Here you could use the function `my_mcmcMH` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Accordingly, using the adaptive MCMC might be a better choice.
