@@ -74,10 +74,10 @@ Test how your summary statistics vary with a single set of parameters. You can u
 ```{r size_hist}
 theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
-hist(replicate(100, ssSize(genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time))))
+hist(replicate(100, ssSize(genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time))), xlab = "summary statistic")
 ```
 
-If you created your own function for summary statistics (e.g., `my_summaryStat1`), replace `ssSize` in the plot command with that one and test how it varies over different simulation runs.
+These are stochastic simulations so of course your histogram will look different. If you created your own function for summary statistics (e.g., `my_summaryStat1`), replace `ssSize` in the plot command with that one and test how it varies over different simulation runs. We suggest that you try a few summary statistics to get a feeling for how they vary across simulations.
 
 The last command is easiest read from the inside out: `genObsTraj` with the given arguments produces an observation trajectory from the `SEITL_stoch` model, `ssSize` calculates the final size (i.e., total number of people infected) for such a trajectory, `replicates` does it 100 times and `hist` plots the outcome (i.e., the replicates of the final size) as a histogram. Depending on the summary statistic you choose, you might see quite a large amount of variation in the outcome of the summary statistic even with a single set of parameters. This might be a problem later when you define an acceptance window: if it is chosen too large, there is a risk that parameter values are accepted indiscriminately. If it is too small, the acceptance will be low and, consequently, many simulation runs wasted because even good parameter sets will often miss the acceptance window.
 
@@ -94,14 +94,14 @@ The second step is to compare your data with your simulation using a function th
 # - model.obs: a trajectory of simulated observations (model)
 my_distance <- function(sum.stats, data.obs, model.obs) {
 
-    ## loop over all summary stats in the list sum.stats
+    ## start for() loop over all summary stats in the list sum.stats
 
        # calculate the distance (e.g., absolute difference, relative
        # difference, squared distances etc)
 
-    ## end loop
+    ## end for () loop
     
-    # combine distances (sum, mean etc)
+    # combine distances (via sum, mean, or others)
 
     # return an overall distance between the model and data
     # trajectories in terms of the summary statistics. E.g., a vector
@@ -118,15 +118,15 @@ If you have any trouble writing a function for the distance, have a look at our 
 Test that your summary distance function returns a sensible value (here, we have assigned the `ssMeanRelDistance` from the examples to `my_distance`.
 
 ```{r distance_test}
-# test
-dist <- ssMeanRelDistance(sum.stats = list(my_summaryStat1, my_summaryStat2),
-                          data.obs = FluTdC1971,
-                          model.obs = simu)
+simu <- genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time)
+ssMeanRelDistance(sum.stats = list(ssSize, ssMax),
+                  data.obs = FluTdC1971,
+                  model.obs = simu)
 ```
 
-Again, you can change `ssMeanRelDistance` to your own `my_distance` function or one from the [examples](distance_examples.md).
+Again, you can change `ssMeanRelDistance` to your own `my_distance` function or one from the [examples](distance_examples.md), and try different things for the list of summary statistics (including more or less than two summary statistics).
 
-You can now use the `computeDistanceABC` function provided in the `fitR` package to compute the distance between a `fitmodel` and the `data` for a single simulation using a given parameter vector `theta` and initial state `init.state`. Have a look at the code of `computeDistanceABC`; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as an argument. We can test it using
+You can then test the distribution of distances of the summary statistics from model runs to the summary statistic on the data, in the same way as we did before with the distribution of summary statistics. You can use `computeDistanceABC` function provided in the `fitR` package does the leg work for you. It computes the distance between a `fitmodel` and the `data` for a single simulation using a given parameter vector `theta` and initial state `init.state`. Have a look at the code of `computeDistanceABC`; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as an argument. We can test it using
 
 ```{r computedistanceabc}
 computeDistanceABC(sum.stats = list(ssSize, ssMax),
@@ -137,9 +137,23 @@ computeDistanceABC(sum.stats = list(ssSize, ssMax),
                    data = FluTdC1971)
 ```
 
-Again, you can change the list of summary statistics (`ssSize`, `ssMax`) with your own ones, or other ones from the [examples](sumstat_examples.md).
+Again, you can change the list of summary statistics (`ssSize`, `ssMax`) and the distance function (`ssMeanRelDistance`) with your own ones, or other ones from the [examples](sumstat_examples.md).
 
 The returned distance is the outcome of a single simulation run, so you will get a different result here, which will also depend on your choice of distance function and summary statistics.
+
+To plot the distribution of distances from the data for a single set of parameter values `theta`, you can again use `replicate`.
+
+```{r distances_plot}
+hist(replicate(100, computeDistanceABC(sum.stats = list(ssSize, ssMax),
+                                       distanceABC = ssMeanRelDistance,
+                                       fitmodel = SEITL_stoch,
+                                       theta = theta,
+                                       init.state = init.state,
+                                       data = FluTdC1971)),
+     xlab = "distance")
+```
+
+Again, these are stochastic simulations so your histogram will look different, and again you can test this with different summary statistics (including more, or fewer) and distance functions. How widely are the distances distributed for a single set of parameters? This should give you an indication for a reasonable acceptance window. Ideally, you want to have summary statistics that vary a lot between parameter values (so the acceptance window can distinguish between good or bad fits), but not so much within parameter values (so you don't have to reject many runs from good parameters). Finding the right combination summary statistics and distance functions to achieve this can be very difficult, though, and one usually ends up having to make compromises between the two.
 
 ## ABC posterior estimate
 
@@ -195,7 +209,7 @@ ABCLogPosterior(epsilon = 5,
 
 Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.
 
-If your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.
+You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.
 
 ## Run MCMC
 
@@ -243,10 +257,10 @@ Run ABC-MCMC with various values for the tolerance, different summary statistics
 
 In the deterministic model, we can calculate the likelihood directly, and don't need an approximation. This is a good test case for the accuracy of ABC, as well as our summary statistics.
 
-Write a wrapper function `my_ABCLogPosterior_det` to calculate the posterior using the deterministic model by changing the `my_ABCLogPosterior_tdc` function.
+Write a wrapper function `my_ABCLogPosterior_tdc_det` to calculate the posterior using the deterministic model by changing the `my_ABCLogPosterior_tdc` function.
 
 ```{r abc_wrapper_det, echo = FALSE}
-my_ABCLogPosterior_tdc <- function(theta) {
+my_ABCLogPosterior_tdc_det <- function(theta) {
 
     init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
 
