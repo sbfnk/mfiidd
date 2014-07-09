@@ -248,7 +248,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
 
     # initialise vector of model maxima
     
-    ## for loop over sampled numbers
+    ## start for() loop over sampled numbers
 
         # get row from trace corresponding to sampled number
 
@@ -257,7 +257,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
 
         # calculate maximum in model and add to vector of model maxima
 
-    ## end for loop
+    ## end for() loop
 
     # calculate 2-sided p-value, that is the proportion of elements of
     # max.model which are either greater or equal or less or equal
@@ -276,7 +276,7 @@ source("our_ppc.r")
 
 Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,
 
-```{r ppc, eval=FALSE}
+```{r ppc}
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 my_postPredCheck(trace = mcmc_SEITL_theta1$trace[SEITL_deter$theta.names],
                  n.samples = 100,

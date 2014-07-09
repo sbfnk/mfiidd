@@ -9,7 +9,7 @@ library(fitR)
 set.seed(1234)
 ```
 
-# Parameter values and initial state
+Here are some examples for parameter values and initial state. See the in-line comments below for more detail.
 
 ```{r parameter-values}
 # All the parameter sets below make some common assumptions:
