@@ -251,9 +251,7 @@ Note the strong positive correlations (~0.8) between $R_0$ and $D_{lat}$ and bet
 ```{r correlation-beta, collapse=TRUE, warning=FALSE}
 with(as.data.frame(trace.burn.thin[[1]]), quantile(R0/D.inf,probs=c(0.025,0.25,0.5,0.75,0.975)))
 ```
-The posterior value of $\beta$ doesn't show much variation. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of $R_0$ and $D_{inf}$ that lead to the same $\beta$, hence their wide 95% CIs.
-
-__Not sure this is the explanation actuallly. $\beta$ shows similar variation as $R_0$ and $D_{inf}$. Maybe this is just because of the hight attack rate, i.e. once $R_0>5$ it doesn't make any difference whether it is 10 or 20.__
+The posterior value of $\beta$ varies somewhat less than the posterior values of $R_0$ and $D_\mathrm{inf}$. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of $R_0$ and $D_{inf}$ that lead to the same $\beta$, hence their wide 95% CIs. A second effect that could explain the high level of variation in $R_0$ is the very high attack rate. Once $R_0>5$ it doesn't make much difference whether $R_0$ is, say, 10 or 20.
 
 We can also note that the posterior estimate of $D_{inf}=11$ days (95% CI: $[6-15]$) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as by default the `SEITL_deter` fitmodel comes with uniform priors for all parameters.
 

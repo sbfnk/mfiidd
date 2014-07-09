@@ -133,38 +133,102 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc</span>(mcmc_SEITL$trac
 <p>As anticipated from the trace, burning the first 1000 iterations maximizes the effective sample size (ESS).</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Let&#39;s create a new trace without the burning</span>
 trace.burn &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace, <span class="dt">burn =</span> <span class="dv">1000</span>)
-## Error: $ operator is invalid for atomic vectors
-<span class="kw">xyplot</span>(<span class="dt">x =</span> trace.burn)
-## Error: object &#39;trace.burn&#39; not found
-<span class="co"># Let&#39;s check the ESS</span>
+<span class="kw">xyplot</span>(<span class="dt">x =</span> trace.burn)</code></pre>
+<p><img src="figure/SEITL_model_example/short-run-analysis-burn.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Let&#39;s check the ESS</span>
 <span class="kw">effectiveSize</span>(trace.burn)
-## Error: object &#39;trace.burn&#39; not found</code></pre>
+##             R0          D.lat          D.inf          alpha          D.imm 
+##         172.59          68.91         177.06         122.62         101.67 
+##            rho      log.prior log.likelihood  log.posterior 
+##         121.78           0.00         139.10         139.10</code></pre>
 <p>Although we have 4000 samples remaining after burning, the ESS is much smaller. This is due to autocorrelation of the chain.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># autocorrelation plot</span>
 <span class="kw">acfplot</span>(<span class="dt">x =</span> trace.burn, <span class="dt">lag.max =</span> <span class="dv">60</span>)</code></pre>
-<pre><code>## Error: object &#39;trace.burn&#39; not found</code></pre>
-<p>The autocorrelation between samples drops substantially for a lag of 20 iterations. We can thin the trace to reduce the autocorrelation.</p>
+<p><img src="figure/SEITL_model_example/short-run-analysis-acf.png" title="" alt="" width="1000" style="display: block; margin: auto;" /> The autocorrelation between samples drops substantially for a lag of 20 iterations. We can thin the trace to reduce the autocorrelation.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Let&#39;s create a thinned trace</span>
 trace.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.burn, <span class="dt">thin =</span> <span class="dv">20</span>)
-## Error: object &#39;trace.burn&#39; not found
-<span class="kw">xyplot</span>(<span class="dt">x =</span> trace.burn.thin)
-## Error: object &#39;trace.burn.thin&#39; not found
-<span class="co"># Let&#39;s check the ESS</span>
+<span class="kw">xyplot</span>(<span class="dt">x =</span> trace.burn.thin)</code></pre>
+<p><img src="figure/SEITL_model_example/short-run-analysis-thin.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Let&#39;s check the ESS</span>
 <span class="kw">effectiveSize</span>(trace.burn.thin)
-## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
+##             R0          D.lat          D.inf          alpha          D.imm 
+##         131.27          66.87         191.00          86.83         112.46 
+##            rho      log.prior log.likelihood  log.posterior 
+##          96.41           0.00         137.34         137.34</code></pre>
 <p>Although the thinned trace has 20 times less samples than the unthinned trace, it has a similar ESS. This is because the autocorrelation has been reduced.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># new autocorrelation plot</span>
 <span class="kw">acfplot</span>(<span class="dt">x =</span> trace.burn.thin, <span class="dt">lag.max =</span> <span class="dv">60</span>)</code></pre>
-<pre><code>## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
+<p><img src="figure/SEITL_model_example/short-run-analysis-acf-thin.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p>Let's compare the posterior estimates of the thinned and unthinned traces.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(trace.burn)
-## Error: object &#39;trace.burn&#39; not found
+## 
+## Iterations = 1:4001
+## Thinning interval = 1 
+## Number of chains = 1 
+## Sample size per chain = 4001 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                    Mean     SD Naive SE Time-series SE
+## R0               17.240 3.8608 0.061036        0.29387
+## D.lat             1.217 0.3368 0.005325        0.04058
+## D.inf            10.527 2.2755 0.035975        0.17101
+## alpha             0.539 0.0363 0.000574        0.00328
+## D.imm             8.069 1.9709 0.031159        0.19547
+## rho               0.700 0.0490 0.000774        0.00444
+## log.prior       -12.814 0.0000 0.000000        0.00000
+## log.likelihood -141.284 1.6895 0.026711        0.14325
+## log.posterior  -154.099 1.6895 0.026711        0.14325
+## 
+## 2. Quantiles for each variable:
+## 
+##                    2.5%      25%      50%      75%    97.5%
+## R0                9.897   14.488   16.870   19.586   24.813
+## D.lat             0.571    0.995    1.189    1.423    1.941
+## D.inf             5.974    8.886   10.605   12.226   14.463
+## alpha             0.468    0.515    0.541    0.565    0.604
+## D.imm             4.488    6.522    7.892    9.520   12.004
+## rho               0.608    0.667    0.699    0.735    0.792
+## log.prior       -12.814  -12.814  -12.814  -12.814  -12.814
+## log.likelihood -145.325 -142.328 -141.006 -139.928 -138.966
+## log.posterior  -158.140 -155.143 -153.821 -152.743 -151.781
 <span class="kw">summary</span>(trace.burn.thin)
-## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
+## 
+## Iterations = 1:191
+## Thinning interval = 1 
+## Number of chains = 1 
+## Sample size per chain = 191 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                    Mean     SD Naive SE Time-series SE
+## R0               17.399 3.8542  0.27888        0.33640
+## D.lat             1.220 0.3372  0.02440        0.04123
+## D.inf            10.603 2.2488  0.16272        0.16272
+## alpha             0.539 0.0351  0.00254        0.00377
+## D.imm             8.031 1.9837  0.14354        0.18706
+## rho               0.699 0.0473  0.00342        0.00482
+## log.prior       -12.814 0.0000  0.00000        0.00000
+## log.likelihood -141.270 1.6975  0.12283        0.14485
+## log.posterior  -154.085 1.6975  0.12283        0.14485
+## 
+## 2. Quantiles for each variable:
+## 
+##                    2.5%      25%      50%      75%    97.5%
+## R0               10.030   14.642   17.129   19.600   24.757
+## D.lat             0.568    1.012    1.196    1.449    1.909
+## D.inf             6.312    9.157   10.518   12.472   14.250
+## alpha             0.468    0.518    0.540    0.562    0.599
+## D.imm             4.451    6.515    7.862    9.546   11.775
+## rho               0.609    0.668    0.701    0.733    0.781
+## log.prior       -12.814  -12.814  -12.814  -12.814  -12.814
+## log.likelihood -145.397 -142.186 -140.983 -139.850 -138.964
+## log.posterior  -158.212 -155.000 -153.798 -152.665 -151.779</code></pre>
 <p>They are very similar. So why thinning? This is because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function <code>plotPosteriorDensity</code> of the <code>fitR</code> package:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unthinned =</span> trace.burn, <span class="dt">thinned =</span> trace.burn.thin))</code></pre>
-<pre><code>## Error: object &#39;trace.burn&#39; not found</code></pre>
-<p>The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local &quot;bumps&quot; of the unthinned distribution are caused by autocorrelated samples.</p>
+<p><img src="figure/SEITL_model_example/short-run-analysis-compare-density.png" title="" alt="" width="1000" style="display: block; margin: auto;" /> The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local &quot;bumps&quot; of the unthinned distribution are caused by autocorrelated samples.</p>
 <p>You can now go back to the <a href="mcmc_and_model_comparison.html#long-run-analysis">practical</a> and perform a similar analysis for a long-run MCMC.</p>
 <h1 id="long-run-analysis">Long run analysis</h1>
 <p>Here is an example of an analysis for our long run (<span class="math">\(10^5\)</span> iterations)</p>
@@ -231,36 +295,66 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 <span class="kw">xyplot</span>(trace)</code></pre>
 <p><img src="figure/SEITL_model_example/long-run-combine-traces.png" title="" alt="" width="1000" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain. Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.</p>
 <pre class="sourceCode r"><code class="sourceCode r">trace.burn &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace, <span class="dt">burn =</span> <span class="dv">5000</span>)
-## Error: dim(X) must have a positive length
 
 <span class="co"># removing the burning increases the ESS</span>
 <span class="kw">effectiveSize</span>(trace.burn)
-## Error: object &#39;trace.burn&#39; not found
+##             R0          D.lat          D.inf          alpha          D.imm 
+##           5858           6108           6536           6888           6543 
+##            rho      log.prior log.likelihood  log.posterior 
+##           7164              0           5612           5612
 
 <span class="co"># autocorrelation</span>
-<span class="kw">acfplot</span>(trace.burn)
-## Error: object &#39;trace.burn&#39; not found</code></pre>
+<span class="kw">acfplot</span>(trace.burn)</code></pre>
+<p><img src="figure/SEITL_model_example/long-run-burn.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p>Again, given the very high ESS, we can be quite generous in our choice of the thinning.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Thinning: let&#39;s keep 1 iteration every 40</span>
-trace.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.burn, <span class="dt">thin =</span> <span class="dv">40</span>)</code></pre>
-<pre><code>## Error: object &#39;trace.burn&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">xyplot</span>(trace.burn.thin)</code></pre>
-<pre><code>## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
-<p>However, let's compare the thinned and unthinnned distributions.</p>
+trace.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.burn, <span class="dt">thin =</span> <span class="dv">40</span>)
+<span class="kw">xyplot</span>(trace.burn.thin)</code></pre>
+<p><img src="figure/SEITL_model_example/long-run-thin.png" title="" alt="" width="1000" style="display: block; margin: auto;" /> However, let's compare the thinned and unthinnned distributions.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Note that plotPosteriorDensity can take a list of mcmc.list and will plot</span>
 <span class="co"># the different mcmc.list by combining their elements Let&#39;s plot the</span>
 <span class="co"># combined unthinned trace vs the combined thinned trace.</span>
 <span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unthinned =</span> trace.burn, <span class="dt">thinned =</span> trace.burn.thin))</code></pre>
-<pre><code>## Error: object &#39;trace.burn&#39; not found</code></pre>
+<p><img src="figure/SEITL_model_example/long-run-compare-thin.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p>In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!</p>
 <p>In fact, there are several references that show that the longer (unthinned) chain usually yields better estimates of the true posterior than the shorter thinned chain, even for percentiles in the tail of the distribution. That said, thinning can be useful for other reasons, such as memory or time constraints in post-chain processing.</p>
 <p>Now, we can compare whether the two independent chains, started at <code>theta1</code> and <code>theta2</code>, have converged to the same posterior distribution</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">densityplot</span>(trace.burn.thin)</code></pre>
-<pre><code>## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
-<p>Since the chains have converged to the same posterior, we can use the combined estimates</p>
+<p><img src="figure/SEITL_model_example/long-run-compare-chains.png" title="" alt="" width="1000" style="display: block; margin: auto;" /> Since the chains have converged to the same posterior, we can use the combined estimates</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the function summary combines the chains of a mcmc.list</span>
 <span class="kw">summary</span>(trace.burn.thin)
-## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
+## 
+## Iterations = 1:2318
+## Thinning interval = 1 
+## Number of chains = 2 
+## Sample size per chain = 2318 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                    Mean     SD Naive SE Time-series SE
+## R0               17.091 4.3076 0.063265       0.072189
+## D.lat             1.146 0.3555 0.005221       0.005790
+## D.inf            10.752 2.2370 0.032855       0.034959
+## alpha             0.537 0.0382 0.000561       0.000616
+## D.imm             7.780 2.1159 0.031076       0.031551
+## rho               0.696 0.0519 0.000762       0.000780
+## log.prior       -12.814 0.0000 0.000000       0.000000
+## log.likelihood -141.270 1.7151 0.025190       0.028269
+## log.posterior  -154.085 1.7151 0.025190       0.028269
+## 
+## 2. Quantiles for each variable:
+## 
+##                    2.5%      25%      50%      75%    97.5%
+## R0                9.972   13.937   16.641   19.905   26.428
+## D.lat             0.481    0.898    1.145    1.382    1.842
+## D.inf             6.495    9.118   10.774   12.481   14.655
+## alpha             0.459    0.512    0.539    0.563    0.610
+## D.imm             4.156    6.353    7.611    9.047   12.509
+## rho               0.599    0.660    0.694    0.730    0.802
+## log.prior       -12.814  -12.814  -12.814  -12.814  -12.814
+## log.likelihood -145.566 -142.129 -140.969 -140.023 -138.893
+## log.posterior  -158.380 -154.943 -153.784 -152.837 -151.707</code></pre>
 <p>Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with <code>summary</code> won't be meaningful for a parameter with a multi-modal posterior. By contrast, for a uni-modal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates. Furthermore, running several &quot;shorter&quot; chains in parallel is faster than running one &quot;long&quot; chain.</p>
 <p>Finally, let's assess the fit of the deterministic SEITL model.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load data</span>
@@ -272,34 +366,32 @@ init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="
 <span class="co"># by default plotPosteriorFit summarize the fit of 100 thetas sampled from</span>
 <span class="co"># the posterior</span>
 <span class="kw">plotPosteriorFit</span>(<span class="dt">trace =</span> trace, <span class="dt">fitmodel =</span> SEITL_deter, <span class="dt">init.state =</span> init.state, 
-    <span class="dt">data =</span> FluTdC1971)
-## Error: unused arguments (init.state = init.state, data = FluTdC1971)
-
+    <span class="dt">data =</span> FluTdC1971)</code></pre>
+<p><img src="figure/SEITL_model_example/long-run-fit1.png" title="" alt="" width="600" style="display: block; margin: auto;" /></p>
+<pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># alternatively, one can plot the fit of the mean of the posterior (in this</span>
 <span class="co"># case the observation is replicated 100 times)</span>
 <span class="kw">plotPosteriorFit</span>(<span class="dt">trace =</span> trace, <span class="dt">fitmodel =</span> SEITL_deter, <span class="dt">init.state =</span> init.state, 
-    <span class="dt">data =</span> FluTdC1971, <span class="dt">posterior.summary =</span> <span class="st">&quot;mean&quot;</span>)
-## Error: unused arguments (init.state = init.state, data = FluTdC1971,
-## posterior.summary = &quot;mean&quot;)
-
+    <span class="dt">data =</span> FluTdC1971, <span class="dt">posterior.summary =</span> <span class="st">&quot;mean&quot;</span>)</code></pre>
+<p><img src="figure/SEITL_model_example/long-run-fit2.png" title="" alt="" width="600" style="display: block; margin: auto;" /></p>
+<pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># or using the maximum a posteriori (MAP) estimate</span>
 <span class="kw">plotPosteriorFit</span>(<span class="dt">trace =</span> trace, <span class="dt">fitmodel =</span> SEITL_deter, <span class="dt">init.state =</span> init.state, 
-    <span class="dt">data =</span> FluTdC1971, <span class="dt">posterior.summary =</span> <span class="st">&quot;max&quot;</span>)
-## Error: unused arguments (init.state = init.state, data = FluTdC1971,
-## posterior.summary = &quot;max&quot;)</code></pre>
+    <span class="dt">data =</span> FluTdC1971, <span class="dt">posterior.summary =</span> <span class="st">&quot;max&quot;</span>)</code></pre>
+<p><img src="figure/SEITL_model_example/long-run-fit3.png" title="" alt="" width="600" style="display: block; margin: auto;" /></p>
 <p>Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.</p>
 <p>You can now go back to the <a href="mcmc_and_model_comparison.html#correlations">practical</a> and look at the posterior correlations between the parameters.</p>
 <h1 id="correlations">Correlations</h1>
 <p>The correlation of the posterior distribution can be plotted with <code>levelplot</code>.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># levelplot doesn&#39;t accept `mcmc.list`, we pass the first `mcmc` only.</span>
 <span class="kw">levelplot</span>(trace.burn.thin[[<span class="dv">1</span>]], <span class="dt">col.regions =</span> <span class="kw">heat.colors</span>(<span class="dv">100</span>))</code></pre>
-<pre><code>## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
+<p><img src="figure/SEITL_model_example/correlation-levelplot.png" title="" alt="" width="600" style="display: block; margin: auto;" /></p>
 <p>Note the strong positive correlations (~0.8) between <span class="math">\(R_0\)</span> and <span class="math">\(D_{lat}\)</span> and between <span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span>. In order to explain the wide 95% CIs of <span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span>, let's have a look at the contact rate <span class="math">\(\beta=R_0/D_{inf}\)</span>.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">with</span>(<span class="kw">as.data.frame</span>(trace.burn.thin[[<span class="dv">1</span>]]), <span class="kw">quantile</span>(R0/D.inf, <span class="dt">probs =</span> <span class="kw">c</span>(<span class="fl">0.025</span>, 
     <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.975</span>)))
-## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
-<p>The posterior value of <span class="math">\(\beta\)</span> doesn't show much variation. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of <span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span> that lead to the same <span class="math">\(\beta\)</span>, hence their wide 95% CIs.</p>
-<p><strong>Not sure this is the explanation actuallly. <span class="math">\(\beta\)</span> shows similar variation as <span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span>. Maybe this is just because of the hight attack rate, i.e. once <span class="math">\(R_0&gt;5\)</span> it doesn't make any difference whether it is 10 or 20.</strong></p>
+##  2.5%   25%   50%   75% 97.5% 
+## 1.091 1.396 1.574 1.772 2.203</code></pre>
+<p>The posterior value of <span class="math">\(\beta\)</span> varies somewhat less than the posterior values of <span class="math">\(R_0\)</span> and <span class="math">\(D_\mathrm{inf}\)</span>. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of <span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span> that lead to the same <span class="math">\(\beta\)</span>, hence their wide 95% CIs. A second effect that could explain the high level of variation in <span class="math">\(R_0\)</span> is the very high attack rate. Once <span class="math">\(R_0&gt;5\)</span> it doesn't make much difference whether <span class="math">\(R_0\)</span> is, say, 10 or 20.</p>
 <p>We can also note that the posterior estimate of <span class="math">\(D_{inf}=11\)</span> days (95% CI: <span class="math">\([6-15]\)</span>) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as by default the <code>SEITL_deter</code> fitmodel comes with uniform priors for all parameters.</p>
 <p>In order to include previous empirical information on <span class="math">\(D_{lat}\)</span> and <span class="math">\(D_{inf}\)</span>, let's modify the <code>logPrior</code> of <code>SEITL_deter</code> as follows:</p>
 <pre class="sourceCode r"><code class="sourceCode r">SEITL_deter$logPrior &lt;-<span class="st"> </span>function(theta) {
@@ -337,51 +429,46 @@ trace.info2 &lt;-<span class="st"> </span><span class="kw">mcmc</span>(mcmc_SEIT
 trace.info &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(trace.info1, trace.info2)
 
 <span class="co"># burn and thin as the chain with uniform prior (see above sections)</span>
-trace.info.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.info, <span class="dt">burn =</span> <span class="dv">5000</span>, <span class="dt">thin =</span> <span class="dv">40</span>)</code></pre>
-<pre><code>## Error: dim(X) must have a positive length</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># check that both chains converged to the same posterior</span>
+trace.info.burn.thin &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace.info, <span class="dt">burn =</span> <span class="dv">5000</span>, <span class="dt">thin =</span> <span class="dv">40</span>)
+
+<span class="co"># check that both chains converged to the same posterior</span>
 <span class="kw">plotPosteriorDensity</span>(trace.info.burn.thin)</code></pre>
-<pre><code>## Error: object &#39;trace.info.burn.thin&#39; not found</code></pre>
+<p><img src="figure/SEITL_model_example/info-prior-analysis1.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># compare the effect of informative priors on the posterior distribution</span>
 <span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">unif =</span> trace.burn.thin, <span class="dt">info =</span> trace.info.burn.thin))</code></pre>
-<pre><code>## Error: object &#39;trace.burn.thin&#39; not found</code></pre>
+<p><img src="figure/SEITL_model_example/info-prior-analysis2.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p><span class="math">\(R_0\)</span> and <span class="math">\(D_{inf}\)</span> have very different posterior. This is expected since there is an informative prior on <span class="math">\(D_{inf}\)</span> and <span class="math">\(R_0\)</span> is strongly correlated to <span class="math">\(D_{inf}\)</span>. Note also that the mode of all other parameters have changed, though less than <span class="math">\(D_{inf}\)</span> and <span class="math">\(R_0\)</span>. This illustrate the influence that one prior can have on the full posterior distribution.</p>
 <p>You can now go back to the <a href="mcmc_and_model_comparison.html#model-selection">practical</a>.</p>
 <h1 id="model-selection">Model selection</h1>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># combine the two chains in a data frame</span>
 trace.combined &lt;-<span class="st"> </span><span class="kw">ldply</span>(trace.info.burn.thin)
-## Error: object &#39;trace.info.burn.thin&#39; not found
 
 <span class="co"># take the mean of theta</span>
 theta.bar &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace.combined[SEIT2L_deter$theta.names])
-## Error: object &#39;trace.combined&#39; not found
 <span class="kw">print</span>(theta.bar)
-## Error: object &#39;theta.bar&#39; not found
+##     R0  D.lat  D.inf  alpha  D.imm    rho 
+## 7.6251 1.2904 3.6665 0.4751 9.1354 0.6469
 
 <span class="co"># compute its log-likelihood</span>
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
 log.like.theta.bar &lt;-<span class="st"> </span><span class="kw">trajLogLike</span>(SEITL_deter, theta.bar, init.state, <span class="dt">data =</span> FluTdC1971)
-## Error: `hmax&#39; must be a non-negative value
 <span class="kw">print</span>(log.like.theta.bar)
-## Error: object &#39;log.like.theta.bar&#39; not found
+## [1] -142.8
 
 <span class="co"># and its deviance</span>
 D.theta.bar &lt;-<span class="st"> </span>-<span class="dv">2</span> *<span class="st"> </span>log.like.theta.bar
-## Error: object &#39;log.like.theta.bar&#39; not found
 <span class="kw">print</span>(D.theta.bar)
-## Error: object &#39;D.theta.bar&#39; not found
+## [1] 285.7
 
 <span class="co"># the effective number of parameters</span>
 p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">2</span> *<span class="st"> </span>trace.combined$log.likelihood)/<span class="dv">2</span>
-## Error: object &#39;trace.combined&#39; not found
 <span class="kw">print</span>(p.D)
-## Error: object &#39;p.D&#39; not found
+## [1] 8.117
 
 <span class="co"># and finally the DIC</span>
 DIC &lt;-<span class="st"> </span>D.theta.bar +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>p.D
-## Error: object &#39;D.theta.bar&#39; not found
 <span class="kw">print</span>(DIC)
-## Error: object &#39;DIC&#39; not found</code></pre>
+## [1] 301.9</code></pre>
 <p>Follow this <a href="mcmc_and_model_comparison.html#posterior-predictive-checks">link</a> to go back to the practical.</p>
 </body>
 </html>
