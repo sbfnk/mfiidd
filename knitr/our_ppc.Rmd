@@ -1,0 +1,12 @@
+Here is a possible solution for the posterior predictive check.
+
+```{r echo=FALSE}
+read_chunk('our_ppc.r')
+```
+```{r our_postPredCheck}
+
+```
+
+You can copy and paste the function into your **R** session, and proceed from there.
+
+[Return](mcmc_and_model_comparison.md#posterior-predictive-checks) to the practical.

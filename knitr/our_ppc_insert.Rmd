@@ -1,3 +1,6 @@
+Below, you can find an example of how to code the posterior predcitive checks. Some bits are left out for you to fill in (marked "INSERT HERE"). Each "INSERT HERE" statement requires one line of code. If you struggle, you can find a link to a solution below the function.
+
+```{r our_ppc, eval=FALSE}
 
 # This is a function that takes 4 arguments:
 # - trace, a data frame containing samples from the posterior
@@ -41,3 +44,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
     # return two-sided p-value
     return(pvalue)
 }
+
+```
+
+If you run into any problems, have a look at our [solution](our_ppc.md), otherwise [return](mcmc_and_model_comparison.md#posterior-predictive-checks) to the pMCMC practical.

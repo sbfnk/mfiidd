@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+</head>
+<body>
+<p>Here is a possible solution for the posterior predictive check.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># This is a function that takes 4 arguments:</span>
+<span class="co"># - trace, a data frame containing samples from the posterior</span>
+<span class="co">#   distribution, one column per parameter </span>
+<span class="co"># - n.samples, the number of samples to take</span>
+<span class="co"># - fitmodel, the model we use to generate replicates</span>
+<span class="co"># - init.state, the initial state</span>
+<span class="co"># - data, the data set we have fit the model to</span>
+<span class="co"># It returns the two-sided p-value for the maximal observation</span>
+<span class="co"># in the data with respect to the model.</span>
+my_postPredCheck &lt;-<span class="st"> </span>function(trace, n.samples, fitmodel, init.state, data) {
+
+    <span class="co"># calculate maximum in obs column of data</span>
+    max.data &lt;-<span class="st"> </span><span class="kw">max</span>(data$obs)
+    
+    <span class="co"># draw n.samples random numbers between 1</span>
+    <span class="co"># and n.samples using the `samples` function </span>
+    samples &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">seq_len</span>(<span class="kw">nrow</span>(trace)), n.samples)
+
+    <span class="co"># initialise vector of model maxima</span>
+    max.model &lt;-<span class="st"> </span><span class="kw">c</span>()
+    
+    <span class="co"># loop over samples</span>
+    for (i in samples) {
+
+        <span class="co"># get i&#39;th column from the trace, unlist</span>
+        <span class="co"># (to convert to a vector) and assign to parameter</span>
+        <span class="co"># vector theta</span>
+        theta &lt;-<span class="st"> </span><span class="kw">unlist</span>(trace[i, ])
+
+        <span class="co"># use genObsTraj to generate</span>
+        <span class="co"># observation trajectory using theta</span>
+        obs.traj &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(fitmodel, theta, init.state, data$time)
+
+        <span class="co"># calculate maximum in model and add to max.model vector</span>
+        max.model &lt;-<span class="st"> </span><span class="kw">c</span>(max.model, <span class="kw">max</span>(obs.traj$obs))
+    }
+
+    <span class="co"># calculate quantiles of model maxima</span>
+    max.model.quant &lt;-<span class="st"> </span><span class="kw">quantile</span>(max.model, <span class="dt">probs =</span> <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))
+
+    <span class="co"># calculate 2-sided p-value,</span>
+    <span class="co"># that is the proportion of elements of max.model which are</span>
+    <span class="co"># either greater or equal or less or equal (whichever is</span>
+    <span class="co"># less) and  multiply by 2 (because it is a 2-sided test)</span>
+    pvalue &lt;-<span class="st"> </span><span class="kw">min</span>(<span class="kw">sum</span>(max.model &lt;=<span class="st"> </span>max.data),
+                  <span class="kw">sum</span>(max.model &gt;=<span class="st"> </span>max.data)) /<span class="st"> </span>n.samples *<span class="st"> </span><span class="dv">2</span>
+    
+    <span class="co"># return two-sided p-value</span>
+    <span class="kw">return</span>(pvalue)
+}</code></pre>
+<p>You can copy and paste the function into your <strong>R</strong> session, and proceed from there.</p>
+<p><a href="mcmc_and_model_comparison.html#posterior-predictive-checks">Return</a> to the practical.</p>
+</body>
+</html>

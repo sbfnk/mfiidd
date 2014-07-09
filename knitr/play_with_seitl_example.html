@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Example: Tristan da Cunha outbreak &amp; the SEITL model.</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Example: Tristan da Cunha outbreak &amp; the SEITL model.</h1>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#parameter-values-and-initial-state">Parameter values and initial state</a></li>
+</ul>
+</div>
+<h1 id="parameter-values-and-initial-state">Parameter values and initial state</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># All the parameter sets below make some common assumptions: 1) latent and</span>
+<span class="co"># infectious period equal to 2 and 2 days respectively 2) duration of</span>
+<span class="co"># immunity equal to 15 - 2 = 13 days 3) 80% of symptomatic and 85% of cases</span>
+<span class="co"># in the data so the total reporting rate rho = 0.8*0.85 ~ 0.7 4) The 2</span>
+<span class="co"># islanders with symptoms at disembarkation are infectious 5) The 3</span>
+<span class="co"># islanders who were ill during the 8-day journey are temporary protected 6)</span>
+<span class="co"># No islander immune at the beginning of the epidemic</span>
+
+<span class="co"># Additional assumptions for guess 1 R0 as in large populations probability</span>
+<span class="co"># to develop long-term protection equal to seroconversion rate (80%)</span>
+theta.guess1 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.7</span>)
+init.state.guess1 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+
+<span class="co"># Additional assumptions for guess 2 R0 as in close knit communities (=&gt;</span>
+<span class="co"># larger 1rst wave) probability to develop long-term protection equal to</span>
+<span class="co"># seroconversion rate (80%)</span>
+theta.guess2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">10</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.7</span>)
+init.state.guess2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+
+<span class="co"># Additional assumptions for guess 3 R0 as in close knit communities (=&gt;</span>
+<span class="co"># larger 1rst wave) probability to develop long-term protection (50%) lower</span>
+<span class="co"># than the seroconversion rate (80%) (=&gt; larger 2nd wave)</span>
+theta.guess3 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">10</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.5</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.7</span>)
+init.state.guess3 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)</code></pre>
+</body>
+</html>

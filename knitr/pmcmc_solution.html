@@ -52,7 +52,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>Ideally we want enough particles to obtain a fairly stable estimate of the log-likelihood in a reasonable computational time.</p>
 <p>A simple calibration approach consists in plotting the mean, standard deviation and computational time of the log-likelihood estimate as a function of the number of particles. Although several parameters can be tested, we will use a <code>theta</code> close to the mean posterior estimate of the deterministic fit since it is likely to be the region of the parameter space we want to explore with the pMCMC.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load fitmodel, data and define init.state</span>
-<span class="kw">example</span>(SEIT2L_stochastic)
+<span class="kw">data</span>(SEIT2L_stoch)
 <span class="kw">data</span>(FluTdC1971)
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
 
@@ -75,7 +75,7 @@ for (n.particles in test.n.particles) {
     start.time &lt;-<span class="st"> </span><span class="kw">Sys.time</span>()
     for (i in <span class="dv">1</span>:n.replicates) {
         <span class="co"># one Monte-Carlo estimate of the log-likelihood</span>
-        sample.log.like[i] &lt;-<span class="st"> </span><span class="kw">my_particleFilter</span>(SEIT2L_sto, theta, init.state, 
+        sample.log.like[i] &lt;-<span class="st"> </span><span class="kw">my_particleFilter</span>(SEIT2L_stoch, theta, init.state, 
             FluTdC1971, n.particles)
     }
     <span class="co"># end measuring time</span>
@@ -93,17 +93,17 @@ for (n.particles in test.n.particles) {
     res &lt;-<span class="st"> </span><span class="kw">rbind</span>(res, <span class="kw">t</span>(ans))
 }</code></pre>
 <p>We ran this calibration algorithm and obtained the following results:</p>
-<p><img src="figure/pmcmc/plot-calibration.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/plot-calibration.png" title="" alt="" width="800" style="display: block; margin: auto;" /></p>
 <p>The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC.</p>
 <p>You can now return to the <a href="pmcmc.html#setting-the-pmcmc">practical</a> and set your pMCMC with 400 particles.</p>
 <h1 id="setting-the-pmcmc">Setting the pMCMC</h1>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the fitmodel</span>
-<span class="kw">example</span>(SEIT2L_stochastic)
+<span class="kw">data</span>(SEIT2L_stoch)
 
 <span class="co"># wrapper for posterior</span>
 my_posteriorSto &lt;-<span class="st"> </span>function(theta) {
     
-    my_fitmodel &lt;-<span class="st"> </span>SEIT2L_sto
+    my_fitmodel &lt;-<span class="st"> </span>SEIT2L_stoch
     my_init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
     my_n.particles &lt;-<span class="st"> </span><span class="dv">400</span>
     <span class="co"># you can reduce the number of particles if your pMCMC is too slow</span>
@@ -121,7 +121,7 @@ trace &lt;-<span class="st"> </span>mcmc_SEITL_infoPrior_theta1$trace
 
 <span class="co"># we will start the pMCMC at the mean posterior estimate of the</span>
 <span class="co"># deterministic fit</span>
-init.theta &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace[SEIT2L_sto$theta.names])
+init.theta &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace[SEIT2L_stoch$theta.names])
 
 <span class="co"># and we take the empirical covariance matrix for the Gaussian kernel</span>
 <span class="co"># proposal</span>
@@ -166,18 +166,18 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 
 <span class="co"># Let&#39;s have a look at the traces</span>
 <span class="kw">xyplot</span>(trace)</code></pre>
-<p><img src="figure/pmcmc/analyse-n50.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n50.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p>The burning period looks relatively short, this is because we started the chains with a &quot;good&quot; <code>init.theta</code>. That said, since we have relatively short runs it might be useful to carefully choose the burning period with <code>plotESSBurn</code>.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># this can take some time as we have 5 chains</span>
 <span class="kw">plotESSBurn</span>(trace)</code></pre>
-<p><img src="figure/pmcmc/analyse-n50-burn1.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n50-burn1.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># let&#39;s burn the 500 first iterations</span>
 trace.burn &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(trace, <span class="dt">burn =</span> <span class="dv">500</span>)
 
 <span class="co"># what about autocorrelation</span>
 <span class="kw">acfplot</span>(<span class="dt">x =</span> trace.burn, <span class="dt">lag.max =</span> <span class="dv">50</span>)</code></pre>
-<p><img src="figure/pmcmc/analyse-n50-burn2.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n50-burn2.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># Although there is significant autocorrelation, we can&#39;t thin too much</span>
 <span class="co"># since the chains are quite short.  So let&#39;s keep 1 iteration every 20</span>
@@ -185,7 +185,7 @@ trace.burn.thin.n50 &lt;-<span class="st"> </span><span class="kw">burnAndThin</
 
 <span class="co"># Finally we can plot the posterior density</span>
 <span class="kw">densityplot</span>(<span class="dt">x =</span> trace.burn.thin.n50)</code></pre>
-<p><img src="figure/pmcmc/analyse-n50-burn3.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n50-burn3.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p>The 5 chains converged to somewhat different posterior distributions, with different shapes and modes. This is particularly evident for the posterior of <span class="math">\(R_0\)</span>, which looks bimodal. In addition, the ESS is too small to have smooth posterior distributions.</p>
 <p>With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. This is why we have a lot of autocorrelation and small ESSs. That said, the theoretical properties of the pMCMC guaranty that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to the number of iterations.</p>
 <p>You can now return to the <a href="pmcmc.html#analyse-a-pmcmc-with-400-particles">practical</a> and analyse a pMCMC with much more particles that we ran for you.</p>
@@ -215,16 +215,15 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 
 <span class="co"># Let&#39;s have a look at the traces</span>
 <span class="kw">xyplot</span>(trace)</code></pre>
-<p><img src="figure/pmcmc/analyse-n400.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>As in the analysis with 50 particles, the burning period is relatively short. However, with 400 particles the chains mix much better. Of course the chains take longer to run but because they mix better it becomes computationally more efficient to run many short chains in parallel, starting near the mode of the (deterministic) posterior, and combine them to increase the overall ESS.</p>
-<p>Here again we decide to carefully choose the burning period with <code>plotESSBurn</code>.</p>
+<p><img src="figure/pmcmc/analyse-n400.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
+<p>As in the analysis with 50 particles, the burning period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burning period with <code>plotESSBurn</code>.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Actually, it looks like no burning is needed:</span>
 <span class="kw">plotESSBurn</span>(trace)</code></pre>
-<p><img src="figure/pmcmc/analyse-n400-burn1.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n400-burn1.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># What about autocorrelation?</span>
 <span class="kw">acfplot</span>(<span class="dt">x =</span> trace, <span class="dt">lag.max =</span> <span class="dv">50</span>)</code></pre>
-<p><img src="figure/pmcmc/analyse-n400-burn2.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n400-burn2.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># Autocorrelation decreases much more quickly than with 50 particles Let&#39;s</span>
 <span class="co"># keep 1 iteration every 20</span>
@@ -232,15 +231,16 @@ trace.thin.n400 &lt;-<span class="st"> </span><span class="kw">burnAndThin</span
 
 <span class="co"># Let&#39;s plot the posterior densities</span>
 <span class="kw">densityplot</span>(<span class="dt">x =</span> trace.thin.n400)</code></pre>
-<p><img src="figure/pmcmc/analyse-n400-burn3.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p><img src="figure/pmcmc/analyse-n400-burn3.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
 <p>All 5 chains seems to have converged to the same posterior, which are smoother than with 50 particles. Let's compare the combined posterior densities with that obtained with 50 particles</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">n50 =</span> trace.burn.thin.n50, <span class="dt">n400 =</span> trace.thin.n400))</code></pre>
-<p><img src="figure/pmcmc/n400-n50.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS. In addition, we can notice substantial differences in the location of the mode of <span class="math">\(R_0\)</span>, which is shifted to the left with 50 particles. Finally, note that the log-likelihood is overestimated with 50 particles, which can be problematic when doing model selection as we would overestimate the fit of the model.</p>
-<p>Overall, this confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles. Although the latter takes more time at each iteration, it provides more reliable estimates on short-runs.</p>
+<p><img src="figure/pmcmc/n400-n50.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
+<p>Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS. Note the different location of the mode of <span class="math">\(R_0\)</span>, which is shifted to the left with 50 particles. This is because 3 of the 5 chains with 50 particles show a posterior with lower <span class="math">\(R_0\)</span> (see figure above), whereas the remaining 2 seems to have converged to the same distribution as the pMCMC with 400 particles.</p>
+<p>Finally, note that the log-likelihood is overestimated with 50 particles, which can be problematic for model selection as we would overestimate the fit of the model.</p>
+<p>Overall, this analysis confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles. Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 400 particles. The chains start at different <code>init.theta</code> near the mode of the deterministic posterior, and are then combined to increase the overall ESS.</p>
 <p>You can now return to the <a href="pmcmc.html#stochastic-vs-deterministic-fit">practical</a> and proceed to the last section of this session.</p>
 <h1 id="stochastic-vs-deterministic-fit">Stochastic vs deterministic fit</h1>
-<p>Here we compare the combined traces of the deterministic SEIT2L model (2 chains of <span class="math">\(10^5\)</span> iterations) with those obtained with the stochastic version (5 chains of <span class="math">\(3000\)</span> iterations). Both analysis assume informative priors.</p>
+<p>Here we compare the combined traces of the deterministic SEIT2L model (2 chains of <span class="math">\(10^5\)</span> iterations) with those obtained with the stochastic version (5 chains of <span class="math">\(3000\)</span> iterations). Both analysis have assumed informative priors for <span class="math">\(D_\mathrm{lat}\)</span> and <span class="math">\(D_\mathrm{inf}\)</span> .</p>
 <pre class="sourceCode r"><code class="sourceCode r">
 <span class="co"># load, burn and thin the deterministic fit</span>
 
@@ -256,27 +256,28 @@ trace.deter &lt;-<span class="st"> </span><span class="kw">burnAndThin</span>(tr
 
 <span class="co"># compare posterior density</span>
 <span class="kw">plotPosteriorDensity</span>(<span class="kw">list</span>(<span class="dt">deter =</span> trace.deter, <span class="dt">sto =</span> trace.thin.n400))</code></pre>
-<p><img src="figure/pmcmc/sto-deter.png" title="" alt="" style="display: block; margin: auto;" /></p>
-<p>Overall, the posterior distributions are quite different. This is especially true for <span class="math">\(R_0\)</span> and <span class="math">\(D_{imm}\)</span>. In addition, the discrepancy in the posterior distribution of the log-likelihood seems to indicate that the stochastic model fits much better. We can verify this by computing the DIC of the stochastic SEIT2L model.</p>
+<p><img src="figure/pmcmc/sto-deter.png" title="" alt="" width="1000" style="display: block; margin: auto;" /></p>
+<p>Overall, the posterior distributions are quite different. This is especially true for <span class="math">\(R_0\)</span> and <span class="math">\(D_{imm}\)</span>. In addition, the discrepancy in the posterior distribution of the log-likelihood seems to indicate that the stochastic model fits much better. We can quantify this by computing the DIC of the stochastic SEIT2L model.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># combine all traces in a data frame</span>
 trace.combined &lt;-<span class="st"> </span><span class="kw">ldply</span>(trace.thin.n400)
 
 <span class="co"># take the mean of theta</span>
-theta.bar &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace.combined[SEIT2L_sto$theta.names])
-## Error: object &#39;SEIT2L_sto&#39; not found
+theta.bar &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace.combined[SEIT2L_stoch$theta.names])
 <span class="kw">print</span>(theta.bar)
-## Error: object &#39;theta.bar&#39; not found
+##      R0   D.lat   D.inf   alpha   D.imm     rho 
+##  8.3629  1.5802  2.0060  0.4590 13.6721  0.6929
 
 <span class="co"># compute its log-likelihood</span>
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-log.like.theta.bar &lt;-<span class="st"> </span>-<span class="fl">117.5994</span>  <span class="co"># my_particleFilter(SEIT2L_sto,theta.bar, init.state, data=FluTdC1971, n.particles=400)</span>
+log.like.theta.bar &lt;-<span class="st"> </span><span class="kw">my_particleFilter</span>(SEIT2L_stoch, theta.bar, init.state, 
+    <span class="dt">data =</span> FluTdC1971, <span class="dt">n.particles =</span> <span class="dv">400</span>)
 <span class="kw">print</span>(log.like.theta.bar)
-## [1] -117.6
+## [1] -119
 
 <span class="co"># and its deviance</span>
 D.theta.bar &lt;-<span class="st"> </span>-<span class="dv">2</span> *<span class="st"> </span>log.like.theta.bar
 <span class="kw">print</span>(D.theta.bar)
-## [1] 235.2
+## [1] 238
 
 <span class="co"># the effective number of parameters</span>
 p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">2</span> *<span class="st"> </span>trace.combined$log.likelihood)/<span class="dv">2</span>
@@ -286,18 +287,18 @@ p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">
 <span class="co"># and finally the DIC</span>
 DIC &lt;-<span class="st"> </span>D.theta.bar +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>p.D
 <span class="kw">print</span>(DIC)
-## [1] 245.1</code></pre>
+## [1] 247.9</code></pre>
 <p>In the previous session, we found that the DIC of the deterministic SEIT2L model was equal to 280. The difference of 35 indicates that the stochastic model should strongly be preferred to the deterministic model.</p>
-<p>We can visually check this result by plooting the posterior fit of each model:</p>
+<p>We can visually check this result by plotting the posterior fit of each model:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># take the mean posterior estimates of the deterministic model</span>
 x &lt;-<span class="st"> </span><span class="kw">summary</span>(trace.deter)
-theta.bar.deter &lt;-<span class="st"> </span>x$statistics[SEIT2L_deter$theta.names, <span class="st">&quot;Mean&quot;</span>]</code></pre>
-<pre><code>## Error: object &#39;SEIT2L_deter&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEIT2L_sto, theta.bar, init.state, <span class="dt">data =</span> FluTdC1971, <span class="dt">n =</span> <span class="dv">1000</span>)</code></pre>
-<pre><code>## Error: object &#39;SEIT2L_sto&#39; not found</code></pre>
+theta.bar.deter &lt;-<span class="st"> </span>x$statistics[SEIT2L_deter$theta.names, <span class="st">&quot;Mean&quot;</span>]
+
+<span class="kw">plotFit</span>(SEIT2L_stoch, theta.bar, init.state, <span class="dt">data =</span> FluTdC1971, <span class="dt">n =</span> <span class="dv">1000</span>)</code></pre>
+<p><img src="figure/pmcmc/sto-deter-fit1.png" title="" alt="" width="500" style="display: block; margin: auto;" /></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotFit</span>(SEIT2L_deter, theta.bar.deter, init.state, <span class="dt">data =</span> FluTdC1971, <span class="dt">n =</span> <span class="dv">1000</span>)</code></pre>
-<pre><code>## Error: object &#39;SEIT2L_deter&#39; not found</code></pre>
+<p><img src="figure/pmcmc/sto-deter-fit2.png" title="" alt="" width="500" style="display: block; margin: auto;" /></p>
 <p>Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.</p>
-<p>Already finished? why not <a href="pmcmc.html#going-further">going further?</a></p>
+<p>You've already finished? why not <a href="pmcmc.html#going-further">going further?</a></p>
 </body>
 </html>
