@@ -10,6 +10,8 @@ library(fitR)
 set.seed(1234)
 ```
 
+[Lecture slides](slides/abc_slides.pdf)
+
 # Objectives
 
 The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. More specifically, you will
@@ -45,7 +47,7 @@ plotTraj(data = FluTdC1971)
 
 ## Summary statistics
 
-First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarise the data. Finally, code at least two functions that take a trajectory (with an `obs` column containing the observations) as input and return the values of your summary statistics.
+First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and think of statistics that would describe the data, and capture the features you want to capture. Finally, code at least two functions that take a trajectory (with an `obs` column containing the observations) as input and return the values of your summary statistics.
 
 ```{r sumstat, eval=FALSE}
 
@@ -81,7 +83,7 @@ These are stochastic simulations so of course your histogram will look different
 
 The last command is easiest read from the inside out: `genObsTraj` with the given arguments produces an observation trajectory from the `SEITL_stoch` model, `ssSize` calculates the final size (i.e., total number of people infected) for such a trajectory, `replicates` does it 100 times and `hist` plots the outcome (i.e., the replicates of the final size) as a histogram. Depending on the summary statistic you choose, you might see quite a large amount of variation in the outcome of the summary statistic even with a single set of parameters. This might be a problem later when you define an acceptance window: if it is chosen too large, there is a risk that parameter values are accepted indiscriminately. If it is too small, the acceptance will be low and, consequently, many simulation runs wasted because even good parameter sets will often miss the acceptance window.
 
-Can you check whether your summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic)?
+Do you think your summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic)?
 
 ## Distance between observed and simulated summary statistics
 
@@ -211,7 +213,7 @@ Again, you can change the list of summary statistics and distance values to some
 
 You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.
 
-## Run MCMC
+## ABC-MCMC on the stochastic model
 
 We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding [examples](sumstat_examples.md) and one of the distance functions from the other [examples](distance_examples.md))
 
@@ -249,7 +251,7 @@ my_ABCLogPosterior_tdc(theta)
 
 (You will get a different value here, as this is the outcome of a random simulation)
 
-You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the [solution](abc_mcmc_solution.md).
+You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the [solution](abc_mcmc_solution.md#abc-mcmc-on-the-stochastic-model).
 
 Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?
 
@@ -285,7 +287,9 @@ my_ABCLogPosterior_tdc_det <- function(theta) {
 }
 ```
 
-You can now explore this using the `mcmcMH` function, and the same command as before. Compare this to MCMC using the `SEITL2_deter` function directly (in a posterior wrapper function, as you did [here](http://sfunk.net/mfiidd/play_with_seitl.md#run-mcmc)). Compare the two using `coda` plot functions. How good is your the ABC estimate using different summary statistics?
+You can now explore this using the `mcmcMH` function, and the same command as before. Compare this to MCMC using the `SEITL2_deter` function directly (in a posterior wrapper function, as you did [here](play_with_seitl.md#run-mcmc)). Compare the two using `coda` plot functions. How good is your the ABC estimate using different summary statistics?
+
+If you have any trouble running the MCMC, have a look at our [solution](abc_mcmc_solution.md#comparison-with-exact-posterior).
 
 # Going further
 

@@ -1,0 +1,106 @@
+# ABC-MCMC on the stochastic model
+
+This is how you can run ABC-MCMC on the stochastic model
+
+```{r abc_mcmc, eval = F}
+abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc,
+                    init.theta = theta,
+                    n.iterations = 1000,
+                    limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0),
+                                  upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+```
+
+[Return](ABC.md#run-mcmc) to the ABC session.
+
+# Comparison with exact posterior
+
+Just like with the pMCMC we ran yesterday, let us make ourselves easier by informing the starting value and covariance matrix for our ABC-MCMC from a deterministic MCMC run:
+
+```{r}
+# load results of deterministic fit
+data(mcmc_TdC_deter_longRun)
+
+# Let's use the first trace only, no need to burn or thin
+trace <- mcmc_SEITL_infoPrior_theta1$trace
+
+# we will start the pMCMC at the mean posterior estimate of the
+# deterministic fit
+init.theta <- colMeans(trace[SEITL_stoch$theta.names])
+
+# and we take the empirical covariance matrix for the Gaussian kernel
+# proposal
+covmat <- mcmc_SEITL_infoPrior_theta1$covmat.empirical
+
+# lower and upper limits of each parameter
+lower <- c(R0 = 0, D.lat = 0, D.inf = 0, alpha = 0, D.imm = 0, rho = 0)
+upper <- c(R0 = Inf, D.lat = Inf, D.inf = Inf, alpha = 1, D.imm = Inf, rho = 1)
+```
+
+The results from the deterministic run were:
+
+```{r}
+summary(mcmc(mcmc_SEITL_theta1$trace))
+```
+
+Now, let us choose a distance function and set of summary statistics, and look at the distance from the data at the posterior mean:
+
+```{r dist_hist_mcmc}
+data(SEITL_deter)
+hist(replicate(100, computeDistanceABC(sum.stats = list(ssSize, ssMax),
+                                       distanceABC = ssMeanRelDistance,
+                                       fitmodel = SEITL_deter,
+                                       theta = deter.theta,
+                                       init.state = init.state,
+                                       data = FluTdC1971)),
+     xlab = "distance")
+```
+
+Now we can define a wrapper function for the ABC posterior. Let's try $\epsilon = 0.25$
+
+```{r}
+my_ABCLogPosterior_tdc_det <- function(theta) {
+
+    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
+
+    # log posterior with several summary statistics, distance given
+    # by the mean relative distance in the summary statistics,
+    # acceptance window of 0.25
+    log.posterior <-
+        ABCLogPosterior(epsilon = 0.25,
+                        sum.stats = list(ssSize = ssSize,
+                                         ssMax = ssMax,
+                                         ssMaxTime = ssMaxTime,
+                                         ssSum_13_24 = ssSum_13_24,
+                                         ssMax_25_36 = ssMax_25_36,
+                                         ssSum_37_60 = ssSum_37_60),
+                        distanceABC = ssMeanRelDistance,
+                        fitmodel = SEIT2L_deter,
+                        theta = theta,
+                        init.state = init.state,
+                      data = FluTdC1971)
+
+    return(log.posterior)
+}
+```
+
+Finally, we use the function `mcmcMH` to generate samples from that distribution
+
+```{r eval = F}
+deter.theta <- summary.mcmc$statistics[, 1][SEITL_deter$theta.names]
+init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
+
+abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc_det,
+                    init.theta = deter.theta,
+                    proposal.sd = proposal.sd, 
+                    n.iterations = 1000,
+                    limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0),
+                                  upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+```
+
+To display the results of the MCMC you can use the various plots function of `coda` (`xyplot`, `densityplot`), as well as `summary`, after converting the trace to an `mcmc` object
+
+```{r eval = FALSE}
+mcmc.trace <- mcmc(abc.trace$trace)
+```
+
+[Return](ABC.md#comparison-with-exact-posterior) to the MCMC session.
