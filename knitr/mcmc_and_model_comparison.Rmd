@@ -289,6 +289,7 @@ Does the best model yield to a "better" (higher) p-value?
 
 <div>
 # Navigate
-Previous: [Modelling interlude](play_with_seitl.md) Next: [Particle MCMC](pmcmc.md)
+<!-- Previous: [Modelling interlude](play_with_seitl.md) Next: [Particle MCMC](pmcmc.md) -->
+Previous: [Modelling interlude](play_with_seitl.md) Next: Particle MCMC
 </div>
 
