@@ -35,6 +35,8 @@ library(fitR)
 5. [MCMC and model comparison](mcmc_and_model_comparison.md)
 <!-- 6. [Particle MCMC](pmcmc.md) -->
 <!-- 7. [Approximate Bayesian Computation](ABC.md) -->
+6. Particle MCMC
+7. Approximate Bayesian Computation
 
 # Navigate
 Next: [Introduction](introduction.md)
