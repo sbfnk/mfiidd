@@ -53,15 +53,14 @@ trace &lt;-<span class="st"> </span>mcmc_SEITL_infoPrior_theta1$trace
 
 <span class="co"># we will start the pMCMC at the mean posterior estimate of the</span>
 <span class="co"># deterministic fit</span>
-init.theta &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace[SEITL_stoch$theta.names])
+deter.theta &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace[SEITL_stoch$theta.names])
 
 <span class="co"># and we take the empirical covariance matrix for the Gaussian kernel</span>
 <span class="co"># proposal</span>
 covmat &lt;-<span class="st"> </span>mcmc_SEITL_infoPrior_theta1$covmat.empirical
 
-<span class="co"># lower and upper limits of each parameter</span>
-lower &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">0</span>, <span class="dt">D.lat =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>, <span class="dt">alpha =</span> <span class="dv">0</span>, <span class="dt">D.imm =</span> <span class="dv">0</span>, <span class="dt">rho =</span> <span class="dv">0</span>)
-upper &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="ot">Inf</span>, <span class="dt">D.lat =</span> <span class="ot">Inf</span>, <span class="dt">D.inf =</span> <span class="ot">Inf</span>, <span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">D.imm =</span> <span class="ot">Inf</span>, <span class="dt">rho =</span> <span class="dv">1</span>)</code></pre>
+<span class="co"># initial state</span>
+init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)</code></pre>
 <p>The results from the deterministic run were:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">mcmc</span>(mcmc_SEITL_theta1$trace))</code></pre>
 <pre><code>## 
@@ -105,17 +104,19 @@ upper &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R
                                        <span class="dt">init.state =</span> init.state,
                                        <span class="dt">data =</span> FluTdC1971)),
      <span class="dt">xlab =</span> <span class="st">&quot;distance&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;deter.theta&#39; not found</code></pre>
-<p>Now we can define a wrapper function for the ABC posterior. Let's try <span class="math">\(\epsilon = 0.25\)</span></p>
+<div class="figure">
+<img src="figure/abc/dist_hist_mcmc.png" />
+</div>
+<p>Now we can define a wrapper function for the ABC posterior. Let's try <span class="math">\(\epsilon = 0.3\)</span></p>
 <pre class="sourceCode r"><code class="sourceCode r">my_ABCLogPosterior_tdc_det &lt;-<span class="st"> </span>function(theta) {
 
     init.state =<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
 
     <span class="co"># log posterior with several summary statistics, distance given</span>
     <span class="co"># by the mean relative distance in the summary statistics,</span>
-    <span class="co"># acceptance window of 0.25</span>
+    <span class="co"># acceptance window of 0.3</span>
     log.posterior &lt;-
-<span class="st">        </span><span class="kw">ABCLogPosterior</span>(<span class="dt">epsilon =</span> <span class="fl">0.25</span>,
+<span class="st">        </span><span class="kw">ABCLogPosterior</span>(<span class="dt">epsilon =</span> <span class="fl">0.3</span>,
                         <span class="dt">sum.stats =</span> <span class="kw">list</span>(<span class="dt">ssSize =</span> ssSize,
                                          <span class="dt">ssMax =</span> ssMax,
                                          <span class="dt">ssMaxTime =</span> ssMaxTime,
@@ -131,17 +132,14 @@ upper &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R
     <span class="kw">return</span>(log.posterior)
 }</code></pre>
 <p>Finally, we use the function <code>mcmcMH</code> to generate samples from that distribution</p>
-<pre class="sourceCode r"><code class="sourceCode r">deter.theta &lt;-<span class="st"> </span>summary.mcmc$statistics[, <span class="dv">1</span>][SEITL_deter$theta.names]
-init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-
-abc.trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_ABCLogPosterior_tdc_det,
+<pre class="sourceCode r"><code class="sourceCode r">abc.trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_ABCLogPosterior_tdc_det,
                     <span class="dt">init.theta =</span> deter.theta,
-                    <span class="dt">proposal.sd =</span> proposal.sd, 
+                    <span class="dt">covmat =</span> covmat, 
                     <span class="dt">n.iterations =</span> <span class="dv">1000</span>,
                     <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.lat =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>, <span class="dt">D.imm =</span> <span class="dv">0</span>, <span class="dt">alpha =</span> <span class="dv">0</span>, <span class="dt">rho =</span> <span class="dv">0</span>),
-                                  <span class="dt">upper =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="ot">Inf</span>, <span class="dt">D.lat =</span> <span class="ot">Inf</span>, <span class="dt">D.inf =</span> <span class="ot">Inf</span>, <span class="dt">D.imm =</span> <span class="ot">Inf</span>, <span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">rho =</span> <span class="dv">1</span>)))</code></pre>
+                    <span class="dt">upper =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="ot">Inf</span>, <span class="dt">D.lat =</span> <span class="ot">Inf</span>, <span class="dt">D.inf =</span> <span class="ot">Inf</span>, <span class="dt">D.imm =</span> <span class="ot">Inf</span>, <span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">rho =</span> <span class="dv">1</span>)))</code></pre>
 <p>To display the results of the MCMC you can use the various plots function of <code>coda</code> (<code>xyplot</code>, <code>densityplot</code>), as well as <code>summary</code>, after converting the trace to an <code>mcmc</code> object</p>
 <pre class="sourceCode r"><code class="sourceCode r">mcmc.trace &lt;-<span class="st"> </span><span class="kw">mcmc</span>(abc.trace$trace)</code></pre>
-<p><a href="ABC.html#comparison-with-exact-posterior">Return</a> to the MCMC session.</p>
+<p><a href="ABC.html#comparison-with-exact-posterior">Return</a> to the ABC session.</p>
 </body>
 </html>

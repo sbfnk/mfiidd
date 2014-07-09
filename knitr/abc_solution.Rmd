@@ -1,5 +1,9 @@
 # ABC-MCMC on the stochastic model
 
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, cache.path="cache/abc/", fig.retina=1 ,fig.path="figure/abc/", fig.cap='', tidy=FALSE)
+```
+
 This is how you can run ABC-MCMC on the stochastic model
 
 ```{r abc_mcmc, eval = F}
@@ -25,15 +29,14 @@ trace <- mcmc_SEITL_infoPrior_theta1$trace
 
 # we will start the pMCMC at the mean posterior estimate of the
 # deterministic fit
-init.theta <- colMeans(trace[SEITL_stoch$theta.names])
+deter.theta <- colMeans(trace[SEITL_stoch$theta.names])
 
 # and we take the empirical covariance matrix for the Gaussian kernel
 # proposal
 covmat <- mcmc_SEITL_infoPrior_theta1$covmat.empirical
 
-# lower and upper limits of each parameter
-lower <- c(R0 = 0, D.lat = 0, D.inf = 0, alpha = 0, D.imm = 0, rho = 0)
-upper <- c(R0 = Inf, D.lat = Inf, D.inf = Inf, alpha = 1, D.imm = Inf, rho = 1)
+# initial state
+init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 ```
 
 The results from the deterministic run were:
@@ -55,7 +58,7 @@ hist(replicate(100, computeDistanceABC(sum.stats = list(ssSize, ssMax),
      xlab = "distance")
 ```
 
-Now we can define a wrapper function for the ABC posterior. Let's try $\epsilon = 0.25$
+Now we can define a wrapper function for the ABC posterior. Let's try $\epsilon = 0.3$
 
 ```{r}
 my_ABCLogPosterior_tdc_det <- function(theta) {
@@ -64,9 +67,9 @@ my_ABCLogPosterior_tdc_det <- function(theta) {
 
     # log posterior with several summary statistics, distance given
     # by the mean relative distance in the summary statistics,
-    # acceptance window of 0.25
+    # acceptance window of 0.3
     log.posterior <-
-        ABCLogPosterior(epsilon = 0.25,
+        ABCLogPosterior(epsilon = 0.3,
                         sum.stats = list(ssSize = ssSize,
                                          ssMax = ssMax,
                                          ssMaxTime = ssMaxTime,
@@ -86,15 +89,13 @@ my_ABCLogPosterior_tdc_det <- function(theta) {
 Finally, we use the function `mcmcMH` to generate samples from that distribution
 
 ```{r eval = F}
-deter.theta <- summary.mcmc$statistics[, 1][SEITL_deter$theta.names]
-init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-
 abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc_det,
                     init.theta = deter.theta,
-                    proposal.sd = proposal.sd, 
+                    covmat = covmat, 
                     n.iterations = 1000,
                     limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0),
-                                  upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+                    upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+
 ```
 
 To display the results of the MCMC you can use the various plots function of `coda` (`xyplot`, `densityplot`), as well as `summary`, after converting the trace to an `mcmc` object
@@ -103,4 +104,4 @@ To display the results of the MCMC you can use the various plots function of `co
 mcmc.trace <- mcmc(abc.trace$trace)
 ```
 
-[Return](ABC.md#comparison-with-exact-posterior) to the MCMC session.
+[Return](ABC.md#comparison-with-exact-posterior) to the ABC session.
