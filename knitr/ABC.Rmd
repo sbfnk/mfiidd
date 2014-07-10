@@ -251,7 +251,7 @@ my_ABCLogPosterior_tdc(theta)
 
 (You will get a different value here, as this is the outcome of a random simulation)
 
-You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the [solution](abc_mcmc_solution.md#abc-mcmc-on-the-stochastic-model).
+You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the [solution](abc_solution.md#abc-mcmc-on-the-stochastic-model).
 
 Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?
 
@@ -289,7 +289,7 @@ my_ABCLogPosterior_tdc_det <- function(theta) {
 
 You can now explore this using the `mcmcMH` function, and the same command as before. Compare this to MCMC using the `SEITL2_deter` function directly (in a posterior wrapper function, as you did [here](play_with_seitl.md#run-mcmc)). Compare the two using `coda` plot functions. How good is your the ABC estimate using different summary statistics?
 
-If you have any trouble running the MCMC, have a look at our [solution](abc_mcmc_solution.md#comparison-with-exact-posterior).
+If you have any trouble running the MCMC, have a look at our [solution](abc_solution.md#comparison-with-exact-posterior).
 
 # Going further
 
