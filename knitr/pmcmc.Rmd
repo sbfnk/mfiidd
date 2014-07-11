@@ -230,7 +230,7 @@ Check your answer [here](pmcmc_solution.md#stochastic-vs-deterministic-fit).
 
 ## Filtered trajectories
 
-Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package that will do it for you (see `?particleFilter`). Have a look at its code.
+In addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package that will do it for you (see `?particleFilter`). Have a look at its code and try out out.
 
 ## Optimization
 

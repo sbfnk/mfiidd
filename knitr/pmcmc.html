@@ -273,7 +273,7 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 <p>Check your answer <a href="pmcmc_solution.html#stochastic-vs-deterministic-fit">here</a>.</p>
 <h1 id="going-further">Going further</h1>
 <h2 id="filtered-trajectories">Filtered trajectories</h2>
-<p>Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that &quot;survived&quot; until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package that will do it for you (see <code>?particleFilter</code>). Have a look at its code.</p>
+<p>In addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that &quot;survived&quot; until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package that will do it for you (see <code>?particleFilter</code>). Have a look at its code and try out out.</p>
 <h2 id="optimization">Optimization</h2>
 <p>You might have noted that the <code>for()</code> loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of <code>particleFilter</code>. Actually, all the test run were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.</p>
 <div>
