@@ -1,8 +1,8 @@
 % Model fitting and inference for infectious disease dynamics
 
-## Lunch options
+<!-- ## Lunch options -->
 
-[Local map](http://goo.gl/XEPxch)
+<!-- [Local map](http://goo.gl/XEPxch) -->
 
 ## Required software
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.1.0.
@@ -35,6 +35,17 @@ library(fitR)
 5. [MCMC and model comparison](mcmc_and_model_comparison.md)
 6. [Particle MCMC](pmcmc.md)
 7. [Approximate Bayesian Computation](ABC.md)
+
+## Further slides
+[Further methods and packages](slides/further_slides.pdf)
+
+### Thursday afternoon talks
+
+[Assessing changes in vaccination programmes of seasonal influenza: an evidence synthesis and modelling study](slides/marc_talk.pdf)
+
+[History matching of complex infectious disease models using emulation](slides/yiannis_talk.pdf)
+
+[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
 
 # Navigate
 Next: [Introduction](introduction.md)
