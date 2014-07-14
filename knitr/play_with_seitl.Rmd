@@ -109,7 +109,7 @@ However, before doing any simulation, we need some parameter values and initial 
 
 Based on the description of the outbreak above and the information below found in the literature, can you think of one or more set(s) of values for the parameters (`theta`) and initial state (`init.state`) of the model? 
 
-1. The $R_0$ of influenza is commonly estimated to be around 2. However, it can be significantly larger ($R_0>10$) in close-knit communities with exceptional contact configurations.
+1. The $R_0$ of influenza is commonly estimated to be around 2. However, it can be significantly larger in close-knit communities with exceptional contact configurations.
 2. Both the average latent and infectious periods for influenza have been estimated around 2 days each.
 3. The down-regulation of the cellular response is completed on average 15 days after symptom onset.
 4. Serological surveys have shown that the seroconversion rate to influenza (probability of developing antibodies) is around 80%. However, it is likely that __not__ all seroconverted individuals acquire a long-term protective against reinfection.
@@ -118,7 +118,7 @@ Based on the description of the outbreak above and the information below found i
 
 # Deterministic vs Stochastic simulations
 
-Now, let's assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give us the opportunity to compare the deterministic and stochastic model. Here we propose to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don't like to guess parameter values, you can still use [ours](play_with_seitl_example.md#parameter-values-and-initial-state).
+Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. Here we propose to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don't like to guess parameter values, you can still use [ours](play_with_seitl_example.md#parameter-values-and-initial-state).
 
 ## Deterministic simulations
 
@@ -149,23 +149,23 @@ By default, this function plots the mean and the median as well as the $95^\math
 plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100, summary=FALSE)
 ```
 
-Now, __take a good 15 minutes__ to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
+Now, __take 10 minutes__ to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
 
-If you didn't manage to get the two waves, you can have look at [our solution](play_with_seitl_example.md#parameter-values-and-initial-state).
+If you didn't manage to get the two waves, you can have look at [our example](play_with_seitl_example.md#deterministic-simulations).
 
-You should find that it is hard to reproduce the low incidence in the data with the model. We will now test if this can be better reproduced with a stochastic model which explicitly accounts for the discrete nature of individuals.
+You should find that it is hard to capture all the data-point with the deterministic model. We will now test if this can be better reproduced with a stochastic model which explicitly accounts for the discrete nature of individuals.
 
 ## Stochastic simulations
 
 __Take about 10 minutes__ to explore the dynamics of the stochastic SEITL model with the function `plotFit`. Note that `SEITL_stoch` has the same `theta.names` and `state.names` as `SEITL_deter`, which means that you can use the same parameters and initial state vectors as in the previous section. In addition, you might find useful to plot the time-series of the extinction probability (i.e. the proportion of faded out simulations) by passing `p.extinction=TRUE` to `plotFit`.
 
-What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?
+What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model? Otherwise you can have a look at [our example](play_with_seitl_example.md#stochastic-simulations).
 
 Now, let's try to make this model a bit more realistic.
 
 # Exponential vs Erlang distributions
 
-So far, we have assumed that the time spent in each compartment follows an [exponential distribution](http://en.wikipedia.org/wiki/Exponential_distribution). This distribution has the well known property of being memoryless, which means that the probability of leaving a compartment doesn't depend on the time already spent in this compartment. Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response. In order to include a memory effect, it is common practice to replace the exponential distribution by an [Erlang distribution](http://en.wikipedia.org/wiki/Agner_Krarup_Erlang#mediaviewer/File:Erlang.jpg). This distribution is parametrised by its mean $m$ and shape $k$ and can be modelled by $k$ consecutive sub-stages, each being exponentially distributed with mean $m/k$. As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
+So far, we have assumed that the time spent in each compartment follows an [exponential distribution](http://en.wikipedia.org/wiki/Exponential_distribution), because by assuming transitions happen at constant rates we have implied that the process is [memoryless](http://en.wikipedia.org/wiki/Memorylessness). Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response. In order to include a memory effect, it is common practice to replace the exponential distribution by an [Erlang distribution](http://en.wikipedia.org/wiki/Agner_Krarup_Erlang#mediaviewer/File:Erlang.jpg). This distribution is parametrised by its mean $m$ and shape $k$ and can be modelled by $k$ consecutive sub-stages, each being exponentially distributed with mean $m/k$. As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
 
 ```{r erlang, echo=FALSE, fig.width=10, fig.height=5}
 
@@ -215,6 +215,8 @@ __Take 5 minutes__ to have a look at the function `simulate` of these SEIT2L mod
 Now, compare the dynamics of the SEITL and SEIT2L model using `plotFit`. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT2L share the same parameters, their state variables differ so you need to modify the `init.state` of SEIT2L accordingly.
 
 Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution of the $T$ compartment?
+
+Again, feel free to can have a look at [our example](play_with_seitl_example.md#exponential-vs-erlang-distributions).
 
 In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.
 

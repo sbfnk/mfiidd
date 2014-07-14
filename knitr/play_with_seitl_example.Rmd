@@ -1,41 +1,82 @@
 % Example: Tristan da Cunha outbreak & the SEITL model.
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_play_example/", fig.retina=2 ,fig.path="figure/SEITL_play_example/", fig.cap='', fig.height=3, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_play_example/", fig.retina=2 ,fig.path="figure/SEITL_play_example/", fig.cap='', fig.height=4, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, echo=FALSE, results="hide"}
 library(fitR)
+data(SEITL_deter)
+data(SEIT2L_stoch)
+data(FluTdC1971)
 set.seed(1234)
 ```
 
-# Parameter values and initial state
+Based on the description of the outbreak above and the information found in the literature we can make the following guess estimates:
 
-```{r parameter-values}
-# All the parameter sets below make some common assumptions:
-# 1) latent and infectious period equal to 2 and 2 days respectively
-# 2) duration of immunity equal to 15 - 2 = 13 days
-# 3) 80% of symptomatic and 85% of cases in the data so the total reporting rate rho = 0.8*0.85 ~ 0.7  
-# 4) The 2 islanders with symptoms at disembarkation are infectious
-# 5) The 3 islanders who were ill during the 8-day journey are temporary protected
-# 6) No islander immune at the beginning of the epidemic 
+1. Since the Tristan population is a close knit community, $R_0$ was probably above 2 during the outbreak. Let's assume $R_0=4$.
+2. Both the latent ($D_\mathrm{lat}$) and infectious ($D_\mathrm{inf}$) periods are equal to 2 days.
+3. The average duration of immunity ($D_\mathrm{imm}$) is equal to 15 - 2 = 13 days.
+4. Since not all seroconverted individuals acquire a long-term protective against reinfection, let's assume $\alpha=0.70$
+5. Assuming 80% of symptomatic and 85% of the cases reported in the data, we obtain an overall reporting rate $\rho=0.8\times0.85 \sim 0.7$. 
+6. The 2 islanders with symptoms at disembarkation are infectious: $I(t=0)=2$.
+7. The 3 islanders who were ill during the 8-day journey are temporary protected at disembarkation: $T(t=0)=3$.
+8. No islander was immune at the beginning of the epidemic. 
 
-# Additional assumptions for guess 1
-# R0 as in large populations
-# probability to develop long-term protection equal to seroconversion rate (80%)
-theta.guess1 <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=13, "rho"=0.7)
-init.state.guess1 <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
+Now, you can now go back to the [practical](play_with_seitl.md#deterministic-vs-stochastic-simulations) and check whether these estimates provides a good fit to the data.
 
-# Additional assumptions for guess 2
-# R0 as in close knit communities (=> larger 1rst wave)
-# probability to develop long-term protection equal to seroconversion rate (80%)
-theta.guess2 <- c("R0"=10, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=13, "rho"=0.7)
-init.state.guess2 <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
+# Deterministic vs Stochastic simulations
 
-# Additional assumptions for guess 3
-# R0 as in close knit communities (=> larger 1rst wave)
-# probability to develop long-term protection (50%) lower than the seroconversion rate (80%) (=> larger 2nd wave)
-theta.guess3 <- c("R0"=10, "D.lat"=2 , "D.inf"=2, "alpha"=0.5, "D.imm"=13, "rho"=0.7)
-init.state.guess3 <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
+## Deterministic simulations
 
+Let's simulate the SEITL model with our initial guess `theta`:
+
+```{r guess-1, results="hide"}
+theta.guess1 <- c("R0"=4, "D.lat"=2 , "D.inf"=2, "alpha"=0.7, "D.imm"=13, "rho"=0.7)
+init.state.guess <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
+plotFit(SEITL_deter,theta.guess1,init.state.guess,data=FluTdC1971, n.replicates=100)
 ```
+
+This set of parameters provides a poor fit, in particular the first wave too small. Let's increase $R_0$:
+
+```{r guess-2, results="hide"}
+theta.guess2 <- c("R0"=10, "D.lat"=2 , "D.inf"=2, "alpha"=0.7, "D.imm"=13, "rho"=0.7)
+plotFit(SEITL_deter,theta.guess2,init.state.guess,data=FluTdC1971, n.replicates=100)
+```
+
+The size of the first wave is now ok but the second wave is too small. Let's decrease $\alpha$, thus allowing more islanders to be reinfected:
+
+```{r guess-3, results="hide"}
+theta.guess3 <- c("R0"=10, "D.lat"=2 , "D.inf"=2, "alpha"=0.4, "D.imm"=13, "rho"=0.7)
+plotFit(SEITL_deter,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100)
+```
+
+This is a descent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process. 
+
+Now, you can now go back to the [practical](play_with_seitl.md#stochastic-simulations) and check whether the stochastic model provides a better fit to the data.
+
+## Stochastic simulations
+
+Let's try the stochastic SEITL model with our best guess from the previous section.
+
+```{r guess-3-stoch, results="hide", fig.width=10}
+plotFit(SEITL_stoch,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100, p.extinction=TRUE)
+```
+
+The stochastic model better accounts for the variability in the data. In addition, demographic stochasticity can lead to stochastic extinctions at the beginning and at the end of the outbreak when the number of infectious individuals is low and the chain of transmission can break if by chance they recover before infecting a secondary case. By contrast, the cumulative extinction probability doesn't increase between the two waves, despite the low incidence observed in the data. Note however that the shape of the second wave is quite flat in comparison to the data.
+
+Now, you can now go back to the [practical](play_with_seitl.md#exponential-vs-erlang-distributions) and check how we can make this model a bit more realistic.
+
+# Exponential vs Erlang distributions
+
+Let's simulate the stochastic SEIT2L model with our last guess estimates. Note that we need to change the vector of initial states.
+
+```{r guess-3-stoch-SEIT2L, results="hide", fig.width=10}
+init.state.guess.SEIT2L <- c("S"=279,"E"=0,"I"=2,"T1"=3, T2=0 ,"L"=0,"Inc"=0)
+plotFit(SEIT2L_stoch,theta.guess3,init.state.guess.SEIT2L,data=FluTdC1971, n.replicates=100, p.extinction=TRUE)
+```
+
+With the SEIT2L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape $k$ has a variance $k$ times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.
+
+
+You've already finished? why not [going further?](play_with_seitl.md#going-further)
