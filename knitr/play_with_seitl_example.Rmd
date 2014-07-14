@@ -4,7 +4,7 @@
 opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_play_example/", fig.retina=2 ,fig.path="figure/SEITL_play_example/", fig.cap='', fig.height=4, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
-```{r fitR, echo=FALSE, results="hide"}
+```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
 library(fitR)
 data(SEITL_deter)
 data(SEIT2L_stoch)

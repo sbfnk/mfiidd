@@ -4,7 +4,7 @@
 opts_chunk$set(cache=TRUE, cache.path="cache/introduction/", fig.height=5, fig.width=5, fig.retina=1 ,fig.path="figure/introduction/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
-```{r fitR, echo=FALSE}
+```{r fitR, cache=FALSE, echo=FALSE}
 library(fitR)
 set.seed(1234)
 ```

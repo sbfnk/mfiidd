@@ -4,7 +4,7 @@
 opts_chunk$set(cache=TRUE, cache.path="cache/mcmc_diagnostics/", fig.retina=1 ,fig.path="figure/mcmc_diagnostics/", fig.cap='', tidy=FALSE)
 ```
 
-```{r echo=FALSE,results="hide",message=FALSE}
+```{r echo=FALSE,cache=FALSE,results="hide",message=FALSE}
 opts_chunk$set(fig.cap='')
 library(fitR)
 data(SIR)
