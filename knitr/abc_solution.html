@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+</head>
+<body>
+<div id="TOC">
+<ul>
+<li><a href="#abc-mcmc-on-the-stochastic-model">ABC-MCMC on the stochastic model</a></li>
+<li><a href="#comparison-with-exact-posterior">Comparison with exact posterior</a></li>
+</ul>
+</div>
+<h1 id="abc-mcmc-on-the-stochastic-model">ABC-MCMC on the stochastic model</h1>
+<p>This is how you can run ABC-MCMC on the stochastic model</p>
+<pre class="sourceCode r"><code class="sourceCode r">abc.trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_ABCLogPosterior_tdc,
+                    <span class="dt">init.theta =</span> theta,
+                    <span class="dt">n.iterations =</span> <span class="dv">1000</span>,
+                    <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.lat =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>, <span class="dt">D.imm =</span> <span class="dv">0</span>, <span class="dt">alpha =</span> <span class="dv">0</span>, <span class="dt">rho =</span> <span class="dv">0</span>),
+                                  <span class="dt">upper =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="ot">Inf</span>, <span class="dt">D.lat =</span> <span class="ot">Inf</span>, <span class="dt">D.inf =</span> <span class="ot">Inf</span>, <span class="dt">D.imm =</span> <span class="ot">Inf</span>, <span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">rho =</span> <span class="dv">1</span>)))</code></pre>
+<p><a href="ABC.html#run-mcmc">Return</a> to the ABC session.</p>
+<h1 id="comparison-with-exact-posterior">Comparison with exact posterior</h1>
+<p>Just like with the pMCMC we ran yesterday, let us make ourselves easier by informing the starting value and covariance matrix for our ABC-MCMC from a deterministic MCMC run:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load results of deterministic fit</span>
+<span class="kw">data</span>(mcmc_TdC_deter_longRun)
+
+<span class="co"># Let&#39;s use the first trace only, no need to burn or thin</span>
+trace &lt;-<span class="st"> </span>mcmc_SEITL_infoPrior_theta1$trace
+
+<span class="co"># we will start the pMCMC at the mean posterior estimate of the</span>
+<span class="co"># deterministic fit</span>
+deter.theta &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace[SEITL_stoch$theta.names])
+
+<span class="co"># and we take the empirical covariance matrix for the Gaussian kernel</span>
+<span class="co"># proposal</span>
+covmat &lt;-<span class="st"> </span>mcmc_SEITL_infoPrior_theta1$covmat.empirical
+
+<span class="co"># initial state</span>
+init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)</code></pre>
+<p>The results from the deterministic run were:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">mcmc</span>(mcmc_SEITL_theta1$trace))</code></pre>
+<pre><code>## 
+## Iterations = 1:1e+05
+## Thinning interval = 1 
+## Number of chains = 1 
+## Sample size per chain = 1e+05 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                    Mean     SD Naive SE Time-series SE
+## R0               16.942 4.3500 0.013756       0.081353
+## D.lat             1.142 0.3494 0.001105       0.006264
+## D.inf            10.665 2.3047 0.007288       0.042393
+## alpha             0.537 0.0389 0.000123       0.000642
+## D.imm             7.751 2.0921 0.006616       0.034949
+## rho               0.695 0.0519 0.000164       0.000854
+## log.prior       -12.814 0.0000 0.000000       0.000000
+## log.likelihood -141.281 2.8211 0.008921       0.049611
+## log.posterior  -154.095 2.8211 0.008921       0.049611
+## 
+## 2. Quantiles for each variable:
+## 
+##                    2.5%      25%      50%      75%   97.5%
+## R0                9.431   13.832   16.612   19.721   26.28
+## D.lat             0.498    0.901    1.137    1.369    1.85
+## D.inf             6.155    9.014   10.709   12.459   14.64
+## alpha             0.456    0.512    0.539    0.564    0.61
+## D.imm             4.109    6.332    7.579    9.032   12.34
+## rho               0.596    0.659    0.694    0.730    0.80
+## log.prior       -12.814  -12.814  -12.814  -12.814  -12.81
+## log.likelihood -145.304 -142.162 -140.939 -140.032 -138.89
+## log.posterior  -158.119 -154.977 -153.753 -152.847 -151.70</code></pre>
+<p>Now, let us choose a distance function and set of summary statistics, and look at the distance from the data at the posterior mean:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(SEITL_deter)
+<span class="kw">hist</span>(<span class="kw">replicate</span>(<span class="dv">100</span>, <span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(ssSize, ssMax),
+                                       <span class="dt">distanceABC =</span> ssMeanRelDistance,
+                                       <span class="dt">fitmodel =</span> SEITL_deter,
+                                       <span class="dt">theta =</span> deter.theta,
+                                       <span class="dt">init.state =</span> init.state,
+                                       <span class="dt">data =</span> FluTdC1971)),
+     <span class="dt">xlab =</span> <span class="st">&quot;distance&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/abc/dist_hist_mcmc.png" />
+</div>
+<p>Now we can define a wrapper function for the ABC posterior. Let's try <span class="math">\(\epsilon = 0.3\)</span></p>
+<pre class="sourceCode r"><code class="sourceCode r">my_ABCLogPosterior_tdc_det &lt;-<span class="st"> </span>function(theta) {
+
+    init.state =<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
+
+    <span class="co"># log posterior with several summary statistics, distance given</span>
+    <span class="co"># by the mean relative distance in the summary statistics,</span>
+    <span class="co"># acceptance window of 0.3</span>
+    log.posterior &lt;-
+<span class="st">        </span><span class="kw">ABCLogPosterior</span>(<span class="dt">epsilon =</span> <span class="fl">0.3</span>,
+                        <span class="dt">sum.stats =</span> <span class="kw">list</span>(<span class="dt">ssSize =</span> ssSize,
+                                         <span class="dt">ssMax =</span> ssMax,
+                                         <span class="dt">ssMaxTime =</span> ssMaxTime,
+                                         <span class="dt">ssSum_13_24 =</span> ssSum_13_24,
+                                         <span class="dt">ssMax_25_36 =</span> ssMax_25_36,
+                                         <span class="dt">ssSum_37_60 =</span> ssSum_37_60),
+                        <span class="dt">distanceABC =</span> ssMeanRelDistance,
+                        <span class="dt">fitmodel =</span> SEIT2L_deter,
+                        <span class="dt">theta =</span> theta,
+                        <span class="dt">init.state =</span> init.state,
+                      <span class="dt">data =</span> FluTdC1971)
+
+    <span class="kw">return</span>(log.posterior)
+}</code></pre>
+<p>Finally, we use the function <code>mcmcMH</code> to generate samples from that distribution</p>
+<pre class="sourceCode r"><code class="sourceCode r">abc.trace &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_ABCLogPosterior_tdc_det,
+                    <span class="dt">init.theta =</span> deter.theta,
+                    <span class="dt">covmat =</span> covmat, 
+                    <span class="dt">n.iterations =</span> <span class="dv">1000</span>,
+                    <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">1</span>, <span class="dt">D.lat =</span> <span class="dv">0</span>, <span class="dt">D.inf =</span> <span class="dv">0</span>, <span class="dt">D.imm =</span> <span class="dv">0</span>, <span class="dt">alpha =</span> <span class="dv">0</span>, <span class="dt">rho =</span> <span class="dv">0</span>),
+                    <span class="dt">upper =</span> <span class="kw">c</span>(<span class="dt">R0 =</span> <span class="ot">Inf</span>, <span class="dt">D.lat =</span> <span class="ot">Inf</span>, <span class="dt">D.inf =</span> <span class="ot">Inf</span>, <span class="dt">D.imm =</span> <span class="ot">Inf</span>, <span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">rho =</span> <span class="dv">1</span>)))</code></pre>
+<p>To display the results of the MCMC you can use the various plots function of <code>coda</code> (<code>xyplot</code>, <code>densityplot</code>), as well as <code>summary</code>, after converting the trace to an <code>mcmc</code> object</p>
+<pre class="sourceCode r"><code class="sourceCode r">mcmc.trace &lt;-<span class="st"> </span><span class="kw">mcmc</span>(abc.trace$trace)</code></pre>
+<p><a href="ABC.html#comparison-with-exact-posterior">Return</a> to the ABC session.</p>
+</body>
+</html>

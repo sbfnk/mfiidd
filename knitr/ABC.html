@@ -38,12 +38,13 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><a href="#summary-statistics">Summary statistics</a></li>
 <li><a href="#distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</a></li>
 <li><a href="#abc-posterior-estimate">ABC posterior estimate</a></li>
-<li><a href="#run-mcmc">Run MCMC</a></li>
+<li><a href="#abc-mcmc-on-the-stochastic-model">ABC-MCMC on the stochastic model</a></li>
 <li><a href="#comparison-with-exact-posterior">Comparison with exact posterior</a></li>
 </ul></li>
 <li><a href="#going-further">Going further</a></li>
 </ul>
 </div>
+<p><a href="slides/abc_slides.pdf">Lecture slides</a></p>
 <h1 id="objectives">Objectives</h1>
 <p>The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. More specifically, you will</p>
 <ol style="list-style-type: decimal">
@@ -69,7 +70,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <img src="figure/abc/ABC_plot_TdC_data.png" />
 </div>
 <h2 id="summary-statistics">Summary statistics</h2>
-<p>First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and propose at least three statistics to summarise the data. Finally, code at least two functions that take a trajectory (with an <code>obs</code> column containing the observations) as input and return the values of your summary statistics.</p>
+<p>First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and think of statistics that would describe the data, and capture the features you want to capture. Finally, code at least two functions that take a trajectory (with an <code>obs</code> column containing the observations) as input and return the values of your summary statistics.</p>
 <pre class="sourceCode r"><code class="sourceCode r">traj &lt;-<span class="st"> </span>FluTdC1971
 
 <span class="co"># a function that takes one parameter:</span>
@@ -83,63 +84,69 @@ ss1.data &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(t
 
 <span class="co"># write other summary statistics</span></code></pre>
 <p>If you have trouble coding these up yourself, have a look at some of our <a href="sumstat_examples.html">examples</a>.</p>
-<p>Can you check whether your summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>?</p>
-<h2 id="distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</h2>
-<p>The second step is to compare your data with your simulation using a distance functions between your observed and simulated summary statistics.</p>
-<p>You can generate an observation trajectory as follows:</p>
+<p>Test how your summary statistics vary with a single set of parameters. You can use the <strong>R</strong> function <code>replicates</code>, which calls the same function a specified number of times. For example, to call the <code>ssSize</code> function from the <a href="sumstat_examples.html">examples</a> (which calculates final size) on 100 generated observation trajectories, you can use</p>
 <pre class="sourceCode r"><code class="sourceCode r">theta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D.lat =</span> <span class="dv">2</span>, <span class="dt">D.inf =</span> <span class="dv">2</span>, <span class="dt">alpha =</span> <span class="fl">0.9</span>, <span class="dt">D.imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-simu &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(SEITL_stoch, theta, init.state, FluTdC1971$time)
-<span class="kw">head</span>(simu)</code></pre>
-<pre><code>##   time   S  E I T  L Inc obs
-## 1    1 250  0 4 0 30   0   0
-## 2    2 246  3 3 2 30   1   1
-## 3    3 243  6 2 3 30   0   0
-## 4    4 238  6 7 3 30   5   3
-## 5    5 229 14 6 5 30   1   4
-## 6    6 222 19 7 6 30   2   1</code></pre>
-<p>Using this, you can calculate your summary statistics on your data.</p>
-<pre class="sourceCode r"><code class="sourceCode r">ss1.simu &lt;-<span class="st"> </span><span class="kw">my_summaryStat1</span>(<span class="dt">trajectory =</span> simu)
-
-<span class="co"># compute ss2.simu etc.</span></code></pre>
-<p>Now, you can write a function that will take your observed and simulated summary statistics and return their distance. In the most general case, you will want to write a distance function for each summary statistic. Here, let's write a single function that calculates the distance between all summary statistics and returns either a single (e.g., mean) distance or a vector of distances.</p>
+<span class="kw">hist</span>(<span class="kw">replicate</span>(<span class="dv">100</span>, <span class="kw">ssSize</span>(<span class="kw">genObsTraj</span>(SEITL_stoch, theta, init.state, FluTdC1971$time))), <span class="dt">xlab =</span> <span class="st">&quot;summary statistic&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/abc/size_hist.png" />
+</div>
+<p>These are stochastic simulations so of course your histogram will look different. If you created your own function for summary statistics (e.g., <code>my_summaryStat1</code>), replace <code>ssSize</code> in the plot command with that one and test how it varies over different simulation runs. We suggest that you try a few summary statistics to get a feeling for how they vary across simulations.</p>
+<p>The last command is easiest read from the inside out: <code>genObsTraj</code> with the given arguments produces an observation trajectory from the <code>SEITL_stoch</code> model, <code>ssSize</code> calculates the final size (i.e., total number of people infected) for such a trajectory, <code>replicates</code> does it 100 times and <code>hist</code> plots the outcome (i.e., the replicates of the final size) as a histogram. Depending on the summary statistic you choose, you might see quite a large amount of variation in the outcome of the summary statistic even with a single set of parameters. This might be a problem later when you define an acceptance window: if it is chosen too large, there is a risk that parameter values are accepted indiscriminately. If it is too small, the acceptance will be low and, consequently, many simulation runs wasted because even good parameter sets will often miss the acceptance window.</p>
+<p>Do you think your summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>?</p>
+<h2 id="distance-between-observed-and-simulated-summary-statistics">Distance between observed and simulated summary statistics</h2>
+<p>The second step is to compare your data with your simulation using a function that computes the distance between your observed and simulated summary statistics. In the most general case, you will want to write a distance function for each summary statistic. Here, let's write a single function that calculates the distance between all summary statistics and returns either a single (e.g., mean) distance or a vector of distances.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># a function that takes 5 arguments:</span>
 <span class="co"># - sum.stats: a list of functions to calculate summary statistics</span>
 <span class="co"># - data.obs: the trajectory of observations (data)</span>
 <span class="co"># - model.obs: a trajectory of simulated observations (model)</span>
-my_distance &lt;-<span class="st"> </span>function(sum.stats, data.obs, model.abs) {
+my_distance &lt;-<span class="st"> </span>function(sum.stats, data.obs, model.obs) {
 
-    ## loop over all summary stats in the list sum.stats
+    ## start for() loop over all summary stats in the list sum.stats
 
        <span class="co"># calculate the distance (e.g., absolute difference, relative</span>
        <span class="co"># difference, squared distances etc)</span>
 
-    ## end loop
+    ## end for () loop
     
-    <span class="co"># combine distances (sum, mean etc)</span>
+    <span class="co"># combine distances (via sum, mean, or others)</span>
 
     <span class="co"># return an overall distance between the model and data</span>
     <span class="co"># trajectories in terms of the summary statistics. E.g., a vector</span>
     <span class="co"># of distances or a mean distance</span>
 }</code></pre>
 <p>If you have any trouble writing a function for the distance, have a look at our <a href="distance_examples.html">examples</a>.</p>
-<p>Test that your summary distance function returns a sensible value</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># test</span>
-dist &lt;-<span class="st"> </span><span class="kw">my_distance</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(my_summaryStat1, my_summaryStat2),
-                    <span class="dt">data.obs =</span> FluTdC1971,
-                    <span class="dt">model.obs =</span> simu)</code></pre>
-<p>Of course, you will get a different value from this, depending on your choice of distance function.</p>
-<p>You can now use the <code>computeDistanceABC</code> function provided in the <code>fitR</code> package to compute the distance between a <code>fitmodel</code> and the <code>data</code> for a single simulation using a given parameter vector <code>theta</code> and initial state <code>init.state</code>. Have a look at the code of <code>computeDistanceABC</code>; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as argument. We can test it using</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(my_summaryStat1, my_summaryStat2),
-                   <span class="dt">distanceABC =</span> my_distance,
+<p>Test that your summary distance function returns a sensible value (here, we have assigned the <code>ssMeanRelDistance</code> from the examples to <code>my_distance</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">simu &lt;-<span class="st"> </span><span class="kw">genObsTraj</span>(SEITL_stoch, theta, init.state, FluTdC1971$time)
+<span class="kw">ssMeanRelDistance</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(ssSize, ssMax),
+                  <span class="dt">data.obs =</span> FluTdC1971,
+                  <span class="dt">model.obs =</span> simu)</code></pre>
+<pre><code>## [1] 0.4717</code></pre>
+<p>Again, you can change <code>ssMeanRelDistance</code> to your own <code>my_distance</code> function or one from the <a href="distance_examples.html">examples</a>, and try different things for the list of summary statistics (including more or less than two summary statistics).</p>
+<p>You can then test the distribution of distances of the summary statistics from model runs to the summary statistic on the data, in the same way as we did before with the distribution of summary statistics. You can use <code>computeDistanceABC</code> function provided in the <code>fitR</code> package does the leg work for you. It computes the distance between a <code>fitmodel</code> and the <code>data</code> for a single simulation using a given parameter vector <code>theta</code> and initial state <code>init.state</code>. Have a look at the code of <code>computeDistanceABC</code>; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as an argument. We can test it using</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(ssSize, ssMax),
+                   <span class="dt">distanceABC =</span> ssMeanRelDistance,
                    <span class="dt">fitmodel =</span> SEITL_stoch,
                    <span class="dt">theta =</span> theta,
                    <span class="dt">init.state =</span> init.state,
                    <span class="dt">data =</span> FluTdC1971)</code></pre>
-<pre><code>## [1] 0.5286</code></pre>
+<pre><code>## [1] 0.9675</code></pre>
+<p>Again, you can change the list of summary statistics (<code>ssSize</code>, <code>ssMax</code>) and the distance function (<code>ssMeanRelDistance</code>) with your own ones, or other ones from the <a href="sumstat_examples.html">examples</a>.</p>
 <p>The returned distance is the outcome of a single simulation run, so you will get a different result here, which will also depend on your choice of distance function and summary statistics.</p>
+<p>To plot the distribution of distances from the data for a single set of parameter values <code>theta</code>, you can again use <code>replicate</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(<span class="kw">replicate</span>(<span class="dv">100</span>, <span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> <span class="kw">list</span>(ssSize, ssMax),
+                                       <span class="dt">distanceABC =</span> ssMeanRelDistance,
+                                       <span class="dt">fitmodel =</span> SEITL_stoch,
+                                       <span class="dt">theta =</span> theta,
+                                       <span class="dt">init.state =</span> init.state,
+                                       <span class="dt">data =</span> FluTdC1971)),
+     <span class="dt">xlab =</span> <span class="st">&quot;distance&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/abc/distances_plot.png" />
+</div>
+<p>Again, these are stochastic simulations so your histogram will look different, and again you can test this with different summary statistics (including more, or fewer) and distance functions. How widely are the distances distributed for a single set of parameters? This should give you an indication for a reasonable acceptance window. Ideally, you want to have summary statistics that vary a lot between parameter values (so the acceptance window can distinguish between good or bad fits), but not so much within parameter values (so you don't have to reject many runs from good parameters). Finding the right combination summary statistics and distance functions to achieve this can be very difficult, though, and one usually ends up having to make compromises between the two.</p>
 <h2 id="abc-posterior-estimate">ABC posterior estimate</h2>
-<p>Lastly, you can use you can write a function that will return the approximated posterior value for a given parameter, based on a single model run.</p>
+<p>Lastly, write a function that will return the approximated posterior value for a given parameter, based on a single model run.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># a function that takes 7 arguments:</span>
 <span class="co"># - epsilon: a vector (if the distance function returns a vector) or</span>
 <span class="co">#            single number, the tolerance for ABC</span>
@@ -171,8 +178,8 @@ my_ABCLogPosterior &lt;-<span class="st"> </span>function(epsilon, sum.stats, di
 <pre class="sourceCode r"><code class="sourceCode r">ABCLogPosterior</code></pre>
 <p>Once you have coded this function you can perform some tests to calibrate the tolerances.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ABCLogPosterior</span>(<span class="dt">epsilon =</span> <span class="dv">5</span>,
-                <span class="dt">sum.stats =</span> <span class="kw">list</span>(my_summaryStat1, my_summaryStat2),
-                <span class="dt">distanceABC =</span> my_distance,
+                <span class="dt">sum.stats =</span> <span class="kw">list</span>(ssMax, ssSize),
+                <span class="dt">distanceABC =</span> ssMeanRelDistance,
                 <span class="dt">fitmodel =</span> SEITL_stoch,
                 <span class="dt">theta =</span> theta,
                 <span class="dt">init.state =</span> init.state,
@@ -185,9 +192,10 @@ my_ABCLogPosterior &lt;-<span class="st"> </span>function(epsilon, sum.stats, di
 ##      2.0000      2.0000      2.0000      0.9000     13.0000      0.8500 
 ##    distance log.density 
 ##      0.6398    -12.8145</code></pre>
-<p>If your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.</p>
-<h2 id="run-mcmc">Run MCMC</h2>
-<p>We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding <a href="sumstat_examples.html">examples</a> and one of the distance functions from the other <a href="distance_examples.html">examples</a>.</p>
+<p>Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.</p>
+<p>You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.</p>
+<h2 id="abc-mcmc-on-the-stochastic-model">ABC-MCMC on the stochastic model</h2>
+<p>We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding <a href="sumstat_examples.html">examples</a> and one of the distance functions from the other <a href="distance_examples.html">examples</a>)</p>
 <pre class="sourceCode r"><code class="sourceCode r">my_ABCLogPosterior_tdc &lt;-<span class="st"> </span>function(theta) {
 
     init.state =<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T1 =</span> <span class="dv">3</span>, <span class="dt">T2 =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
@@ -222,15 +230,16 @@ my_ABCLogPosterior &lt;-<span class="st"> </span>function(epsilon, sum.stats, di
 ##    distance log.density 
 ##       1.194     -12.814</code></pre>
 <p>(You will get a different value here, as this is the outcome of a random simulation)</p>
-<p>You can now plug this into the <code>mcmcMH</code> (or <code>my_mcmcMH</code>, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the <a href="abc_mcmc_solution.html">solution</a>.</p>
+<p>You can now plug this into the <code>mcmcMH</code> (or <code>my_mcmcMH</code>, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the <a href="abc_solution.html#abc-mcmc-on-the-stochastic-model">solution</a>.</p>
 <p>Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?</p>
 <h2 id="comparison-with-exact-posterior">Comparison with exact posterior</h2>
 <p>In the deterministic model, we can calculate the likelihood directly, and don't need an approximation. This is a good test case for the accuracy of ABC, as well as our summary statistics.</p>
-<p>Write a wrapper function <code>my_ABCLogPosterior_det</code> to calculate the posterior using the deterministic model by changing the <code>my_ABCLogPosterior_tdc</code> function.</p>
-<p>You can now explore this using the <code>mcmcMH</code> function, and the same command as before. Compare this to MCMC using the <code>SEITL2_deter</code> function directly (in a posterior wrapper function, as you did <a href="http://sfunk.net/mfiidd/play_with_seitl.html#run-a-mcmc">here</a>). Compare the two using <code>coda</code> plot functions. How good is your the ABC estimate using different summary statistics?</p>
+<p>Write a wrapper function <code>my_ABCLogPosterior_tdc_det</code> to calculate the posterior using the deterministic model by changing the <code>my_ABCLogPosterior_tdc</code> function.</p>
+<p>You can now explore this using the <code>mcmcMH</code> function, and the same command as before. Compare this to MCMC using the <code>SEITL2_deter</code> function directly (in a posterior wrapper function, as you did <a href="play_with_seitl.html#run-mcmc">here</a>). Compare the two using <code>coda</code> plot functions. How good is your the ABC estimate using different summary statistics?</p>
+<p>If you have any trouble running the MCMC, have a look at our <a href="abc_solution.html#comparison-with-exact-posterior">solution</a>.</p>
 <h1 id="going-further">Going further</h1>
-<p>A <a href="http://www.genetics.org/content/182/4/1207.full.pdf">paper</a> by Wegmann et al, describes various improvements to the ABC-MCMC algorithm, for example an initial run of ~10000 parameter sets to calibrate the tolerance.</p>
+<p>A <a href="http://www.genetics.org/content/182/4/1207.full.pdf">paper</a> by Wegmann et al. describes various improvements to the ABC-MCMC algorithm, for example an initial run of ~10000 randomly sampled parameter sets to calibrate the tolerance.</p>
 <p>A <a href="http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002803">recent review of ABC</a> discussed many of the strengths and weaknesses of ABC, as well as recent developments.</p>
-<p>Previous: <a href="pmcmc.html">Particle Filter and pMCMC</a></p>
+<p>Previous: <a href="pmcmc.html">Particle MCMC</a></p>
 </body>
 </html>

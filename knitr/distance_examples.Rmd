@@ -1,4 +1,4 @@
-Here is a (by no means exhaustive) list of examples for summary statistics.
+Here is a (by no means exhaustive) list of examples for distance functions.
 
 ```{r echo=FALSE}
 read_chunk('distance_examples.r')

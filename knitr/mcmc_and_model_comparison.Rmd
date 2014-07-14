@@ -78,7 +78,7 @@ adapt.size.cooling <- # INSERT HERE
 adapt.shape.start <- # INSERT HERE
 ```
 
-If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
+If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_SEITL.md#setting-the-mcmc).
 
 Then you should be able to run `mcmcMH`:
 
@@ -99,11 +99,11 @@ This should print some information as the chain runs: acceptance rate, state of 
 
 Note that we have set the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform fewer iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.
 
-__Take 10 minutes__ to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_seitl.md#setting-the-mcmc).
+__Take 10 minutes__ to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_SEITL.md#setting-the-mcmc).
 
 # Short run analysis
 
-Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package. You didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_seitl.md#run-mcmc).
+Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package. You didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_SEITL.md#run-mcmc).
 
 Note that because there are more than 6 parameters to look at, the `coda` functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels takes too much space). Fortunately, `coda` has another set of functions to make the plots more compact:
 
@@ -124,7 +124,7 @@ xyplot(my_trace)
 
 Are you surprised by the trace of the log-prior? Determine what burning and thinning would be appropriate for your trace. Try to compare the thinned and unthinned traces (e.g. posterior estimates, density). Do you think it is important to thin?
 
-If you are not sure about how to analyse your trace, have a look at our [example](example_mcmc_seitl.md#short-run-analysis).
+If you are not sure about how to analyse your trace, have a look at our [example](example_mcmc_SEITL.md#short-run-analysis).
 
 # Long run analysis
 
@@ -157,7 +157,7 @@ Did the chains converge to the same distribution? What advantage can you see in 
 
 Finally, you should also assess the fit of your model by using the function `plotPosteriorFit`. This function takes a sample of `theta` from the trace, simulates some observations and plot them against the data, thus allowing you to assess the fit. __Take 10 minutes__ to look at the documentation of this function and assess your fit, in particular try the different options for the argument `posterior.summary`. 
 
-Once again, if you are not sure how to complete these steps, have a look at our [example](example_mcmc_seitl.md#long-run-analysis).
+Once again, if you are not sure how to complete these steps, have a look at our [example](example_mcmc_SEITL.md#long-run-analysis).
 
 # Correlations
 
@@ -171,7 +171,7 @@ As previously stated, both the latent and infectious period have been estimated 
 
 If not, modify `SEITL_deter` accordingly and re-run a short MCMC for 5000 iterations. Can you notice a difference in the posterior?
 
-A solution can be found [here](example_mcmc_seitl.md#correlations).
+A solution can be found [here](example_mcmc_SEITL.md#correlations).
 
 # Informative priors
 
@@ -188,7 +188,7 @@ names(mcmc_SEITL_infoPrior_theta2)
 ``` 
 __Take 15 minutes__ to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?
 
-A solution can be found [here](example_mcmc_seitl.md#informative-priors).
+A solution can be found [here](example_mcmc_SEITL.md#informative-priors).
 
 # Model comparison
 
@@ -210,7 +210,7 @@ that is half of the variance of the deviance with respect to the posterior distr
 
 The idea is that models with smaller DIC should be preferred to models with larger DIC. Models are penalized both by the value of $D(\bar\theta)$, which favors a good fit, but also by the effective number of parameters $p_D$. Since $D(\bar\theta)$ will decrease as the number of parameters in a model increases, the $p_D$ term compensates for this effect by favouring models with a smaller number of effective parameters.
 
-Compute the DIC for your model. A solution is provided [here](example_mcmc_seitl.md#model-selection). 
+Compute the DIC for your model. A solution is provided [here](example_mcmc_SEITL.md#model-selection). 
 
 Now, it's time to compare the DIC of the SEITL and SEIT2L model. Which model should be preferred? Is the difference substantial?
 You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/) on DIC to decide which model is the best. 
@@ -284,6 +284,8 @@ my_postPredCheck(trace = mcmc_SEITL_theta1$trace[SEITL_deter$theta.names],
                  init.state = init.state,
                  data = FluTdC1971)
 ```
+
+Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.
 
 Does the best model yield to a "better" (higher) p-value?
 

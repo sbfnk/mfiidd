@@ -3,7 +3,7 @@
 ssMeanAbsDistance <- function(sum.stats, data.obs, model.obs) {
 
     # calculate the absolute distance of each summary statistic,
-    # and take the mean 
+    # and take the mean
     res <- mean(sapply(sum.stats, function(x) {
         abs(x(model.obs) - x(data.obs))
     }))

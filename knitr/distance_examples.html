@@ -28,7 +28,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
   <link rel="stylesheet" href="github-pandoc.css" type="text/css" />
 </head>
 <body>
-<p>Here is a (by no means exhaustive) list of examples for summary statistics.</p>
+<p>Here is a (by no means exhaustive) list of examples for distance functions.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># mean absolute distance</span>
 ssMeanAbsDistance &lt;-<span class="st"> </span>function(sum.stats, data.obs, model.obs) {
 
@@ -60,7 +60,7 @@ ssAbsDistances &lt;-<span class="st"> </span>function(sum.stats, data.obs, model
 }
 
 <span class="co"># mean relative distance</span>
-ssMeanRelDistance &lt;-<span class="st"> </span>function(sum.stats, fitmodel, theta, init.state, data) {
+ssMeanRelDistance &lt;-<span class="st"> </span>function(sum.stats, data.obs, model.obs) {
 
     <span class="co"># calculate the relative distance of each summary statistic,</span>
     <span class="co"># and take the mean </span>
@@ -74,7 +74,7 @@ ssMeanRelDistance &lt;-<span class="st"> </span>function(sum.stats, fitmodel, th
 }
 
 <span class="co"># vector of relative distances</span>
-ssRelDistances &lt;-<span class="st"> </span>function(sum.stats, fitmodel, theta, init.state, data) {
+ssRelDistances &lt;-<span class="st"> </span>function(sum.stats, data.obs, model.obs) {
 
     <span class="co"># calculate the relative distance of each summary statistic,</span>
     res &lt;-<span class="st"> </span><span class="kw">sapply</span>(sum.stats, function(x) {
@@ -88,7 +88,7 @@ ssRelDistances &lt;-<span class="st"> </span>function(sum.stats, fitmodel, theta
     <span class="kw">return</span>(res)
 
 }</code></pre>
-<p>Copy and paste any of these you would like to test, and rename (or assign) to <code>my_distance</code> (or replace this with one of the function names given here later when calling <code>computeDistanceABC</code> etc.)</p>
+<p>Copy and paste any of these you would like to test.</p>
 <p><a href="ABC.html#distance-between-observed-and-simulated-summary-statistics">Return</a> to the ABC session.</p>
 </body>
 </html>
