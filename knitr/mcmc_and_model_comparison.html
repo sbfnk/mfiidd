@@ -215,7 +215,7 @@ my_postPredCheck &lt;-<span class="st"> </span>function(trace, n.samples, fitmod
 
     <span class="co"># initialise vector of model maxima</span>
     
-    ## for loop over sampled numbers
+    ## start for() loop over sampled numbers
 
         <span class="co"># get row from trace corresponding to sampled number</span>
 
@@ -224,7 +224,7 @@ my_postPredCheck &lt;-<span class="st"> </span>function(trace, n.samples, fitmod
 
         <span class="co"># calculate maximum in model and add to vector of model maxima</span>
 
-    ## end for loop
+    ## end for() loop
 
     <span class="co"># calculate 2-sided p-value, that is the proportion of elements of</span>
     <span class="co"># max.model which are either greater or equal or less or equal</span>
@@ -238,10 +238,12 @@ my_postPredCheck &lt;-<span class="st"> </span>function(trace, n.samples, fitmod
 <pre class="sourceCode r"><code class="sourceCode r">init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
 <span class="kw">my_postPredCheck</span>(<span class="dt">trace =</span> mcmc_SEITL_theta1$trace[SEITL_deter$theta.names], <span class="dt">n.samples =</span> <span class="dv">100</span>, 
     <span class="dt">fitmodel =</span> SEITL_deter, <span class="dt">init.state =</span> init.state, <span class="dt">data =</span> FluTdC1971)</code></pre>
+<pre><code>## [1] 0.24</code></pre>
 <p>Does the best model yield to a &quot;better&quot; (higher) p-value?</p>
 <div>
 <h1>Navigate</h1>
-Previous: <a href="play_with_seitl.html">Modelling interlude</a> Next: <a href="pmcmc.html">Particle MCMC</a>
+<!-- Previous: [Modelling interlude](play_with_seitl.html) Next: [Particle MCMC](pmcmc.html) -->
+Previous: <a href="play_with_seitl.html">Modelling interlude</a> Next: Particle MCMC
 </div>
 </body>
 </html>

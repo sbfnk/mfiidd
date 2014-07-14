@@ -85,7 +85,7 @@ print(p)
 
 The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC. 
 
-You can now return to the [practical](pmcmc.md#setting-the-pmcmc) and set your pMCMC with 400 particles.
+You can now return to the [practical](pmcmc.md#run-pmcmc) and set your pMCMC with 400 particles.
 
 # Setting the pMCMC
 
@@ -133,7 +133,7 @@ adapt.shape.start <- 100
 
 ```
 
-You can now go back to the [practical](pmcmc.md#run-a-pmcmc) and try to run a pMCMC with those settings.
+You can now go back to the [practical](pmcmc.md#run-a-pmcmc) and try to run 	pMCMC with those settings.
 
 # Analyse a pMCMC with 50 particles
 

@@ -95,7 +95,7 @@ for (n.particles in test.n.particles) {
 <p>We ran this calibration algorithm and obtained the following results:</p>
 <p><img src="figure/pmcmc/plot-calibration.png" title="" alt="" width="800" style="display: block; margin: auto;" /></p>
 <p>The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC.</p>
-<p>You can now return to the <a href="pmcmc.html#setting-the-pmcmc">practical</a> and set your pMCMC with 400 particles.</p>
+<p>You can now return to the <a href="pmcmc.html#run-pmcmc">practical</a> and set your pMCMC with 400 particles.</p>
 <h1 id="setting-the-pmcmc">Setting the pMCMC</h1>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the fitmodel</span>
 <span class="kw">data</span>(SEIT2L_stoch)
@@ -139,7 +139,7 @@ n.iterations &lt;-<span class="st"> </span><span class="dv">50</span>  <span cla
 adapt.size.start &lt;-<span class="st"> </span><span class="dv">100</span>
 adapt.size.cooling &lt;-<span class="st"> </span><span class="fl">0.99</span>
 adapt.shape.start &lt;-<span class="st"> </span><span class="dv">100</span></code></pre>
-<p>You can now go back to the <a href="pmcmc.html#run-a-pmcmc">practical</a> and try to run a pMCMC with those settings.</p>
+<p>You can now go back to the <a href="pmcmc.html#run-a-pmcmc">practical</a> and try to run pMCMC with those settings.</p>
 <h1 id="analyse-a-pmcmc-with-50-particles">Analyse a pMCMC with 50 particles</h1>
 <p>Here is an example of analysis of our 5 chains of 3000 iterations with 50 particles.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load traces</span>

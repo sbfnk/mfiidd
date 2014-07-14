@@ -17,7 +17,7 @@ The aim of this session is to learn how you can fit a stochastic model using the
 * To explore the parameter space efficiently
 * To evaluate the likelihood at a given parameter 
 
-In the [previous session](play_with_seitl.md#fitting-the-deterministic-models), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `trajLogLike` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
+In the [previous session](mcmc_and_model_comparison.md), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `trajLogLike` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
 
 In this session you will:
 
@@ -108,13 +108,13 @@ Can you think of and implement an algorithm to calibrate the number of particles
 
 Compare your approach with [ours](pmcmc_solution.md#calibrate-the-number-of-particles) and determine an optimal number of particles. 
 
-# Run a pMCMC
+# Run pMCMC
 
 You can now write a new wrapper for the function `logPosterior` that will take `margLogLike = my_particleFilter` as argument. This wrapper will then be passed to `mcmcMH`.
 
 Note that the function `logPosterior` doesn't have a `n.particles` argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `logPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
 
-You have probably noticed that running `my_particleFilter` is time consuming. As we mentioned in the [previous session](play_with_seitl.md#fitting-the-deterministic-models) this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target. 
+You have probably noticed that running `my_particleFilter` is time consuming. As we mentioned in the [previous session](mcmc_and_model_comparison.md#objectives) this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target. 
 
 In order to efficiently initialise your pMCMC, you can make use the results of the fit of the deterministic SEIT2L model of the previous session. Remember that you can load these results as follows:
 
@@ -230,7 +230,8 @@ Check your answer [here](pmcmc_solution.md#stochastic-vs-deterministic-fit).
 
 ## Filtered trajectories
 
-Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package that will do it for you (see `?particleFilter`). Have a look at its code.
+* Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package called `particleFilter` that will do it for you (see `?particleFilter` for documentation). Have a look at its code.
+* If you run a particle filter with our function `particleFilter`, you can then plot the filtered trajectories using the function `plotSMC`.
 
 ## Optimization
 
@@ -238,5 +239,5 @@ You might have noted that the `for()` loop over particles could be parallelized,
 
 <div>
 # Navigate
-Previous: [MCMC and model comparison](mcmc_and_model_comparison.md) Next: [Approximate Bayesian Computation](ABC.md)
+Previous: [MCMC and model comparison](mcmc_and_model_comparison.md) Next: Approximate Bayesian Computation
 </div>

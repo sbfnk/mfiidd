@@ -37,7 +37,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><a href="#code-a-particle-filter">Code a particle filter</a></li>
 <li><a href="#run-a-particle-filter">Run a particle filter</a></li>
 <li><a href="#calibrate-the-number-of-particles">Calibrate the number of particles</a></li>
-<li><a href="#run-a-pmcmc">Run a pMCMC</a></li>
+<li><a href="#run-pmcmc">Run pMCMC</a></li>
 <li><a href="#analyse-a-pmcmc-with-50-particles">Analyse a pMCMC with 50 particles</a></li>
 <li><a href="#analyse-a-pmcmc-with-400-particles">Analyse a pMCMC with 400 particles</a></li>
 <li><a href="#stochastic-vs-deterministic-fit">Stochastic vs deterministic fit</a></li>
@@ -54,7 +54,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li>To explore the parameter space efficiently</li>
 <li>To evaluate the likelihood at a given parameter</li>
 </ul>
-<p>In the <a href="play_with_seitl.html#fitting-the-deterministic-models">previous session</a>, you have used the function <code>mcmcMH</code> to explore the parameter space with a Metropolis-Hastings algorithm and the function <code>trajLogLike</code> to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the <code>mcmcMH</code> function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter.</p>
+<p>In the <a href="mcmc_and_model_comparison.html">previous session</a>, you have used the function <code>mcmcMH</code> to explore the parameter space with a Metropolis-Hastings algorithm and the function <code>trajLogLike</code> to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the <code>mcmcMH</code> function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter.</p>
 <p>In this session you will:</p>
 <ol style="list-style-type: decimal">
 <li>code a particle filter to estimate the likelihood of a stochastic model</li>
@@ -126,10 +126,10 @@ init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="
 <h1 id="calibrate-the-number-of-particles">Calibrate the number of particles</h1>
 <p>Can you think of and implement an algorithm to calibrate the number of particles?</p>
 <p>Compare your approach with <a href="pmcmc_solution.html#calibrate-the-number-of-particles">ours</a> and determine an optimal number of particles.</p>
-<h1 id="run-a-pmcmc">Run a pMCMC</h1>
+<h1 id="run-pmcmc">Run pMCMC</h1>
 <p>You can now write a new wrapper for the function <code>logPosterior</code> that will take <code>margLogLike = my_particleFilter</code> as argument. This wrapper will then be passed to <code>mcmcMH</code>.</p>
 <p>Note that the function <code>logPosterior</code> doesn't have a <code>n.particles</code> argument so you might wonder how to specify it to <code>my_particleFilter</code>? Have a look at the documentation of <code>logPosterior</code>. You should notice the <code>...</code> argument, which allows you to pass any extra argument to the function <code>margLogLike</code>.</p>
-<p>You have probably noticed that running <code>my_particleFilter</code> is time consuming. As we mentioned in the <a href="play_with_seitl.html#fitting-the-deterministic-models">previous session</a> this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target.</p>
+<p>You have probably noticed that running <code>my_particleFilter</code> is time consuming. As we mentioned in the <a href="mcmc_and_model_comparison.html#objectives">previous session</a> this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target.</p>
 <p>In order to efficiently initialise your pMCMC, you can make use the results of the fit of the deterministic SEIT2L model of the previous session. Remember that you can load these results as follows:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(mcmc_TdC_deter_longRun)
 <span class="co"># this should load 2 objects in your environment:</span>
@@ -273,12 +273,15 @@ trace &lt;-<span class="st"> </span><span class="kw">mcmc.list</span>(<span clas
 <p>Check your answer <a href="pmcmc_solution.html#stochastic-vs-deterministic-fit">here</a>.</p>
 <h1 id="going-further">Going further</h1>
 <h2 id="filtered-trajectories">Filtered trajectories</h2>
-<p>Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that &quot;survived&quot; until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package that will do it for you (see <code>?particleFilter</code>). Have a look at its code.</p>
+<ul>
+<li>Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that &quot;survived&quot; until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package called <code>particleFilter</code> that will do it for you (see <code>?particleFilter</code> for documentation). Have a look at its code.</li>
+<li>If you run a particle filter with our function <code>particleFilter</code>, you can then plot the filtered trajectories using the function <code>plotSMC</code>.</li>
+</ul>
 <h2 id="optimization">Optimization</h2>
-<p>You might have noted that the <code>for()</code> loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of <code>bootstrapParticleFilter</code>. Actually, all the test run were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.</p>
+<p>You might have noted that the <code>for()</code> loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of <code>particleFilter</code>. Actually, all the test run were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.</p>
 <div>
 <h1>Navigate</h1>
-Previous: <a href="mcmc_and_model_comparison.html">MCMC and model comparison</a> Next: <a href="ABC.html">Approximate Bayesian Computation</a>
+Previous: <a href="mcmc_and_model_comparison.html">MCMC and model comparison</a> Next: Approximate Bayesian Computation
 </div>
 </body>
 </html>
