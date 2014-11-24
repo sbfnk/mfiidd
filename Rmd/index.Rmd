@@ -1,5 +1,6 @@
-% Model fitting and inference for infectious disease dynamics
-
+---
+title: Model fitting and inference for infectious disease dynamics
+---
 <!-- ## Lunch options -->
 
 <!-- [Local map](http://goo.gl/XEPxch) -->
@@ -15,7 +16,7 @@ The simplest way to install the `fitR` is to use the `devtools` package:
 ```{r eval=FALSE}
 install.packages("devtools")
 library(devtools)
-install_github("sbfnk/fitR")
+install_github("sbfnk/fitR@fitcourse_2014")
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
@@ -28,15 +29,15 @@ library(fitR)
 
 ## Contents
 
-1. [Introduction](introduction.md)
-2. [MCMC](mcmc.md)
-3. [MCMC diagnostics](mcmc_diagnostics.md)
-4. [Modelling interlude](play_with_seitl.md)
-5. [MCMC and model comparison](mcmc_and_model_comparison.md)
-6. [Particle MCMC](pmcmc.md)
-7. [Approximate Bayesian Computation](ABC.md)
+1. [Introduction](introduction.html)
+2. [MCMC](mcmc.html)
+3. [MCMC diagnostics](mcmc_diagnostics.html)
+4. [Modelling interlude](play_with_seitl.html)
+5. [MCMC and model comparison](mcmc_and_model_comparison.html)
+6. [Particle MCMC](pmcmc.html)
+7. [Approximate Bayesian Computation](ABC.html)
 
-## Further slides
+<!-- ## Further slides
 [Further methods and packages](slides/further_slides.pdf)
 
 ### Thursday afternoon talks
@@ -46,7 +47,7 @@ library(fitR)
 [History matching of complex infectious disease models using emulation](slides/yiannis_talk.pdf)
 
 [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
-
+ -->
 # Navigate
 Next: [Introduction](introduction.md)
 

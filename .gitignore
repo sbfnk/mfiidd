@@ -23,9 +23,7 @@ auto
 *.out
 
 
-# knitr stuff
-knitr/*.md
-knitr/*.pdf
-knitr/cache
+# Rmd stuff
+Rmd/cache*
 
 *.pdf
