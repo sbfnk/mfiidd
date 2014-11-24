@@ -24,6 +24,7 @@ auto
 
 
 # Rmd stuff
-Rmd/cache*
+Rmd/cache_old
+Rmd/*_cache
 
 *.pdf

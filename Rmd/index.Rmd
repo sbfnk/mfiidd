@@ -13,7 +13,7 @@ title: Model fitting and inference for infectious disease dynamics
 
 The simplest way to install the `fitR` is to use the `devtools` package:
 
-```{r eval=FALSE}
+```{r install, eval=FALSE}
 install.packages("devtools")
 library(devtools)
 install_github("sbfnk/fitR@fitcourse_2014")
@@ -21,7 +21,7 @@ install_github("sbfnk/fitR@fitcourse_2014")
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
 
-```{r}
+```{r load, eval=FALSE}
 library(fitR)
 ```
 
@@ -49,6 +49,6 @@ library(fitR)
 [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
  -->
 # Navigate
-Next: [Introduction](introduction.md)
+Next: [Introduction](introduction.html)
 
 </div>

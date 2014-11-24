@@ -1,7 +1,7 @@
 % Introduction to model fitting in R
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/introduction/", fig.height=5, fig.width=5, fig.retina=1 ,fig.path="figure/introduction/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, cache=FALSE, echo=FALSE}
@@ -38,7 +38,7 @@ $$
 
 where $S$, $I$ and $R$ stand for the susceptible, infected and recovered compartments, respectively, $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
 
-```{r results="hide"}
+```{r load_SIR, results="hide"}
 data(SIR)
 ```
 
@@ -46,13 +46,13 @@ This will load a `fitmodel` object called `SIR` into your **R** session. A `fitm
 
 To see the objects that the `SIR` model contains, type
 
-```{r}
+```{r look_SIR_names}
 names(SIR)
 ```
 
 A `fitmodel` object provides its description, as well as the names of its state variables and parameters. These can be accessed with
 
-```{r }
+```{r look_SIR}
 SIR$name
 SIR$state.names
 SIR$theta.names
@@ -60,7 +60,7 @@ SIR$theta.names
 
 Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `genObsPoint` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
 
-```{r eval=FALSE, tidy=FALSE}
+```{r help_fitmodel, eval=FALSE, tidy=FALSE}
 ?fitmodel
 ```
 
@@ -68,7 +68,7 @@ Moreover, each `fitmodel` contains four functions: `simulate` to run the model, 
 
 To simulate a model run, we use the `simulate` command which comes with a `fitmodel` (see above). To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.
 
-```{r }
+```{r simulate}
 theta <- c(R0 = 3, D.inf = 2)
 init.state <- c(S = 999, I = 1, R = 0)
 times <- 1:100
@@ -77,7 +77,7 @@ traj <- SIR$simulate(theta, init.state, times)
 
 We can now look at the output of the model run
 
-```{r }
+```{r head_traj}
 head(traj)
 ```
 
@@ -93,7 +93,7 @@ Try running the model with different values of the parameters and initial state,
 
 Remember that if you want more detail on what the functions contained in a `fitmodel` do, type the function name after `SIR$` (or whichever `fitmodel` object you are looking at; for now, we consider `SIR`). For example, to look at the `simulate` function of `SIR`, type
 
-```{r eval=F}
+```{r look_simulate, eval=F}
 SIR$simulate
 ```
 
@@ -103,13 +103,13 @@ This is the key function that encodes the dynamic model we would like to fit to 
 
 To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
 
-```{r}
+```{r eval_log_prior}
 SIR$logPrior(theta)
 ```
 
 Have a look at the `logPrior` function by typing
 
-```{r eval = FALSE}
+```{r look_log_prior, eval = FALSE}
 SIR$logPrior
 ```
 
@@ -119,13 +119,13 @@ You will see that this calculates the prior of the parameters using uniform dist
 
 The `pointLogLike` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
 
-```{r}
+```{r eval_log_like}
 SIR$pointLogLike(data.point = c(obs = 18), model.point = c(I = 31), theta)
 ```
 
 Have a look at the `pointLogLike` function by typing
 
-```{r eval = FALSE}
+```{r look_log_like, eval = FALSE}
 SIR$pointLogLike
 ```
 
@@ -133,25 +133,25 @@ You will see that this calculates the likelihood of a data point (above, an obse
 
 Let's load a test data set contained in the `fitR` package using
 
-```{r}
+```{r load data}
 data(epi)
 ```
 
 This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. For now, you can look at this data set using
 
-```{r }
+```{r look_epi1}
 head(epi1)
 ```
 
 The observations ("obs") in the `epi1` data set are based on observed prevalence ("I"). You can plot the data using
 
-```{r traj_epi1}
+```{r plot_epi1}
 plotTraj(data = epi1)
 ```
 
 To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
 
-```{r }
+```{r eval_traj_log_like}
 trajLogLike(SIR, theta, init.state, epi1)
 ```
 
@@ -163,7 +163,7 @@ The function `genObsPoint` generates a single random observation from a single p
 
 `genObsPoint` can be seen as the inverse of `pointLogLike`. Whereas `pointLogLike` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes the model and generates a (randomly sampled) data point. In that, it differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `genObsPoint` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a random observed prevalence on the basis of a true prevalence of 31, we can write
 
-```{r}
+```{r gen_obs}
 SIR$genObsPoint(model.point = c(I = 31), theta)
 ```
 
@@ -171,7 +171,7 @@ Of course, you might see a different number, as the result of this command is th
 
 To generate a whole trajectory with simulated observation, we have implemented a function called `genObsTraj`, which can be seen as the inverse of `trajLogLike`. The `genObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `genObsPoint` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
 
-```{r }
+```{r gen_obs_traj}
 obs.traj <- genObsTraj(SIR, theta, init.state, epi1$time)
 head(obs.traj)
 ```
@@ -208,11 +208,11 @@ my_logPosterior <- function(fitmodel, theta, init.state, data) {
 source('our_posterior.r')
 ```
 
-If you have trouble filling any of the empty bits in, have a look at our [more guided example](posterior_example.md).
+If you have trouble filling any of the empty bits in, have a look at our [more guided example](posterior_example.html).
 
 Once you are done with this, check that your function returns a sensible value.
 
-```{r }
+```{r eval_log_posterior}
 my_logPosterior(SIR, theta, init.state, epi1)
 ```
 
@@ -232,14 +232,14 @@ Now we are ready to do parameter estimation by exploring the posterior at differ
 
 You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$logPrior` and `SIR$pointLogLike` by typing
 
-```{r eval = FALSE}
+```{r look_definition,eval = FALSE}
 SIR$logPrior
 SIR$pointLogLike
 ```
 
 To change the prior and likelihood functions, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
 
-```{r eval = FALSE}
+```{r edit,eval = FALSE}
 SIR$pointLogLike <- function(data.point, model.point, theta) {
         # the prevalence is observed through a normally distributed process
         return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = TRUE))
@@ -252,7 +252,7 @@ Try different distributions for the prior and likelihood distributions (you coul
 
 If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, `epi2`, which you can have a look at with
 
-```{r }
+```{r look_epi2}
 head(epi2)
 ```
 
@@ -260,5 +260,5 @@ This was created with an infectious period 2 and a reporting rate of 10%. Can yo
 
 <div>
 # Navigate
-Previous: [Installation](index.md) Next: [MCMC](mcmc.md)
+Previous: [Installation](index.html) Next: [MCMC](mcmc.html)
 </div>
