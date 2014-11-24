@@ -1,0 +1,22 @@
+\newcommand{\singleslide}[1]{{%
+    \usebeamerfont{title}
+    \begin{frame}[plain,c]
+      \begin{center}
+        \begin{minipage}[h]{.75\textwidth}
+          \centering
+          #1
+      \end{minipage}
+      \end{center}
+    \end{frame}
+}}
+
+\newcommand{\sectionslide}[2][]{{%
+    \setbeamercolor{background canvas}{bg=structure.fg}
+    \usebeamerfont{title}
+    \begin{frame}[plain]
+        \vspace{.6\paperheight}
+        \Huge \textcolor{structure.bg}{#2}\vspace*{-0.3cm}
+        \hspace*{-0.2cm}\textcolor{white}{\rule{\textwidth}{0.025cm}}
+        \large \textcolor{structure.bg}{#1}
+    \end{frame}
+}}
