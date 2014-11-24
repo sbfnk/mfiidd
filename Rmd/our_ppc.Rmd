@@ -9,4 +9,4 @@ read_chunk('our_ppc.r')
 
 You can copy and paste the function into your **R** session, and proceed from there.
 
-[Return](mcmc_and_model_comparison.md#posterior-predictive-checks) to the practical.
+[Return](mcmc_and_model_comparison.html#posterior-predictive-checks) to the practical.

@@ -258,6 +258,8 @@ head(epi2)
 
 This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate $R_0$?
 
+<!-- TODO: example with SIR with sinusoidal forcing -->
+
 <div>
 # Navigate
 Previous: [Installation](index.html) Next: [MCMC](mcmc.html)

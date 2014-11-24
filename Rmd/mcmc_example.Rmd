@@ -80,4 +80,4 @@ my_mcmcMH <- function(target, init.theta, covmat.proposal, n.iterations) {
 }
 ```
 
-If you run into any problems, have a look at our [solution](mcmc_example_solution.md). Otherwise you can [return](mcmc.md#the-metropolis-hastings-sampler) to the practical.
+If you run into any problems, have a look at our [solution](mcmc_example_solution.html). Otherwise you can [return](mcmc.html#the-metropolis-hastings-sampler) to the practical.

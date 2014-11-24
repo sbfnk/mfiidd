@@ -1,7 +1,7 @@
 % Solution: the particle MCMC
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/pmcmc/", fig.retina=2 ,fig.path="figure/pmcmc/", fig.cap='', fig.height=10, fig.width=10, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
@@ -19,7 +19,7 @@ If you have too many particles, then you will have an accurate estimate of your 
 
 In addition, the variability of the estimate might also depend on the region of the parameter space. For instance, in some region you might experience significant variability with 100 particles whereas in another region it might be fairly stable.
 
-You can now return to the [practical](pmcmc.md#calibrate-the-number-of-particles) and try to think on a way to calibrate the number of particles.
+You can now return to the [practical](pmcmc.html#calibrate-the-number-of-particles) and try to think on a way to calibrate the number of particles.
 
 # Calibrate the number of particles
 
@@ -85,7 +85,7 @@ print(p)
 
 The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC. 
 
-You can now return to the [practical](pmcmc.md#run-pmcmc) and set your pMCMC with 400 particles.
+You can now return to the [practical](pmcmc.html#run-pmcmc) and set your pMCMC with 400 particles.
 
 # Setting the pMCMC
 
@@ -133,13 +133,13 @@ adapt.shape.start <- 100
 
 ```
 
-You can now go back to the [practical](pmcmc.md#run-a-pmcmc) and try to run 	pMCMC with those settings.
+You can now go back to the [practical](pmcmc.html#run-a-pmcmc) and try to run 	pMCMC with those settings.
 
 # Analyse a pMCMC with 50 particles
 
 Here is an example of analysis of our 5 chains of 3000 iterations with 50 particles.
 
-```{r analyse-n50, collapse=TRUE}
+```{r analyse-n50, collapse=TRUE, fig.height=7, fig.width=10}
 # load traces
 data(pmcmc_SEIT2L_infoPrior_n50)
 
@@ -158,7 +158,7 @@ xyplot(trace)
 
 The burning period looks relatively short, this is because we started the chains with a "good" `init.theta`. That said, since we have relatively short runs it might be useful to carefully choose the burning period with `plotESSBurn`.
 
-```{r analyse-n50-burn, collapse=TRUE}
+```{r analyse-n50-burn, collapse=TRUE, fig.height=7, fig.width=10}
 # this can take some time as we have 5 chains
 plotESSBurn(trace)
 
@@ -180,14 +180,14 @@ The 5 chains converged to somewhat different posterior distributions, with diffe
 
 With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. This is why we have a lot of autocorrelation and small ESSs. That said, the theoretical properties of the pMCMC guaranty that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to the number of iterations.
 
-You can now return to the [practical](pmcmc.md#analyse-a-pmcmc-with-400-particles) and analyse a pMCMC with much more particles that we ran for you.
+You can now return to the [practical](pmcmc.html#analyse-a-pmcmc-with-400-particles) and analyse a pMCMC with much more particles that we ran for you.
 
 
 # Analyse a pMCMC with 400 particles
 
 Here is an example of analysis of our 5 chains of 3000 iterations with 400 particles.
 
-```{r analyse-n400, collapse=TRUE}
+```{r analyse-n400, collapse=TRUE, fig.height=7, fig.width=10}
 # load traces
 data(pmcmc_SEIT2L_infoPrior_n400)
 
@@ -206,7 +206,7 @@ xyplot(trace)
 
 As in the analysis with 50 particles, the burning period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burning period with `plotESSBurn`.
 
-```{r analyse-n400-burn, collapse=TRUE}
+```{r analyse-n400-burn, collapse=TRUE, fig.height=6, fig.width=10}
 # Actually, it looks like no burning is needed:
 plotESSBurn(trace)
 
@@ -223,8 +223,8 @@ densityplot(x=trace.thin.n400)
 
 All 5 chains seems to have converged to the same posterior, which are smoother than with 50 particles. Let's compare the combined posterior densities with that obtained with 50 particles
 
-```{r n400-n50}
-plotPosteriorDensity(list(n50=trace.burn.thin.n50,n400=trace.thin.n400))
+```{r n400-n50, fig.height=7, fig.width=7}
+plotPosteriorDensity(list(n50=trace.burn.thin.n50, n400=trace.thin.n400))
 ```
 
 Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS. Note the different location of the mode of $R_0$, which is shifted to the left with 50 particles. This is because 3 of the 5 chains with 50 particles show a posterior with lower $R_0$ (see figure above), whereas the remaining 2 seems to have converged to the same distribution as the pMCMC with 400 particles.
@@ -233,13 +233,13 @@ Finally, note that the log-likelihood is overestimated with 50 particles, which 
 
 Overall, this analysis confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles. Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 400 particles. The chains start at different `init.theta` near the mode of the deterministic posterior, and are then combined to increase the overall ESS.
 
-You can now return to the [practical](pmcmc.md#stochastic-vs-deterministic-fit) and proceed to the last section of this session.
+You can now return to the [practical](pmcmc.html#stochastic-vs-deterministic-fit) and proceed to the last section of this session.
 
 # Stochastic vs deterministic fit
 
 Here we compare the combined traces of the deterministic SEIT2L model (2 chains of $10^5$ iterations) with those obtained with the stochastic version (5 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
 
-```{r sto-deter, collapse=TRUE}
+```{r sto-deter, collapse=TRUE, fig.height=7, fig.width=7}
 
 # load, burn and thin the deterministic fit
 
@@ -306,7 +306,7 @@ plotFit(SEIT2L_deter,theta.bar.deter,init.state,data=FluTdC1971,n=1000)
 Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.
 
 
-You've already finished? why not [going further?](pmcmc.md#going-further)
+You've already finished? why not [going further?](pmcmc.html#going-further)
 
 
 

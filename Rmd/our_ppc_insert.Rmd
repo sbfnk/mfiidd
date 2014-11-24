@@ -47,4 +47,4 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
 
 ```
 
-If you run into any problems, have a look at our [solution](our_ppc.md), otherwise [return](mcmc_and_model_comparison.md#posterior-predictive-checks) to the pMCMC practical.
+If you run into any problems, have a look at our [solution](our_ppc.html), otherwise [return](mcmc_and_model_comparison.html#posterior-predictive-checks) to the pMCMC practical.

@@ -7,4 +7,4 @@ mcmc.epi3 <- mcmcMH(target = my_logPosterior_epi3,
                     n.iterations = 1000)
 ```
 
-[Return](mcmc_diagnostics.md#summary-statistics) to the MCMC diagnostics session.
+[Return](mcmc_diagnostics.html#summary-statistics) to the MCMC diagnostics session.

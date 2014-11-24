@@ -28,4 +28,4 @@ my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
 ```
 
-If you run into any problems, have a look at our [solution](posterior_example_solution.md). Otherwise, [return to the practical](introduction.md#calculate-the-posterior).
+If you run into any problems, have a look at our [solution](posterior_example_solution.html). Otherwise, [return to the practical](introduction.html#calculate-the-posterior).

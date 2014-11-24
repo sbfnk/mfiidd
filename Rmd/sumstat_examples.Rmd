@@ -11,4 +11,4 @@ read_chunk('sumstat_examples.r')
 
 Copy and paste any of these you would like to test.
 
-[Return](ABC.md#summary-statistics) to the ABC session.
+[Return](ABC.html#summary-statistics) to the ABC session.

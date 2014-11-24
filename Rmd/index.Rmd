@@ -1,6 +1,5 @@
----
-title: Model fitting and inference for infectious disease dynamics
----
+% Model fitting and inference for infectious disease dynamics
+
 <!-- ## Lunch options -->
 
 <!-- [Local map](http://goo.gl/XEPxch) -->

@@ -1,11 +1,10 @@
 % Practical session: MCMC diagnostics
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/mcmc_diagnostics/", fig.retina=1 ,fig.path="figure/mcmc_diagnostics/", fig.cap='', tidy=FALSE)
+opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", tidy=FALSE)
 ```
 
-```{r echo=FALSE,cache=FALSE,results="hide",message=FALSE}
-opts_chunk$set(fig.cap='')
+```{r load, include=FALSE,cache=FALSE}
 library(fitR)
 data(SIR)
 data(SIR_reporting)
@@ -25,19 +24,19 @@ The aim of this session is to learn how to interpret the results of MCMC samplin
 
 <!-- The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`. -->
 
-In the last practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters, and our MCMC needs to sample from a posterior distribution that depends on all of them.
+In the previous practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters, and our MCMC needs to sample from a posterior distribution that depends on all of them.
 
 Getting the acceptance rate to a desired value is much harder when dealing with multiple parameters, but there are a few strategies available for doing so, which we will learn about in this practical session.
 
-The data set `epi3` was generated from an SIR model with some basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. Try to use the MCMC sampler created in the previous session to generate samples that follow the posterior density (if you didn't get to write your own MCMC sampler, use the one from our [solution](mcmc_example_solution.md)).
+The data set `epi3` was generated from an SIR model with some basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. Try to use the MCMC sampler created in the previous session to generate samples that follow the posterior density (if you didn't get to write your own MCMC sampler, use the one from our [solution](mcmc_example_solution.html)).
 
 You can visualise the `epi3` data set with
 
-```{r epi3_traj, fig.height = 5, fig.width = 5}
+```{r epi3_traj}
 plotTraj(data = epi3)
 ```
 
-You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_epi1` wrapper function to fit to data set `epi3` -- if you have trouble with that, you can use our [solution](epi3_wrapper.md). Try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.
+You can use the same command for `my_mcmcMH` you used in the previous practical session, but you need to change the `my_logPosterior_epi1` wrapper function to fit to data set `epi3` -- if you have trouble with that, you can use our [solution](epi3_wrapper.html). Try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.
 
 To get good acceptance rates, it is sometimes a good idea to first consider each parameter individually, and then change the proposal step until a desired acceptance rate is achieved. Once this is done, one can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rates. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
 
@@ -47,23 +46,23 @@ We will now introduce you to how to use `coda` to diagnose MCMC runs. We suggest
 
 We now use the functions from the **R** package `coda` to assess the MCMC runs. Diagnosing MCMC usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics, and `coda` provides a rich suite of functions to this end. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters `init.theta` and step size `proposal.sd`. If you didn't get an MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the `mcmc.epi3` object, which you can load with `data(mcmc)`:
 
-```{r}
+```{r load_trace}
 data(mcmc)
 trace <- mcmc.epi3$trace
 head(trace)
 ```
 
-This run was created using the commands shown [here](mcmc_commands.md). In the following, we assume that you assigned the result of `my_mcmcMH` to a variable called `trace`, but of course you can call this anything you like.
+This run was created using the commands shown [here](mcmc_commands.html). In the following, we assume that you assigned the result of `my_mcmcMH` to a variable called `trace`, but of course you can call this anything you like.
 
 To use `coda`, we must first convert our trace to a format that `coda` understands. To this end, we use the `mcmc` command:
 
-```{r}
+```{r coda_trace}
 mcmc.trace <- mcmc(trace)
 ```
 
 We can get summary statics using `summary`
 
-```{r}
+```{r summary_trace}
 summary(mcmc.trace)
 ```
 
@@ -77,14 +76,14 @@ This provides the following information:
 
 We can also compute the rejection rate (that is 1 minus the acceptance rate).
 
-```{r}
+```{r rejection}
 acceptanceRate <- 1 - rejectionRate(mcmc.trace)
 acceptanceRate
 ```
 
 Lastly, we can compute the effective sample size, that is an estimate for the number of *independent* samples (taking into account autocorrelations) generated by the MCMC run.
 
-```{r}
+```{r ESS}
 effectiveSize(mcmc.trace)
 ```
 
@@ -121,13 +120,13 @@ It is sometimes said that we are aiming for the trace to look like a [hairy cate
 
 Another way to check for convergence is to look at the autocorrelations between the samples returned by our MCMC. The lag-$k$ autocorrelation is the correlation between every sample and the sample at which we were $k$ steps before. This autocorrelation should become smaller as $k$ increases. If, on the other hand, autocorrelation remains high for higher values of $k$, this indicates a high degree of correlation between our samples and slow mixing.
 
-```{r autocorrelations, fig.width = 10, fig.height = 10}
+```{r autocorrelations, fig.width = 10, fig.height = 5}
 autocorr.plot(mcmc.trace.burned)
 ```
 
 In this case, the autocorrelation drops with increasing $k$ (or "lag", the x-axis in the plot), which is a good sign. If autocorrelation persists, we can *thin* the MCMC chain, that is we discard $n$ samples for every sample that we keep. To do this, again we use `burnAndThin` and pass the number of samples $n$ to be discarded for each kept sample as `thin` argument:
 
-```{r trace_burned_thinned, fig.width = 10, fig.height = 10}
+```{r trace_burned_thinned, fig.width = 10, fig.height = 5}
 mcmc.trace.burned.thinned <- burnAndThin(mcmc.trace.burned, thin = 5)
 autocorr.plot(mcmc.trace.burned.thinned)
 ```
@@ -166,15 +165,15 @@ If we ignore the limited support that parameters can have, we might waste MCMC s
 
 A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for *rates*, such as the ones in the SIR model. A way to force a parameter to be positive is to *transform* them to the log-scale, that is to run MCMC on $\log{R_0}$ instead of $R_0$. When calculating the model, we can use the exponential function to transform the parameter back.
 
-You can load an SIR model where the parameters are estimated on the log-scale using
+You can load an SIR model where the parameters are defined on the log-scale using
 
-```{r message = FALSE, results = "hide"}
+```{r load_SIR_exp, message = FALSE, results = "hide"}
 data(SIR_exp)
 ```
 
 You can, again, use a wrapper function and use MCMC to explore the parameters.
 
-```{r echo = FALSE, cache=FALSE}
+```{r source_stuff, include = FALSE, cache=FALSE}
 source('epi3_wrapper.r')
 source('our_posterior.r')
 source('our_mcmcM.r')
@@ -203,7 +202,7 @@ Another way for dealing with parameters with limited support is to use *truncate
 
 In the `fitR` package, we have implemented a function called `mcmcMH` that uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this truncated proposal (which renders the proposal distribution asymmetric) to calculate the acceptance ratio. The limits to use in the proposal distribution can be specified with the `limits` argument to `mcmcMH`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
 
-```{r echo = FALSE}
+```{r posterior_epi3}
 my_logPosterior_epi3 <- function(theta) {
 
     return(my_logPosterior(fitmodel = SIR,
@@ -232,14 +231,15 @@ The best proposal distribution is the one that best matches the target distribut
 In addition to truncated proposal distributions, our function `mcmcMH` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
 
-```{r adapt, message = FALSE, warn = FALSE}
+```{r adapt, eval=FALSE, message = FALSE, warn = FALSE}
 trace <- mcmcMH(target = my_logPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(0.1, 0.01),
-                n.iterations = 1000)
+                n.iterations = 1000,
+                limits = list(lower = c(R0 = 0, D.inf = 0)))
 ```
 
-```{r}
+```{r print_covmat}
 trace$covmat.empirical
 ```
 
@@ -268,22 +268,22 @@ Take note of the acceptance rate when the adaptive sampler starts adapting the s
 
 # Going further
 
-To read more about MCMC diagnostics, have a look at Cowles & Carlin's excellent [review](https://faculty.washington.edu/jmiyamot/p548/cowlesmk%20mcmc%20convergence%20diagnostics%20-%20a%20comparative%20review.pdf).
+To read more about MCMC diagnostics, have a look at Cowles & Carlin's excellent [review](external_ref/Cowles96_MCMCconvergence.pdf).
 
 You can also try fitting a model with (unknown) reporting rate to the `epi4` data set. To load an SIR model which takes underreporting into account, load the `SIR_reporting` model with
 
-```{r}
+```{r load_SIR_rep}
 data(SIR_reporting)
 ```
 
 Have a look at the point observation probability function
 
-```{r eval = FALSE}
+```{r look_loglike, eval = FALSE}
 SIR_reporting$pointLogLike
 ```
 
 Can you fit this to the `epi4` data set?
 
 <div>
-Previous: [MCMC](mcmc.md) Next: [Modelling interlude](play_with_seitl.md)
+Top: [Index](index.html) Previous: [MCMC](mcmc.html) Next: [Modelling interlude](play_with_seitl.html)
 </div>

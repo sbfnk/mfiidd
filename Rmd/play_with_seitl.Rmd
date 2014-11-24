@@ -1,10 +1,10 @@
 % Modelling interlude: Tristan da Cunha outbreak & the SEITL model.
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_model/", fig.retina=2 ,fig.path="figure/SEITL_model/", fig.cap='', fig.height=3, fig.width=5, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
-```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
+```{r load, include=FALSE, cache=FALSE}
 library(fitR)
 set.seed(1234)
 ```
@@ -29,7 +29,7 @@ But first of all, let's have a look at the data.
 
 # Tristan da Cunha outbreak
 
-![](figure/import/TdC.png)
+![](external_fig/import/TdC.png)
 
 [Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean. It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas. Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island. These ships were often the cause of introduction of new diseases into the population. As for influenza, no outbreak had been reported since an epidemic of A/H1N1 in 1954. In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.
 
@@ -52,7 +52,7 @@ plotTraj(data=FluTdC1971)
 One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain that was still circulating. This can be modelled as follows:
 
 ![The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability $\alpha$ to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S).
-](figure/import/SEITL.png)
+](external_fig/import/SEITL.png)
 
 The SEITL model can be described with five states (S, E, I, T and L) and five parameters:
 
@@ -90,7 +90,7 @@ $$
 
 The deterministic and stochastic SEITL models are already implemented as two `fitmodel` objects called `SEITL_deter` and `SEITL_stoch` respectively. These can be loaded into your **R** session by typing:
 
-```{r results="hide"}
+```{r load_models,results="hide"}
 data(SEITL_deter)
 data(SEITL_stoch)
 ```
@@ -118,11 +118,11 @@ Based on the description of the outbreak above and the information below found i
 
 # Deterministic vs Stochastic simulations
 
-Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. Here we propose to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don't like to guess parameter values, you can still use [ours](play_with_seitl_example.md#parameter-values-and-initial-state).
+Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. Here we propose to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don't like to guess parameter values, you can still use [ours](play_with_seitl_example.html#parameter-values-and-initial-state).
 
 ## Deterministic simulations
 
-You can use the `plotFit` function you encountered in the [first practical](introduction.md#assess-the-model-fit) to generate an observation trajectory and display it against the data:
+You can use the `plotFit` function you encountered in the [first practical](introduction.html#assess-the-model-fit) to generate an observation trajectory and display it against the data:
 
 ```{r oneTraj, results="hide"}
 theta.bad.guess <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.9, "D.imm"=13, "rho"=0.85)
@@ -139,7 +139,7 @@ plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971,all.var
 Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy `obs` time-series.
 You can appreciate the variability of the observation process by plotting several replicates (use the argument `n.replicates`):
 
-```{r manyObs, fig.height=3.5, results="hide"}
+```{r manyObs, results="hide"}
 plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100)
 ```
 
@@ -151,7 +151,7 @@ plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.repl
 
 Now, __take 10 minutes__ to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
 
-If you didn't manage to get the two waves, you can have look at [our example](play_with_seitl_example.md#deterministic-simulations).
+If you didn't manage to get the two waves, you can have look at [our example](play_with_seitl_example.html#deterministic-simulations).
 
 You should find that it is hard to capture all the data-point with the deterministic model. We will now test if this can be better reproduced with a stochastic model which explicitly accounts for the discrete nature of individuals.
 
@@ -159,7 +159,7 @@ You should find that it is hard to capture all the data-point with the determini
 
 __Take about 10 minutes__ to explore the dynamics of the stochastic SEITL model with the function `plotFit`. Note that `SEITL_stoch` has the same `theta.names` and `state.names` as `SEITL_deter`, which means that you can use the same parameters and initial state vectors as in the previous section. In addition, you might find useful to plot the time-series of the extinction probability (i.e. the proportion of faded out simulations) by passing `p.extinction=TRUE` to `plotFit`.
 
-What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model? Otherwise you can have a look at [our example](play_with_seitl_example.md#stochastic-simulations).
+What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model? Otherwise you can have a look at [our example](play_with_seitl_example.html#stochastic-simulations).
 
 Now, let's try to make this model a bit more realistic.
 
@@ -181,8 +181,6 @@ df_dist <- ldply(all_k,function(k){
 	return(data.frame(x=x,"dens"=dgamma(x,shape=k,scale=m/k),"cum"=pgamma(x,shape=k,scale=m/k)))
 }, .id="k")
 
-
-
 lab <- paste("k==",all_k,sep="")
 
 df_plot <- melt(df_dist,measure.vars=c("dens","cum"))
@@ -202,11 +200,11 @@ print(p)
 We can extend the SEITL as follows:
 
 ![The SEIT2L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the $T$ compartment (temporary protection) follows an Erlang distribution with mean $D_\mathrm{imm}=1/\tau$ and shape equal to 2 and is modelled by 2 sub-stages $T_1$ and $T_2$, each being exponentially distributed with mean equal to $\frac{D_\mathrm{imm}}{2}$.
-](figure/import/SEIT2L.png)
+](external_fig/import/SEIT2L.png)
 
 The deterministic and stochastic SEIT2L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
 
-```{r results="hide"}
+```{r load_data, results="hide"}
 data(SEIT2L_deter)
 data(SEIT2L_stoch)
 ```
@@ -216,16 +214,16 @@ Now, compare the dynamics of the SEITL and SEIT2L model using `plotFit`. Use you
 
 Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution of the $T$ compartment?
 
-Again, feel free to can have a look at [our example](play_with_seitl_example.md#exponential-vs-erlang-distributions).
+Again, feel free to can have a look at [our example](play_with_seitl_example.html#exponential-vs-erlang-distributions).
 
 In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.
 
 # Going further
 
-* Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](http://data.princeton.edu/wws509/notes/c4.pdf).
+* Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](external_ref/poisson_obs.pdf).
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 2 and not 5 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT2L model. Does it fit the data better?
 
 <div>
 # Navigate
-Previous: [MCMC diagnostics](mcmc_diagnostics.md) Next: [MCMC and model comparison](mcmc_and_model_comparison.md)
+Top: [Index](index.html) Previous: [MCMC diagnostics](mcmc_diagnostics.html) Next: [MCMC and model comparison](mcmc_and_model_comparison.html)
 </div>

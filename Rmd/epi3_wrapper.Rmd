@@ -9,5 +9,5 @@ read_chunk('epi3_wrapper.r')
 
 You can copy and paste the function into your **R** session, and proceed from there.
 
-[Return](mcmc_diagnostics.md#sampling-more-than-one-parameter) to the MCMC diagnostics session.
+[Return](mcmc_diagnostics.html#sampling-more-than-one-parameter) to the MCMC diagnostics session.
 

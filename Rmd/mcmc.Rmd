@@ -1,10 +1,10 @@
 % Practical session: Fitting a deterministic model with MCMC
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/mcmc/", fig.retina=1 ,fig.path="figure/mcmc/", fig.cap='', fig.align="center")
+opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center")
 ```
 
-```{r load, echo=FALSE, cache=FALSE, results="hide",message=FALSE}
+```{r load, include=FALSE, cache=FALSE}
 library(fitR)
 data(SIR)
 data(SIR_reporting)
@@ -35,7 +35,7 @@ Below you will find the skeleton of such a function. We have inserted comments b
 
 __A few useful tips:__ To draw a random number from a Gaussian distribution, you can use the function `rnorm`, see `?rnorm`. To draw a uniform random number between 0 and 1, you can use `runif(n = 1)`. Also, you will find it useful to keep track of the number of accepted proposal steps as we will use it later to evaluate the efficiency of the sampler. <!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. -->
 
-```{r eval=FALSE}
+```{r my_mcmc, eval=FALSE}
 # This is a function that takes four arguments:
 # - target: the target distribution, a function that takes one argument
 #           (a number) and returns the (logged) value of the
@@ -77,11 +77,11 @@ my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 }
 ```
 
-```{r echo = FALSE}
+```{r source_our_mcmc, include = FALSE}
 source('our_mcmcM.r')
 ```
 
-If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.md).
+If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.html).
 
 # Sampling from a simple distribution
 
@@ -97,7 +97,7 @@ We want to generate random numbers that follow the same distribution. There is o
 
 We can, however, instruct `dnorm` to return the logarithm of the probability density using the argument `log = TRUE`, and we use a *wrapper* function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution
 
-```{r}
+```{r dnorm_log}
 dnorm.log <- function(theta) {
    return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }
@@ -115,33 +115,33 @@ trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value,
 
 We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
 
-```{r plot_trace, caption = "", fig.width = 7}
+```{r plot_trace, fig.width = 7}
 plot(trace, type = "l")
 ```
 
 And you can plot a histogram of the samples generated using
 
-```{r hist_trace, caption = ""}
+```{r hist_trace}
 hist(trace)
 ```
 
 Of course, since MCMC is based on sampling random numbers, your plot will look different.
 
-This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram? For more information can also look at our [discussion](mcmc_discussion.md) of this.
+This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram? For more information you can also look at our [discussion](mcmc_discussion.html) of this.
 
 # Sampling from a posterior distribution
 
-We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practical. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.md)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
+We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practical. You should have a `my_logPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.html)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
 
 Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `D.inf` is the second parameter in `theta`) is 0.
 
 Lastly, `my_logPosterior` takes four parameters, and to use it with the `my_mcmcMH` function we have to turn it into a function that just takes one parameter `theta`. Again, we use a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, and for fixed `init.state` ($X_0$).
 
-```{r echo=FALSE}
+```{r source_our_logpost, echo=FALSE}
 source("our_posterior.r")
 ```
 
-```{r}
+```{r write_logpost}
 my_logPosterior_epi1 <- function(theta) {
 
   return(my_logPosterior(fitmodel = SIR,
@@ -153,13 +153,13 @@ my_logPosterior_epi1 <- function(theta) {
 
 We can test that this function returns the value of the posterior for a given value of $R_0$.
 
-```{r}
+```{r eval_logpost}
 my_logPosterior_epi1(c(R0 = 3, D.inf = 2))
 ```
 
 You should get the same number unless you changed the `SIR$pointLogLike` function.
 
-We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If you have any problems with this, have a look at our [solution](generate_samples.md).
+We can now generate samples from `my_logPosterior_epi1` using `my_mcmcMH`. Can you work out the command to do this? If you have any problems with this, have a look at our [solution](generate_samples.html).
 
 Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as the sample mean of $R_0$ (using `mean(trace[, 1])`), sample median (using `median(trace[, 1])`), 95% credible intervals (using `quantile(trace[, 1], probs=c(0.025, 0.975))`) and other properties.
 
@@ -176,5 +176,5 @@ In the next session we will look at all of these issues in more detail.
 Try changing the `my_mcmcMH` function to use different proposal distributions from a normal distributions (e.g., using `runif` or `rlnorm` instead of `rnorm`). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?
 
 <div>
-Previous: [Introduction](introduction.md) Next: [MCMC diagnostics](mcmc_diagnostics.md)
+Top: [Index](index.html) Previous: [Introduction](introduction.html) Next: [MCMC diagnostics](mcmc_diagnostics.html)
 </div>

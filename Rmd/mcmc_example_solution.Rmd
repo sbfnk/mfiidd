@@ -9,4 +9,4 @@ read_chunk('our_mcmcM.r')
 
 You can copy and paste the function into your **R** session, and proceed from there.
 
-[Return](mcmc.md#the-metropolis-hastings-sampler) to the MCMC session.
+[Return](mcmc.html#the-metropolis-hastings-sampler) to the MCMC session.

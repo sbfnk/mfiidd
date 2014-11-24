@@ -74,5 +74,5 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
 
 ```
 
-If you run into any problems, have a look at our [solution](smc_example_solution.md), otherwise [return](pmcmc.md#run-a-particle-filter) to the pMCMC practical.
+If you run into any problems, have a look at our [solution](smc_example_solution.html), otherwise [return](pmcmc.html#run-a-particle-filter) to the pMCMC practical.
 

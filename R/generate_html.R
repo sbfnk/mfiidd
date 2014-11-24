@@ -15,7 +15,13 @@ generate_html <- function(Rmd_name) {
 
 main <- function() {
 
-	Rmd_name <- c("index","introduction")
+	# Rmd_name <- c("index","introduction","posterior_example","posterior_example_solution")
+	# Rmd_name <- c("mcmc","mcmc_example","mcmc_example_solution","generate_samples")
+	# Rmd_name <- c("mcmc_diagnostics","epi3_wrapper","mcmc_commands")
+	# Rmd_name <- c("play_with_seitl","play_with_seitl_example")
+	# Rmd_name <- c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert")
+	# Rmd_name <- c("pmcmc","smc_example","smc_example_solution","pmcmc_solution")
+	Rmd_name <- c("ABC","sumstat_examples","distance_examples","abc_solution")
 
 	generate_html(Rmd_name)
 
