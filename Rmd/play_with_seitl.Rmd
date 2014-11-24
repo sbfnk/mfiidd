@@ -1,7 +1,7 @@
 % Modelling interlude: Tristan da Cunha outbreak & the SEITL model.
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, fig.path='figure/play_with_SEITL/', cache.path='cache/play_with_SEITL/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r load, include=FALSE, cache=FALSE}

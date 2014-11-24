@@ -1,7 +1,7 @@
 % MCMC and model comparison: the deterministic SEIT(2)L models
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE,fig.path='figure/mcmc_and_model_comparison/', cache.path='cache/mcmc_and_model_comparison/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, cache=FALSE, include=FALSE}

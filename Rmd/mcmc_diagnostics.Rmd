@@ -1,7 +1,7 @@
 % Practical session: MCMC diagnostics
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, fig.cap='', fig.align="center", tidy=FALSE)
+opts_chunk$set(cache=TRUE, fig.path='figure/mcmc_diagnostics/', cache.path='cache/mcmc_diagnostics/' , fig.cap='', fig.align="center", tidy=FALSE)
 ```
 
 ```{r load, include=FALSE,cache=FALSE}

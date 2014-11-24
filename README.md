@@ -6,13 +6,9 @@ All the raw material is in the folder `/Rmd` and is written in `Rmarkdown`.
 
 The `html` pages are generated using the function `generate_html` in `R/generate_html.R`.
 
-The idea is then to transfer all the `html` pages to the `gh-pages` branch.
+The `html` pages are created in `/website`, whose content need to be transfered to the `gh-pages` branch.
 
-Since the `html` pages link to different folder conatining the slides and external references, thos folder need to be transefered too.
-Here is a list of the folder to transfer:
-
-* slides
-* external_ref
+There are two additional folder in `website` containing the slides and external references, those folders need to be transefered too as the html pages point to them.
 
 ## TODO
 

@@ -24,7 +24,7 @@ auto
 
 
 # Rmd stuff
-Rmd/*_cache
-html/*_files
+Rmd/cache
+Rmd/figure
 
 *.pdf

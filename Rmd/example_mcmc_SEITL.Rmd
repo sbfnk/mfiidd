@@ -1,7 +1,7 @@
 % Example: fitting the deterministic SEITL model
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/SEITL_model_example/", fig.retina=2 ,fig.path="figure/SEITL_model_example/", fig.cap='', fig.height=10, fig.width=10, dpi=100, fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+opts_chunk$set(cache=TRUE, cache.path="cache/example_mcmc_SEITL/", fig.retina=2 ,fig.path="figure/example_mcmc_SEITL/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, cache=FALSE, echo=FALSE, results="hide", warning=FALSE}
@@ -53,7 +53,7 @@ adapt.size.cooling <- 0.999
 adapt.shape.start <- 200
 ```
 
-You can now go back to the [practical](mcmc_and_model_comparison.md#run-mcmc) and try to run MCMC with those settings.
+You can now go back to the [practical](mcmc_and_model_comparison.html#run-mcmc) and try to run MCMC with those settings.
 
 # Run MCMC
 
@@ -68,7 +68,7 @@ dim(mcmc_SEITL$trace)
 # let's have a look at it
 head(mcmc_SEITL$trace)
 ```
-You can now go back to the [practical](mcmc_and_model_comparison.md#short-run-analysis) and analyse this trace.
+You can now go back to the [practical](mcmc_and_model_comparison.html#short-run-analysis) and analyse this trace.
 
 # Short run analysis
 
@@ -140,7 +140,7 @@ plotPosteriorDensity(list(unthinned=trace.burn,thinned=trace.burn.thin))
 ```
 The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local "bumps" of the unthinned distribution are caused by autocorrelated samples.
 
-You can now go back to the [practical](mcmc_and_model_comparison.md#long-run-analysis) and perform a similar analysis for a long-run MCMC.
+You can now go back to the [practical](mcmc_and_model_comparison.html#long-run-analysis) and perform a similar analysis for a long-run MCMC.
 
 # Long run analysis
 
@@ -235,7 +235,7 @@ plotPosteriorFit(trace=trace,fitmodel=SEITL_deter,init.state=init.state,data=Flu
 
 Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.
 
-You can now go back to the [practical](mcmc_and_model_comparison.md#correlations) and look at the posterior correlations between the parameters.
+You can now go back to the [practical](mcmc_and_model_comparison.html#correlations) and look at the posterior correlations between the parameters.
 
 # Correlations
 
@@ -281,7 +281,7 @@ SEITL_deter$logPrior <- function(theta) {
 
 Note the choice of a truncated normal distribution since $D_{lat}$ and $D_{inf}$ must be positive.
 
-You can now go back to the [practical](mcmc_and_model_comparison.md#informative-priors) and run a MCMC with this informative prior.
+You can now go back to the [practical](mcmc_and_model_comparison.html#informative-priors) and run a MCMC with this informative prior.
 
 # Informative priors
 
@@ -307,7 +307,7 @@ plotPosteriorDensity(list(unif=trace.burn.thin, info=trace.info.burn.thin))
 
 $R_0$ and $D_{inf}$ have very different posterior. This is expected since there is an informative prior on $D_{inf}$ and $R_0$ is strongly correlated to $D_{inf}$. Note also that the mode of all other parameters have changed, though less than $D_{inf}$ and $R_0$. This illustrate the influence that one prior can have on the full posterior distribution.
 
-You can now go back to the [practical](mcmc_and_model_comparison.md#model-selection).
+You can now go back to the [practical](mcmc_and_model_comparison.html#model-selection).
 
 # Model selection
 
@@ -336,7 +336,7 @@ print(p.D)
 DIC <- D.theta.bar + 2*p.D
 print(DIC)
 ```
-Follow this [link](mcmc_and_model_comparison.md#posterior-predictive-checks) to go back to the practical.
+Follow this [link](mcmc_and_model_comparison.html#posterior-predictive-checks) to go back to the practical.
 
 
 

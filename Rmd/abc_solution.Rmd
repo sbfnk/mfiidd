@@ -1,12 +1,17 @@
 # ABC-MCMC on the stochastic model
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, fig.cap='', tidy=FALSE)
+opts_chunk$set(cache=TRUE, fig.path='figure/abc_solution/', cache.path='cache/abc_solution/', fig.cap='', tidy=FALSE)
+```
+```{r load, include=FALSE, cache=FALSE}
+library(fitR)
+source("distance_examples.r")
+source("sumstat_examples.r")
 ```
 
 This is how you can run ABC-MCMC on the stochastic model
 
-```{r abc_mcmc, eval = F}
+```{r abc_mcmc, eval = FALSE}
 abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc,
                     init.theta = theta,
                     n.iterations = 1000,
