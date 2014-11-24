@@ -15,4 +15,5 @@ There are two additional folder in `website` containing the slides and external 
 * To have all the `.tex` for the presentations in a `tex` folder. At the moment there is only Helen's presentation.
 * To have the `Rintro` as a `html` file as well as the `Rmd` source.
 * Generate the pdf for all the practicals
+* I could not manage to recompile the tex file of Helen using Seb's template, looks like the issue is with the `usefonttheme{seb}` command. Not sure whether I have to install the font manually..
 
