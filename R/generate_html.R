@@ -14,7 +14,7 @@ generate_html <- function() {
 
 
 	# Rmd_names <- grep(".Rmd",list.files(rmd_dir),value=TRUE)
-	Rmd_names <- c("introduction.Rmd")
+	Rmd_names <- c("index.Rmd")
 	# Rmd_names <- c("index.Rmd","introduction.Rmd","posterior_example.Rmd","posterior_example_solution.Rmd")
 	# Rmd_names <- c("mcmc.Rmd","mcmc_example.Rmd","mcmc_example_solution.Rmd","generate_samples.Rmd")
 	# Rmd_names <- c("mcmc_diagnostics.Rmd","epi3_wrapper.Rmd","mcmc_commands.Rmd")
