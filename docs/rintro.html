@@ -1,0 +1,1217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Model fitting and inference for\\ infectious disease dynamics\\\vspace{0.5cm}Useful <b>R</b> commands</title>
+<!-- 2014-11-25 Tue 12:24 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Model fitting and inference for infectious disease dynamics<br>Useful <b>R</b> commands</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Introduction</a></li>
+<li><a href="#sec-2">2. Data types</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Vectors</a></li>
+<li><a href="#sec-2-2">2.2. Lists</a></li>
+<li><a href="#sec-2-3">2.3. Data frames</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3. Functions</a>
+<ul>
+<li><a href="#sec-3-1">3.1. Passing functions as parameters</a></li>
+<li><a href="#sec-3-2">3.2. Debugging functions</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4. Loops and conditional statements</a>
+<ul>
+<li><a href="#sec-4-1">4.1. For loops</a></li>
+<li><a href="#sec-4-2">4.2. Conditional statements</a></li>
+<li><a href="#sec-4-3">4.3. The <code>apply</code> family of functions</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5. Probability distributions</a></li>
+<li><a href="#sec-6">6. Running dynamic models</a>
+<ul>
+<li><a href="#sec-6-1">6.1. Deterministic models</a></li>
+<li><a href="#sec-6-2">6.2. Stochastic models</a></li>
+</ul>
+</li>
+<li><a href="#sec-7">7. Plotting</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+This document provides a summary of <b>R</b> commands that will be useful to learn or refresh in preparation for the course on <i>Model fitting and inference for infectious disease dynamics</i>, 8-10 July at the London School of Hygiene &amp; Tropical Medicine. While we expect that you will have some knowledge of <b>R</b>, the commands listed below are the ones that we think it would be most useful for you to familiarise yourselves with in order to be able to read the code we will provide for the practical session, and to debug any code you write yourselves during the sessions. There are links in various places which will take you to web sites that provide further information, if you would like more detail on any particular concept. A good general and detailed introduction to <b>R</b> is provided in the <a href="http://cran.r-project.org/doc/manuals/R-intro.html">R manual</a>.<br  />
+</p>
+
+<p>
+Any line in <b>R</b> that starts with a hash (<code>#</code>) is interpreted as a comment and not evaluated:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #586e75;"># </span><span style="color: #586e75;">this line does nothing</span>
+</pre>
+</div>
+
+<p>
+For the course, please make sure you are running at least version 3.1.0 of <b>R</b>. You can find out which <b>R</b> version you are running by typing<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">R.Version()$version.string
+</pre>
+</div>
+
+<pre class="example">
+[1] "R version 3.1.2 (2014-10-31)"
+</pre>
+
+<p>
+in an <b>R</b> session. If your version is smaller than 3.1.0, please update to at least version 3.1.0 following the instructions on the <a href="http://cran.rstudio.com/">CRAN website</a>.<br  />
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Data types</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The data types we will be working with in the course are (named) <i>vectors</i>, <i>lists</i>, and <i>data frames</i>. More information on data types in <b>R</b> can be found in many places on the web, for example the <a href="http://en.wikibooks.org/wiki/R_Programming/Data_types">R programming wikibook</a>.<br  />
+</p>
+</div>
+<div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Vectors</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+Vectors are an ordered collection of simple elements such as numbers or strings. They can be created with the <code>c()</code> command.<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">a <span style="color: #268bd2; font-weight: bold;">&lt;-</span> c(1, 3, 6, 1)
+a
+</pre>
+</div>
+
+<pre class="example">
+[1] 1 3 6 1
+</pre>
+
+<p>
+An individual member at position <code>i</code> be accessed with <code>[i]</code>.<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">a[2]
+</pre>
+</div>
+
+<pre class="example">
+[1] 3
+</pre>
+
+<p>
+Importantly, vectors can be named. We will use this to define parameters for a model. For a named vector, simply specify the names as you create the vector<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">b <span style="color: #268bd2; font-weight: bold;">&lt;-</span> c(start = 3, inc = 2, end = 17)
+b
+</pre>
+</div>
+
+<pre class="example">
+start   inc   end 
+    3     2    17
+</pre>
+
+<p>
+The elements of a named vector can be accessed both by index<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">b[2]
+</pre>
+</div>
+
+<pre class="example">
+inc 
+  2
+</pre>
+
+<p>
+and by name<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">b[<span style="color: #2aa198;">"inc"</span>]
+</pre>
+</div>
+
+<pre class="example">
+inc 
+  2
+</pre>
+
+<p>
+To strip the names from a named vector, one can use double brackets<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">b[[<span style="color: #2aa198;">"inc"</span>]]
+</pre>
+</div>
+
+<pre class="example">
+[1] 2
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-R">b[[2]]
+</pre>
+</div>
+
+<pre class="example">
+[1] 2
+</pre>
+
+<p>
+or the <code>unname</code> function<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">unname(b)
+</pre>
+</div>
+
+<pre class="example">
+[1]  3  2 17
+</pre>
+
+<p>
+Several functions exist to conveniently create simple vectors. To create a vector of equal elements, we can use <code>rep</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">rep(3, times = 10)
+</pre>
+</div>
+
+<pre class="example">
+[1] 3 3 3 3 3 3 3 3 3 3
+</pre>
+
+<p>
+To create a sequence, we can use <code>seq</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">seq(from = 3, to = 11, by = 2)
+</pre>
+</div>
+
+<pre class="example">
+[1]  3  5  7  9 11
+</pre>
+
+<p>
+If the increments are by 1, we can also use a colon<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">3:11
+</pre>
+</div>
+
+<pre class="example">
+[1]  3  4  5  6  7  8  9 10 11
+</pre>
+
+<p>
+To create a sequence that starts at 1 with increments of 1, we can use <code>seq_len</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">seq_len(5)
+</pre>
+</div>
+
+<pre class="example">
+[1] 1 2 3 4 5
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Lists</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Lists are different from vectors in that elements of a list can be anything (including more lists, vectors, etc.), and not all elements have to be of the same type either.<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">l <span style="color: #268bd2; font-weight: bold;">&lt;-</span> list(<span style="color: #2aa198;">"cabbage"</span>, c(3,4,1))
+l
+</pre>
+</div>
+
+<pre class="example">
+[[1]]
+[1] "cabbage"
+
+[[2]]
+[1] 3 4 1
+</pre>
+
+<p>
+Similar to vectors, list elements can be named:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">l <span style="color: #268bd2; font-weight: bold;">&lt;-</span> list(text = <span style="color: #2aa198;">"cabbage"</span>, numbers = c(3,4,1))
+l
+</pre>
+</div>
+
+<pre class="example">
+$text
+[1] "cabbage"
+
+$numbers
+[1] 3 4 1
+</pre>
+
+<p>
+The meaning of brackets for lists is different to vectors. Single brackets return a list of one element<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">l[<span style="color: #2aa198;">"text"</span>]
+</pre>
+</div>
+
+<pre class="example">
+$text
+[1] "cabbage"
+</pre>
+
+<p>
+whereas double brackets return the element itself (not within a list)<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">l[[<span style="color: #2aa198;">"text"</span>]]
+</pre>
+</div>
+
+<pre class="example">
+[1] "cabbage"
+</pre>
+
+<p>
+More on the meanings of single and double brackets, as well as details on another notation for accessing elements (using the dollar sign) can be found in the <a href="http://cran.r-project.org/doc/manuals/R-lang.html#Indexing">R language specification</a>.<br  />
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Data frames</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+Data frames are 2-dimensional extensions of vectors. They can be thought of as the <b>R</b>-version of an Excel spreadsheet. Every column of a data frame is a vector.<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">df <span style="color: #268bd2; font-weight: bold;">&lt;-</span> data.frame(a = c(2, 3, 0), b = c(1, 4, 5))
+df
+</pre>
+</div>
+
+<pre class="example">
+  a b
+1 2 1
+2 3 4
+3 0 5
+</pre>
+
+<p>
+Data frames themselves have a version of single and double bracket notation for accessing elements. Single brackets return a 1-column data frame<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">df[<span style="color: #2aa198;">"a"</span>]
+</pre>
+</div>
+
+<pre class="example">
+  a
+1 2
+2 3
+3 0
+</pre>
+
+<p>
+whereas double brackets return the column as a vector<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">df[[<span style="color: #2aa198;">"a"</span>]]
+</pre>
+</div>
+
+<pre class="example">
+[1] 2 3 0
+</pre>
+
+<p>
+To access a row, we use single brackets and specify the row we want to access before a comma<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">df[2, ]
+</pre>
+</div>
+
+<pre class="example">
+  a b
+2 3 4
+</pre>
+
+<p>
+Note that this returns a data frame (with one row). A data frame itself is a list, and a data frame of one row can be converted to a named vector using <code>unlist</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">unlist(df[2, ])
+</pre>
+</div>
+
+<pre class="example">
+a b 
+3 4
+</pre>
+
+<p>
+We can also select multiple rows<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">df[c(1,2), ]
+</pre>
+</div>
+
+<pre class="example">
+  a b
+1 2 1
+2 3 4
+</pre>
+
+<p>
+We can select a column, or multiple columns, after the comma<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">df[2, <span style="color: #2aa198;">"a"</span>]
+</pre>
+</div>
+
+<pre class="example">
+[1] 3
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Functions</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Functions are at the essence of everything in <b>R</b>. The <code>c()</code> command used earlier was a call to a function (called <code>c</code>). To find out about what a function does, which parameters it takes, what it returns, as well as, importantly, to see some examples for use of a function, one can use <code>?</code>, e.g. <code>?c</code> or <code>?data.frame</code>. More information on functions can be found in the <a href="http://en.wikibooks.org/wiki/R_Programming/Working_with_functions">R programming wikibook</a>.<br  />
+</p>
+
+<p>
+To define a new function, we assign a <code>function</code> object to a variable. For example, a function that increments a number by one.<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2;">add1</span> <span style="color: #268bd2; font-weight: bold;">&lt;-</span> <span style="color: #859900; font-weight: bold;">function</span>(x) {
+    <span style="color: #859900; font-weight: bold;">return</span>(x + 1)
+}
+add1(3)
+</pre>
+</div>
+
+<pre class="example">
+[1] 4
+</pre>
+
+<p>
+To see how any function does what it does, one can look at its source code by typing the function name:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">add1
+</pre>
+</div>
+
+<pre class="example">
+function(x) {
+    return(x + 1)
+}
+</pre>
+</div>
+
+<div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Passing functions as parameters</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+Since functions themselves are variables, they can be passed to other functions. For example, we could write a function that takes a function and a variable and applies the function twice to the variable.<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2;">doTwice</span> <span style="color: #268bd2; font-weight: bold;">&lt;-</span> <span style="color: #859900; font-weight: bold;">function</span>(f, x) {
+    <span style="color: #859900; font-weight: bold;">return</span>(f(f(x)))
+}
+doTwice(add1, 3)
+</pre>
+</div>
+
+<pre class="example">
+[1] 5
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Debugging functions</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Writing functions comes with the need to debug them, in case they return errors or faulty results. <b>R</b> provides its own debugger, which is started with <code>debug</code>:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">debug(add1)
+</pre>
+</div>
+
+<p>
+On the next call to the function <code>add1</code>, this puts us into <b>R</b>&rsquo;s own debugger, where we can advance step-by-step (by typing <code>n</code>), inspect variables, evaluate calls, etc. To quits the debugger, type <code>Q</code>. To stop debugging function <code>add1</code>, we can use<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">undebug(add1)
+</pre>
+</div>
+
+<p>
+More on the debugging functionalities of <b>R</b> can be found on the <a href="http://www.stats.uwo.ca/faculty/murdoch/software/debuggingR/">Debugging in R</a> pages.<br  />
+</p>
+
+<p>
+An alternative way for debugging is to include printouts in the function, for example using <code>cat</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2;">add1</span> <span style="color: #268bd2; font-weight: bold;">&lt;-</span> <span style="color: #859900; font-weight: bold;">function</span>(x) {
+    cat(<span style="color: #2aa198;">"Adding 1 to"</span>, x, <span style="color: #2aa198;">"\n"</span>)
+    <span style="color: #859900; font-weight: bold;">return</span>(x + 1)
+}
+add1(3)
+</pre>
+</div>
+
+<pre class="example">
+Adding 1 to 3 
+[1] 4
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Loops and conditional statements</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+This section discusses the basic structural syntax of <b>R</b>: <code>for</code> loops, conditional statements and the <code>apply</code> family of functions.<br  />
+</p>
+</div>
+
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> For loops</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+A <code>for</code> loop in <b>R</b> is written using the word <code>in</code> and a vector of values that the loop variable takes. For example, to create the square of the numbers from 1 to 10, we can write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">squares <span style="color: #268bd2; font-weight: bold;">&lt;-</span> <span style="color: #b58900;">NULL</span>
+<span style="color: #859900; font-weight: bold;">for</span> (i <span style="color: #859900; font-weight: bold;">in</span> 1:10) {
+    squares[i] <span style="color: #268bd2; font-weight: bold;">&lt;-</span> i * i
+}
+squares
+</pre>
+</div>
+
+<pre class="example">
+[1]   1   4   9  16  25  36  49  64  81 100
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Conditional statements</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+A conditional statement in <b>R</b> is written using <code>if</code>:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">k <span style="color: #268bd2; font-weight: bold;">&lt;-</span> 13
+<span style="color: #859900; font-weight: bold;">if</span> (k &gt; 10) {
+    cat(<span style="color: #2aa198;">"k is greater than 10\n"</span>)
+}
+</pre>
+</div>
+
+<pre class="example">
+k is greater than 10
+</pre>
+
+<p>
+An alternative outcome can be specified with <code>else</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">k <span style="color: #268bd2; font-weight: bold;">&lt;-</span> 3
+<span style="color: #859900; font-weight: bold;">if</span> (k &gt; 10) {
+    cat(<span style="color: #2aa198;">"k is greater than 10\n"</span>)
+} <span style="color: #859900; font-weight: bold;">else</span> {
+    cat(<span style="color: #2aa198;">"k is not greater than 10\n"</span>)
+}
+</pre>
+</div>
+
+<pre class="example">
+k is not greater than 10
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> The <code>apply</code> family of functions</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+<b>R</b> is not optimised for <code>for</code> loops, and they can be slow to compute. An often faster and more elegant way to loop over the elements of a vector or data frame is using the <code>apply</code> family of functions: <code>apply</code>, <code>lapply</code>, <code>sapply</code> and others. An good introduction to these functions can be found in <a href="http://nsaunders.wordpress.com/2010/08/20/a-brief-introduction-to-apply-in-r/">this blog post</a>.<br  />
+</p>
+
+<p>
+The <code>apply</code> function operates on data frames. It takes three arguments: the first argument is the data frame to apply a function to, the second argument specifies whether the function is applied by row (1) or column (2), and the third argument is the function to be applied. For example, to take the mean of <code>df</code> by row, we write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">apply(df, 1, mean)
+</pre>
+</div>
+
+<pre class="example">
+[1] 1.5 3.5 2.5
+</pre>
+
+<p>
+To take the mean by column, we write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">apply(df, 2, mean)
+</pre>
+</div>
+
+<pre class="example">
+       a        b 
+1.666667 3.333333
+</pre>
+
+<p>
+The <code>lapply</code> and <code>sapply</code> functions operate on lists or vectors. Their difference is in the type of object they return. To take the square root of every element of vector <code>a</code>, we could use <code>lapply</code>, which returns a list<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">lapply(a, sqrt)
+</pre>
+</div>
+
+<pre class="example">
+[[1]]
+[1] 1
+
+[[2]]
+[1] 1.732051
+
+[[3]]
+[1] 2.44949
+
+[[4]]
+[1] 1
+</pre>
+
+<p>
+<code>sapply</code>, on the other hand, does the same thing but returns a vector:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">sapply(a, sqrt)
+</pre>
+</div>
+
+<pre class="example">
+[1] 1.000000 1.732051 2.449490 1.000000
+</pre>
+
+<p>
+We can specify any function to be used by the <code>apply</code> functions, including one we define ourselves. For example, to take the square of every element of vector <code>a</code> and return a vector, we can write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">sapply(a, <span style="color: #859900; font-weight: bold;">function</span>(x) { x * x})
+</pre>
+</div>
+
+<pre class="example">
+[1]  1  9 36  1
+</pre>
+
+<p>
+Of course, the last two examples could have been calculated much simpler using <code>sqrt(a)</code> and <code>a*a</code>, but in many examples, there is no such simple expression, and the <code>apply</code> functions come in handy.<br  />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Probability distributions</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Probability distributions are at the heart of many aspects of model fitting. <b>R</b> provides functions to both estimate the probability of obtaining a certain value under a given probability distribution and to sample random numbers from the same distribution. The corresponding functions have a common nomenclature, that is <code>dxxx</code> for the probability (density) of a given value and <code>rxxx</code> for generation of a random number from the same distribution. For example, for a uniform distribution we have <code>dunif</code> and <code>runif</code>, and to generate a random number between 0 and 5 we can write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">r <span style="color: #268bd2; font-weight: bold;">&lt;-</span> runif(n = 1, min = 0, max = 5)
+r
+</pre>
+</div>
+
+<pre class="example">
+[1] 2.058597
+</pre>
+
+<p>
+This number has density \(1/(\mathrm{max}-\mathrm{min})=0.2\) within the uniform distribution:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">dunif(x = r, min = 0, max = 5)
+</pre>
+</div>
+
+<pre class="example">
+[1] 0.2
+</pre>
+
+<p>
+For almost all probability distributions, we can get the logarithm of the probability density by passing <code>log = TRUE</code>:<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">dunif(x = r, min = 0, max = 5, log = <span style="color: #b58900;">TRUE</span>)
+</pre>
+</div>
+
+<pre class="example">
+[1] -1.609438
+</pre>
+
+<p>
+Other functions available are <code>rnorm</code> and <code>dnorm</code> for the normal distribution, <code>rpois</code> and <code>dpois</code> for the Poisson distribution, and many more. A number of probability distributions and their corresponding <b>R</b> functions can be found in the <a href="http://en.wikibooks.org/wiki/R_Programming/Probability_Distributions">R programming wikibook</a>.<br  />
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Running dynamic models</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+<b>R</b> provides packages for running both deterministic and stochastic dynamic models. For deterministic models, the <code>deSolve</code> package is a good choice, whereas for stochastic models, <code>adaptivetau</code> is recommended.<br  />
+</p>
+</div>
+
+<div id="outline-container-sec-6-1" class="outline-3">
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Deterministic models</h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+The <code>deSolve</code> package can be installed with <code>install.packages("deSolve")</code>. Once installed, it is loaded with<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2; font-weight: bold;">library</span>(deSolve)
+</pre>
+</div>
+
+<p>
+The command for running a model based on a system of differential equations (e.g., the ones of the SIR model), is <code>ode</code>. It takes as parameters the initial state (as a named vector), parameters (again, a named vector), the times at which to produce model output, and a model function <code>func</code> &#x2013; for more details, see the <a href="http://cran.r-project.org/web/packages/deSolve/vignettes/deSolve.pdf">deSolve vignette</a>. The <code>func</code> argument is for specifying the derivatives in the system of ordinary differential equations. It is passed a function that takes the current time, the current state of the system and the parameters and returns a list of transition rates. For the SIR model, for example, we could write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2;">SIR_ode</span> <span style="color: #268bd2; font-weight: bold;">&lt;-</span> <span style="color: #859900; font-weight: bold;">function</span>(time, state, parameters) {
+
+    <span style="color: #586e75;">## </span><span style="color: #586e75;">parameters</span>
+    beta <span style="color: #268bd2; font-weight: bold;">&lt;-</span> parameters[<span style="color: #2aa198;">"R0"</span>] / parameters[<span style="color: #2aa198;">"infectious.period"</span>]
+    gamma <span style="color: #268bd2; font-weight: bold;">&lt;-</span> 1 / parameters[<span style="color: #2aa198;">"infectious.period"</span>]
+
+    <span style="color: #586e75;">## </span><span style="color: #586e75;">states</span>
+    S <span style="color: #268bd2; font-weight: bold;">&lt;-</span> state[<span style="color: #2aa198;">"S"</span>]
+    I <span style="color: #268bd2; font-weight: bold;">&lt;-</span> state[<span style="color: #2aa198;">"I"</span>]
+    R <span style="color: #268bd2; font-weight: bold;">&lt;-</span> state[<span style="color: #2aa198;">"R"</span>]
+
+    N <span style="color: #268bd2; font-weight: bold;">&lt;-</span> S + I + R
+
+    dS <span style="color: #268bd2; font-weight: bold;">&lt;-</span> -beta * S * I/N
+    dI <span style="color: #268bd2; font-weight: bold;">&lt;-</span> beta * S * I/N-gamma * I
+    dR <span style="color: #268bd2; font-weight: bold;">&lt;-</span> gamma * I
+
+    <span style="color: #859900; font-weight: bold;">return</span>(list(c(dS, dI, dR)))
+}
+</pre>
+</div>
+
+<p>
+We can plug this into the <code>ode</code> function<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">trajectory <span style="color: #268bd2; font-weight: bold;">&lt;-</span> ode(y = c(S = 999, I = 1, R = 0),
+                  times = 1:10,
+                  parms = c(R0 = 5, infectious.period = 1),
+                  func = SIR_ode)
+trajectory
+</pre>
+</div>
+
+<pre class="example">
+   time          S           I         R
+1     1 999.000000   1.0000000   0.00000
+2     2 936.699548  50.4219937  12.87846
+3     3 263.468351 469.9673387 266.56431
+4     4  34.248088 291.1277800 674.62413
+5     5  12.998701 118.6213231 868.37998
+6     6   8.854694  45.9852142 945.16009
+7     7   7.637195  17.6193510 974.74345
+8     8   7.217166   6.7258470 986.05699
+9     9   7.063093   2.5640682 990.37284
+10   10   7.005240   0.9770102 992.01775
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-6-2" class="outline-3">
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Stochastic models</h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+The <code>adaptivetau</code> package can be installed with <code>install.packages("adaptivetau")</code>. Once installed, it is loaded with<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2; font-weight: bold;">library</span>(adaptivetau)
+</pre>
+</div>
+
+<p>
+The <code>adaptivetau</code> package uses a different syntax from the <code>deSolve</code> package. Instead of providing a function to calculate the rates of change at each time point, one specifies a list of <i>transitions</i> and their rates. Examples for how this is done can be found in the <a href="http://cran.r-project.org/web/packages/adaptivetau/vignettes/adaptivetau.pdf">adaptivetau vignette</a>.<br  />
+</p>
+
+<p>
+For the SIR model, we could write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">SIR_transitions <span style="color: #268bd2; font-weight: bold;">&lt;-</span> list(
+    c(S = -1, I = 1), <span style="color: #586e75;"># </span><span style="color: #586e75;">infection</span>
+    c(I = -1, R = 1) <span style="color: #586e75;"># </span><span style="color: #586e75;">recovery</span>
+)
+
+<span style="color: #268bd2;">SIR_rateFunc</span> <span style="color: #268bd2; font-weight: bold;">&lt;-</span> <span style="color: #859900; font-weight: bold;">function</span>(x, parameters, t) {
+
+    beta <span style="color: #268bd2; font-weight: bold;">&lt;-</span> parameters[<span style="color: #2aa198;">"R0"</span>]/parameters[<span style="color: #2aa198;">"infectious.period"</span>]
+    nu <span style="color: #268bd2; font-weight: bold;">&lt;-</span> 1/parameters[<span style="color: #2aa198;">"infectious.period"</span>]
+
+    S <span style="color: #268bd2; font-weight: bold;">&lt;-</span> x[<span style="color: #2aa198;">"S"</span>]
+    I <span style="color: #268bd2; font-weight: bold;">&lt;-</span> x[<span style="color: #2aa198;">"I"</span>]
+    R <span style="color: #268bd2; font-weight: bold;">&lt;-</span> x[<span style="color: #2aa198;">"R"</span>]
+
+    N <span style="color: #268bd2; font-weight: bold;">&lt;-</span> S + I + R
+
+    <span style="color: #859900; font-weight: bold;">return</span>(c(
+        beta * S * I / N, <span style="color: #586e75;"># </span><span style="color: #586e75;">infection</span>
+        nu * I <span style="color: #586e75;"># </span><span style="color: #586e75;">recovery</span>
+    ))
+}
+</pre>
+</div>
+
+<p>
+To run the stochastic model, we then use the <code>ssa.adaptivetau</code> function, which takes a vector of initial conditions, the list of transitions and rate function, a named vector of parameters, and the final time (with simulations starting at time 0).<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">run <span style="color: #268bd2; font-weight: bold;">&lt;-</span> ssa.adaptivetau(init.values = c(S = 999, I = 1, R = 0),
+                       transitions = SIR_transitions,
+                       rateFunc = SIR_rateFunc,
+                       params = c(R0 = 5, infectious.period = 1),
+                       tf = 10)
+head(run)
+</pre>
+</div>
+
+<pre class="example">
+          time   S I R
+[1,] 0.0000000 999 1 0
+[2,] 0.2466503 998 2 0
+[3,] 0.2948826 997 3 0
+[4,] 0.3055043 996 4 0
+[5,] 0.3488827 995 5 0
+[6,] 0.3534841 994 6 0
+</pre>
+
+<p>
+Unlike <code>ode</code> from the <code>deSolve</code> package, this does not produce output at specific times, but every time an event happens. To convert this to different times, we first convert the output of <code>ssa.adaptivetau</code> to a data frame (<code>ssa.adaptivetau</code> returns a <i>matrix</i>, a data type which we do not discuss here) using <code>data.frame</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">run_df <span style="color: #268bd2; font-weight: bold;">&lt;-</span> data.frame(run)
+</pre>
+</div>
+
+<p>
+To get the output at chosen times, we can use <code>approx</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"> <span style="color: #586e75;"># </span><span style="color: #586e75;">get output at times 1, ..., 10</span>
+run.I.times <span style="color: #268bd2; font-weight: bold;">&lt;-</span> approx(x = run_df$time,
+                      y = run_df$I,
+                      xout = 1:10,
+                      method = <span style="color: #2aa198;">"constant"</span>)
+run.I.times
+</pre>
+</div>
+
+<pre class="example">
+$x
+ [1]  1  2  3  4  5  6  7  8  9 10
+
+$y
+ [1]  98 512 261  84  35   6   2   0   0   0
+</pre>
+
+<p>
+By applying this to all the variables returned by <code>ssa.adaptivetau</code>, we can construct a data frame with model output at the desired times.<br  />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Plotting</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+The simplest way to plot a function using <code>plot</code>. To plot the output of the deterministic SIR run above, we first convert it to a data frame (<code>ode</code> returns a <i>matrix</i>, a data type which we do not discuss here) using <code>data.frame</code><br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">trajectory_df <span style="color: #268bd2; font-weight: bold;">&lt;-</span> data.frame(trajectory)
+</pre>
+</div>
+
+<p>
+We can then plot the number of infected against time using<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">plot(x = trajectory_df$time, y = trajectory_df$I)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="trajectory_plot.png" alt="trajectory_plot.png" /><br  />
+</p>
+</div>
+
+<p>
+A slightly more involved way with many options for different types of plot is using the <code>ggplot2</code> package. This can be installed with <code>install.packages("ggplot2")</code> and loaded with<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R"><span style="color: #268bd2; font-weight: bold;">library</span>(ggplot2)
+</pre>
+</div>
+
+<p>
+<code>ggplot2</code> uses a somewhat peculiar syntax. To create a similar plot to the one above using <code>ggplot</code>, we would write<br  />
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-R">ggplot(trajectory_df, aes(x = time, y = I)) + geom_point()
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="trajectory_ggplot.png" alt="trajectory_ggplot.png" /><br  />
+</p>
+</div>
+
+<p>
+A detailed introduction to <code>ggplot2</code> and its numerous options for plotting is beyond the scope of this introduction, but comprehensive documentation as well as many examples can be found on the <a href="http://ggplot2.org/">ggplot2 website</a>.<br  />
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Created: 2014-11-25 Tue 12:24</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
