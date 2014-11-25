@@ -66,8 +66,10 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <li><a href="#calculate-the-posterior">Calculate the posterior</a></li>
 <li><a href="#assess-the-model-fit">Assess the model fit</a></li>
 <li><a href="#explore-the-posterior">Explore the posterior</a></li>
-<li><a href="#going-further">Going further</a></li>
-<li><a href="#navigate">Navigate</a></li>
+<li><a href="#going-further">Going further</a><ul>
+<li><a href="#imperfect-reporting-of-cases">Imperfect reporting of cases</a></li>
+<li><a href="#including-demographic-processes-and-seasonal-forcing">Including demographic processes and seasonal forcing</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -237,6 +239,8 @@ SIR$pointLogLike</code></pre>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
+<div id="imperfect-reporting-of-cases" class="section level2">
+<h2>Imperfect reporting of cases</h2>
 <p>If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, <code>epi2</code>, which you can have a look at with</p>
 <pre class="r"><code>head(epi2)</code></pre>
 <pre><code>##   time obs
@@ -247,16 +251,15 @@ SIR$pointLogLike</code></pre>
 ## 5    5   5
 ## 6    6   9</code></pre>
 <p>This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate <span class="math">\(R_0\)</span>?</p>
-<!-- TODO: example with SIR with sinusoidal forcing -->
-
-<div>
 </div>
-<div id="navigate" class="section level1">
+<div id="including-demographic-processes-and-seasonal-forcing" class="section level2">
+<h2>Including demographic processes and seasonal forcing</h2>
+<p>Recurrent diseases like Influenza require additional mechanisms to explain their <a href="https://websenti.u707.jussieu.fr/sentiweb/?page=serie">long-term dynamics</a>. Modify the <code>SIR</code> model to include demographic processes (birth &amp; deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible). Simulate your model with and without seasonal forcing. Comment on what you observe.</p>
+<div>
 <h1>Navigate</h1>
 Previous: <a href="index.html">Installation</a> Next: <a href="mcmc.html">MCMC</a>
 </div>
-
-
+</div>
 </div>
 
 
