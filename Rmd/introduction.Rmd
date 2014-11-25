@@ -250,6 +250,7 @@ Try different distributions for the prior and likelihood distributions (you coul
 
 # Going further
 
+## Imperfect reporting of cases
 If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, `epi2`, which you can have a look at with
 
 ```{r look_epi2}
@@ -258,7 +259,12 @@ head(epi2)
 
 This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate $R_0$?
 
-<!-- TODO: example with SIR with sinusoidal forcing -->
+## Including demographic processes and seasonal forcing
+
+Recurrent diseases like Influenza require additional mechanisms to explain their [long-term dynamics](https://websenti.u707.jussieu.fr/sentiweb/?page=serie).
+Modify the `SIR` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).
+Simulate your model with and without seasonal forcing. Comment on what you observe.
+
 
 <div>
 # Navigate
