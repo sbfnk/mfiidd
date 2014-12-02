@@ -1,0 +1,46 @@
+% Modelling of past and current Ebola outbreaks.
+
+```{r setup, echo=FALSE}
+opts_chunk$set(cache=TRUE, fig.path='figure/ebola_project/', cache.path='cache/ebola_project/' ,fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
+```{r fitR, cache=FALSE, echo=FALSE}
+library(fitR)
+set.seed(1234)
+```
+
+# Objectives
+
+* Design and fit a simple SEIR model to one of the Ebola outbreak below.
+* Estimate the change, if any, of the reproduction number ($R_t$) over time.
+* Discuss your findings and the limitations of your model. 
+
+# Data
+
+We provide 4 data sets, the first one corresponds to the first ever reported outbreak of Ebola that occurred in Yambuku, DRC, in 1976. It is a complete epidemic of about 300 cases. 
+
+* [Download the daily incidence time series](data/Ebola_Yambuku_1976.csv)
+
+The 3 other data sets correspond to the ongoing Ebola outbreak in the 3 most affected countries of West Africa (Guinea, Liberia and Sierra Leone). 
+The dynamics in the 3 countries is somewhat different and you will compare your estimates of $R_t$ across groups. Make sure you don't pick the same data set as another group.
+
+The data were extracted from [WHO website](http://www.who.int/csr/disease/ebola/situation-reports/en/?m=20141126) and compiled the number of Confirmed and Probable cases up to 23 November 2014.
+
+* [Download the weekly incidence time series](data/Ebola_West_Africa_2014_WHO.csv) 
+
+# Model
+
+Modify one of the model provided during the practicals (SIR or SEITL) to include a time varying reproduction number. You will also need to choose an observation model, priors for the parameters as well as initial conditions for your model.
+
+# Bibliography
+
+You might find the following reference helpful to understand the epidemiological context of these outbreaks. The reference also contains useful empirical estimates to parametrize your model (e.g. priors, fixed parameters).
+
+* [Breman, J. G., et al. "The epidemiology of Ebola hemorrhagic fever in Zaire, 1976." Ebola virus haemorrhagic fever (1978): 103-124.](external_ref/Breman_1978.pdf)
+* [WHO Ebola Response Team. "Ebola virus disease in West Africa—the first 9 months of the epidemic and forward projections." N Engl J Med 371.16 (2014): 1481-95.](external_ref/WHO_Ebola_Response_Team_2014_New_England_Journal_of_Medicine.pdf)
+
+<div>
+# Navigate
+Top: [Index](index.html)
+</div>
+

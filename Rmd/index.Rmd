@@ -42,6 +42,10 @@ library(fitR)
 
 [Day T. Computability, Godel's incompleteness theorem, and an inherent limit on the predictability of evolution. J R Soc Interface. 2012 Feb 24;9(69):624–39.](external_ref/Day_2012_J_R_Soc_Interface.pdf)
 
+## Ebola project
+
+[Investigate on the dynamics of Ebola!](ebola_project.html)
+
 <!-- ## Further slides
 [Further methods and packages](slides/further_slides.pdf)
 

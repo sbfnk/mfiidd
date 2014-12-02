@@ -10,11 +10,39 @@ start_me <- function(){
 
 }
 
+create_data_for_ebola_project <- function() {
+
+	dir_data <- file.path(html_dir, "data")
+	
+	if(!file.exists(dir_data)){
+		dir.create(dir_data)
+	}
+
+	dbs_file <- "data_bases_synthesis.rds"
+	dir_project <- "/Users/Tonton/work/projects/ebola"
+	df_dbs <- readRDS(file.path(dir_project,"data","2014WestAfrica",dbs_file)) 
+
+	# extract WHO data for L and SL
+
+	df_data <- df_dbs %>% filter(report=="cases", type=="new", geo%in%c("Liberia","Sierra Leone","Guinea"), time=="weekly", source=="linelist_WHO", !is.na(value)) %>% 
+	select(date, geo, value) %>% dplyr::rename(weekly_incidence=value)
+
+	write.csv(df_data, file.path(dir_data,"Ebola_West_Africa_2014_WHO.csv"), row.names=FALSE)
+	
+
+	# extract data for Yambuku
+
+	
+
+
+}
+
 generate_html <- function() {
 
 
 	# Rmd_names <- grep(".Rmd",list.files(rmd_dir),value=TRUE)
-	Rmd_names <- c("index.Rmd")
+	# Rmd_names <- c("index.Rmd")
+	Rmd_names <- c("index.Rmd","ebola_project.Rmd")
 	# Rmd_names <- c("index.Rmd","introduction.Rmd","posterior_example.Rmd","posterior_example_solution.Rmd")
 	# Rmd_names <- c("mcmc.Rmd","mcmc_example.Rmd","mcmc_example_solution.Rmd","generate_samples.Rmd")
 	# Rmd_names <- c("mcmc_diagnostics.Rmd","epi3_wrapper.Rmd","mcmc_commands.Rmd")
@@ -32,6 +60,7 @@ generate_html <- function() {
 main <- function() {
 
 	start_me()
+	# create_data_for_ebola_project()
 	generate_html()
 
 }
