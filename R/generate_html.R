@@ -42,12 +42,12 @@ generate_html <- function() {
 
 	# Rmd_names <- grep(".Rmd",list.files(rmd_dir),value=TRUE)
 	# Rmd_names <- c("index.Rmd")
-	# Rmd_names <- c("index.Rmd","ebola_project.Rmd")
+	Rmd_names <- c("index.Rmd","ebola_project.Rmd")
 	# Rmd_names <- c("index.Rmd","introduction.Rmd","posterior_example.Rmd","posterior_example_solution.Rmd")
 	# Rmd_names <- c("mcmc.Rmd","mcmc_example.Rmd","mcmc_example_solution.Rmd","generate_samples.Rmd")
 	# Rmd_names <- c("mcmc_diagnostics.Rmd","epi3_wrapper.Rmd","mcmc_commands.Rmd")
 	# Rmd_names <- c("play_with_seitl.Rmd","play_with_seitl_example.Rmd")
-	Rmd_names <- c("mcmc_and_model_comparison.Rmd")#,"example_mcmc_SEITL.Rmd","our_ppc.Rmd","our_ppc_insert.Rmd")
+	# Rmd_names <- c("mcmc_and_model_comparison.Rmd")#,"example_mcmc_SEITL.Rmd","our_ppc.Rmd","our_ppc_insert.Rmd")
 	# Rmd_names <- c("pmcmc.Rmd","smc_example.Rmd","smc_example_solution.Rmd","pmcmc_solution.Rmd")
 	# Rmd_names <- c("ABC.Rmd","sumstat_examples.Rmd","distance_examples.Rmd","abc_solution.Rmd")
 
