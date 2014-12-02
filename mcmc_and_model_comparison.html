@@ -94,8 +94,43 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <li><code>trace</code>: a vector that contains, among other things, <code>theta</code> and its <code>log.likelihood</code>. All this information will be collected in the <code>trace</code> data frame returned by <code>mcmcMH</code>.</li>
 </ol>
 <p>Now, <strong>take 15 minutes</strong> to prepare all the inputs to be able to run <code>mcmcMH</code> and fit your model. You should proceed as follows:</p>
+<pre class="r"><code># wrapper for posterior
+my_posteriorTdC &lt;- function(theta){
+
+    my_fitmodel &lt;- # INSERT HERE
+    my_init.state &lt;- # INSERT HERE
+
+    return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state,
+        data=FluTdC1971, margLogLike = trajLogLike))
+
+}
+
+# theta to initialise the MCMC
+init.theta &lt;- # INSERT HERE
+
+# diagonal elements of the covariance matrix for the Gaussian proposal
+# Must be in the same order as init.theta
+proposal.sd &lt;- # INSERT HERE
+
+
+# lower and upper limits of each parameter (must be named vectors)
+lower &lt;- # INSERT HERE
+upper &lt;- # INSERT HERE
+
+# number of iterations for the MCMC
+n.iterations &lt;- # INSERT HERE
+
+# additional parameters for the adaptive MCMC, see ?mcmcMH for more details
+adapt.size.start &lt;- # INSERT HERE
+adapt.size.cooling &lt;- # INSERT HERE
+adapt.shape.start &lt;- # INSERT HERE</code></pre>
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="example_mcmc_SEITL.html#setting-the-mcmc">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
+<pre class="r"><code># run the MCMC
+my_mcmc.TdC &lt;- mcmcMH(target = my_posteriorTdC, init.theta = init.theta, proposal.sd = proposal.sd, 
+    limits = list(lower = lower, upper = upper), n.iterations = n.iterations, 
+    adapt.size.start = adapt.size.start, adapt.size.cooling = adapt.size.cooling, 
+    adapt.shape.start = adapt.shape.start)</code></pre>
 <p>This should print some information as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?</p>
 <p>Note that we have set the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform fewer iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.</p>
 <p><strong>Take 10 minutes</strong> to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate. Try to find a “good” combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can’t find one, look at our <a href="example_mcmc_SEITL.html#setting-the-mcmc">example</a>.</p>
@@ -111,6 +146,10 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </ul>
 <p>You can find a grouped documentation for these three functions by typing <code>?acfplot</code>.</p>
 <p><strong>Take 10 minutes</strong> to analyse the trace returned by <code>mcmcMH</code>. Remember that, with the notation above, the trace can be accessed by <code>my_mcmc.TdC$trace</code> and then converted to a <code>mcmc</code> object so that the <code>coda</code> functions recognize it:</p>
+<pre class="r"><code># convert to a mcmc object for coda
+my_trace &lt;- mcmc(my_mcmc.TdC$trace)
+# plot the trace
+xyplot(my_trace)</code></pre>
 <p>Are you surprised by the trace of the log-prior? Determine what burning and thinning would be appropriate for your trace. Try to compare the thinned and unthinned traces (e.g. posterior estimates, density). Do you think it is important to thin?</p>
 <p>If you are not sure about how to analyse your trace, have a look at our <a href="example_mcmc_SEITL.html#short-run-analysis">example</a>.</p>
 </div>
@@ -118,9 +157,19 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <h1>Long run analysis</h1>
 <p>You should have noticed that the effective sample size (ESS) is quite small (&lt;100) for your preliminary run. By contrast, the ESS was much higher for the SIR model of the previous session with a similar number of iterations. However, this model has only 2 parameters against 6 for the SEITL and SEIT2L models. Intuitively, the more parameters you have the bigger is the parameter space and the longer it takes to the MCMC algorithm to explore it. This is why we need to run a much longer chain to achieve a good ESS (~1000).</p>
 <p>To save time, we have run 2 chains of 100 000 iterations starting from different initial <code>theta</code> values:</p>
+<pre class="r"><code>theta1 = c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.8, D.imm = 16, rho = 0.85)
+theta2 = c(R0 = 20, D.lat = 2, D.inf = 2, alpha = 0.1, D.imm = 8, rho = 0.3)</code></pre>
 <p>Each chain took 5 hours on a scientific computing cluster (thanks <a href="external_ref/bernard-cazelles.jpg">Bernard</a>) and can be loaded as follows:</p>
-<pre><code>## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;
+<pre class="r"><code>data(mcmc_TdC_deter_longRun)
+# this should load 2 objects in your environment: mcmc_SEITL_theta1 and
+# mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMH
+names(mcmc_SEITL_theta1)
+## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;
+# the trace contains 9 variables for 100000 iterations
+dim(mcmc_SEITL_theta1$trace)
 ## [1] 100001      9
+# let's have a look at it
+head(mcmc_SEITL_theta1$trace)
 ##         R0    D.lat    D.inf     alpha    D.imm       rho log.prior
 ## 1 2.000000 2.000000 2.000000 0.8000000 16.00000 0.8500000 -12.81448
 ## 2 2.000000 2.000000 2.000000 0.8000000 16.00000 0.8500000 -12.81448
@@ -158,7 +207,9 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <li><span class="math">\(D_{inf}\sim\mathcal{N}(\mu=2,\sigma=1)\)</span></li>
 </ul>
 <p>The corresponding outputs of <code>mcmcMH</code> were loaded with <code>data(mcmc_TdC_deter_longRun)</code> and should already be in your <strong>R</strong> environment:</p>
-<pre><code>## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;
+<pre class="r"><code>names(mcmc_SEITL_infoPrior_theta1)
+## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;
+names(mcmc_SEITL_infoPrior_theta2)
 ## [1] &quot;trace&quot;            &quot;acceptance.rate&quot;  &quot;covmat.empirical&quot;</code></pre>
 <p><strong>Take 15 minutes</strong> to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?</p>
 <p>A solution can be found <a href="example_mcmc_SEITL.html#informative-priors">here</a>.</p>
@@ -181,10 +232,50 @@ D(\theta)=-2\log(p(y|\theta)) + C
 <p>The DIC can only tell you which one of two or more models fit the data best; it doesn’t give you any information on whether the best model provides actually a good fit to the data <em>overall</em> (in the kingdom of the blind, the one-eyed man is king).</p>
 <p>One way to assess the overall quality of a fit is to perform <em>posterior predictive checks</em>. It works by choosing a test statistic of the data (i.e., the peak, final size, etc.) and running many model replicates from parameter values that have been sampled from the posterior. One then tests how often in the simulations the test statistic takes a value as extreme or more extreme than the value it takes in the data. This allows us to compute a p-value (a frequentist quantity, strictly speaking). If the data come out as an extreme case of model output (that is, the chosen test statistic or a more extreme value only comes up very rarely in the simulations), it would indicate that the model is not a good fit to the data.</p>
 <p>Let’s look at the maximum in the data</p>
+<pre class="r"><code>max(FluTdC1971$obs)</code></pre>
 <pre><code>## [1] 47</code></pre>
 <p>Now, write a function that takes as argument a data frame of parameter samples, the number of trajectories to evaluate, the model, initial conditions and a data set, and which returns the Bayesian p-value of the test statistic in the data with respect to the posterior samples.</p>
+<pre class="r"><code># This is a function that takes 4 arguments:
+# - trace, a data frame containing samples from the posterior
+#   distribution, one column per parameter 
+# - n.samples, the number of samples to take
+# - fitmodel, the model we use to generate replicates
+# - init.state, the initial state
+# - data, the data set we have fit the model to
+# It should return the two-sided p-value for the maximal observation
+# in the data with respect to the model.
+my_postPredCheck &lt;- function(trace, n.samples, fitmodel, init.state, data) {
+
+    # calculate maximum in obs column of data
+    
+    # draw n.samples random numbers between 1
+    # and n.samples using the `samples` function 
+
+    # initialise vector of model maxima
+    
+    ## start for() loop over sampled numbers
+
+        # get row from trace corresponding to sampled number
+
+        # use genObsTraj to generate observation trajectory using row
+        # from trace
+
+        # calculate maximum in model and add to vector of model maxima
+
+    ## end for() loop
+
+    # calculate 2-sided p-value, that is the proportion of elements of
+    # max.model which are either greater or equal or less or equal
+    # (whichever is less) and  multiply by 2 (because it is a 2-sided
+    # test)
+
+    # return two-sided p-value
+}</code></pre>
 <p>If you have trouble filling any of the empty bits, have a look at our <a href="our_ppc_insert.html">more guided example</a>.</p>
 <p>Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,</p>
+<pre class="r"><code>init.state &lt;- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
+my_postPredCheck(trace = mcmc_SEITL_theta1$trace[SEITL_deter$theta.names], n.samples = 100, 
+    fitmodel = SEITL_deter, init.state = init.state, data = FluTdC1971)</code></pre>
 <pre><code>## [1] 0.24</code></pre>
 <p>Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.</p>
 <p>Does the best model yield to a “better” (higher) p-value?</p>
