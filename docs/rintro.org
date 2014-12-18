@@ -476,10 +476,13 @@ The simplest way to plot a function using =plot=. To plot the output of the dete
 
 We can then plot the number of infected against time using
 
-#+header: :width 5 :height 5
-#+BEGIN_SRC R :results graphics :file trajectory_plot.pdf
+#+header: :width 400 :height 300
+#+BEGIN_SRC R :results output graphics :file trajectory_plot.png
   plot(x = trajectory_df$time, y = trajectory_df$I)
 #+END_SRC
+
+#+RESULTS:
+[[file:trajectory_plot.png]]
 
 A slightly more involved way with many options for different types of plot is using the =ggplot2= package. This can be installed with =install.packages("ggplot2")= and loaded with
 
@@ -489,9 +492,12 @@ A slightly more involved way with many options for different types of plot is us
 
 =ggplot2= uses a somewhat peculiar syntax. To create a similar plot to the one above using =ggplot=, we would write
 
-#+header: :width 5 :height 5
-#+BEGIN_SRC R :results graphics :file trajectory_ggplot.pdf
+#+header: :width 400 :height 300
+#+BEGIN_SRC R :results output graphics :file trajectory_ggplot.png
   ggplot(trajectory_df, aes(x = time, y = I)) + geom_point()
 #+END_SRC
+
+#+RESULTS:
+[[file:trajectory_ggplot.png]]
 
 A detailed introduction to =ggplot2= and its numerous options for plotting is beyond the scope of this introduction, but comprehensive documentation as well as many examples can be found on the [[http://ggplot2.org/][ggplot2 website]].
