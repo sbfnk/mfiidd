@@ -159,7 +159,7 @@ xyplot(my_trace)</code></pre>
 <p>To save time, we have run 2 chains of 100 000 iterations starting from different initial <code>theta</code> values:</p>
 <pre class="r"><code>theta1 = c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.8, D.imm = 16, rho = 0.85)
 theta2 = c(R0 = 20, D.lat = 2, D.inf = 2, alpha = 0.1, D.imm = 8, rho = 0.3)</code></pre>
-<p>Each chain took 5 hours on a scientific computing cluster (thanks <a href="figure/import/bernard-cazelles.jpg">Bernard</a>) and can be loaded as follows:</p>
+<p>Each chain took 5 hours on a scientific computing cluster (thanks <a href="external_ref/bernard-cazelles.jpg">Bernard</a>) and can be loaded as follows:</p>
 <pre class="r"><code>data(mcmc_TdC_deter_longRun)
 # this should load 2 objects in your environment: mcmc_SEITL_theta1 and
 # mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMH
