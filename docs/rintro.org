@@ -17,13 +17,13 @@ Any line in *R* that starts with a hash (=#=) is interpreted as a comment and no
   # this line does nothing
 #+END_SRC
 
-For the course, please make sure you are running at least version 3.1.0 of *R*. You can find out which *R* version you are running by typing
+For the course, please try and make sure you are running at least version 3.2.0 of *R*. You can find out which *R* version you are running by typing
 
 #+BEGIN_SRC R
   R.Version()$version.string
 #+END_SRC
 
-in an *R* session. If your version is smaller than 3.1.0, please update to at least version 3.1.0 following the instructions on the [[http://cran.rstudio.com/][CRAN website]].
+in an *R* session. If your version is smaller than 3.2.0, please update to at least version 3.2.0 following the instructions on the [[http://cran.rstudio.com/][CRAN website]].
 
 * Data types
 The data types we will be working with in the course are (named) /vectors/, /lists/, and /data frames/. More information on data types in *R* can be found in many places on the web, for example the [[http://en.wikibooks.org/wiki/R_Programming/Data_types][R programming wikibook]].
