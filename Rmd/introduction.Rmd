@@ -124,19 +124,19 @@ You will see that this calculates the prior of the parameters using uniform dist
 
 ## Likelihood
 
-The `pointLogLike` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
+The `dPointObs` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
 
 ```{r eval_log_like}
-SIR$pointLogLike(data.point = c(obs = 18), model.point = c(I = 31), theta)
+SIR$dPointObs(data.point = c(obs = 18), model.point = c(I = 31), theta, log = TRUE)
 ```
 
-Have a look at the `pointLogLike` function by typing
+Have a look at the `dPointObs` function by typing
 
 ```{r look_log_like, eval = FALSE}
-SIR$pointLogLike
+SIR$dPointObs
 ```
 
-You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$pointLogLike` answers the question: what is the (logged) probability of observing 18 cases when the prevalence is 31? For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$dPointObs` answers the question: what is the (logged) probability of observing 18 cases when the prevalence is 31? For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
 
 Let's load a test data set contained in the `fitR` package using
 
@@ -156,7 +156,7 @@ The observations ("obs") in the `epi1` data set are based on observed prevalence
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `pointLogLike` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
+To calculate the log-likelihood of a set of parameters and initial state, we can use `trajLogLike`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `dPointObs` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
 
 ```{r eval_traj_log_like}
 trajLogLike(SIR, theta, init.state, epi1)
@@ -166,24 +166,24 @@ Of course, you might get a different number here if you played with the paramete
 
 ## Generate observations
 
-The function `genObsPoint` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment, and for Approximate Bayesian Computation.
+The function `rPointObs` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment, and for Approximate Bayesian Computation.
 
-`genObsPoint` can be seen as the inverse of `pointLogLike`. Whereas `pointLogLike` evaluates the log-likelihood at a data point with respect to the model, `genObsPoint` takes the model and generates a (randomly sampled) data point. In that, it differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `genObsPoint` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a random observed prevalence on the basis of a true prevalence of 31, we can write
+`rPointObs` can be seen as the inverse of `dPointObs`. Whereas `dPointObs` evaluates the log-likelihood at a data point with respect to the model, `rPointObs` takes the model and generates a (randomly sampled) data point. In that, it differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a random observed prevalence on the basis of a true prevalence of 31, we can write
 
 ```{r gen_obs}
-SIR$genObsPoint(model.point = c(I = 31), theta)
+SIR$rPointObs(model.point = c(I = 31), theta)
 ```
 
 Of course, you might see a different number, as the result of this command is the outcome of a random draw.
 
-To generate a whole trajectory with simulated observation, we have implemented a function called `genObsTraj`, which can be seen as the inverse of `trajLogLike`. The `genObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `genObsPoint` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
+To generate a whole trajectory with simulated observation, we have implemented a function called `genObsTraj`, which can be seen as the inverse of `trajLogLike`. The `genObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `rPointObs` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
 
 ```{r gen_obs_traj}
 obs.traj <- genObsTraj(SIR, theta, init.state, epi1$time)
 head(obs.traj)
 ```
 
-If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `genObsPoint` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `genObsTraj` would be the same every time.
+If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `genObsTraj` would be the same every time.
 
 Now you have completed the overview of a `fitmodel` object, you are going use some parts of it to code a function that will evaluate the posterior.
 
@@ -237,19 +237,19 @@ Clearly, not a very good fit on this occasion. In the next section, you will exp
 
 Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the function `my_logPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised? Does the model fit the data (looking at `plotFit`)?
 
-You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$dprior` and `SIR$pointLogLike` by typing
+You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$dprior` and `SIR$dPointObs` by typing
 
 ```{r look_definition,eval = FALSE}
-SIR$pointLogLike
 SIR$dprior
+SIR$dPointObs
 ```
 
 To change the prior and likelihood functions, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
 
 ```{r edit,eval = FALSE}
-SIR$pointLogLike <- function(data.point, model.point, theta) {
+SIR$dPointObs <- function(data.point, model.point, theta, log = FALSE) {
         # the prevalence is observed through a normally distributed process
-        return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = TRUE))
+        return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = log))
 }
 ```
 
