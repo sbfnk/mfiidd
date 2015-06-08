@@ -11,7 +11,7 @@ my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
     # calculate the fitmodel prior for parameter vector theta using
     # fitmodel$logPrior, and assign to variable log.prior
-    log.prior <- fitmodel$logPrior(theta)
+    log.prior <- fitmodel$dprior(theta)
 
     # calculate the fitmodel prior for parameter vector theta using
     # fitmodel$logPrior, and assign to variable log.prior
