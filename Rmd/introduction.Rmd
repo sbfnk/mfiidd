@@ -191,15 +191,13 @@ Now you have completed the overview of a `fitmodel` object, you are going use so
 
 **Code it yourself**: Write a function to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to a normalisation constant) for a given set of parameters and initial state, with respect to a data set. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
-```{r eval = FALSE}
+```{r eval = FALSE, tidy = FALSE}
 # This is a function that takes 4 arguments:
-# - fitmodel, a fitmodel object that defines the model dynamics,
-#   prior and likelihoods.
+# - fitmodel, a fitmodel object that defines the model dynamics, prior and likelihoods.
 # - theta, a named vector of parameters
-# - init.state,  a named vector of initial state
-# - data, the data set we are fitting the model to
-# It should return the posterior for the given model, parameters,
-# initial state and data.
+# - init.state, a named vector of initial states
+# - data, the data set we are fitting the model to 
+# It should return the posterior for the given model, parameters, initial state and data.
 my_logPosterior <- function(fitmodel, theta, init.state, data) {
 
     # calculate the `fitmodel` log-prior for parameter `theta`
