@@ -86,7 +86,7 @@ head(traj)
 
 `head` prints the first few rows of the data set. If you just type `traj` (without the `head`), you'll see the whole trajectory.
 
-To visualise a model, you can use `plotTraj`
+To visualise model output, you can use `plotTraj`.
 
 ```{r traj_sir_sim,fig.width = 10}
 plotTraj(traj)
