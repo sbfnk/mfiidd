@@ -8,6 +8,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/introduction/', cache.path='c
 
 ```{r fitR, cache=FALSE, echo=FALSE}
 library(fitR)
+library(deSolve)
 set.seed(1234)
 ```
 
