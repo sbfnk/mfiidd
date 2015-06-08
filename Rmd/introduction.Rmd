@@ -61,7 +61,7 @@ SIR$state.names
 SIR$theta.names
 ```
 
-Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `logPrior` to calculate the logarithm of the prior, `pointLogLike` to calculate the log-likelihood of a given data point with respect to the model, and `genObsPoint` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
+Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `dprior` to calculate the prior density, `dPointObs` to calculate the log-likelihood of a given data point with respect to the model, and `rPointObs` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
 
 ```{r help_fitmodel, eval=FALSE, tidy=FALSE}
 ?fitmodel
@@ -104,16 +104,20 @@ This is the key function that encodes the dynamic model we would like to fit to 
 
 ## Prior
 
-To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `logPrior` function
+To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `dprior` function
 
-```{r eval_log_prior}
-SIR$logPrior(theta)
+```{r eval_prior}
+SIR$dprior(theta)
 ```
 
-Have a look at the `logPrior` function by typing
+```{r eval_log_prior}
+SIR$dprior(theta, log = TRUE)
+```
 
-```{r look_log_prior, eval = FALSE}
-SIR$logPrior
+Have a look at the `dprior` function by typing
+
+```{r look_dprior, eval = FALSE}
+SIR$dprior
 ```
 
 You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D_\mathrm{inf}$ (between 0 and 30). At the moment, just have a look at it and make sure you understand it. Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
@@ -233,11 +237,11 @@ Clearly, not a very good fit on this occasion. In the next section, you will exp
 
 Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the function `my_logPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised? Does the model fit the data (looking at `plotFit`)?
 
-You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$logPrior` and `SIR$pointLogLike` by typing
+You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$dprior` and `SIR$pointLogLike` by typing
 
 ```{r look_definition,eval = FALSE}
-SIR$logPrior
 SIR$pointLogLike
+SIR$dprior
 ```
 
 To change the prior and likelihood functions, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
