@@ -26,4 +26,4 @@ auto
 # Rmd stuff
 Rmd/cache
 Rmd/figure
-
+Rmd/*.html
