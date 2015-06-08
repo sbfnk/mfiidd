@@ -144,7 +144,7 @@ Let's load a test data set contained in the `fitR` package using
 data(epi)
 ```
 
-This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. For now, you can look at this data set using
+This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. You can look at this data set using
 
 ```{r look_epi1}
 head(epi1)
@@ -162,7 +162,7 @@ To calculate the log-likelihood of a set of parameters and initial state, we can
 trajLogLike(SIR, theta, init.state, epi1)
 ```
 
-Of course, you might get a different number here if you played with the parameters. You will later need the `trajLogLike` function to calculate the posterior as a function of the parameters.
+Of course, you might get a different number here if you played with the parameters. You will later need the `trajLogLike` function to calculate the posterior density as a function of the parameters.
 
 ## Generate observations
 
