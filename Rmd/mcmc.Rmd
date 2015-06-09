@@ -129,7 +129,7 @@ hist(trace)
 
 Of course, since MCMC is based on sampling random numbers, your plot will look different.
 
-This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram? For more information you can also look at our [discussion](mcmc_discussion.html) of this.
+This examples looks reassuringly similar to the normal distribution centred around 0. Try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?
 
 # Sampling from a posterior distribution
 
