@@ -1,7 +1,7 @@
 An example command to generate samples from `my_rLogPosterior_epi1` using `my_mcmcMH` is:
 
-```{r echo=FALSE}
-read_chunk('generate_samples.r')
+```{r echo = FALSE, tidy = FALSE}
+knitr::read_chunk('generate_samples.r')
 ```
 
 ```{r generate_samples,eval = FALSE}
