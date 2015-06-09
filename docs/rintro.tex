@@ -1,0 +1,765 @@
+% Created 2015-06-05 Fri 14:23
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\usepackage{graphicx}
+\defaultfontfeatures{Mapping=tex-text}
+\setromanfont{Palatino}
+\setsansfont{Charis SIL}
+\setmonofont[Scale=0.8]{DejaVu Sans Mono}
+\usepackage{geometry}
+\usepackage{amsmath}
+\geometry{a4paper, textwidth=5.5in, textheight=9in,
+           marginparsep=7pt, marginparwidth=.6in}
+\setlength{\parskip}{0.1in}
+
+\usepackage[maxcitenames=2,sorting=nyt,style=authoryear,citestyle=authoryear,doi=false,url=false,firstinits=true]{biblatex}
+\AtEveryBibitem{\clearlist{language}} % clears language
+\AtEveryBibitem{\clearfield{eprint}} % clears eprint
+\AtEveryBibitem{\clearfield{series}} % clears series
+\AtEveryBibitem{\clearfield{volume}} % clears volume
+\DeclareFieldFormat[article, inbook, incollection, inproceedings, patent, thesis, unpublished]{pages}{{\nopp#1}} %removes ‘pp.’ from pages
+\renewbibmacro{in:}{%
+  \ifentrytype{article}{}{%
+  \printtext{\bibstring{in}\intitlepunct}}}
+\addbibresource{~/Research/research.bib}
+\renewcommand*{\nameyeardelim}{\addcomma\space}
+
+\DeclareCiteCommand{\longcite}[\mkbibparens]
+ {\usebibmacro{prenote}}
+ {\usebibmacro{citeindex}%
+  \usebibmacro{cite}}
+ {\multicitedelim}
+ {\iffieldundef{journaltitle}{}
+   {\addcomma\space\printfield{journaltitle}}}
+
+\title{}
+\usepackage[hyperref,x11names]{xcolor}
+\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}
+% for minted: http://tex.stackexchange.com/questions/43331/control-vertical-space-before-and-after-verbatim-environment
+\usepackage{etoolbox}
+\makeatletter
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt }
+\makeatother
+\usepackage{xltxtra}
+\usepackage{minted}
+
+\definecolor{mintedbg}{rgb}{0.95,0.95,0.95}
+\usemintedstyle{tango}
+\date{}
+\title{Model fitting and inference for\\ infectious disease dynamics\\\vspace{0.5cm}Useful \textbf{R} commands}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 24.5.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+\label{sec-1}
+
+This document provides a summary of \textbf{R} commands that will be useful to learn or refresh in preparation for the course on \emph{Model fitting and inference for infectious disease dynamics}, 16-19 June at the London School of Hygiene \& Tropical Medicine. While we expect that you will have some knowledge of \textbf{R}, the commands listed below are the ones that we think it would be most useful for you to familiarise yourselves with in order to be able to read the code we will provide for the practical session, and to debug any code you write yourselves during the sessions. There are links in various places which will take you to web sites that provide further information, if you would like more detail on any particular concept. A good general and detailed introduction to \textbf{R} is provided in the \href{http://cran.r-project.org/doc/manuals/R-intro.html}{R manual}. \\
+
+Any line in \textbf{R} that starts with a hash (\texttt{\#}) is interpreted as a comment and not evaluated: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+# this line does nothing
+\end{minted}
+
+For the course, please try and make sure you are running at least version 3.2.0 of \textbf{R}. You can find out which \textbf{R} version you are running by typing \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+R.Version()$version.string
+\end{minted}
+
+\begin{verbatim}
+[1] "R version 3.2.0 (2015-04-16)"
+\end{verbatim}
+
+in an \textbf{R} session. If your version is smaller than 3.2.0, please update to at least version 3.2.0 following the instructions on the \href{http://cran.rstudio.com/}{CRAN website}. \\
+
+\section{Data types}
+\label{sec-2}
+The data types we will be working with in the course are (named) \emph{vectors}, \emph{lists}, and \emph{data frames}. More information on data types in \textbf{R} can be found in many places on the web, for example the \href{http://en.wikibooks.org/wiki/R_Programming/Data_types}{R programming wikibook}. \\
+\subsection{Vectors}
+\label{sec-2-1}
+Vectors are an ordered collection of simple elements such as numbers or strings. They can be created with the \verb~c()~ command. \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+a <- c(1, 3, 6, 1)
+a
+\end{minted}
+
+\begin{verbatim}
+[1] 1 3 6 1
+\end{verbatim}
+
+An individual member at position \verb~i~ be accessed with \verb~[i]~. \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+a[2]
+\end{minted}
+
+\begin{verbatim}
+[1] 3
+\end{verbatim}
+
+Importantly, vectors can be named. We will use this to define parameters for a model. For a named vector, simply specify the names as you create the vector \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+b <- c(start = 3, inc = 2, end = 17)
+b
+\end{minted}
+
+\begin{verbatim}
+start   inc   end 
+    3     2    17
+\end{verbatim}
+
+The elements of a named vector can be accessed both by index \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+b[2]
+\end{minted}
+
+\begin{verbatim}
+inc 
+  2
+\end{verbatim}
+
+and by name \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+b["inc"]
+\end{minted}
+
+\begin{verbatim}
+inc 
+  2
+\end{verbatim}
+
+To strip the names from a named vector, one can use double brackets \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+b[["inc"]]
+\end{minted}
+
+\begin{verbatim}
+[1] 2
+\end{verbatim}
+
+\begin{minted}[bgcolor=mintedbg]{r}
+b[[2]]
+\end{minted}
+
+\begin{verbatim}
+[1] 2
+\end{verbatim}
+
+or the \verb~unname~ function \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+unname(b)
+\end{minted}
+
+\begin{verbatim}
+[1]  3  2 17
+\end{verbatim}
+
+Several functions exist to conveniently create simple vectors. To create a vector of equal elements, we can use \texttt{rep} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+rep(3, times = 10)
+\end{minted}
+
+\begin{verbatim}
+[1] 3 3 3 3 3 3 3 3 3 3
+\end{verbatim}
+
+To create a sequence, we can use \texttt{seq} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+seq(from = 3, to = 11, by = 2)
+\end{minted}
+
+\begin{verbatim}
+[1]  3  5  7  9 11
+\end{verbatim}
+
+If the increments are by 1, we can also use a colon \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+3:11
+\end{minted}
+
+\begin{verbatim}
+[1]  3  4  5  6  7  8  9 10 11
+\end{verbatim}
+
+To create a sequence that starts at 1 with increments of 1, we can use \texttt{seq\_len} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+seq_len(5)
+\end{minted}
+
+\begin{verbatim}
+[1] 1 2 3 4 5
+\end{verbatim}
+
+\subsection{Lists}
+\label{sec-2-2}
+
+Lists are different from vectors in that elements of a list can be anything (including more lists, vectors, etc.), and not all elements have to be of the same type either. \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+l <- list("cabbage", c(3,4,1))
+l
+\end{minted}
+
+\begin{verbatim}
+[[1]]
+[1] "cabbage"
+
+[[2]]
+[1] 3 4 1
+\end{verbatim}
+
+Similar to vectors, list elements can be named: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+l <- list(text = "cabbage", numbers = c(3,4,1))
+l
+\end{minted}
+
+\begin{verbatim}
+$text
+[1] "cabbage"
+
+$numbers
+[1] 3 4 1
+\end{verbatim}
+
+The meaning of brackets for lists is different to vectors. Single brackets return a list of one element \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+l["text"]
+\end{minted}
+
+\begin{verbatim}
+$text
+[1] "cabbage"
+\end{verbatim}
+
+whereas double brackets return the element itself (not within a list) \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+l[["text"]]
+\end{minted}
+
+\begin{verbatim}
+[1] "cabbage"
+\end{verbatim}
+
+More on the meanings of single and double brackets, as well as details on another notation for accessing elements (using the dollar sign) can be found in the \href{http://cran.r-project.org/doc/manuals/R-lang.html#Indexing}{R language specification}. \\
+
+\subsection{Data frames}
+\label{sec-2-3}
+
+Data frames are 2-dimensional extensions of vectors. They can be thought of as the \textbf{R}-version of an Excel spreadsheet. Every column of a data frame is a vector. \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+df <- data.frame(a = c(2, 3, 0), b = c(1, 4, 5))
+df
+\end{minted}
+
+\begin{verbatim}
+  a b
+1 2 1
+2 3 4
+3 0 5
+\end{verbatim}
+
+Data frames themselves have a version of single and double bracket notation for accessing elements. Single brackets return a 1-column data frame \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+df["a"]
+\end{minted}
+
+\begin{verbatim}
+  a
+1 2
+2 3
+3 0
+\end{verbatim}
+
+whereas double brackets return the column as a vector \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+df[["a"]]
+\end{minted}
+
+\begin{verbatim}
+[1] 2 3 0
+\end{verbatim}
+
+To access a row, we use single brackets and specify the row we want to access before a comma \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+df[2, ]
+\end{minted}
+
+\begin{verbatim}
+  a b
+2 3 4
+\end{verbatim}
+
+Note that this returns a data frame (with one row). A data frame itself is a list, and a data frame of one row can be converted to a named vector using \texttt{unlist} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+unlist(df[2, ])
+\end{minted}
+
+\begin{verbatim}
+a b 
+3 4
+\end{verbatim}
+
+We can also select multiple rows \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+df[c(1,2), ]
+\end{minted}
+
+\begin{verbatim}
+  a b
+1 2 1
+2 3 4
+\end{verbatim}
+
+We can select a column, or multiple columns, after the comma \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+df[2, "a"]
+\end{minted}
+
+\begin{verbatim}
+[1] 3
+\end{verbatim}
+
+\section{Functions}
+\label{sec-3}
+Functions are at the essence of everything in \textbf{R}. The \verb~c()~ command used earlier was a call to a function (called \verb~c~). To find out about what a function does, which parameters it takes, what it returns, as well as, importantly, to see some examples for use of a function, one can use \verb~?~, e.g. \verb~?c~ or \verb~?data.frame~. More information on functions can be found in the \href{http://en.wikibooks.org/wiki/R_Programming/Working_with_functions}{R programming wikibook}. \\
+
+To define a new function, we assign a \verb~function~ object to a variable. For example, a function that increments a number by one. \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+add1 <- function(x) {
+    return(x + 1)
+}
+add1(3)
+\end{minted}
+
+\begin{verbatim}
+[1] 4
+\end{verbatim}
+
+To see how any function does what it does, one can look at its source code by typing the function name: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+add1
+\end{minted}
+
+\begin{verbatim}
+function(x) {
+    return(x + 1)
+}
+\end{verbatim}
+
+\subsection{Passing functions as parameters}
+\label{sec-3-1}
+
+Since functions themselves are variables, they can be passed to other functions. For example, we could write a function that takes a function and a variable and applies the function twice to the variable. \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+doTwice <- function(f, x) {
+    return(f(f(x)))
+}
+doTwice(add1, 3)
+\end{minted}
+
+\begin{verbatim}
+[1] 5
+\end{verbatim}
+
+\subsection{Debugging functions}
+\label{sec-3-2}
+
+Writing functions comes with the need to debug them, in case they return errors or faulty results. \textbf{R} provides its own debugger, which is started with \verb~debug~: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+debug(add1)
+\end{minted}
+
+On the next call to the function \verb~add1~, this puts us into \textbf{R}'s own debugger, where we can advance step-by-step (by typing \verb~n~), inspect variables, evaluate calls, etc. To quits the debugger, type \verb~Q~. To stop debugging function \verb~add1~, we can use \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+undebug(add1)
+\end{minted}
+
+More on the debugging functionalities of \textbf{R} can be found on the \href{http://www.stats.uwo.ca/faculty/murdoch/software/debuggingR/}{Debugging in R} pages. \\
+
+An alternative way for debugging is to include printouts in the function, for example using \verb~cat~ \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+add1 <- function(x) {
+    cat("Adding 1 to", x, "\n")
+    return(x + 1)
+}
+add1(3)
+\end{minted}
+
+\begin{verbatim}
+Adding 1 to 3 
+[1] 4
+\end{verbatim}
+
+\section{Loops and conditional statements}
+\label{sec-4}
+
+This section discusses the basic structural syntax of \textbf{R}: \texttt{for} loops, conditional statements and the \texttt{apply} family of functions. \\
+
+\subsection{For loops}
+\label{sec-4-1}
+A \texttt{for} loop in \textbf{R} is written using the word \texttt{in} and a vector of values that the loop variable takes. For example, to create the square of the numbers from 1 to 10, we can write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+squares <- NULL
+for (i in 1:10) {
+    squares[i] <- i * i
+}
+squares
+\end{minted}
+
+\begin{verbatim}
+[1]   1   4   9  16  25  36  49  64  81 100
+\end{verbatim}
+
+\subsection{Conditional statements}
+\label{sec-4-2}
+
+A conditional statement in \textbf{R} is written using \texttt{if}: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+k <- 13
+if (k > 10) {
+    cat("k is greater than 10\n")
+}
+\end{minted}
+
+\begin{verbatim}
+k is greater than 10
+\end{verbatim}
+
+An alternative outcome can be specified with \texttt{else} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+k <- 3
+if (k > 10) {
+    cat("k is greater than 10\n")
+} else {
+    cat("k is not greater than 10\n")
+}
+\end{minted}
+
+\begin{verbatim}
+k is not greater than 10
+\end{verbatim}
+
+\subsection{The \texttt{apply} family of functions}
+\label{sec-4-3}
+
+\textbf{R} is not optimised for \texttt{for} loops, and they can be slow to compute. An often faster and more elegant way to loop over the elements of a vector or data frame is using the \texttt{apply} family of functions: \texttt{apply}, \texttt{lapply}, \texttt{sapply} and others. An good introduction to these functions can be found in \href{http://nsaunders.wordpress.com/2010/08/20/a-brief-introduction-to-apply-in-r/}{this blog post}. \\
+
+The \texttt{apply} function operates on data frames. It takes three arguments: the first argument is the data frame to apply a function to, the second argument specifies whether the function is applied by row (1) or column (2), and the third argument is the function to be applied. For example, to take the mean of \texttt{df} by row, we write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+apply(df, 1, mean)
+\end{minted}
+
+\begin{verbatim}
+[1] 1.5 3.5 2.5
+\end{verbatim}
+
+To take the mean by column, we write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+apply(df, 2, mean)
+\end{minted}
+
+\begin{verbatim}
+       a        b 
+1.666667 3.333333
+\end{verbatim}
+
+The \texttt{lapply} and \texttt{sapply} functions operate on lists or vectors. Their difference is in the type of object they return. To take the square root of every element of vector \texttt{a}, we could use \texttt{lapply}, which returns a list \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+lapply(a, sqrt)
+\end{minted}
+
+\begin{verbatim}
+[[1]]
+[1] 1
+
+[[2]]
+[1] 1.732051
+
+[[3]]
+[1] 2.44949
+
+[[4]]
+[1] 1
+\end{verbatim}
+
+\texttt{sapply}, on the other hand, does the same thing but returns a vector: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+sapply(a, sqrt)
+\end{minted}
+
+\begin{verbatim}
+[1] 1.000000 1.732051 2.449490 1.000000
+\end{verbatim}
+
+We can specify any function to be used by the \texttt{apply} functions, including one we define ourselves. For example, to take the square of every element of vector \texttt{a} and return a vector, we can write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+sapply(a, function(x) { x * x})
+\end{minted}
+
+\begin{verbatim}
+[1]  1  9 36  1
+\end{verbatim}
+
+Of course, the last two examples could have been calculated much simpler using \texttt{sqrt(a)} and \texttt{a*a}, but in many examples, there is no such simple expression, and the \texttt{apply} functions come in handy. \\
+
+\section{Probability distributions}
+\label{sec-5}
+
+Probability distributions are at the heart of many aspects of model fitting. \textbf{R} provides functions to both estimate the probability of obtaining a certain value under a given probability distribution and to sample random numbers from the same distribution. The corresponding functions have a common nomenclature, that is \verb~dxxx~ for the probability (density) of a given value and \verb~rxxx~ for generation of a random number from the same distribution. For example, for a uniform distribution we have \verb~dunif~ and \verb~runif~, and to generate a random number between 0 and 5 we can write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+r <- runif(n = 1, min = 0, max = 5)
+r
+\end{minted}
+
+\begin{verbatim}
+[1] 3.383666
+\end{verbatim}
+
+This number has density $1/(\mathrm{max}-\mathrm{min})=0.2$ within the uniform distribution: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+dunif(x = r, min = 0, max = 5)
+\end{minted}
+
+\begin{verbatim}
+[1] 0.2
+\end{verbatim}
+
+For almost all probability distributions, we can get the logarithm of the probability density by passing \verb~log = TRUE~: \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+dunif(x = r, min = 0, max = 5, log = TRUE)
+\end{minted}
+
+\begin{verbatim}
+[1] -1.609438
+\end{verbatim}
+
+Other functions available are \texttt{rnorm} and \texttt{dnorm} for the normal distribution, \texttt{rpois} and \texttt{dpois} for the Poisson distribution, and many more. A number of probability distributions and their corresponding \textbf{R} functions can be found in the \href{http://en.wikibooks.org/wiki/R_Programming/Probability_Distributions}{R programming wikibook}. \\
+
+\section{Running dynamic models}
+\label{sec-6}
+
+\textbf{R} provides packages for running both deterministic and stochastic dynamic models. For deterministic models, the \verb~deSolve~ package is a good choice, whereas for stochastic models, \verb~adaptivetau~ is recommended. \\
+
+\subsection{Deterministic models}
+\label{sec-6-1}
+
+The \verb~deSolve~ package can be installed with \verb~install.packages("deSolve")~. Once installed, it is loaded with \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+library(deSolve)
+\end{minted}
+
+The command for running a model based on a system of differential equations (e.g., the ones of the SIR model), is \verb~ode~. It takes as parameters the initial state (as a named vector), parameters (again, a named vector), the times at which to produce model output, and a model function \verb~func~ -- for more details, see the \href{http://cran.r-project.org/web/packages/deSolve/vignettes/deSolve.pdf}{deSolve vignette}. The \verb~func~ argument is for specifying the derivatives in the system of ordinary differential equations. It is passed a function that takes the current time, the current state of the system and the parameters and returns a list of transition rates. For the SIR model, for example, we could write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+SIR_ode <- function(time, state, parameters) {
+
+    ## parameters
+    beta <- parameters["R0"] / parameters["infectious.period"]
+    gamma <- 1 / parameters["infectious.period"]
+
+    ## states
+    S <- state["S"]
+    I <- state["I"]
+    R <- state["R"]
+
+    N <- S + I + R
+
+    dS <- -beta * S * I/N
+    dI <- beta * S * I/N-gamma * I
+    dR <- gamma * I
+
+    return(list(c(dS, dI, dR)))
+}
+\end{minted}
+
+We can plug this into the \verb~ode~ function \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+trajectory <- ode(y = c(S = 999, I = 1, R = 0),
+                  times = 1:10,
+                  parms = c(R0 = 5, infectious.period = 1),
+                  func = SIR_ode)
+trajectory
+\end{minted}
+
+\begin{verbatim}
+   time          S           I         R
+1     1 999.000000   1.0000000   0.00000
+2     2 936.699548  50.4219937  12.87846
+3     3 263.468351 469.9673387 266.56431
+4     4  34.248088 291.1277800 674.62413
+5     5  12.998701 118.6213231 868.37998
+6     6   8.854694  45.9852142 945.16009
+7     7   7.637195  17.6193510 974.74345
+8     8   7.217166   6.7258470 986.05699
+9     9   7.063093   2.5640682 990.37284
+10   10   7.005240   0.9770102 992.01775
+\end{verbatim}
+
+\subsection{Stochastic models}
+\label{sec-6-2}
+
+The \verb~adaptivetau~ package can be installed with \verb~install.packages("adaptivetau")~. Once installed, it is loaded with \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+library(adaptivetau)
+\end{minted}
+
+The \verb~adaptivetau~ package uses a different syntax from the \verb~deSolve~ package. Instead of providing a function to calculate the rates of change at each time point, one specifies a list of \emph{transitions} and their rates. Examples for how this is done can be found in the \href{http://cran.r-project.org/web/packages/adaptivetau/vignettes/adaptivetau.pdf}{adaptivetau vignette}. \\
+
+For the SIR model, we could write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+SIR_transitions <- list(
+    c(S = -1, I = 1), # infection
+    c(I = -1, R = 1) # recovery
+)
+
+SIR_rateFunc <- function(x, parameters, t) {
+
+    beta <- parameters["R0"]/parameters["infectious.period"]
+    nu <- 1/parameters["infectious.period"]
+
+    S <- x["S"]
+    I <- x["I"]
+    R <- x["R"]
+
+    N <- S + I + R
+
+    return(c(
+        beta * S * I / N, # infection
+        nu * I # recovery
+    ))
+}
+\end{minted}
+
+To run the stochastic model, we then use the \verb~ssa.adaptivetau~ function, which takes a vector of initial conditions, the list of transitions and rate function, a named vector of parameters, and the final time (with simulations starting at time 0). \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+run <- ssa.adaptivetau(init.values = c(S = 999, I = 1, R = 0),
+                       transitions = SIR_transitions,
+                       rateFunc = SIR_rateFunc,
+                       params = c(R0 = 5, infectious.period = 1),
+                       tf = 10)
+head(run)
+\end{minted}
+
+\begin{verbatim}
+           time   S I R
+[1,] 0.00000000 999 1 0
+[2,] 0.05236648 998 2 0
+[3,] 0.31605515 997 3 0
+[4,] 0.32716421 997 2 1
+[5,] 0.32806481 996 3 1
+[6,] 0.37531085 995 4 1
+\end{verbatim}
+
+Unlike \texttt{ode} from the \texttt{deSolve} package, this does not produce output at specific times, but every time an event happens. To convert this to different times, we first convert the output of \texttt{ssa.adaptivetau} to a data frame (\texttt{ssa.adaptivetau} returns a \emph{matrix}, a data type which we do not discuss here) using \texttt{data.frame} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+run_df <- data.frame(run)
+\end{minted}
+
+To get the output at chosen times, we can use \texttt{approx} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+ # get output at times 1, ..., 10
+run.I.times <- approx(x = run_df$time,
+                      y = run_df$I,
+                      xout = 1:10,
+                      method = "constant")
+run.I.times
+\end{minted}
+
+\begin{verbatim}
+$x
+ [1]  1  2  3  4  5  6  7  8  9 10
+
+$y
+ [1]  44 461 312 136  45  21  11   5   1   1
+\end{verbatim}
+
+By applying this to all the variables returned by \texttt{ssa.adaptivetau}, we can construct a data frame with model output at the desired times. \\
+
+\section{Plotting}
+\label{sec-7}
+The simplest way to plot a function using \texttt{plot}. To plot the output of the deterministic SIR run above, we first convert it to a data frame (\texttt{ode} returns a \emph{matrix}, a data type which we do not discuss here) using \texttt{data.frame} \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+trajectory_df <- data.frame(trajectory)
+\end{minted}
+
+We can then plot the number of infected against time using \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+plot(x = trajectory_df$time, y = trajectory_df$I)
+\end{minted}
+
+\includegraphics[width=.8\linewidth]{trajectory_plot.png} \\
+
+A slightly more involved way with many options for different types of plot is using the \texttt{ggplot2} package. This can be installed with \texttt{install.packages("ggplot2")} and loaded with \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+library(ggplot2)
+\end{minted}
+
+\texttt{ggplot2} uses a somewhat peculiar syntax. To create a similar plot to the one above using \texttt{ggplot}, we would write \\
+
+\begin{minted}[bgcolor=mintedbg]{r}
+ggplot(trajectory_df, aes(x = time, y = I)) + geom_point()
+\end{minted}
+
+\includegraphics[width=.8\linewidth]{trajectory_ggplot.png} \\
+
+A detailed introduction to \texttt{ggplot2} and its numerous options for plotting is beyond the scope of this introduction, but comprehensive documentation as well as many examples can be found on the \href{http://ggplot2.org/}{ggplot2 website}. \\
+% Emacs 24.5.1 (Org mode 8.2.10)
+\end{document}
