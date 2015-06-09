@@ -79,7 +79,7 @@ my_rmcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 }
 ```
 
-```{r source_our_mcmc, include = FALSE}
+```{r source_our_mcmc, include = FALSE, tidy = FALSE}
 source('our_mcmcM.r')
 ```
 
