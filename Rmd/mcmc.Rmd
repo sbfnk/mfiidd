@@ -3,7 +3,7 @@ title: "Practical session: Fitting a deterministic model with MCMC"
 ---
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, fig.path='figure/mcmc/', cache.path='cache/mcmc/' , fig.cap='', fig.align="center")
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc/', cache.path='cache/mcmc/' , fig.cap='', fig.align="center")
 ```
 
 ```{r load, include=FALSE, cache=FALSE}
