@@ -24,11 +24,11 @@ The aim of this session is to learn how to fit a deterministic model to data usi
 
 # Using the Metropolis-Hastings algorithm with more than one parameter
 
-**Code it yourself**: Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and uses a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 
+**Code it yourself**: Let us write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from a distribution that has a single parameter and use a standard Gaussian proposal distribution $q(\theta'|\theta)$. The function we want to write should take four arguments: 
 
-1. a function that can evaluate the target distribution at any value of its parameter
+1. a function that can *evaluate* the target distribution at any value of its parameter
 2. an initial value for the parameter
-3. the standard deviation of the (Gaussian) proposal distribution (i.e., the average step size of the sampler)
+3. the standard deviation of the (Gaussian) *proposal distribution* (i.e., the average step size of the sampler)
 4. the number of iterations for which to run the sampler. 
 
 The function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.
