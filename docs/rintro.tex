@@ -1,4 +1,4 @@
-% Created 2015-06-05 Fri 14:23
+% Created 2015-06-09 Tue 10:18
 \documentclass[11pt,a4paper]{article}
 \usepackage[T1]{fontenc}
 \usepackage{fontspec}
@@ -558,7 +558,7 @@ r
 \end{minted}
 
 \begin{verbatim}
-[1] 3.383666
+[1] 1.0626
 \end{verbatim}
 
 This number has density $1/(\mathrm{max}-\mathrm{min})=0.2$ within the uniform distribution: \\
@@ -694,13 +694,13 @@ head(run)
 \end{minted}
 
 \begin{verbatim}
-           time   S I R
-[1,] 0.00000000 999 1 0
-[2,] 0.05236648 998 2 0
-[3,] 0.31605515 997 3 0
-[4,] 0.32716421 997 2 1
-[5,] 0.32806481 996 3 1
-[6,] 0.37531085 995 4 1
+          time   S I R
+[1,] 0.0000000 999 1 0
+[2,] 0.1727157 998 2 0
+[3,] 0.1905124 997 3 0
+[4,] 0.2072334 997 2 1
+[5,] 0.2583825 996 3 1
+[6,] 0.2853561 995 4 1
 \end{verbatim}
 
 Unlike \texttt{ode} from the \texttt{deSolve} package, this does not produce output at specific times, but every time an event happens. To convert this to different times, we first convert the output of \texttt{ssa.adaptivetau} to a data frame (\texttt{ssa.adaptivetau} returns a \emph{matrix}, a data type which we do not discuss here) using \texttt{data.frame} \\
@@ -725,7 +725,7 @@ $x
  [1]  1  2  3  4  5  6  7  8  9 10
 
 $y
- [1]  44 461 312 136  45  21  11   5   1   1
+ [1]  14 325 388 157  64  26  14   5   3   2
 \end{verbatim}
 
 By applying this to all the variables returned by \texttt{ssa.adaptivetau}, we can construct a data frame with model output at the desired times. \\

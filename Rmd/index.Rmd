@@ -17,7 +17,7 @@ The simplest way to install the `fitR` is to use the `devtools` package:
 ```{r install, eval=FALSE}
 install.packages("devtools")
 library(devtools)
-install_github("sbfnk/fitR@fitcourse_2014")
+install_github("sbfnk/fitR")
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
@@ -36,15 +36,7 @@ library(fitR)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
-7. [Approximate Bayesian Computation](ABC.html)
-
-## Journal club
-
-[Day T. Computability, Godel's incompleteness theorem, and an inherent limit on the predictability of evolution. J R Soc Interface. 2012 Feb 24;9(69):624–39.](external_ref/Day_2012_J_R_Soc_Interface.pdf)
-
-## Ebola project
-
-[Investigate on the dynamics of Ebola!](ebola_project.html)
+7. [Further methods using pomp](pomp.html)
 
 <!-- ## Further slides
 [Further methods and packages](slides/further_slides.pdf)

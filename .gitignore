@@ -27,5 +27,8 @@ auto
 # Rmd stuff
 Rmd/cache
 Rmd/figure
+Rmd/*.html
 
 docs/_minted-rintro/
+docs/*.png
+
