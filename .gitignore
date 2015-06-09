@@ -21,9 +21,11 @@ auto
 *.log
 *.synctex.gz
 *.out
-
+*.bcf
+*.run.xml
 
 # Rmd stuff
 Rmd/cache
 Rmd/figure
 
+docs/_minted-rintro/
