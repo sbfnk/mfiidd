@@ -159,7 +159,7 @@ plotTraj(data = epi1)
 To calculate the log-likelihood of a set of parameters and initial state, we can use `dObsTraj`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `dPointObs` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
 
 ```{r eval_traj_log_like}
-dObsTraj(SIR, theta, init.state, epi1)
+dObsTraj(SIR, theta, init.state, epi1, log = TRUE)
 ```
 
 Of course, you might get a different number here if you played with the parameters. You will later need the `dObsTraj` function to calculate the posterior density as a function of the parameters.
@@ -198,7 +198,7 @@ Now you have completed the overview of a `fitmodel` object, you are going use so
 # - init.state, a named vector of initial states
 # - data, the data set we are fitting the model to 
 # It should return the posterior for the given model, parameters, initial state and data.
-my_logPosterior <- function(fitmodel, theta, init.state, data) {
+my_dLogPosterior <- function(fitmodel, theta, init.state, data) {
 
     # calculate the `fitmodel` log-prior for parameter `theta`
 
@@ -218,7 +218,7 @@ If you have trouble filling any of the empty bits in, have a look at our [more g
 Once you are done with this, check that your function returns a sensible value.
 
 ```{r eval_log_posterior}
-my_logPosterior(SIR, theta, init.state, epi1)
+my_dLogPosterior(SIR, theta, init.state, epi1)
 ```
 
 # Assess the model fit
