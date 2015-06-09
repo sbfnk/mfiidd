@@ -9,7 +9,7 @@
 # - n.iterations: the number of iterations
 # The function returns a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
+my_rmcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 
     # evaluate the function "target" at "init.theta", and assign to
     # a variable called target.theta.current.

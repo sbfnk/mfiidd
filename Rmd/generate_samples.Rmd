@@ -1,4 +1,4 @@
-An example command to generate samples from `my_posterior_R0` using `my_mcmcMH` is:
+An example command to generate samples from `my_rLogPosterior_epi1` using `my_mcmcMH` is:
 
 ```{r echo=FALSE}
 read_chunk('generate_samples.r')
