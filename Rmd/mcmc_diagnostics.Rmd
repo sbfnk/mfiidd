@@ -20,9 +20,9 @@ The aim of this session is to learn how to interpret the results of MCMC samplin
 
 # Sampling more than one parameter
 
-<!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `rmcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_rmcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
+<!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_rmcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
 
-<!-- The `rmcmcMH` takes the same parameters as the `my_rmcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`. -->
+<!-- The `mcmcMH` takes the same parameters as the `my_rmcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`. -->
 
 In the previous practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters, and our MCMC needs to sample from a posterior distribution that depends on all of them.
 
@@ -200,7 +200,7 @@ Does this make a difference to acceptance rates?
 
 Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. However, the use of such truncated distributions in the proposal kernel must be accounted for when computing the acceptance ratio. Otherwise your chain might not converge to the correct posterior distribution (see this [post](http://darrenjw.wordpress.com/tag/truncate/) for a detailed example).
 
-In the `fitR` package, we have implemented a function called `rmcmcMH` that uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this truncated proposal (which renders the proposal distribution asymmetric) to calculate the acceptance ratio. The limits to use in the proposal distribution can be specified with the `limits` argument to `rmcmcMH`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
+In the `fitR` package, we have implemented a function called `mcmcMH` that uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this truncated proposal (which renders the proposal distribution asymmetric) to calculate the acceptance ratio. The limits to use in the proposal distribution can be specified with the `limits` argument to `mcmcMH`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
 
 ```{r posterior_epi3}
 my_dLogPosterior_epi3 <- function(theta) {
@@ -214,7 +214,7 @@ my_dLogPosterior_epi3 <- function(theta) {
 ```
 
 ```{r truncate, message = FALSE}
-trace <- rmcmcMH(target = my_dLogPosterior_epi3,
+trace <- mcmcMH(target = my_dLogPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000,
@@ -228,11 +228,11 @@ Try a proposal distribution with a wide proposal distribution, and with or witho
 
 The best proposal distribution is the one that best matches the target distribution. While we cannot know this in advance, we can use trial MCMC runs to learn about the target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.
 
-In addition to truncated proposal distributions, our function `rmcmcMH` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
+In addition to truncated proposal distributions, our function `mcmcMH` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
 
 ```{r adapt, eval=FALSE, message = FALSE, warn = FALSE}
-trace <- rmcmcMH(target = my_dLogPosterior_epi3,
+trace <- mcmcMH(target = my_dLogPosterior_epi3,
                 init.theta = c(R0 = 1, D.inf = 2),
                 proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000,
@@ -245,7 +245,7 @@ trace$covmat.empirical
 
 The diagonal elements of this matrix tell you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about *correlations* in the parameters. In this case, there is positive correlation between $R_0$ and $D_\mathrm{inf}$, that is greater values of $R_0$ in accepted proposals tend to coincide with greater values of $D_\mathrm{inf}$. Can you think of why that is the case? We will come back to the issue of correlations and their impact on assessing model fits tomorrow.
 
-Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the `rmcmcMH` function. This takes three parameters relating to adaptive MCMC: `adaptive.size.start`, `adaptive.shape.start` and `adapt.size.cooling`.
+Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the `mcmcMH` function. This takes three parameters relating to adaptive MCMC: `adaptive.size.start`, `adaptive.shape.start` and `adapt.size.cooling`.
 
 The idea is this: we let the MCMC run for a while and monitor the acceptance rate. After `adapt.size.start` iterations, we start adapting the *size* of the proposal distribution, that is we scale it to larger/smaller steps depending if the acceptance is too small/large. This is done until `adapt.size.shape` proposals have been accepted, at which point we take the empirical covariance matrix and start adapting the *shape* of the proposal distribution to it. Over time, we must make fewer and fewer changes to the size, because if we kept adapting the size we would break the Metropolis-Hastings algorithm. This is regulated by `adapt.size.cooling`. The closer this is to 1, the slower we stop adapting the size (and, accordingly, the longer we have to run the chain).
 
