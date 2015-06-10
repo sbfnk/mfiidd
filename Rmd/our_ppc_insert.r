@@ -1,4 +1,4 @@
-
+# @knitr our_postPredCheck_insert
 # This is a function that takes 4 arguments:
 # - trace, a data frame containing samples from the posterior
 #   distribution, one column per parameter 
@@ -25,7 +25,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
            # (to convert to a vector) and assign to parameter
            # vector theta
 
-        obs.traj <- # INSERT HERE: use genObsTraj to generate
+        obs.traj <- # INSERT HERE: use rObsTraj to generate
            # observation trajectory using theta
 
         # calculate maximum in model and add to max.model vector
