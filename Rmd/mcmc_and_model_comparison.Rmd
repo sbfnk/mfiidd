@@ -52,8 +52,11 @@ my_posteriorTdC <- function(theta){
 	my_fitmodel <- # INSERT HERE
 	my_init.state <- # INSERT HERE
 
-	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state,
-		data=FluTdC1971, margLogLike = trajLogLike))
+        return(logPosterior(fitmodel = my_fitmodel,
+                            theta = theta,
+                            init.state =  my_init.state,
+                            data = FluTdC1971,
+                            margLogLike  =  dObsTraj))
 
 }
 
@@ -82,17 +85,16 @@ If you have trouble filling some of the empty bits, have a look at our [example]
 
 Then you should be able to run `mcmcMH`:
 
-```{r run-mcmc, eval=FALSE}
+```{r run-mcmc, eval=FALSE,tidy = FALSE}
 # run the MCMC
-my_mcmc.TdC <- mcmcMH(
-	target=my_posteriorTdC,
-	init.theta=init.theta,
-	proposal.sd=proposal.sd,
-	limits=list(lower=lower,upper=upper),
-	n.iterations=n.iterations,
-	adapt.size.start=adapt.size.start,
-	adapt.size.cooling=adapt.size.cooling,
-	adapt.shape.start=adapt.shape.start)
+my_mcmc.TdC <- mcmcMH(arget = my_posteriorTdC,
+                      init.theta = init.theta,
+                      proposal.sd = proposal.sd,
+                      limits = list(lower = lower,upper = upper),
+                      n.iterations = n.iterations,
+                      adapt.size.start = adapt.size.start,
+                      adapt.size.cooling = adapt.size.cooling,
+                      adapt.shape.start = adapt.shape.start)
 ```
 
 This should print some information as the chain runs: acceptance rate, state of the chain, log-likelihood etc. In particular, what can you say about the evolution of the acceptance rate?
@@ -276,7 +278,7 @@ source("our_ppc.r")
 
 Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,
 
-```{r ppc}
+```{r ppc, tidy = FALSE}
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 my_postPredCheck(trace = mcmc_SEITL_theta1$trace[SEITL_deter$theta.names],
                  n.samples = 100,
