@@ -114,7 +114,7 @@ mcmc.trace.burned <- burnAndThin(mcmc.trace, burn = 1000)
 plot(mcmc.trace.burned)
 ```
 
-It is sometimes said that we are aiming for the trace to look like a [hairy caterpillar](http://www.wildaboutbritain.co.uk/pictures/showfull.php?photo=39804). Can you see the resemblance to the plots on the left?
+It is sometimes said that we are aiming for the trace to look like a [hairy caterpillar](http://www.hiltonpond.org/images/MothGiantLeopardCat01.jpg). Can you see the resemblance to the plots on the left?
 
 ### Autocorrelations
 
