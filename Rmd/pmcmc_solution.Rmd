@@ -307,7 +307,7 @@ plotFit(SEIT2L_deter,theta.bar.deter,init.state,data=FluTdC1971,n=1000)
 Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.
 
 
-You've already finished? why not [going further?](pmcmc.html#going-further)
+You've already finished? Why not [go further](pmcmc.html#going-further)?
 
 
 
