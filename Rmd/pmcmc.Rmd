@@ -17,7 +17,7 @@ The aim of this session is to learn how you can fit a stochastic model using the
 * To explore the parameter space efficiently
 * To evaluate the likelihood at a given parameter 
 
-In the [previous session](mcmc_and_model_comparison.html), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `trajLogLike` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
+In the [previous session](mcmc_and_model_comparison.html), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `dTrajObs` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
 
 In this session you will:
 
