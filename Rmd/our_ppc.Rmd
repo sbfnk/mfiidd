@@ -1,7 +1,7 @@
 Here is a possible solution for the posterior predictive check.
 
 ```{r echo=FALSE}
-read_chunk('our_ppc.r')
+knitr::read_chunk('our_ppc.r')
 ```
 ```{r our_postPredCheck}
 
