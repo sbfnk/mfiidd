@@ -60,7 +60,7 @@ Now, you can now go back to the [practical](play_with_seitl.html#stochastic-simu
 Let's try the stochastic SEITL model with our best guess from the previous section.
 
 ```{r guess-3-stoch, results="hide", fig.width=10}
-plotFit(SEITL_stoch,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100, p.extinction=TRUE)
+plotFit(SEITL_stoch,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100, non.extinct=c("E", "I"))
 ```
 
 The stochastic model better accounts for the variability in the data. In addition, demographic stochasticity can lead to stochastic extinctions at the beginning and at the end of the outbreak when the number of infectious individuals is low and the chain of transmission can break if by chance they recover before infecting a secondary case. By contrast, the cumulative extinction probability doesn't increase between the two waves, despite the low incidence observed in the data. Note however that the shape of the second wave is quite flat in comparison to the data.
@@ -73,7 +73,7 @@ Let's simulate the stochastic SEIT2L model with our last guess estimates. Note t
 
 ```{r guess-3-stoch-SEIT2L, results="hide", fig.width=10}
 init.state.guess.SEIT2L <- c("S"=279,"E"=0,"I"=2,"T1"=3, T2=0 ,"L"=0,"Inc"=0)
-plotFit(SEIT2L_stoch,theta.guess3,init.state.guess.SEIT2L,data=FluTdC1971, n.replicates=100, p.extinction=TRUE)
+plotFit(SEIT2L_stoch,theta.guess3,init.state.guess.SEIT2L,data=FluTdC1971, n.replicates=100, non.extinct=c("E", "I"))
 ```
 
 With the SEIT2L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape $k$ has a variance $k$ times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.
