@@ -156,13 +156,13 @@ The observations ("obs") in the `epi1` data set are based on observed prevalence
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial state, we can use `dObsTraj`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `dPointObs` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
+To calculate the log-likelihood of a set of parameters and initial state, we can use `dTrajObs`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `dPointObs` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
 
 ```{r eval_traj_log_like}
-dObsTraj(SIR, theta, init.state, epi1, log = TRUE)
+dTrajObs(SIR, theta, init.state, epi1, log = TRUE)
 ```
 
-Of course, you might get a different number here if you played with the parameters. You will later need the `dObsTraj` function to calculate the posterior density as a function of the parameters.
+Of course, you might get a different number here if you played with the parameters. You will later need the `dTrajObs` function to calculate the posterior density as a function of the parameters.
 
 ## Generate observations
 
@@ -176,14 +176,14 @@ SIR$rPointObs(model.point = c(I = 31), theta)
 
 Of course, you might see a different number, as the result of this command is the outcome of a random draw.
 
-To generate a whole trajectory with simulated observation, we have implemented a function called `rObsTraj`, which can be seen as the inverse of `dObsTraj`. The `rObsTraj` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `rPointObs` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
+To generate a whole trajectory with simulated observation, we have implemented a function called `rTrajObs`, which can be seen as the inverse of `dTrajObs`. The `rTrajObs` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `rPointObs` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
 
 ```{r gen_obs_traj}
-obs.traj <- rObsTraj(SIR, theta, init.state, epi1$time)
+obs.traj <- rTrajObs(SIR, theta, init.state, epi1$time)
 head(obs.traj)
 ```
 
-If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rObsTraj` would be the same every time.
+If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rTrajObs` would be the same every time.
 
 Now you have completed the overview of a `fitmodel` object, you are going use some parts of it to code a function that will evaluate the posterior.
 
@@ -223,7 +223,7 @@ my_dLogPosterior(SIR, theta, init.state, epi1)
 
 # Assess the model fit
 
-You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial state using `rObsTraj` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
+You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial state using `rTrajObs` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
 
 ```{r plotfit_epi1, message = FALSE}
 plotFit(SIR, theta, init.state, epi1)

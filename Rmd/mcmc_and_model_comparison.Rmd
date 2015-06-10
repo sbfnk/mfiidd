@@ -34,9 +34,9 @@ Here you could use the function `my_rmcmcMH` that you have already coded but it 
 __Take 5 minutes__ to have a look at the adaptive MCMC implemented in the function `mcmcMH`. As you can see, this function takes similar arguments as your function `my_rmcmcMH` (`target`, `init.theta`, `proposal.sd` and `n.iterations`) plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMH`. Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful for improving the covariance matrix of the Gaussian proposal in the next session, when we will fit the stochastic model.
 
 The first step is to code a wrapper function to evaluate the posterior at a given `theta` value. Here again, you could wrap the function `my_dLogPosterior` that you have already coded and pass it to `mcmcMH` so that it returns samples of `theta` from the posterior distribution.
-However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`s. Although this could be done by running `dObsTraj` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_dLogPosterior` so we could just use it. This is exactly what the function `logPosterior` does for you.
+However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`s. Although this could be done by running `dTrajObs` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_dLogPosterior` so we could just use it. This is exactly what the function `logPosterior` does for you.
 
-__Take 5 minutes__ to look at the code of `logPosterior`. As you can see, this function takes similar arguments as your function `my_dLogPosterior` (`fitmodel`, `theta`, `init.state` and `data`) plus one called `margLogLike`, which is a function to compute the log-likelihood of `theta`. By default, it is set to `dObsTraj` so you don't really need to bother with this argument in this session. However, it will be useful in the next session as we will need a different function than `dObsTraj` to compute the log-likelihood for a stochastic model. Note also that this function returns a list of two elements:
+__Take 5 minutes__ to look at the code of `logPosterior`. As you can see, this function takes similar arguments as your function `my_dLogPosterior` (`fitmodel`, `theta`, `init.state` and `data`) plus one called `margLogLike`, which is a function to compute the log-likelihood of `theta`. By default, it is set to `dTrajObs` so you don't really need to bother with this argument in this session. However, it will be useful in the next session as we will need a different function than `dTrajObs` to compute the log-likelihood for a stochastic model. Note also that this function returns a list of two elements:
 
 1. `log.density`: the log of the posterior density
 2. `trace`: a vector that contains, among other things, `theta` and its `log.likelihood`. All this information will be collected in the `trace` data frame returned by `mcmcMH`.
@@ -56,7 +56,7 @@ my_posteriorTdC <- function(theta){
                             theta = theta,
                             init.state =  my_init.state,
                             data = FluTdC1971,
-                            margLogLike  =  dObsTraj))
+                            margLogLike  =  dTrajObs))
 
 }
 
@@ -254,7 +254,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
 
         # get row from trace corresponding to sampled number
 
-        # use rObsTraj to generate observation trajectory using row
+        # use rTrajObs to generate observation trajectory using row
         # from trace
 
         # calculate maximum in model and add to vector of model maxima
