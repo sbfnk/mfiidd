@@ -252,7 +252,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
 
         # get row from trace corresponding to sampled number
 
-        # use genObsTraj to generate observation trajectory using row
+        # use rObsTraj to generate observation trajectory using row
         # from trace
 
         # calculate maximum in model and add to vector of model maxima
