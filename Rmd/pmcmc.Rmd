@@ -84,13 +84,13 @@ data(SEIT2L_stoch)
 data(FluTdC1971)
 
 # theta close to the mean posterior estimate of the deterministic SEIT2L model
-theta <- c("R0"=7, "D.lat"=1 , "D.inf"=4, "alpha"=0.5, "D.imm"=10, "rho"=0.65)
+theta <- c("R0" = 7, "D.lat" = 1 , "D.inf" = 4, "alpha" = 0.5, "D.imm" = 10, "rho" = 0.65)
 
 # init state as before
-init.state <- c("S"=279,"E"=0,"I"=2,"T1"=3,"T2"=0,"L"=0,"Inc"=0) 
+init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0,"L" = 0,"Inc" = 0) 
 
 # run the particle filter with 20 particles 
-my_particleFilter(SEIT2L_stoch,theta,init.state, data=FluTdC1971, n.particles=20)
+my_particleFilter(SEIT2L_stoch, theta, init.state,  data = FluTdC1971,  n.particles = 20)
 ```
 
 Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?
@@ -137,9 +137,13 @@ my_posteriorSto <- function(theta){
     my_init.state <- # INSERT HERE
     my_n.particles <- # INSERT HERE
 
-    return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, 
-        data=FluTdC1971, margLogLike = my_particleFilter, n.particles=my_n.particles))
-
+    return(logPosterior(fitmodel = my_fitmodel,
+                        theta = theta,
+                        init.state = my_init.state, 
+                        data = FluTdC1971,
+                        margLogLike = my_particleFilter,
+                        n.particles = my_n.particles))
+    
 }
 
 # theta to initialise the pMCMC
@@ -165,17 +169,16 @@ If you have trouble filling some of the empty bits, have a look at our [solution
 
 Then you should be able to run `mcmcMH`:
 
-```{r run-pmcmc, eval=FALSE}
+```{r run-pmcmc, eval=FALSE, tidy = FALSE}
 # run the pMCMC
-my_pMCMC <- mcmcMH(
-    target=my_posteriorSto,
-    init.theta=init.theta,
-    covmat=covmat,
-    limits=list(lower=lower,upper=upper),
-    n.iterations=n.iterations,
-    adapt.size.start=adapt.size.start,
-    adapt.size.cooling=adapt.size.cooling,
-    adapt.shape.start=adapt.shape.start)
+my_pMCMC <- mcmcMH(target = my_posteriorSto,
+                   init.theta = init.theta,
+                   covmat = covmat,
+                   limits = list(lower = lower,upper = upper),
+                   n.iterations = n.iterations,
+                   adapt.size.start = adapt.size.start,
+                   adapt.size.cooling = adapt.size.cooling,
+                   adapt.shape.start = adapt.shape.start)
 ```
 
 # Analyse a pMCMC with 50 particles
