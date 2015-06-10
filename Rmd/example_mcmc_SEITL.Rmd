@@ -30,7 +30,7 @@ my_posteriorTdC <- function(theta){
 	# note that for the SEIT2L model there are two state variables for the T compartment
 	# my_init.state <- c("S"=279,"E"=0,"I"=2,"T1"=3,"T2"=0,"L"=0,"Inc"=0) 
 
-	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, data=FluTdC1971, margLogLike = trajLogLike))
+	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, data=FluTdC1971, margLogLike = dObsTraj))
 
 }
 
@@ -321,7 +321,7 @@ print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-log.like.theta.bar <- trajLogLike(SEITL_deter,theta.bar, init.state, data=FluTdC1971)
+log.like.theta.bar <- dObsTraj(SEITL_deter,theta.bar, init.state, data=FluTdC1971)
 print(log.like.theta.bar)
 
 # and its deviance
