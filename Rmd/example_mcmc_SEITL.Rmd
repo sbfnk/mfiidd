@@ -1,7 +1,7 @@
 % Example: fitting the deterministic SEITL model
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, cache.path="cache/example_mcmc_SEITL/", fig.retina=2 ,fig.path="figure/example_mcmc_SEITL/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE, cache.path="cache/example_mcmc_SEITL/", fig.retina=2 ,fig.path="figure/example_mcmc_SEITL/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, cache=FALSE, echo=FALSE, results="hide", warning=FALSE}
