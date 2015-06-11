@@ -1,7 +1,7 @@
 # ABC-MCMC on the stochastic model
 
 ```{r setup, echo=FALSE}
-opts_chunk$set(cache=TRUE, fig.path='figure/abc_solution/', cache.path='cache/abc_solution/', fig.cap='', tidy=FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/abc_solution/', cache.path='cache/abc_solution/', fig.cap='', tidy=FALSE)
 ```
 ```{r load, include=FALSE, cache=FALSE}
 library(fitR)
