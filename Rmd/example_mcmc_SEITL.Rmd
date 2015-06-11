@@ -1,10 +1,12 @@
-% Example: fitting the deterministic SEITL model
+---
+title: "Example: fitting the deterministic SEITL model"
+---
 
-```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, cache.path="cache/example_mcmc_SEITL/", fig.retina=2 ,fig.path="figure/example_mcmc_SEITL/", fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```{r setup, echo = FALSE}
+knitr::opts_chunk$set(cache = TRUE, cache.path = "cache/example_mcmc_SEITL/", fig.retina = 2 , fig.path = "figure/example_mcmc_SEITL/", fig.cap = '', fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
-```{r fitR, cache=FALSE, echo=FALSE, results="hide", warning=FALSE}
+```{r fitR, cache = FALSE, echo = FALSE, results = "hide", warning = FALSE}
 library(fitR)
 set.seed(1234)
 ```
@@ -17,7 +19,7 @@ Although our example refers to the SEITL model, the same commands work for the S
 
 # Setting the MCMC
 
-```{r set-mcmc, eval=FALSE}
+```{r set-mcmc, eval = FALSE}
 
 # the fitmodel
 data(SEITL_deter)
@@ -26,11 +28,11 @@ data(SEITL_deter)
 my_posteriorTdC <- function(theta){
 
 	my_fitmodel <- SEITL_deter
-	my_init.state <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0) 
+	my_init.state <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0) 
 	# note that for the SEIT2L model there are two state variables for the T compartment
-	# my_init.state <- c("S"=279,"E"=0,"I"=2,"T1"=3,"T2"=0,"L"=0,"Inc"=0) 
+	# my_init.state <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "L" = 0, "Inc" = 0) 
 
-	return(logPosterior(fitmodel= my_fitmodel, theta=theta, init.state= my_init.state, data=FluTdC1971, margLogLike = dTrajObs))
+	return(logPosterior(fitmodel =  my_fitmodel, theta = theta, init.state =  my_init.state, data = FluTdC1971, margLogLike  =  dTrajObs))
 
 }
 
@@ -59,7 +61,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#run-mcmc) 
 
 If you didn't manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:
 
-```{r load-trace, collapse=TRUE}
+```{r load-trace, collapse = TRUE}
 data(mcmc_TdC_deter_shortRun)
 # this should load 2 objects in your environment: mcmc_SEITL and mcmc_SEIT2L. Each one is a list of 3 elements returned by mcmcMH
 names(mcmc_SEITL)
@@ -74,7 +76,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#short-run-
 
 Here is an example of analysis for our preliminary run:
 
-```{r short-run-analysis-trace, collapse=TRUE}
+```{r short-run-analysis-trace, collapse = TRUE}
 # convert to a mcmc object for coda
 trace <- mcmc(mcmc_SEITL$trace)
 
@@ -83,24 +85,24 @@ trace <- mcmc(mcmc_SEITL$trace)
 # between 0.1 and 0.6: looks good!
 
 # let's have a look at the traces
-xyplot(x=trace)
+xyplot(x = trace)
 ```
 
 Although the chain was started at a `init.theta` with a low posterior density, it quickly finds the region of the parameter space with high posterior density. Note also the constant trace of the log-prior since we have assumed a uniform prior.
 
 Overall, it looks like the chain reached its target distribution after 1000 steps.
 
-```{r short-run-analysis-burn-test, collapse=TRUE}
+```{r short-run-analysis-burn-test, collapse = TRUE}
 # Let's find a suitable burning:
 plotESSBurn(trace)
 ```
 
 As anticipated from the trace, burning the first 1000 iterations maximizes the effective sample size (ESS).
 
-```{r short-run-analysis-burn, collapse=TRUE}
+```{r short-run-analysis-burn, collapse = TRUE}
 # Let's create a new trace without the burning
-trace.burn <- burnAndThin(trace, burn=1000)
-xyplot(x=trace.burn)
+trace.burn <- burnAndThin(trace, burn = 1000)
+xyplot(x = trace.burn)
 # Let's check the ESS
 effectiveSize(trace.burn)
 ```
@@ -108,14 +110,14 @@ Although we have 4000 samples remaining after burning, the ESS is much smaller. 
 
 ```{r short-run-analysis-acf}
 # autocorrelation plot
-acfplot(x=trace.burn, lag.max=60)
+acfplot(x = trace.burn, lag.max = 60)
 ```
 The autocorrelation between samples drops substantially for a lag of 20 iterations. We can thin the trace to reduce the autocorrelation.
 
-```{r short-run-analysis-thin, collapse=TRUE}
+```{r short-run-analysis-thin, collapse = TRUE}
 # Let's create a thinned trace
-trace.burn.thin <- burnAndThin(trace.burn, thin=20)
-xyplot(x=trace.burn.thin)
+trace.burn.thin <- burnAndThin(trace.burn, thin = 20)
+xyplot(x = trace.burn.thin)
 # Let's check the ESS
 effectiveSize(trace.burn.thin)
 ```
@@ -123,12 +125,12 @@ Although the thinned trace has 20 times less samples than the unthinned trace, i
 
 ```{r short-run-analysis-acf-thin}
 # new autocorrelation plot
-acfplot(x=trace.burn.thin, lag.max=60)
+acfplot(x = trace.burn.thin, lag.max = 60)
 ```
 
 Let's compare the posterior estimates of the thinned and unthinned traces.
 
-```{r short-run-analysis-compare-summary, collapse=TRUE}
+```{r short-run-analysis-compare-summary, collapse = TRUE}
 summary(trace.burn)
 summary(trace.burn.thin)
 ```
@@ -136,7 +138,7 @@ summary(trace.burn.thin)
 They are very similar. So why thinning? This is because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function `plotPosteriorDensity` of the `fitR` package:
 
 ```{r short-run-analysis-compare-density}
-plotPosteriorDensity(list(unthinned=trace.burn,thinned=trace.burn.thin))
+plotPosteriorDensity(list(unthinned = trace.burn, thinned = trace.burn.thin))
 ```
 The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local "bumps" of the unthinned distribution are caused by autocorrelated samples.
 
@@ -146,16 +148,16 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#long-run-a
 
 Here is an example of an analysis for our long run ($10^5$ iterations)
 
-```{r long-run-combine-traces, collapse=TRUE}
+```{r long-run-combine-traces, collapse = TRUE}
 # create mcmc objects for both traces
 trace1 <- mcmc(mcmc_SEITL_theta1$trace)
 trace2 <- mcmc(mcmc_SEITL_theta2$trace)
 
 # combine traces as mcmc.list object
-trace <- mcmc.list(list(trace1,trace2))
+trace <- mcmc.list(list(trace1, trace2))
 
 # let's have a look
-head(trace,3)
+head(trace, 3)
 
 # acceptance rate
 1-rejectionRate(trace)
@@ -170,8 +172,8 @@ xyplot(trace)
 Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain.
 Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.
 
-```{r long-run-burn, collapse=TRUE}
-trace.burn <- burnAndThin(trace, burn=5000)
+```{r long-run-burn, collapse = TRUE}
+trace.burn <- burnAndThin(trace, burn = 5000)
 
 # removing the burning increases the ESS
 effectiveSize(trace.burn)
@@ -184,7 +186,7 @@ Again, given the very high ESS, we can be quite generous in our choice of the th
 
 ```{r long-run-thin}
 # Thinning: let's keep 1 iteration every 40
-trace.burn.thin <- burnAndThin(trace.burn, thin=40)
+trace.burn.thin <- burnAndThin(trace.burn, thin = 40)
 xyplot(trace.burn.thin)
 ```
 However, let's compare the thinned and unthinnned distributions. 
@@ -192,7 +194,7 @@ However, let's compare the thinned and unthinnned distributions.
 ```{r long-run-compare-thin}
 # Note that plotPosteriorDensity can take a list of mcmc.list and will plot the different mcmc.list by combining their elements
 # Let's plot the combined unthinned trace vs the combined thinned trace.
-plotPosteriorDensity(list(unthinned=trace.burn,thinned=trace.burn.thin))
+plotPosteriorDensity(list(unthinned = trace.burn, thinned = trace.burn.thin))
 ```
 
 In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!
@@ -206,7 +208,7 @@ densityplot(trace.burn.thin)
 ```
 Since the chains have converged to the same posterior, we can use the combined estimates
 
-```{r long-run-summary, collapse=TRUE}
+```{r long-run-summary, collapse = TRUE}
 # the function summary combines the chains of a mcmc.list
 summary(trace.burn.thin)
 ```
@@ -215,7 +217,7 @@ Running several independent chains starting from different parts of the paramete
 
 Finally, let's assess the fit of the deterministic SEITL model.
 
-```{r long-run-fit, collapse=TRUE, results="hide",fig.height=4, fig.width=6}
+```{r long-run-fit, collapse = TRUE, results = "hide", fig.height = 4, fig.width = 6}
 # load data
 data(FluTdC1971)
 
@@ -223,13 +225,13 @@ data(FluTdC1971)
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 
 # by default plotPosteriorFit summarize the fit of 100 thetas sampled from the posterior
-plotPosteriorFit(trace=trace,fitmodel=SEITL_deter,init.state=init.state,data=FluTdC1971)
+plotPosteriorFit(trace = trace, fitmodel = SEITL_deter, init.state = init.state, data = FluTdC1971)
 
-# alternatively, one can plot the fit of the mean of the posterior (in this case the observation is replicated 100 times)
-plotPosteriorFit(trace=trace,fitmodel=SEITL_deter,init.state=init.state,data=FluTdC1971, posterior.summary="mean")
+# alternatively,  one can plot the fit of the mean of the posterior (in this case the observation is replicated 100 times)
+plotPosteriorFit(trace = trace, fitmodel = SEITL_deter, init.state = init.state, data = FluTdC1971,  posterior.summary = "mean")
 
 # or using the maximum a posteriori (MAP) estimate
-plotPosteriorFit(trace=trace,fitmodel=SEITL_deter,init.state=init.state,data=FluTdC1971, posterior.summary="max")
+plotPosteriorFit(trace = trace, fitmodel = SEITL_deter, init.state = init.state, data = FluTdC1971,  posterior.summary = "max")
 
 ```
 
@@ -241,23 +243,23 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#correlatio
 
 The correlation of the posterior distribution can be plotted with `levelplot`.
 
-```{r correlation-levelplot, fig.height=6, fig.width=6}
+```{r correlation-levelplot, fig.height = 6, fig.width = 6}
 # levelplot doesn't accept `mcmc.list`, we pass the first `mcmc` only.
-levelplot(trace.burn.thin[[1]],col.regions = heat.colors(100))
+levelplot(trace.burn.thin[[1]], col.regions = heat.colors(100))
 ```
 
-Note the strong positive correlations (~0.8) between $R_0$ and $D_{lat}$ and between $R_0$ and $D_{inf}$. In order to explain the wide 95% CIs of $R_0$ and $D_{inf}$, let's have a look at the contact rate $\beta=R_0/D_{inf}$.
+Note the strong positive correlations (~0.8) between $R_0$ and $D_{lat}$ and between $R_0$ and $D_{inf}$. In order to explain the wide 95% CIs of $R_0$ and $D_{inf}$, let's have a look at the contact rate $\beta = R_0/D_{inf}$.
 
-```{r correlation-beta, collapse=TRUE, warning=FALSE}
 with(as.data.frame(trace.burn.thin[[1]]), quantile(R0/D.inf,probs=c(0.025,0.25,0.5,0.75,0.975)))
+```{r correlation-beta, collapse = TRUE, warning = FALSE}
 ```
 The posterior value of $\beta$ varies somewhat less than the posterior values of $R_0$ and $D_\mathrm{inf}$. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of $R_0$ and $D_{inf}$ that lead to the same $\beta$, hence their wide 95% CIs. A second effect that could explain the high level of variation in $R_0$ is the very high attack rate. Once $R_0>5$ it doesn't make much difference whether $R_0$ is, say, 10 or 20.
 
-We can also note that the posterior estimate of $D_{inf}=11$ days (95% CI: $[6-15]$) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as by default the `SEITL_deter` fitmodel comes with uniform priors for all parameters.
+We can also note that the posterior estimate of $D_{inf} = 11$ days (95% CI: $[6-15]$) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as by default the `SEITL_deter` fitmodel comes with uniform priors for all parameters.
 
 In order to include previous empirical information on $D_{lat}$ and $D_{inf}$, let's modify the `logPrior` of `SEITL_deter` as follows:
 
-```{r correlation-info-prior, eval=FALSE}
+```{r correlation-info-prior, eval = FALSE}
 
 SEITL_deter$logPrior <- function(theta) {
 
@@ -287,22 +289,22 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#informativ
 
 Here we combine both chains with informative priors and compare the posterior distribution with the one above.
 
-```{r info-prior-analysis, results="hyde"}
+```{r info-prior-analysis, results = "hyde"}
 # create mcmc object
 trace.info1 <- mcmc(mcmc_SEITL_infoPrior_theta1$trace)
 trace.info2 <- mcmc(mcmc_SEITL_infoPrior_theta2$trace)
 
 # combine in a mcmc.list
-trace.info <- mcmc.list(trace.info1,trace.info2)
+trace.info <- mcmc.list(trace.info1, trace.info2)
 
 # burn and thin as the chain with uniform prior (see above sections)
-trace.info.burn.thin <-  burnAndThin(trace.info, burn=5000, thin=40)
+trace.info.burn.thin <-  burnAndThin(trace.info, burn = 5000, thin = 40)
 
 # check that both chains converged to the same posterior
 plotPosteriorDensity(trace.info.burn.thin)
 
 # compare the effect of informative priors on the posterior distribution
-plotPosteriorDensity(list(unif=trace.burn.thin, info=trace.info.burn.thin))
+plotPosteriorDensity(list(unif = trace.burn.thin, info = trace.info.burn.thin))
 ```
 
 $R_0$ and $D_{inf}$ have very different posterior. This is expected since there is an informative prior on $D_{inf}$ and $R_0$ is strongly correlated to $D_{inf}$. Note also that the mode of all other parameters have changed, though less than $D_{inf}$ and $R_0$. This illustrate the influence that one prior can have on the full posterior distribution.
@@ -311,7 +313,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#model-sele
 
 # Model selection
 
-```{r dic, collapse=TRUE}
+```{r dic, collapse = TRUE}
 # combine the two chains in a data frame
 trace.combined <- ldply(trace.info.burn.thin)
 
@@ -321,7 +323,7 @@ print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-log.like.theta.bar <- dTrajObs(SEITL_deter,theta.bar, init.state, data=FluTdC1971)
+log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data=FluTdC1971)
 print(log.like.theta.bar)
 
 # and its deviance
