@@ -81,7 +81,7 @@ Here is an example of analysis for our preliminary run:
 trace <- mcmc(mcmc_SEITL$trace)
 
 # compute the acceptance rate
-1-rejectionRate(trace)
+1 - rejectionRate(trace)
 # between 0.1 and 0.6: looks good!
 
 # let's have a look at the traces
@@ -323,19 +323,19 @@ print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data=FluTdC1971)
+log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data = FluTdC1971)
 print(log.like.theta.bar)
 
 # and its deviance
-D.theta.bar <- -2*log.like.theta.bar
+D.theta.bar <- -2 * log.like.theta.bar
 print(D.theta.bar)
 
 # the effective number of parameters
-p.D <- var(-2*trace.combined$log.likelihood)/2
+p.D <- var(-2 * trace.combined$log.likelihood) / 2
 print(p.D)
 
 # and finally the DIC
-DIC <- D.theta.bar + 2*p.D
+DIC <- D.theta.bar + 2 * p.D
 print(DIC)
 ```
 Follow this [link](mcmc_and_model_comparison.html#posterior-predictive-checks) to go back to the practical.
