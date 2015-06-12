@@ -75,12 +75,12 @@ Test how your summary statistics vary with a single set of parameters. You can u
 ```{r size_hist}
 theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
-hist(replicate(100, ssSize(genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time))), xlab = "summary statistic")
+hist(replicate(100, ssSize(rTrajObs(SEITL_stoch, theta, init.state, FluTdC1971$time))), xlab = "summary statistic")
 ```
 
 These are stochastic simulations so of course your histogram will look different. If you created your own function for summary statistics (e.g., `my_summaryStat1`), replace `ssSize` in the plot command with that one and test how it varies over different simulation runs. We suggest that you try a few summary statistics to get a feeling for how they vary across simulations.
 
-The last command is easiest read from the inside out: `genObsTraj` with the given arguments produces an observation trajectory from the `SEITL_stoch` model, `ssSize` calculates the final size (i.e., total number of people infected) for such a trajectory, `replicates` does it 100 times and `hist` plots the outcome (i.e., the replicates of the final size) as a histogram. Depending on the summary statistic you choose, you might see quite a large amount of variation in the outcome of the summary statistic even with a single set of parameters. This might be a problem later when you define an acceptance window: if it is chosen too large, there is a risk that parameter values are accepted indiscriminately. If it is too small, the acceptance will be low and, consequently, many simulation runs wasted because even good parameter sets will often miss the acceptance window.
+The last command is easiest read from the inside out: `rTrajObs` with the given arguments produces an observation trajectory from the `SEITL_stoch` model, `ssSize` calculates the final size (i.e., total number of people infected) for such a trajectory, `replicates` does it 100 times and `hist` plots the outcome (i.e., the replicates of the final size) as a histogram. Depending on the summary statistic you choose, you might see quite a large amount of variation in the outcome of the summary statistic even with a single set of parameters. This might be a problem later when you define an acceptance window: if it is chosen too large, there is a risk that parameter values are accepted indiscriminately. If it is too small, the acceptance will be low and, consequently, many simulation runs wasted because even good parameter sets will often miss the acceptance window.
 
 Do you think your summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic)?
 
@@ -119,7 +119,7 @@ If you have any trouble writing a function for the distance, have a look at our 
 Test that your summary distance function returns a sensible value (here, we have assigned the `ssMeanRelDistance` from the examples to `my_distance`.
 
 ```{r distance_test}
-simu <- genObsTraj(SEITL_stoch, theta, init.state, FluTdC1971$time)
+simu <- rTrajObs(SEITL_stoch, theta, init.state, FluTdC1971$time)
 ssMeanRelDistance(sum.stats = list(ssSize, ssMax),
                   data.obs = FluTdC1971,
                   model.obs = simu)
