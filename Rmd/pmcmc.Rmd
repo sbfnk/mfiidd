@@ -84,7 +84,7 @@ data(SEIT2L_stoch)
 data(FluTdC1971)
 
 # theta close to the mean posterior estimate of the deterministic SEIT2L model
-theta <- c("R0" = 7, "D.lat" = 1 , "D.inf" = 4, "alpha" = 0.5, "D.imm" = 10, "rho" = 0.65)
+theta <- c("R0" = 7, "D_lat" = 1 , "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
 
 # init state as before
 init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0,"L" = 0,"Inc" = 0) 

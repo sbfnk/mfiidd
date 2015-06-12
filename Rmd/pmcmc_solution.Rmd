@@ -35,7 +35,7 @@ data(FluTdC1971)
 init.state <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "L" = 0, "Inc" = 0) 
 
 # pick a theta close to the mean posterior estimate of the deterministic fit
-theta <- c("R0" = 7, "D.lat" = 1 , "D.inf" = 4, "alpha" = 0.5, "D.imm" = 10, "rho" = 0.65)
+theta <- c("R0" = 7, "D_lat" = 1 , "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
 
 # vector of number of particles to test
 test.n.particles <- seq(50, 1000, 50)
@@ -131,8 +131,8 @@ init.theta <- colMeans(trace[SEIT2L_stoch$theta.names])
 covmat <- mcmc_SEITL_infoPrior_theta1$covmat.empirical
 
 # lower and upper limits of each parameter
-lower <- c(R0 = 0, D.lat = 0 , D.inf = 0, alpha = 0, D.imm = 0, rho = 0)
-upper <- c(R0 = Inf, D.lat = Inf , D.inf = Inf, alpha = 1, D.imm = Inf, rho = 1)
+lower <- c(R0 = 0, D_lat = 0 , D_inf = 0, alpha = 0, D_imm = 0, rho = 0)
+upper <- c(R0 = Inf, D_lat = Inf , D_inf = Inf, alpha = 1, D_imm = Inf, rho = 1)
 
 # number of iterations for the MCMC
 n.iterations <- 50 # just a few since it takes quite a lot of time

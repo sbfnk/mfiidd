@@ -135,8 +135,8 @@ You should have noticed that the effective sample size (ESS) is quite small (<10
 To save time, we have run 2 chains of 100 000 iterations starting from different initial `theta` values:
 
 ```{r theta-init, eval=FALSE}
-theta1=c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
-theta2=c("R0"=20, "D.lat"=2 , "D.inf"=2, "alpha"=0.1, "D.imm"=8, "rho"=0.3)
+theta1=c("R0"=2, "D_lat"=2 , "D_inf"=2, "alpha"=0.8, "D_imm"=16, "rho"=0.85)
+theta2=c("R0"=20, "D_lat"=2 , "D_inf"=2, "alpha"=0.1, "D_imm"=8, "rho"=0.3)
 ```
 
 Each chain took 5 hours on a scientific computing cluster (thanks [Bernard](external_ref/bernard-cazelles.jpg)) and can be loaded as follows:

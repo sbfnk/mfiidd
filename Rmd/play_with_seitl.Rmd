@@ -125,7 +125,7 @@ Now, try to assess whether the SEITL model can reproduce the two-wave outbreak o
 You can use the `plotFit` function you encountered in the [first practical](introduction.html#assess-the-model-fit) to generate an observation trajectory and display it against the data:
 
 ```{r oneTraj, results="hide"}
-theta.bad.guess <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.9, "D.imm"=13, "rho"=0.85)
+theta.bad.guess <- c("R0"=2, "D_lat"=2 , "D_inf"=2, "alpha"=0.9, "D_imm"=13, "rho"=0.85)
 init.state.bad.guess <- c("S"=250,"E"=0,"I"=4,"T"=0,"L"=30,"Inc"=0)
 plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971)
 ```

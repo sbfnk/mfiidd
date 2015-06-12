@@ -135,7 +135,7 @@ This examples looks reassuringly similar to the normal distribution centred arou
 
 We can now use our Metropolis-Hastings sampler to sample from the posterior distribution(s) of the previous practical. You should have a `my_dLogPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.html)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
 
-Remember that we wrote `my_rmcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `D.inf` is the second parameter in `theta`) is 0.
+Remember that we wrote `my_rmcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. For now, we want to keep the duration of infection fixed at 2 and just explore the posterior distribution as a function of $R_0$. We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `D_inf` is the second parameter in `theta`) is 0.
 
 Lastly, `my_dLogPosterior` takes four parameters, and to use it with the `my_rmcmcMH` function we have to turn it into a function that just takes one parameter `theta`. Again, we use a wrapper function for this, which returns the posterior density for a given value of `theta` for the `SIR` model with respect to the `epi1` data set, and for fixed `init.state` ($X_0$).
 
@@ -156,7 +156,7 @@ my_dLogPosterior_epi1 <- function(theta) {
 We can test that this function returns the value of the posterior for a given value of $R_0$.
 
 ```{r eval_logpost}
-my_dLogPosterior_epi1(c(R0 = 3, D.inf = 2))
+my_dLogPosterior_epi1(c(R0 = 3, D_inf = 2))
 ```
 
 You should get the same number unless you changed the `SIR$pointLogLike` function.

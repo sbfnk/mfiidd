@@ -15,8 +15,8 @@ This is how you can run ABC-MCMC on the stochastic model
 abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc,
                     init.theta = theta,
                     n.iterations = 1000,
-                    limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0),
-                                  upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+                    limits = list(lower = c(R0 = 1, D_lat = 0, D_inf = 0, D_imm = 0, alpha = 0, rho = 0),
+                                  upper = c(R0 = Inf, D_lat = Inf, D_inf = Inf, D_imm = Inf, alpha = 1, rho = 1)))
 ```
 
 [Return](ABC.html#run-mcmc) to the ABC session.
@@ -98,8 +98,8 @@ abc.trace <- mcmcMH(target = my_ABCLogPosterior_tdc_det,
                     init.theta = deter.theta,
                     covmat = covmat, 
                     n.iterations = 1000,
-                    limits = list(lower = c(R0 = 1, D.lat = 0, D.inf = 0, D.imm = 0, alpha = 0, rho = 0),
-                    upper = c(R0 = Inf, D.lat = Inf, D.inf = Inf, D.imm = Inf, alpha = 1, rho = 1)))
+                    limits = list(lower = c(R0 = 1, D_lat = 0, D_inf = 0, D_imm = 0, alpha = 0, rho = 0),
+                    upper = c(R0 = Inf, D_lat = Inf, D_inf = Inf, D_imm = Inf, alpha = 1, rho = 1)))
 
 ```
 

@@ -72,7 +72,7 @@ Moreover, each `fitmodel` contains four functions: `simulate` to run the model, 
 To simulate a model run, we use the `simulate` command which comes with a `fitmodel` (see above). To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.
 
 ```{r simulate}
-theta <- c(R0 = 3, D.inf = 2)
+theta <- c(R0 = 3, D_inf = 2)
 init.state <- c(S = 999, I = 1, R = 0)
 times <- 1:100
 traj <- SIR$simulate(theta, init.state, times)

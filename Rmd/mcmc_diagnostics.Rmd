@@ -189,7 +189,7 @@ my_dLogPosterior_exp_epi3 <- function(theta) {
 
 }
 trace <- my_rmcmcMH(target = my_dLogPosterior_exp_epi3,
-                init.theta = c(R0 = log(1), D.inf = log(2)),
+                init.theta = c(R0 = log(1), D_inf = log(2)),
                 proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000)
 ```
@@ -215,10 +215,10 @@ my_dLogPosterior_epi3 <- function(theta) {
 
 ```{r truncate, message = FALSE}
 trace <- mcmcMH(target = my_dLogPosterior_epi3,
-                init.theta = c(R0 = 1, D.inf = 2),
+                init.theta = c(R0 = 1, D_inf = 2),
                 proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000,
-                limits = list(lower = c(R0 = 0, D.inf = 0)))
+                limits = list(lower = c(R0 = 0, D_inf = 0)))
 ```
 
 Try a proposal distribution with a wide proposal distribution, and with or without limits. Do the limits make a difference to the acceptance rate?
@@ -233,10 +233,10 @@ In addition to truncated proposal distributions, our function `mcmcMH` also impl
 
 ```{r adapt, eval=FALSE, message = FALSE, warn = FALSE}
 trace <- mcmcMH(target = my_dLogPosterior_epi3,
-                init.theta = c(R0 = 1, D.inf = 2),
+                init.theta = c(R0 = 1, D_inf = 2),
                 proposal.sd = c(0.1, 0.01),
                 n.iterations = 1000,
-                limits = list(lower = c(R0 = 0, D.inf = 0)))
+                limits = list(lower = c(R0 = 0, D_inf = 0)))
 ```
 
 ```{r print_covmat}
@@ -253,13 +253,13 @@ Try a run of adaptive MCMC using
 
 ```{r adapt2, message = FALSE, warning = FALSE}
 trace <- mcmcMH(target = my_dLogPosterior_epi3,
-                init.theta = c(R0 = 1, D.inf = 2),
+                init.theta = c(R0 = 1, D_inf = 2),
                 proposal.sd = c(1, 0.5),
                 n.iterations = 5000,
                 adapt.size.start = 100,
                 adapt.shape.start = 500,
                 adapt.size.cooling=0.999,
-                limits = list(lower = c(R0 = 0, D.inf = 0)))
+                limits = list(lower = c(R0 = 0, D_inf = 0)))
 ```
 
 Don't worry if you see warnings -- this could be due to numerical errors in the ODE solver of `deSolve`, which can lead to negative data points, which in turn produces `NaN`s ("Not a Number) when evaluating the likelihood.

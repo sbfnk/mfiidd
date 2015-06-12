@@ -73,7 +73,7 @@ If you have trouble coding these up yourself, have a look at some of our [exampl
 Test how your summary statistics vary with a single set of parameters. You can use the **R** function `replicates`, which calls the same function a specified number of times. For example, to call the `ssSize` function from the [examples](sumstat_examples.html) (which calculates final size) on 100 generated observation trajectories, you can use
 
 ```{r size_hist}
-theta <- c(R0 = 2, D.lat = 2, D.inf = 2, alpha = 0.9, D.imm = 13, rho = 0.85)
+theta <- c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 hist(replicate(100, ssSize(rTrajObs(SEITL_stoch, theta, init.state, FluTdC1971$time))), xlab = "summary statistic")
 ```

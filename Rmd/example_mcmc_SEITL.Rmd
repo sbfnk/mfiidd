@@ -37,14 +37,14 @@ my_posteriorTdC <- function(theta){
 }
 
 # theta to initialise the MCMC
-init.theta <- c("R0"=2, "D.lat"=2 , "D.inf"=2, "alpha"=0.8, "D.imm"=16, "rho"=0.85)
+init.theta <- c("R0" = 2, "D_lat" = 2 , "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
 
 # diagonal elements of the covariance matrix for the Gaussian proposal
-proposal.sd <- c("R0"=1, "D.lat"=0.5 , "D.inf"=0.5, "alpha"=0.1, "D.imm"=2, "rho"=0.1)
+proposal.sd <- c("R0" = 1, "D_lat" = 0.5 , "D_inf" = 0.5, "alpha" = 0.1, "D_imm" = 2, "rho" = 0.1)
 
 # lower and upper limits of each parameter
-lower <- c("R0"=0, "D.lat"=0 , "D.inf"=0, "alpha"=0, "D.imm"=0, "rho"=0)
-upper <- c("R0"=Inf, "D.lat"=Inf , "D.inf"=Inf, "alpha"=1, "D.imm"=Inf, "rho"=1)
+lower <- c("R0" = 0, "D_lat" = 0 , "D_inf" = 0, "alpha" = 0, "D_imm" = 0, "rho" = 0)
+upper <- c("R0" = Inf, "D_lat" = Inf , "D_inf" = Inf, "alpha" = 1, "D_imm" = Inf, "rho" = 1)
 
 # number of iterations for the MCMC
 n.iterations <- 5000
@@ -250,8 +250,8 @@ levelplot(trace.burn.thin[[1]], col.regions = heat.colors(100))
 
 Note the strong positive correlations (~0.8) between $R_0$ and $D_{lat}$ and between $R_0$ and $D_{inf}$. In order to explain the wide 95% CIs of $R_0$ and $D_{inf}$, let's have a look at the contact rate $\beta = R_0/D_{inf}$.
 
-with(as.data.frame(trace.burn.thin[[1]]), quantile(R0/D.inf,probs=c(0.025,0.25,0.5,0.75,0.975)))
 ```{r correlation-beta, collapse = TRUE, warning = FALSE}
+with(as.data.frame(trace.burn.thin[[1]]), quantile(R0/D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
 ```
 The posterior value of $\beta$ varies somewhat less than the posterior values of $R_0$ and $D_\mathrm{inf}$. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of $R_0$ and $D_{inf}$ that lead to the same $\beta$, hence their wide 95% CIs. A second effect that could explain the high level of variation in $R_0$ is the very high attack rate. Once $R_0>5$ it doesn't make much difference whether $R_0$ is, say, 10 or 20.
 
@@ -268,10 +268,10 @@ SEITL_deter$logPrior <- function(theta) {
 
 	log.prior.R0 <- dunif(theta[["R0"]], min = 1, max = 50, log = TRUE)
 	# normal distribution with mean = 2 and sd = 1 and truncated at 0
-	log.prior.latent.period <- log(dtruncnorm(theta[["D.lat"]], a = 0, b = Inf, mean = 2, sd = 1))
+	log.prior.latent.period <- log(dtruncnorm(theta[["D_lat"]], a = 0, b = Inf, mean = 2, sd = 1))
 	# normal distribution with mean = 2 and sd = 1 and truncated at 0
-	log.prior.infectious.period <- log(dtruncnorm(theta[["D.inf"]], a = 0, b = Inf, mean = 2, sd = 1))
-	log.prior.temporary.immune.period <- dunif(theta[["D.imm"]], min = 0, max = 50, log = TRUE)
+	log.prior.infectious.period <- log(dtruncnorm(theta[["D_inf"]], a = 0, b = Inf, mean = 2, sd = 1))
+	log.prior.temporary.immune.period <- dunif(theta[["D_imm"]], min = 0, max = 50, log = TRUE)
 	log.prior.probability.long.term.immunity <- dunif(theta[["alpha"]], min = 0, max = 1, log = TRUE)
 	log.prior.reporting.rate <- dunif(theta[["rho"]], min = 0, max = 1, log = TRUE)
 

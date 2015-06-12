@@ -2,7 +2,7 @@ To generate the `mcmc.epi3` data set, we ran
 
 ```{r eval = FALSE}
 mcmc.epi3 <- rmcmcMH(target = my_logPosterior_epi3,
-                     init.theta = c(R0 = 1, D.inf = 2),
+                     init.theta = c(R0 = 1, D_inf = 2),
                      proposal.sd = c(0.01, 0.1),
                      n.iterations = 1000)
 ```

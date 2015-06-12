@@ -32,7 +32,7 @@ Now, you can now go back to the [practical](play_with_seitl.html#deterministic-v
 Let's simulate the SEITL model with our initial guess `theta`:
 
 ```{r guess-1, results="hide"}
-theta.guess1 <- c("R0"=4, "D.lat"=2 , "D.inf"=2, "alpha"=0.7, "D.imm"=13, "rho"=0.7)
+theta.guess1 <- c("R0"=4, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
 init.state.guess <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
 plotFit(SEITL_deter,theta.guess1,init.state.guess,data=FluTdC1971, n.replicates=100)
 ```
@@ -40,14 +40,14 @@ plotFit(SEITL_deter,theta.guess1,init.state.guess,data=FluTdC1971, n.replicates=
 This set of parameters provides a poor fit, in particular the first wave too small. Let's increase $R_0$:
 
 ```{r guess-2, results="hide"}
-theta.guess2 <- c("R0"=10, "D.lat"=2 , "D.inf"=2, "alpha"=0.7, "D.imm"=13, "rho"=0.7)
+theta.guess2 <- c("R0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
 plotFit(SEITL_deter,theta.guess2,init.state.guess,data=FluTdC1971, n.replicates=100)
 ```
 
 The size of the first wave is now ok but the second wave is too small. Let's decrease $\alpha$, thus allowing more islanders to be reinfected:
 
 ```{r guess-3, results="hide"}
-theta.guess3 <- c("R0"=10, "D.lat"=2 , "D.inf"=2, "alpha"=0.4, "D.imm"=13, "rho"=0.7)
+theta.guess3 <- c("R0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.4, "D_imm"=13, "rho"=0.7)
 plotFit(SEITL_deter,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100)
 ```
 
