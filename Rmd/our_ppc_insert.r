@@ -25,7 +25,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
            # (to convert to a vector) and assign to parameter
            # vector theta
 
-        obs.traj <- # INSERT HERE: use rObsTraj to generate
+        obs.traj <- # INSERT HERE: use rTrajObs to generate
            # observation trajectory using theta
 
         # calculate maximum in model and add to max.model vector
