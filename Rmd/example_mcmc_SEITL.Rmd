@@ -135,7 +135,7 @@ summary(trace.burn)
 summary(trace.burn.thin)
 ```
 
-They are very similar. So why thinning? This is because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function `plotPosteriorDensity` of the `fitR` package:
+They are very similar. So why thin? Because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function `plotPosteriorDensity` of the `fitR` package:
 
 ```{r short-run-analysis-compare-density}
 plotPosteriorDensity(list(unthinned = trace.burn, thinned = trace.burn.thin))
