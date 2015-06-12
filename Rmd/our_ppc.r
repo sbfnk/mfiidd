@@ -30,7 +30,7 @@ my_postPredCheck <- function(trace, n.samples, fitmodel, init.state, data) {
 
         # use rObsTraj to generate
         # observation trajectory using theta
-        obs.traj <- rObsTraj(fitmodel, theta, init.state, data$time)
+        obs.traj <- rTrajObs(fitmodel, theta, init.state, data$time)
 
         # calculate maximum in model and add to max.model vector
         max.model <- c(max.model, max(obs.traj$obs))
