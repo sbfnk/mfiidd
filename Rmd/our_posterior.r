@@ -14,7 +14,7 @@ my_dLogPosterior <- function(fitmodel, theta, init.state, data) {
     log.prior <- fitmodel$dprior(theta, log = TRUE)
 
     # calculate the fitmodel prior for parameter vector theta using
-    # fitmodel$logPrior, and assign to variable log.prior
+    # fitmodel$dprior, and assign to variable log.prior
     log.likelihood <- dTrajObs(fitmodel, theta, init.state, data, log = TRUE)
 
     # calulate the log-posterior using the log-prior and log-likelihood
