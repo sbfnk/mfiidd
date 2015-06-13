@@ -1,5 +1,5 @@
 mfiidd.dir <- switch(Sys.info()[["user"]],
-	tonton = "~/edu/Fit_course/mfiidd",## Anton
+	Tonton = "~/edu/Fit_course/mfiidd",## Anton
 	seb ="~/teaching/mfiidd"
 	) 
 
