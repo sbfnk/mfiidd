@@ -29,6 +29,19 @@ tm <- traj.match(SEITL_pomp,start = c(theta.bad.guess, pomp.init.state.bad.guess
 tm2 <- traj.match(SEIT2L_pomp,start=c(theta.bad.guess, pomp.init.state.bad.guess2),
                   est = names(theta.bad.guess))
 
+tm_sim <- simulate(mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+tm_sim2 <- simulate(mf2, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+
+p <- ggplot(tm_sim, aes(x = time, y = obs, group = sim, alpha = (sim == "data")))
+p <- p + scale_alpha_manual("", values = c(`TRUE` = 1, `FALSE` = 0.2),
+                            labels = c(`FALSE` = "simulation",`TRUE` = "data"))
+p <- p + geom_line()
+
+p2 <- ggplot(tm2_sim, aes(x = time, y = obs, group = sim, alpha = (sim == "data")))
+p2 <- p2 + scale_alpha_manual("", values = c(`TRUE` = 1, `FALSE` = 0.2),
+                            labels = c(`FALSE` = "simulation",`TRUE` = "data"))
+p2 <- p2 + geom_line()
+
 ## MIF
 prop.sd <- theta.bad.guess
 prop.sd[] <- 0.01
