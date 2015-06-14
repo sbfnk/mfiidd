@@ -9,7 +9,7 @@
 # - n.iterations: the number of iterations
 # The function returns a vector of samples of theta from the target
 # distribution
-my_rmcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
+my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 
     # evaluate the function "target" at "init.theta", and assign to
     # a variable called target.theta.current.
@@ -25,13 +25,16 @@ my_rmcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
     for (i.iteration in seq_len(n.iterations)) {
 
         # draw a new theta from the (Gaussian) proposal distribution
-        # and assign to a variable called theta.proposed.  See
-        # "?rnorm for more information
+        # and assign to a variable called theta.proposed.  
+        # See "?rnorm for more information
+        # Note that this step is vectorized for any arbitratry theta 
+        # which will be useful when we will sample from a multivariate
+        # target distribution
         theta.proposed <- rnorm(n = length(theta.current),
                                 mean = theta.current,
                                 sd = proposal.sd)
 
-        # 'rnorm' returns an unnamed vector, but our the functions of
+        # Note that 'rnorm' returns an unnamed vector, but the functions of
         # 'fitmodel' need a named parameter vector. We therefore set
         # the names of theta.proposed to be the same as the names of
         # theta.current
@@ -68,10 +71,13 @@ my_rmcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
         }
 
         # add the current theta to the vector of samples
-        samples <- c(samples, theta.current)
+        # Note that we use `rbind` in order to deal with multivariate 
+        # target. So if `theta` is a vector then `samples` is a matrix.
+        samples <- rbind(samples, theta.current, deparse.level=0)
 
         # print current state of chain and acceptance rate
-        message("iteration: ", i.iteration, ", chain:", theta.current,
+        # use paste() to deal with the case where `theta` is a vector
+        message("iteration: ", i.iteration, ", chain:", paste(theta.current, collapse=" "),
                 ", acceptance rate:", accepted / i.iteration)
 
     }
