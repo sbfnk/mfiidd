@@ -8,6 +8,9 @@ init.state.bad.guess2 <- c(S = 250, E = 0, I = 4, T1 = 0, T2 = 0, L = 30, Inc = 
 pomp.init.state.bad.guess <- init.state.bad.guess
 pomp.init.state.bad.guess2 <- init.state.bad.guess2
 
+names(pomp.init.state.bad.guess) <- paste(names(init.state.bad.guess), 0, sep = ".")
+names(pomp.init.state.bad.guess2) <- paste(names(init.state.bad.guess2), 0, sep = ".")
+
 ## deterministic trajectory
 traj <- trajectory(SEITL_pomp,
                    params = c(theta.bad.guess, pomp.init.state.bad.guess),
@@ -27,11 +30,11 @@ tm2 <- traj.match(SEIT2L_pomp,start=c(theta.bad.guess, pomp.init.state.bad.guess
                   est = names(theta.bad.guess))
 
 ## MIF
-rw.sd <- theta.bad.guess
-rw.sd[] <- 0.01
+prop.sd <- theta.bad.guess
+prop.sd[] <- 0.01
 
-mf <- mif(tm, Nmif = 50, Np = 1000, cooling.fraction = 0.8, rw.sd = rw.sd)
-mf2 <- mif(tm2, Nmif = 50, Np = 1000, cooling.fraction = 0.9, rw.sd = rw.sd)
+mf <- mif(tm, Nmif = 50, Np = 1000, cooling.fraction = 0.8, rw.sd = prop.sd)
+mf2 <- mif(tm2, Nmif = 50, Np = 1000, cooling.fraction = 0.9, rw.sd = prop.sd)
 
 mf_sim <- simulate(mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
 mf_sim2 <- simulate(mf2, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
@@ -47,4 +50,21 @@ p2 <- p2 + scale_alpha_manual("", values = c(`TRUE` = 1, `FALSE` = 0.2),
 p2 <- p2 + geom_line()
 
 ## pMCMC
+require(foreach)
+require(doMC)
+options(cores = 2)
+registerDoMC()
+mcopts <- list(set.seed = TRUE)
+paropts <- list(.options.multicore = mcopts)
 
+system.time(pm <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
+            { pmcmc(mf, Nmcmc = 3000, Np = 50, proposal = mvn.diag.rw(prop.sd),
+                    verbose = TRUE, max.fail = Inf)
+            })
+traces <- conv.rec(pm,names(theta.bad.guess))
+prop.sd <- apply(sapply(names(theta.bad.guess), function(x) sapply(traces[, x], sd)), 2, mean)
+system.time(pm <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
+            { pmcmc(mf, Nmcmc = 3000, Np = 50, proposal = mvn.diag.rw(prop.sd),
+                    verbose = TRUE, max.fail = Inf)
+            })
+plot(traces[, "R0"])
