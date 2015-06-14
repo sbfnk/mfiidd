@@ -25,8 +25,8 @@ tm <- traj.match(SEITL_pomp,start = c(theta, pomp.init.state),
 tm2 <- traj.match(SEIT2L_pomp,start=c(theta, pomp.init.state2),
                   est = names(theta))
 
-tm_sim <- simulate(mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
-tm_sim2 <- simulate(mf2, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+tm_sim <- simulate(tm, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+tm_sim2 <- simulate(tm2, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
 
 p <- ggplot(tm_sim, aes(x = time, y = obs, group = sim, alpha = (sim == "data")))
 p <- p + scale_alpha_manual("", values = c(`TRUE` = 1, `FALSE` = 0.2),
@@ -100,5 +100,5 @@ system.time(pm400 <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %d
             })
 traces <- conv.rec(pm400,names(theta))
 rejectionRate(traces)
-plot(traces[, "R0"])
+plot(traces)
 

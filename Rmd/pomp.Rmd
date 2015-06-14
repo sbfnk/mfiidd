@@ -53,7 +53,7 @@ example(SEIT2L_pomp)
 
 __Take 10 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
 
-The `pomp` objects `SEITL_pomp` and `SEIT2L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values, noting the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended,
+The `pomp` objects `SEITL_pomp` and `SEIT2L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values:
 
 ```{r}
 theta <-
@@ -64,7 +64,9 @@ SEIT2L.init.state <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
 ```
 
-and try the following operations (with SEITL or SEIT2L):
+Note again the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended,
+
+*Take 15-20 minutes* and try the following operations (with SEITL or SEIT2L). For full documentation of the functions used, refer to the R help pages, which you can access using `?function`.
 
 ## Deterministic trajectory
 
@@ -75,16 +77,28 @@ SEITL.traj <- trajectory(SEITL_pomp,
 plotTraj(SEITL.traj)
 ```
 
-This takes the deterministic skeleton as specified in the pomp object, and ignores all process or measurement stochasticity.
+This simulates the deterministic skeleton of the `pomp` object, ignoring all process or measurement stochasticity.
 
 ## Stochastic trajectories
 
 ```{r}
 SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.init.state),
-                      obs = TRUE, 
-                      as.data.frame = TRUE, include.data = TRUE)
-
+                      obs = TRUE, states = TRUE, 
+                      as.data.frame = TRUE)
+plotTraj(SEITL.sim)
 ```
+This simulates the model of the `pomp` object.
+
+## Trajectory matching
+
+```{r}
+tm <- traj.match(SEITL_pomp,start = c(theta, SEITL.init.state),
+                 est = names(theta))
+tm_sim <- simulate(tm, nsim = 10, as.data.frame = TRUE)
+plotTraj(tm_sim, data = FluTdC1971)
+```
+
+This 
 
 <div>
 # Navigate
