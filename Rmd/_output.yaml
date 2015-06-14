@@ -4,3 +4,6 @@ html_document:
   highlight: pygments
   smart: false
   css: mfiidd.css
+  fig_width: 5
+  fig_height: 5
+  
