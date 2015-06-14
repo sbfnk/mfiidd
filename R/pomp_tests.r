@@ -63,21 +63,46 @@ p2 <- p2 + scale_alpha_manual("", values = c(`TRUE` = 1, `FALSE` = 0.2),
 p2 <- p2 + geom_line()
 
 ## pMCMC
-require(foreach)
-require(doMC)
+require('foreach')
+require('doMC')
 options(cores = 2)
 registerDoMC()
 mcopts <- list(set.seed = TRUE)
 paropts <- list(.options.multicore = mcopts)
 
-system.time(pm <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
+require('coda')
+
+system.time(pm50 <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
             { pmcmc(mf, Nmcmc = 3000, Np = 50, proposal = mvn.diag.rw(prop.sd),
                     verbose = TRUE, max.fail = Inf)
             })
-traces <- conv.rec(pm,names(theta.bad.guess))
-prop.sd <- apply(sapply(names(theta.bad.guess), function(x) sapply(traces[, x], sd)), 2, mean)
-system.time(pm <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
-            { pmcmc(mf, Nmcmc = 3000, Np = 50, proposal = mvn.diag.rw(prop.sd),
+traces <- conv.rec(pm50,names(theta.bad.guess))
+prop.sd.new <- apply(sapply(names(theta.bad.guess), function(x) sapply(traces[, x], sd)), 2, mean)
+
+accRate <- 1 - rejectionRate(traces)
+
+system.time(pm50 <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
+            { pmcmc(mf, Nmcmc = 3000, Np = 50, proposal = mvn.diag.rw(prop.sd.new),
                     verbose = TRUE, max.fail = Inf)
             })
+traces <- conv.rec(pm50,names(theta.bad.guess))
+rejectionRate(traces)
 plot(traces[, "R0"])
+
+system.time(pm400 <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
+            { pmcmc(mf, Nmcmc = 3000, Np = 400, proposal = mvn.diag.rw(prop.sd),
+                    verbose = TRUE, max.fail = Inf)
+            })
+traces <- conv.rec(pm400,names(theta.bad.guess))
+prop.sd.new <- apply(sapply(names(theta.bad.guess), function(x) sapply(traces[, x], sd)), 2, mean)
+
+accRate <- 1 - rejectionRate(traces)
+
+system.time(pm400 <- foreach (i=1:2, .combine=c, .options.multicore = mcopts) %dopar%
+            { pmcmc(mf, Nmcmc = 3000, Np = 400, proposal = mvn.diag.rw(prop.sd.new),
+                    verbose = TRUE, max.fail = Inf)
+            })
+traces <- conv.rec(pm400,names(theta.bad.guess))
+rejectionRate(traces)
+plot(traces[, "R0"])
+
