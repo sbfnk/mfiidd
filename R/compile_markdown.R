@@ -16,13 +16,14 @@ library('reshape2')
 
 ## recompile all html files
 Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
-                        full.names = TRUE)
+	full.names = FALSE)
 
-# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("introduction","posterior_example","posterior_example_solution"),".Rmd"))
-# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("mcmc","mcmc_example","mcmc_example_solution","generate_samples"),".Rmd"))
-Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("mcmc_diagnostics","mcmc_commands"),".Rmd"))
 
-for (file in Rmd.files)
-{
-    render(file, output_dir = path.expand(paste0(mfiidd.dir, "/website/")), output_format=html_document(smart=FALSE, toc=TRUE, fig_width=5, fig_height=5, theme="spacelab", highlight="pygments"))
+for (file in Rmd.files) {
+	Rmd.file <- path.expand(paste0(mfiidd.dir, "/", "Rmd/", file))
+	html.file <- path.expand(paste0(mfiidd.dir, "/", "website/",
+		sub("\\.Rmd$", ".html", file)))
+	if (!file.exists(html.file) | file.mtime(Rmd.file) > file.mtime(html.file)) {
+		render(file, output_dir = path.expand(paste0(mfiidd.dir, "/website/")), output_format=html_document(smart=FALSE, toc=TRUE, fig_width=5, fig_height=5, theme="spacelab", highlight="pygments"))
+	}
 }
