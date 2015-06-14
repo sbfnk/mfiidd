@@ -14,7 +14,7 @@ set.seed(1234)
 
 # Objectives
 
-The aim of this session is to introduce the *R* package *pomp*, which contains functions for many of the tasks we have performed in this course. The benefit of using a package like *[pomp](http://pomp.r-forge.r-project.org/)* (or alternatives such as [SSM](https://github.com/sballesteros/ssm) or [libbi](http://libbi.org/)) is that they have been optimised for computational efficiency and can take full advantage of any available hardware (including running on a high-performance cluster). The disadvantage of using readily available packages is that 1) to allow for good performance, models are usually not coded in *R* and 2) it can be more difficult to debug when something is going wrong.
+The aim of this session is to introduce the *R* package *pomp*, which contains functions for many of the tasks we have performed in this course. The benefit of using a package like *[pomp](http://pomp.r-forge.r-project.org/)* (or alternatives such as [SSM](https://github.com/sballesteros/ssm) or [libbi](http://libbi.org/)) is that they have been optimised for computational efficiency and can take full advantage of any available hardware (including running on a high-performance cluster). The disadvantage of using readily available packages is that 1) to allow for good performance, models are usually not coded in *R*, 2) any specific method or functionality you want to use might not be implemented, and 3) they can be more difficult to debug when something is going wrong.
 
 The aim of this session is to see how the different methods we have encountered in the course can be applied to fit a model to data using *pomp*. 
 
@@ -92,13 +92,29 @@ This simulates the model of the `pomp` object.
 ## Trajectory matching
 
 ```{r}
-tm <- traj.match(SEITL_pomp,start = c(theta, SEITL.init.state),
+SEITL.tm <- traj.match(SEITL_pomp, start = c(theta, SEITL.init.state),
                  est = names(theta))
-tm_sim <- simulate(tm, nsim = 10, as.data.frame = TRUE)
-plotTraj(tm_sim, data = FluTdC1971)
+SEITL.tm.sim <- simulate(SEITL.tm, nsim = 10, as.data.frame = TRUE)
+plotTraj(SEITL.tm.sim, data = FluTdC1971, state.names = "obs")
+logLik(tm)
 ```
 
-This 
+This matches the deterministic skeleton to the data by maximising the likelihood (i.e., it is a frequentist fitting method) using a standard optimisation method (see `?traj.match` for details on the methods available.
+
+Note that the fitting procedures in *pomp* all return another `pomp` object. For the methods based on maximum likelihood, this object contains updated parameters set to the maximum likelihood estimate. This can then be used to initialise other methods.
+
+```{r}
+class(tm)
+```
+
+## Maximum likelihood by iterated filtering (MIF)
+
+```{r}
+SEITL.mf <- mif(SEITL.tm, Nmif = 50, Np = 1000, cooling.fraction = 0.8, rw.sd = prop.sd)
+SEITL.mf.sim <- simulate(SEITL.mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+```
+
+
 
 <div>
 # Navigate
