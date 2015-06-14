@@ -6,4 +6,6 @@ html_document:
   css: mfiidd.css
   fig_width: 5
   fig_height: 5
+  fig_caption: yes
+  fig_retina: 2
   
