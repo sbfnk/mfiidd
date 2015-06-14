@@ -18,7 +18,9 @@ library('reshape2')
 Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
                         full.names = TRUE)
 
-Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("introduction","posterior_example","posterior_example_solution"),".Rmd"))
+# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("introduction","posterior_example","posterior_example_solution"),".Rmd"))
+# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("mcmc","mcmc_example","mcmc_example_solution","generate_samples"),".Rmd"))
+Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("mcmc_diagnostics","mcmc_commands"),".Rmd"))
 
 for (file in Rmd.files)
 {
