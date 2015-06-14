@@ -61,7 +61,14 @@ SIR$state.names
 SIR$theta.names
 ```
 
-Moreover, each `fitmodel` contains four functions: `simulate` to run the model, `dprior` to calculate the prior density, `dPointObs` to calculate the log-likelihood of a given data point with respect to the model, and `rPointObs` to generate observations from a model run. We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
+Moreover, each `fitmodel` contains four functions: 
+
+1. `simulate` to run the model,
+2. `dprior` to calculate the prior density,
+3. `dPointObs` to calculate the log-likelihood of a given data point with respect to the model,
+4. `rPointObs` to generate observations from a model run.
+
+We will now look at these one after the other. If at any time you would like more information on the components of a `fitmodel`, you can do so by typing
 
 ```{r help_fitmodel, eval=FALSE, tidy=FALSE}
 ?fitmodel
@@ -92,7 +99,7 @@ To visualise model output, you can use `plotTraj`.
 plotTraj(traj)
 ```
 
-Try running the model with different values of the parameters and initial state, and output times.
+__Take 10 minutes to run the model with different values of the parameters and initial state, and output times.__
 
 Remember that if you want more detail on what the functions contained in a `fitmodel` do, type the function name after `SIR$` (or whichever `fitmodel` object you are looking at; for now, we consider `SIR`). For example, to look at the `simulate` function of `SIR`, type
 
@@ -100,7 +107,7 @@ Remember that if you want more detail on what the functions contained in a `fitm
 SIR$simulate
 ```
 
-This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). Take a few minutes to look at that function and let us know if you have any questions. Tomorrow, we will give you a different `fitmodel` object for a different model that comes with its own simulate function.
+This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). __Take 10 minutes to look at that function and let us know if you have any questions.__ Tomorrow, we will give you a different `fitmodel` object for a different model that comes with its own simulate function.
 
 ## Prior
 
@@ -120,7 +127,7 @@ Have a look at the `dprior` function by typing
 SIR$dprior
 ```
 
-You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D_\mathrm{inf}$ (between 0 and 30). At the moment, just have a look at it and make sure you understand it. Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
+You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D_\mathrm{inf}$ (between 0 and 30). __For the moment, just have a look at it and make sure you understand it.__ Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
 
 ## Likelihood
 
@@ -136,7 +143,9 @@ Have a look at the `dPointObs` function by typing
 SIR$dPointObs
 ```
 
-You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$dPointObs` answers the question: what is the (logged) probability of observing 18 cases when the prevalence is 31? For the moment, just have a look at the function and make sure you understand it. Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). 
+
+In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$dPointObs` answers the question: what is the (logged) probability of observing 18 cases when the prevalence is 31? __For the moment, just have a look at the function and make sure you understand it.__ Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
 
 Let's load a test data set contained in the `fitR` package using
 
@@ -144,19 +153,25 @@ Let's load a test data set contained in the `fitR` package using
 data(epi)
 ```
 
-This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. You can look at this data set using
+This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2 weeks, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. You can look at this data set using
 
 ```{r look_epi1}
 head(epi1)
 ```
 
-The observations ("obs") in the `epi1` data set are based on observed prevalence ("I"). You can plot the data using
+The observations ("obs") in the `epi1` data set are based on weekly observed prevalence ("I"). You can plot the data using
 
 ```{r plot_epi1}
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial state, we can use `dTrajObs`. This takes a `fitmodel`, a parameter vector, an initial state and a data set. It then simulates the model using the `simulate` function of the `fitmodel` with the given parameters and initial state. After that, it evaluates the log-likelihood at every data point using the `dPointObs` function of the model. The result returned is the (log-)likelihood $\log(p(\mathrm{Data}|X_0, \theta))$ of the chosen set of parameters and initial state.
+To calculate the log-likelihood of a set of parameters and initial state, we can use `dTrajObs`. This function takes a `fitmodel`, a parameter vector, an initial state and a data set as arguments and proceeds in 3 steps:
+
+1. simulate the model using the `simulate` function of the `fitmodel` with the given parameters and initial state.
+2. evaluate the log-likelihood at every data point using the `dPointObs` function of the model. 
+3. return the sum all the log-likelihood values.
+
+The value returned is $\log(p(\mathrm{Data}|X_0, \theta))$: the log-likelihood of the chosen set of parameters and initial state.
 
 ```{r eval_traj_log_like}
 dTrajObs(SIR, theta, init.state, epi1, log = TRUE)
@@ -166,9 +181,11 @@ Of course, you might get a different number here if you played with the paramete
 
 ## Generate observations
 
-The function `rPointObs` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment, and for Approximate Bayesian Computation.
+The function `rPointObs` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment.
 
-`rPointObs` can be seen as the inverse of `dPointObs`. Whereas `dPointObs` evaluates the log-likelihood at a data point with respect to the model, `rPointObs` takes the model and generates a (randomly sampled) data point. In that, it differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a random observed prevalence on the basis of a true prevalence of 31, we can write
+`rPointObs` can be seen as the inverse of `dPointObs`. Whereas `dPointObs` evaluates the log-likelihood at a data point with respect to the model, `rPointObs` takes the model and generates a (randomly sampled) data point.
+
+Note also that `rPointObs` differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write
 
 ```{r gen_obs}
 SIR$rPointObs(model.point = c(I = 31), theta)
@@ -176,20 +193,26 @@ SIR$rPointObs(model.point = c(I = 31), theta)
 
 Of course, you might see a different number, as the result of this command is the outcome of a random draw.
 
-To generate a whole trajectory with simulated observation, we have implemented a function called `rTrajObs`, which can be seen as the inverse of `dTrajObs`. The `rTrajObs` function uses the `simulate` function (see above, where you looked at `SIR$simulate`) to simulate the model, and then apply the `rPointObs` function at every time point to generate the observations. It returns the simulated trajectory, with an added column for the observations.
+To generate a whole trajectory with simulated observation, we have implemented a function called `rTrajObs`, which can be seen as the inverse of `dTrajObs`. The `rTrajObs` function takes a `fitmodel`, a parameter vector, an initial state and a vector of observation times as arguments and proceeds in 3 steps:
+
+1. simulate the model using the `simulate` function of the `fitmodel` (see above, where you looked at `SIR$simulate`).
+2. apply the `rPointObs` function at every time point to generate the observations.
+3. returns the simulated trajectory, with an added column for the observations.
 
 ```{r gen_obs_traj}
 obs.traj <- rTrajObs(SIR, theta, init.state, epi1$time)
 head(obs.traj)
 ```
 
-If you run this multiple times, you will find that the outcome is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rTrajObs` would be the same every time.
+If you run this multiple times, you will find that the "obs" column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rTrajObs` would be the same every time.
 
 Now you have completed the overview of a `fitmodel` object, you are going use some parts of it to code a function that will evaluate the posterior.
 
 # Calculate the posterior
 
-**Code it yourself**: Write a function to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to a normalisation constant) for a given set of parameters and initial state, with respect to a data set. Below you find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
+**Code it yourself**: Write a function to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to a normalisation constant) for a given set of parameters and initial state, with respect to a data set.
+
+Below you will find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
 
 ```{r eval = FALSE, tidy = FALSE}
 # This is a function that takes 4 arguments:
@@ -223,17 +246,23 @@ my_dLogPosterior(SIR, theta, init.state, epi1)
 
 # Assess the model fit
 
-You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial state using `rTrajObs` (see above) and plots it (lines) against the data (points). You can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
+You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial state using `rTrajObs` (see above) and plots it (lines) against the data (points).
+
+Note that you can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
 
 ```{r plotfit_epi1, message = FALSE}
 plotFit(SIR, theta, init.state, epi1)
 ```
 
-Clearly, not a very good fit on this occasion. In the next section, you will explore the posterior distribution to find a better one.
+Clearly, not a very good fit on this occasion. In the next section, you will explore the posterior distribution to find a better one. __Before that, take 10 minutes to visually assess the fit of your model under different parameter sets and get familiar with the function `plotFit`.__
 
 # Explore the posterior
 
-Now we are ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$. As stated above, the infectious period of the `epi1` data set was 2. You can evaluate the posterior at different values of $R_0$ using the function `my_logPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)). In which range of $R_0$ is the posterior maximised? Does the model fit the data (looking at `plotFit`)?
+You are now ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical, we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$.
+
+As stated above, the infectious period of the `epi1` data set was 2 weeks. You can evaluate the posterior at different values of $R_0$ using the function `my_logPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)).
+
+__Take 10 minutes to figure out in which range of $R_0$ the posterior is maximised. Does the model fit the data (looking at `plotFit`)?__
 
 You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$dprior` and `SIR$dPointObs` by typing
 
@@ -242,16 +271,16 @@ SIR$dprior
 SIR$dPointObs
 ```
 
-To change the prior and likelihood functions, copy and paste the functions, change them, and reassign to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
+To change the prior and likelihood functions, copy and paste the functions, change them, and reassign them to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
 
 ```{r edit,eval = FALSE}
 SIR$dPointObs <- function(data.point, model.point, theta, log = FALSE) {
         # the prevalence is observed through a normally distributed process
-        return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = log))
+	return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = log))
 }
 ```
 
-Try different distributions for the prior and likelihood distributions (you could try, for example, to make the prior narrower, or to use a normal distribution for the prior using `dnorm`; or you could use another distribution for the likelihood). Does the choice of distribution change the shape of the posterior distribution?
+__Take 20 minutes to try different distributions for the prior and likelihood distributions__ (you could try, for example, to make the prior narrower, or to use a normal distribution for the prior using `dnorm`; or you could use another distribution for the likelihood). __Does the choice of distribution change the shape of the posterior distribution?__
 
 # Going further
 
@@ -272,6 +301,5 @@ Simulate your model with and without seasonal forcing. Comment on what you obser
 
 
 <div>
-# Navigate
 Previous: [Installation](index.html) Next: [MCMC](mcmc.html)
 </div>
