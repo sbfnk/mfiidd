@@ -1,5 +1,5 @@
 ---
-title: "Fitting models using *pomp*"
+title: "Fitting models to data using *pomp*"
 --- 
 
 ```{r setup, echo=FALSE}
@@ -42,18 +42,49 @@ install.packages('pomp')
 
 To specify a model that you want to fit to data in *pomp*, you can either write a function in R, or you can use so-called C snippets, that is model code written in C that is pre-compiled and can be called from an R function. The advantage of doing this is that you can benefit from the speed of compiled C code while not having to learn an awful lot about the details of C syntax.
 
-We have coded up the models of the previous practical sessions in *pomp* for you. To look at, for example, the SEITL model, use
+We have coded up the models of the previous practical sessions in *pomp* for you. To look at, for example, the SEITL and SEITL2 models, use
 
 ```{r results = "hide"}
 example(SEITL_pomp)
+example(SEIT2L_pomp)
 ```
 
 (if this yields a compile error, have a look at the [important information for windows and mac users](http://pomp.r-forge.r-project.org/vignettes/getting_started.html#important-information-for-windows-and-mac-users) or ask us for help).
 
 __Take 10 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
 
-The `pomp` object `SEITL_pomp` now contains everything needed for model fitting and inference.
+The `pomp` objects `SEITL_pomp` and `SEIT2L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values, noting the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended,
 
+```{r}
+theta <-
+    c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
+SEITL.init.state <-
+    c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
+SEIT2L.init.state <-
+    c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
+```
+
+and try the following operations (with SEITL or SEIT2L):
+
+## Deterministic trajectory
+
+```{r}
+SEITL.traj <- trajectory(SEITL_pomp,
+                         params = c(theta, SEITL.init.state),
+                         as.data.frame = TRUE)
+plotTraj(SEITL.traj)
+```
+
+This takes the deterministic skeleton as specified in the pomp object, and ignores all process or measurement stochasticity.
+
+## Stochastic trajectories
+
+```{r}
+SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.init.state),
+                      obs = TRUE, 
+                      as.data.frame = TRUE, include.data = TRUE)
+
+```
 
 <div>
 # Navigate
