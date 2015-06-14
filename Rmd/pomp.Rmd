@@ -51,7 +51,7 @@ example(SEIT2L_pomp)
 
 (if this yields a compile error, have a look at the [important information for windows and mac users](http://pomp.r-forge.r-project.org/vignettes/getting_started.html#important-information-for-windows-and-mac-users) or ask us for help).
 
-__Take 10 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
+__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
 
 The `pomp` objects `SEITL_pomp` and `SEIT2L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values:
 
@@ -64,9 +64,9 @@ SEIT2L.init.state <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
 ```
 
-Note again the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended,
+Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended.
 
-*Take 15-20 minutes* and try the following operations (with SEITL or SEIT2L). For full documentation of the functions used, refer to the R help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
+__Take 30 minutes__ and try the following operations (with SEITL or SEIT2L). For full documentation of the functions used, refer to the R help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
 
 ## Simulating the model and estimating the likelihood
 
@@ -165,7 +165,9 @@ library('coda')
 1 - rejectionRate(trace)
 ```
 
-```{r}
+```{r results = "hide"}
+## calculate the empirical standard deviation
+empirical.sd <- apply(trace, 2, sd)
 ## re-run pMCMC using the empirical standard deviation
 SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 50, proposal = mvn.diag.rw(empirical.sd), verbose = TRUE, max.fail = Inf)
 trace <- conv.rec(SEITL.pm, names(theta))
@@ -181,6 +183,8 @@ plot(trace)
 This runs pMCMC on the model, here for `Nmcmc = 1000` MCMC iterations with `Np = 50` particles. Note that *pomp* does not provide methods for adaptive MCMC, so we apply heuristic adaptation here by first running the MCMC with independent normal proposals of a guessed standard deviation and then re-running using the empirical standard deviation of accepted proposals.
 
 You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while clearly not running for long enough for a reliable estimation of the posterior densities, should only take a few minutes to run on your PC.
+
+Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't?
 
 ## Other methods
 
