@@ -301,5 +301,5 @@ Simulate your model with and without seasonal forcing. Comment on what you obser
 
 
 <div>
-Previous: [Installation](index.html) Next: [MCMC](mcmc.html)
+Previous: [Installation](index.html) <!--Next: [MCMC](mcmc.html)-->
 </div>
