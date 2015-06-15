@@ -51,7 +51,7 @@ my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
             model.point <- # INSERT HERE
 
             # Weight the particle with the likelihood of the observed 
-            # data point using the function `fitmodel$pointLogLike`
+            # data point using the function `fitmodel$dPointObs`
             weight.particles[p] <- # INSERT HERE 
 
             # Update state of the p particle

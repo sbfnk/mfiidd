@@ -173,7 +173,7 @@ We can test that this function returns the value of the posterior for a given va
 my_dLogPosterior_R0_epi1(R0 = 3)
 ```
 
-You should get the same number unless you changed the `SIR$pointLogLike` function.
+You should get the same number unless you changed the `SIR$dPointObs` function.
 
 __Take 10 minutes to generate samples from `my_dLogPosterior_R0_epi1` using `my_mcmcMH`. Can you work out the command to do this?__ If you have any problems with this, have a look at our [solution](generate_samples.html).
 

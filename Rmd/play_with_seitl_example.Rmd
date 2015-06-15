@@ -7,7 +7,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/play_with_seitl_example/', ca
 ```{r fitR, include=FALSE, cache=FALSE}
 library(fitR)
 data(SEITL_deter)
-data(SEIT2L_stoch)
+data(SEIT4L_stoch)
 data(FluTdC1971)
 set.seed(1234)
 ```
@@ -69,14 +69,15 @@ Now, you can now go back to the [practical](play_with_seitl.html#exponential-vs-
 
 # Exponential vs Erlang distributions
 
-Let's simulate the stochastic SEIT2L model with our last guess estimates. Note that we need to change the vector of initial states.
+Let's simulate the stochastic SEIT4L model with our last guess estimates. Note that we need to change the vector of initial states.
 
-```{r guess-3-stoch-SEIT2L, results="hide", fig.width=10}
-init.state.guess.SEIT2L <- c("S"=279,"E"=0,"I"=2,"T1"=3, T2=0 ,"L"=0,"Inc"=0)
-plotFit(SEIT2L_stoch,theta.guess3,init.state.guess.SEIT2L,data=FluTdC1971, n.replicates=100, non.extinct=c("E", "I"))
+```{r guess-3-stoch-SEIT4L, results="hide", fig.width=10}
+init.state.guess.SEIT4L <- c("S"=279,"E"=0,"I"=2,"T1"=3, "T2"=0 , "T3"=0 ,"T4"=0 , "L"=0,"Inc"=0)
+plotFit(SEIT4L_stoch,theta.guess3,init.state.guess.SEIT4L,data=FluTdC1971, n.replicates=100, non.extinct=c("E", "I"))
 ```
 
-With the SEIT2L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape $k$ has a variance $k$ times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.
+
+With the SEIT4L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape $k$ has a variance $k$ times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.
 
 
 You've already finished? Why not [go further](play_with_seitl.html#going-further)?

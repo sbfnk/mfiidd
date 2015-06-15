@@ -145,7 +145,7 @@ SIR$dPointObs
 
 You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). 
 
-In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$dPointObs` answers the question: what is the (logged) probability of observing 18 cases when the prevalence is 31? __For the moment, just have a look at the function and make sure you understand it.__ Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$dPointObs` answers the question: what is the probability of observing 18 cases when the prevalence is 31? __For the moment, just have a look at the function and make sure you understand it.__ Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
 
 Let's load a test data set contained in the `fitR` package using
 
@@ -183,7 +183,7 @@ Of course, you might get a different number here if you played with the paramete
 
 The function `rPointObs` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment.
 
-`rPointObs` can be seen as the inverse of `dPointObs`. Whereas `dPointObs` evaluates the log-likelihood at a data point with respect to the model, `rPointObs` takes the model and generates a (randomly sampled) data point.
+`rPointObs` can be seen as the inverse of `dPointObs`. Whereas `dPointObs` evaluates the likelihood at a data point with respect to the model, `rPointObs` takes the model and generates a (randomly sampled) data point.
 
 Note also that `rPointObs` differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write
 

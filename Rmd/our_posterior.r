@@ -10,7 +10,7 @@
 my_dLogPosterior <- function(fitmodel, theta, init.state, data) {
 
     # calculate the fitmodel prior for parameter vector theta using
-    # fitmodel$logPrior, and assign to variable log.prior
+    # fitmodel$dprior, and assign to variable log.prior
 	log.prior <- fitmodel$dprior(theta, log = TRUE)
 
 	# calculate the log-likelihood of `theta`

@@ -233,7 +233,7 @@ my_ABCLogPosterior_tdc <- function(theta) {
                                          ssMax_25_36 = ssMax_25_36,
                                          ssSum_37_60 = ssSum_37_60),
                         distanceABC = ssMeanRelDistance,
-                        fitmodel = SEIT2L_stoch,
+                        fitmodel = SEIT4L_stoch,
                         theta = theta,
                         init.state = init.state,
                       data = FluTdC1971)
@@ -277,7 +277,7 @@ my_ABCLogPosterior_tdc_det <- function(theta) {
                                            Max_25_36 = ssMax_25_36,
                                            Sum_37_60 = ssSum_37_60),
                         distanceABC = ssMeanRelDistance,
-                        fitmodel = SEIT2L_deter,
+                        fitmodel = SEIT4L_deter,
                         theta = theta,
                         init.state = init.state,
                         data = FluTdC1971)

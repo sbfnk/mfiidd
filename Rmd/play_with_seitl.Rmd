@@ -52,7 +52,7 @@ plotTraj(data=FluTdC1971)
 One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, __some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain__ that was still circulating. This can be modelled as follows:
 
 ![The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability $\alpha$ to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S).
-](external_fig/import/SEITL.png)
+](external_fig/import/SEITL.jpg)
 
 The SEITL model can be described with five states (S, E, I, T and L) and five parameters:
 
@@ -97,13 +97,13 @@ data(SEITL_stoch)
 
 A brief technical note: You might be confused that we use a function called `data` to load a `fitmodel`. However, this was the only way to provide you with models that preserved comments in the code of the function. Type `SEITL_deter$simulate`, for instance.
 
-__Take 10 minutes to look at the different elements of both models.__ In particular, you might be interested in how the daily incidence is computed in the function `SEITL_deter$simulate` and how the likelihood function `SEITL_deter$pointLogLike` accounts for under-reporting. 
+__Take 10 minutes to look at the different elements of both models.__ In particular, you might be interested in how the daily incidence is computed in the function `SEITL_deter$simulate` and how the likelihood function `SEITL_deter$dPointObs` accounts for under-reporting. 
 
 You should also notice that `SEITL_stoch` mainly differs from `SEITL_deter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm needs a list of transitions (`SEITL_transitions`) and a function to compute the transition rate (`SEITL_rateFunc`). Make sure you understand all the transitions and rates and see the analogy with the deterministic equations.
 
 If you are curious about how the stochastic model is simulated, you can have a look at the code of the function `simulateModelStochastic`. You will note that it calls the function `ssa.adaptivetau` of the **R** package `adaptivetau`, and then processes the returned data frame in order to extract the state of the model at the desired observation times given by `times`.
 
-However, before doing any simulation, we need some parameter values and initial state for the model.
+However, before doing any simulation, we need some parameter values and an initial state for the model.
 
 ## Parameter values and initial state
 
@@ -118,7 +118,7 @@ Based on the description of the outbreak above and the information below found i
 
 # Deterministic vs Stochastic simulations
 
-Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. Here we propose to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don't like to guess parameter values, you can still use [ours](play_with_seitl_example.html#parameter-values-and-initial-state).
+Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. We suggest to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don't like to guess parameter values, you can still use [ours](play_with_seitl_example.html#parameter-values-and-initial-state).
 
 ## Deterministic simulations
 
@@ -161,7 +161,7 @@ __Take about 10 minutes to explore the dynamics of the stochastic SEITL model wi
 
 Note that `SEITL_stoch` has the same `theta.names` and `state.names` as `SEITL_deter`, which means that you can use the same parameters and initial state vectors as in the previous section. 
 
-In addition, you might find useful to plot the time-series of the extinction probability (i.e. the proportion of faded out simulations) by specifying the infectious states to `plotFit`, you can do that using the `non.extinct` argument (see the documentation of `plotFit` for more details).
+In addition, you might find useful to plot the time-series of the extinction probability (i.e. the proportion of faded out simulations) by specifying the infectious states to `plotFit` as the epidemic will persist as long as there is at least one individual in one of these states. You can do so by using the `non.extinct` argument of `plotFit` (see the documentation for more details).
 
 __What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?__ Otherwise you can have a look at [our example](play_with_seitl_example.html#stochastic-simulations).
 
@@ -205,22 +205,22 @@ print(p)
 
 ```
 
-We can extend the SEITL as follows:
+We propose to extend the SEITL as follows:
 
-![The SEIT2L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the $T$ compartment (temporary protection) follows an Erlang distribution with mean $D_\mathrm{imm}=1/\tau$ and shape equal to 2 and is modelled by 2 sub-stages $T_1$ and $T_2$, each being exponentially distributed with mean equal to $\frac{D_\mathrm{imm}}{2}$.
-](external_fig/import/SEIT2L.png)
+![The SEIT4L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the $T$ compartment (temporary protection) follows an Erlang distribution with mean $D_\mathrm{imm}=1/\tau$ and shape equal to 4 and is modelled by 4 sub-stages $T_{1,2,3,4}$, each being exponentially distributed with mean equal to $\frac{D_\mathrm{imm}}{4}$.
+](external_fig/import/SEIT4L.jpg)
 
-The deterministic and stochastic SEIT2L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
+The deterministic and stochastic SEIT4L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
 
 ```{r load_data, results="hide"}
-data(SEIT2L_deter)
-data(SEIT2L_stoch)
+data(SEIT4L_deter)
+data(SEIT4L_stoch)
 ```
-__Take 5 minutes to have a look at the function `simulate` of these SEIT2L models and make sure you understand how the Erlang distribution for the $T$ compartment is coded.__
+__Take 5 minutes to have a look at the function `simulate` of these SEIT4L models and make sure you understand how the Erlang distribution for the $T$ compartment is coded.__
 
-Now, compare the dynamics of the SEITL and SEIT2L model using `plotFit`. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT2L share the same parameters, their state variables differ so you need to modify the `init.state` of SEIT2L accordingly.
+Now, compare the dynamics of the SEITL and SEIT4L model using `plotFit`. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the `init.state` of SEIT4L accordingly.
 
-Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution of the $T$ compartment?
+__Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution of the $T$ compartment?__
 
 Again, feel free to can have a look at [our example](play_with_seitl_example.html#exponential-vs-erlang-distributions).
 
@@ -229,7 +229,7 @@ In the next session, you will verify your intuition by using a statistical crite
 # Going further
 
 * Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](external_ref/poisson_obs.pdf).
-* You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 2 and not 5 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT2L model. Does it fit the data better?
+* You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?
 
 <div>
 # Navigate
