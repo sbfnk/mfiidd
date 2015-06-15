@@ -31,10 +31,23 @@ library('reshape2')
 # }
 
 
-Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("play_with_seitl","play_with_seitl_example"),".Rmd"))
+
+# Rmd.files <- c("index")
+Rmd.files <- c("index","introduction","posterior_example","posterior_example_solution")
+Rmd.files <- c("mcmc","mcmc_example","mcmc_example_solution","generate_samples")
+Rmd.files <- c("mcmc_diagnostics","epi3_wrapper","mcmc_commands")
+Rmd.files <- c("play_with_seitl","play_with_seitl_example")
+Rmd.files <- c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert")
+# Rmd.files <- c("pmcmc","smc_example","smc_example_solution","pmcmc_solution")
+# Rmd.files <- c("ABC","sumstat_examples","distance_examples","abc_solution")
+
+
+# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("","play_with_seitl_example"),".Rmd"))
+# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("play_with_seitl","play_with_seitl_example"),".Rmd"))
+# Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("mcmc_and_model_comparison","example_mcmc_SEITL"),".Rmd"))
 
 for(Rmd.file in Rmd.files){
-	render(Rmd.file, output_dir = path.expand(paste0(mfiidd.dir, "/website/"))) 
+	render(path.expand(paste0(mfiidd.dir, "/Rmd/", Rmd.file,".Rmd")), output_dir = path.expand(paste0(mfiidd.dir, "/website/"))) 
 }
 
 
