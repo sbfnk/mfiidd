@@ -242,5 +242,5 @@ You might have noted that the `for()` loop over particles could be parallelized,
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [MCMC and model comparison](mcmc_and_model_comparison.html) Next: [Approximate Bayesian Computation](abc.html)
+Top: [Index](index.html) Previous: [MCMC and model comparison](mcmc_and_model_comparison.html) Next: [Fitting models to data using *pomp*](pomp.html)
 </div>

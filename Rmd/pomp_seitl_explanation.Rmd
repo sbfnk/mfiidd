@@ -44,7 +44,7 @@ SEITL.skel.c <- '
 '
 ```
 
-This defines the so-called deterministic skeleton. In *pomp*, the stochastic and deterministic versions of the same model can be specified in the same `pomp` object, and then used by different fitting methods. For example, one can get a first approximate fit using a fast method and the deterministic model before performing more computationally extensive methods on the stochastic models around those solutions. The deterministic skeleton defines how the model would behave if there were noise in the system.
+This defines the so-called deterministic skeleton. In *pomp*, the stochastic and deterministic versions of the same model can be specified in the same `pomp` object, and then used by different fitting methods. For example, one can get a first approximate fit using a fast method and the deterministic model before performing more computationally extensive methods on the stochastic models around those solutions. The deterministic skeleton defines how the model would behave if there were no noise in the system.
 
 The model code is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`.
 
@@ -86,7 +86,7 @@ Lastly, it is defined how the transitions change the compartments:
     DInc = trans[1];
 ```
 
-### The deterministic skeleton
+### The stochastic model
 ```{r tidy = FALSE}
 ## define stochastic model, for use with euler.sim, see ?euler.sim
 SEITL.sim.c <- '
@@ -120,7 +120,7 @@ SEITL.sim.c <- '
 '
 ```
 
-This defines the stochastic model, to be used for stochastic simulations. This, again, is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`. It defines transitions which are then used by the *pomp* function `euler.sim`, which in turn uses the [Euler-Maruyama approximation](http://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to the full stochastic system. This calculates the number of events happening in a given fixed time step by sampling from a multinomial distribution with the probabilities of each event given by the product of its rate and the time step. This happens in the following four lines of code:
+This defines the stochastic model. This, again, is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`. It defines transitions which are then used by the *pomp* function `euler.sim`, which in turn uses the [Euler-Maruyama approximation](http://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to the full stochastic system. This calculates the number of events happening in a given fixed time step by sampling from a multinomial distribution with the probabilities of each event given by the product of its rate and the time step. This happens in the following four lines of code:
 
 ```{r engine = 'c', eval = FALSE}
     reulermultinom(1, S, &rate[0], dt, &dN[0]);
@@ -129,7 +129,7 @@ This defines the stochastic model, to be used for stochastic simulations. This, 
     reulermultinom(2, T, &rate[3], dt, &dN[3]);
  ```
 
-Instead of calculating the rates of transition as in the deterministic skeleton above, we now draw random numbers from each compartment to get the number of individuals who transition from that compartment to another one. These numbers are stored in the array `N`, and the numbers in each compartment adjusted in the following segment of code:
+Instead of calculating the rates of transition as in the deterministic skeleton above, `reulermultinom` draws random numbers from the compartment specified in the second argument to get the number of individuals who transition from that compartment to another one. These numbers are stored in the array `N`, and the numbers in each compartment adjusted in the following segment of code:
 
 ```{r engine = 'c', eval = FALSE}
     S += -dN[0] + dN[4];
@@ -211,13 +211,19 @@ SEITL_pomp <- pomp(data = FluTdC1971[, c("time", "obs")],
                    obsnames = c("obs"))
 ```
 
-This constructs the pomp object from the C functions defined above. The individual options are:
+This constructs the pomp object `SEITL_pomp` from the C functions defined above. The individual options are:
 
 ```{r tidy = FALSE, eval = FALSE}
                    data = FluTdC1971[, c("time", "obs")],
 ```
 
 This specifies the data set. We select the two relevant columns, `time` and `obs`.
+
+```{r tidy = FALSE, eval = FALSE}
+                   skeleton = Csnippet(SEITL.skel.c),
+                   skeleton.type = "vectorfield",
+```
+These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `skeleton.type`, see `?pomp`.
 
 ```{r tidy = FALSE, eval = FALSE}
                    rprocess = euler.sim(step.fun = Csnippet(SEITL.sim.c),
@@ -231,12 +237,6 @@ This defines the stochastic (random) process, or the function that is used to sa
                    dmeasure = Csnippet(SEITL.dmeas.c),
 ```
 These define the functions to randomly sample form the measurement process (equivalent to `rPointObs` earlier in the course) or evaluate the probability density at a measurement point (equivalent to `dPointObs` earlier in the course).
-
-```{r tidy = FALSE, eval = FALSE}
-                   skeleton = Csnippet(SEITL.skel.c),
-                   skeleton.type = "vectorfield",
-```
-These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `skeleton.type`, see `?pomp`.
 
 ```{r tidy = FALSE, eval = FALSE}
                    times = "time",
