@@ -526,14 +526,15 @@ theta.bar &lt;-<span class="st"> </span><span class="kw">colMeans</span>(trace.c
 
 <span class="co"># compute its log-likelihood</span>
 init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">279</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">2</span>, <span class="dt">T =</span> <span class="dv">3</span>, <span class="dt">L =</span> <span class="dv">0</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)
-log.like.theta.bar &lt;-<span class="st"> </span><span class="kw">dTrajObs</span>(SEITL_deter, theta.bar, init.state, <span class="dt">data =</span> FluTdC1971)
+log.like.theta.bar &lt;-<span class="st"> </span><span class="kw">dTrajObs</span>(SEITL_deter, theta.bar, init.state, <span class="dt">data =</span> FluTdC1971, 
+    <span class="dt">log =</span> <span class="ot">TRUE</span>)
 <span class="kw">print</span>(log.like.theta.bar)
-## [1] 0
+## [1] -142.84
 
 <span class="co"># and its deviance</span>
 D.theta.bar &lt;-<span class="st"> </span>-<span class="dv">2</span> *<span class="st"> </span>log.like.theta.bar
 <span class="kw">print</span>(D.theta.bar)
-## [1] 0
+## [1] 285.6799
 
 <span class="co"># the effective number of parameters</span>
 p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">2</span> *<span class="st"> </span>trace.combined$log.likelihood)/<span class="dv">2</span>
@@ -543,7 +544,7 @@ p.D &lt;-<span class="st"> </span><span class="kw">var</span>(-<span class="dv">
 <span class="co"># and finally the DIC</span>
 DIC &lt;-<span class="st"> </span>D.theta.bar +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>p.D
 <span class="kw">print</span>(DIC)
-## [1] 16.23398</code></pre></div>
+## [1] 301.9139</code></pre></div>
 <p>Follow this <a href="mcmc_and_model_comparison.html#posterior-predictive-checks">link</a> to go back to the practical.</p>
 </div>
 
