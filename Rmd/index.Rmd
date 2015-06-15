@@ -8,7 +8,7 @@
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.2.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
 
-If you are not familiar with `R`, check our [introduction page](slides/rintro.pdf).
+If you are not familiar with `R`, check our [list of useful commands](slides/rintro.pdf).
 
 ## Installation of the fitR package
 
@@ -31,12 +31,19 @@ library(fitR)
 ## Contents
 
 1. [Introduction](introduction.html)
-2. [MCMC](mcmc.html)
+2. MCMC
+3. MCMC diagnostics
+4. Modelling interlude
+5. MCMC and model comparison
+6. Particle MCMC
+7. Further methods
+
+<!--2. [MCMC](mcmc.html)
 3. [MCMC diagnostics](mcmc_diagnostics.html)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
-7. [Further methods using pomp](pomp.html)
+7. [Fitting models to data using *pomp*](pomp.html)-->
 
 <!-- ## Further slides
 [Further methods and packages](slides/further_slides.pdf)

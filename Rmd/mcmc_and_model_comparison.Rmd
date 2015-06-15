@@ -311,6 +311,6 @@ Does the best model yield to a "better" (higher) p-value?
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [Modelling interlude](play_with_seitl.html) Next: [Particle MCMC](pmcmc.html)
+Top: [Index](index.html) Previous: [Modelling interlude](play_with_seitl.html) <!--Next: [Particle MCMC](pmcmc.html)-->
 </div>
 

@@ -165,7 +165,7 @@ The observations ("obs") in the `epi1` data set are based on weekly observed pre
 plotTraj(data = epi1)
 ```
 
-To calculate the log-likelihood of a set of parameters and initial state, we can use `dTrajObs`. This function takes a `fitmodel`, a parameter vector, an initial state and a data set as arguments and proceeds in 3 steps:
+To calculate the log-likelihood of a set of parameters and initial state, we can use the `dTrajObs` function contained in `fitR`. This function takes a `fitmodel`, a parameter vector, an initial state and a data set as arguments and proceeds in 3 steps:
 
 1. simulate the model using the `simulate` function of the `fitmodel` with the given parameters and initial state.
 2. evaluate the log-likelihood at every data point using the `dPointObs` function of the model. 
@@ -177,7 +177,7 @@ The value returned is $\log(p(\mathrm{Data}|X_0, \theta))$: the log-likelihood o
 dTrajObs(SIR, theta, init.state, epi1, log = TRUE)
 ```
 
-Of course, you might get a different number here if you played with the parameters. You will later need the `dTrajObs` function to calculate the posterior density as a function of the parameters.
+Of course, you might get a different number here if you played with the parameters. You will later need the `dTrajObs` function to calculate the posterior density as a function of the parameters. Feel free to have a look at the `dTrajObs` function (by typing `dTrajObs` and hitting return), to see how it performs its task.
 
 ## Generate observations
 
@@ -185,7 +185,7 @@ The function `rPointObs` generates a single random observation from a single poi
 
 `rPointObs` can be seen as the inverse of `dPointObs`. Whereas `dPointObs` evaluates the likelihood at a data point with respect to the model, `rPointObs` takes the model and generates a (randomly sampled) data point.
 
-Note also that `rPointObs` differs from `simulate`. While `simulate` simulates the (deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation trajectory on the basis of the deterministic model trajectory. For example, to generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write
+Note also that `rPointObs` differs from `simulate`. While `simulate` simulates the (in this case, deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation point on the basis of a state of the model. To generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write
 
 ```{r gen_obs}
 SIR$rPointObs(model.point = c(I = 31), theta)
@@ -197,14 +197,14 @@ To generate a whole trajectory with simulated observation, we have implemented a
 
 1. simulate the model using the `simulate` function of the `fitmodel` (see above, where you looked at `SIR$simulate`).
 2. apply the `rPointObs` function at every time point to generate the observations.
-3. returns the simulated trajectory, with an added column for the observations.
+3. return the simulated trajectory, with an added column for the observations.
 
 ```{r gen_obs_traj}
 obs.traj <- rTrajObs(SIR, theta, init.state, epi1$time)
 head(obs.traj)
 ```
 
-If you run this multiple times, you will find that the "obs" column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rTrajObs` would be the same every time.
+If you run this multiple times, you will find that the "obs" column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rTrajObs` would be the same every time. Again, feel free to have a look at the `rTrajObs` function (by simply typing `rTrajObs` and hitting return), to see how it performs its task. It will be a good idea to look at the functions that we have provided you throughout the course.
 
 Now you have completed the overview of a `fitmodel` object, you are going use some parts of it to code a function that will evaluate the posterior.
 
@@ -243,6 +243,8 @@ Once you are done with this, check that your function returns a sensible value.
 ```{r eval_log_posterior}
 my_dLogPosterior(SIR, theta, init.state, epi1)
 ```
+
+Would you expect to see the same value?
 
 # Assess the model fit
 
@@ -295,11 +297,8 @@ This was created with an infectious period 2 and a reporting rate of 10%. Can yo
 
 ## Including demographic processes and seasonal forcing
 
-Recurrent diseases like Influenza require additional mechanisms to explain their [long-term dynamics](https://websenti.u707.jussieu.fr/sentiweb/?page=serie).
-Modify the `SIR` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).
-Simulate your model with and without seasonal forcing. Comment on what you observe.
-
+Recurrent diseases like Influenza require additional mechanisms to explain their [long-term dynamics](https://websenti.u707.jussieu.fr/sentiweb/?lang=en&page=serie). To get a better feel for the code used to simulate the model, you could modify the `SIR` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).
 
 <div>
-Previous: [Installation](index.html) Next: [MCMC](mcmc.html)
+Previous: [Installation](index.html) <!--Next: [MCMC](mcmc.html)-->
 </div>

@@ -50,5 +50,10 @@ for(Rmd.file in Rmd.files){
 	render(path.expand(paste0(mfiidd.dir, "/Rmd/", Rmd.file,".Rmd")), output_dir = path.expand(paste0(mfiidd.dir, "/website/"))) 
 }
 
+## Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("play_with_seitl","play_with_seitl_example"),".Rmd"))
 
-#output_format=html_document(smart=FALSE, toc=TRUE, fig_width=5, fig_height=5, theme="spacelab", highlight="pygments")
+## for(Rmd.file in Rmd.files){
+## 	render(Rmd.file, output_dir = path.expand(paste0(mfiidd.dir, "/website/"))) 
+## }
+
+## output_format=html_document(smart=FALSE, toc=TRUE, fig_width=5, fig_height=5, theme="spacelab", highlight="pygments")

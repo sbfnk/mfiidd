@@ -198,5 +198,5 @@ In the next session we will look at all of these issues in more detail.
 Try changing the `my_mcmcMH` function to use different proposal distributions from a normal distributions (e.g., using `runif` or `rlnorm` instead of `rnorm`). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?
 
 <div>
-Top: [Index](index.html) Previous: [Introduction](introduction.html) Next: [MCMC diagnostics](mcmc_diagnostics.html)
+Top: [Index](index.html) Previous: [Introduction](introduction.html) <!--Next: [MCMC diagnostics](mcmc_diagnostics.html)-->
 </div>

@@ -121,7 +121,7 @@ xyplot(x = trace.burn.thin)
 # Let's check the ESS
 effectiveSize(trace.burn.thin)
 ```
-Although the thinned trace has 20 times less samples than the unthinned trace, it has a similar ESS. This is because the autocorrelation has been reduced.
+Although the thinned trace has 20 times less fewer than the unthinned trace, it has a similar ESS. This is because the autocorrelation has been reduced.
 
 ```{r short-run-analysis-acf-thin}
 # new autocorrelation plot
@@ -334,7 +334,7 @@ print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data = FluTdC1971)
+log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data = FluTdC1971, log = TRUE)
 print(log.like.theta.bar)
 
 # and its deviance

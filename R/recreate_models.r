@@ -35,3 +35,10 @@ save(SEIT4L_deter, file = path.expand(paste0(fitR.dir, "/", "data/SEIT4L_deter.r
 source(path.expand(paste0(fitR.dir, "/", "inst/examples/example-SEIT4L-sto.r")))
 save(SEIT4L_stoch, file = path.expand(paste0(fitR.dir, "/", "data/SEIT4L_stoch.rdata")))
 
+source(path.expand(paste0(fitR.dir, "/", "inst/examples/example-SEITL-pomp.r")))
+save(SEITL_pomp, file = path.expand(paste0(fitR.dir, "/", "data/SEITL_pomp.rdata")))
+
+source(path.expand(paste0(fitR.dir, "/", "inst/examples/example-SEIT2L-pomp.r")))
+save(SEIT2L_pomp, file = path.expand(paste0(fitR.dir, "/", "data/SEIT2L_pomp.rdata")))
+
+
