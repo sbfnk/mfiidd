@@ -1,0 +1,208 @@
+---
+title: "Fitting models to data using *pomp*"
+--- 
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pmcmc/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
+```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
+library(fitR)
+set.seed(1234)
+```
+[Lecture slides](slides/pomp_slides.pdf)
+
+# Objectives
+
+The aim of this session is to introduce the *R* package *pomp*, which contains functions for many of the tasks we have performed in this course. The benefit of using a package like *[pomp](http://pomp.r-forge.r-project.org/)* (or alternatives such as [SSM](https://github.com/sballesteros/ssm) or [libbi](http://libbi.org/)) is that they have been optimised for computational efficiency and can take full advantage of any available hardware (including running on a high-performance cluster). The disadvantage of using readily available packages is that 1) to allow for good performance, models are usually not coded in *R*, 2) any specific method or functionality you want to use might not be implemented, and 3) they can be more difficult to debug when something is going wrong.
+
+The aim of this session is to see how the different methods we have encountered in the course can be applied to fit a model to data using *pomp*. It is meant to serve both as a recap of what you have done in the last few days as well as an introduction to one of the available packages for model fitting and inference.
+
+In the [previous session](pmcmc.html), you coded a particle filter to estimate the likelihood, and the function `mcmcMH` to sample from the posterior distribution with a Metropolis-Hastings algorithm.
+
+In this session you will:
+
+1. learn how to code a model in `pomp` using C snippets
+2. explore how to use a particle filter and pMCMC using `pomp`
+3. explore a method for real-time modelling
+
+# Code a model in *pomp*
+
+To do model fitting with *pomp*, you need to create a `pomp` object. This works a bit like the fitmodel objects we created earlier. To create a `pomp` object, you need to specify a data set as well as functions that simulate the model, evaluate the prior density, etc. The components and functions that need to go into a `pomp` object are determined by the method that one wants to use. For more information on this, you can have a look at the recent [article](http://pomp.r-forge.r-project.org/vignettes/pompjss.pdf) on *pomp* in the Journal of Statistical Software.
+
+To load the `pomp` library, type
+```{r}
+library('pomp')
+```
+
+If this does not work, you need to install the `pomp` library. You can do this using
+```{r eval = FALSE}
+install.packages('pomp')
+```
+
+To specify a model that you want to fit to data in *pomp*, you can either write a function in *R*, or you can use so-called C snippets, that is model code written in C that is pre-compiled and can be called from an *R* function. The advantage of doing this is that you can benefit from the speed of compiled C code while not having to learn an awful lot about the details of C syntax.
+
+We have coded up the models of the previous practical sessions in *pomp* for you. To look at, for example, the SEITL model, use
+
+```{r results = "hide"}
+example(SEITL_pomp)
+```
+
+(if this yields a compile error, have a look at the [important information for windows and mac users](http://pomp.r-forge.r-project.org/vignettes/getting_started.html#important-information-for-windows-and-mac-users) or ask us for help).
+
+__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
+
+The `pomp` objects `SEITL_pomp` and `SEIT2L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values:
+
+```{r}
+theta <-
+    c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
+SEITL.init.state <-
+    c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
+SEIT2L.init.state <-
+    c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
+```
+
+Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended.
+
+__Take 30 minutes__ and try the following operations (with SEITL or SEIT2L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
+
+We now have a `pomp` object called `SEITL_pomp`, containing the data, the deterministic skeleton, the stochastic model and the observation process. All the functions we use below take this object as argument and pick whichever elements from within the `SEITL_pomp` are needed. We have coded up an equivalent `SEIT2L_pomp` object for the SEI2TL model, which you can load using
+
+```{r results = "hide"}
+example(SEIT2L_pomp)
+```
+
+We suggest that you try the methods described below with both of the models. Note that the SEIT2L model needs a slightly different initial state (because the variable names are different), as given above.
+
+## Simulating the model and estimating the likelihood
+
+### Deterministic trajectory
+
+```{r}
+SEITL.traj <- trajectory(SEITL_pomp,
+                         params = c(theta, SEITL.init.state),
+                         as.data.frame = TRUE)
+plotTraj(SEITL.traj)
+```
+
+The `trajectory` function simulates the deterministic skeleton of the `pomp` object it is given, ignoring all process or measurement stochasticity.
+
+### Stochastic trajectories
+
+```{r results = "hide"}
+SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.init.state),
+                      obs = TRUE, states = TRUE, 
+                      as.data.frame = TRUE)
+plotTraj(SEITL.sim)
+```
+The `simulate` function simulates the (stochastic) model of the `pomp` object it is given. By specifying `obs = TRUE` and `states = TRUE`, we indicate that we want to have both the model states and observations in the data frame that is returned.
+
+### Particle filter
+
+```{r}
+pf <- pfilter(SEITL_pomp, params = c(theta, SEITL.init.state), Np = 100)
+logLik(pf)
+```
+
+This estimates the likelihood of the given parameters using a particle filter with `Np = 100` particles.
+
+## Model fitting by maximising the likelihood
+
+Several methods are available in *pomp* for fitting a deterministic or stochastic model to data using maximum likelihood. Remember that this implies a *frequentist* method, that is the prior distribution is ignored, and the parameter values that yield maximum likelihood are interpreted as the true parameters.
+
+### Trajectory matching
+
+```{r results = "hide"}
+SEITL.tm <- traj.match(SEITL_pomp, start = c(theta, SEITL.init.state),
+                       est = names(theta))
+```
+```{r}
+logLik(SEITL.tm)
+```
+
+This fits the deterministic skeleton to the data by maximising the likelihood using a standard optimisation method (see `?traj.match` for details on the methods available). That is, it ignores all *process noise* (or *demographic stochasticity*) in the model.
+
+Note that the fitting procedures in *pomp* all return another `pomp` object. For the methods based on maximum likelihood, this object contains updated parameters set to the maximum likelihood estimate. This can then be used to initialise other methods.
+
+```{r}
+class(SEITL.tm)
+```
+
+For example, we can use the best-fit parameters from trajectory matching to simulate multiple trajectories from the stochastic model by passing the new object `SEITL.tm` to `simulate`.
+
+```{r results = "hide"}
+SEITL.tm.sim <- simulate(SEITL.tm, nsim = 10, as.data.frame = TRUE)
+plotTraj(SEITL.tm.sim, data = FluTdC1971, state.names = "obs")
+```
+
+### Maximum likelihood by iterated filtering (MIF)
+
+```{r results = "hide"}
+prop.sd <- rep(0.01, length(theta))
+names(prop.sd) <- names(theta)
+
+SEITL.mf <- mif(SEITL.tm, Nmif = 50, Np = 1000, cooling.fraction.50 = 0.01, rw.sd = prop.sd)
+SEITL.mf.sim <- simulate(SEITL.mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+plotTraj(SEITL.mf.sim, data = FluTdC1971, state.names = "obs")
+```
+```{r}
+logLik(SEITL.mf)
+```
+
+This fits the stochastic model to the data by maximising the likelihood using so-called [iterated filtering](https://en.wikipedia.org/wiki/Iterated_filtering). The parameters to be fitted are randomly perturbed (via a so-called random walk) in parameter space and the likelihood estimated with a particle filter. When *iterating* this procedure with smaller and smaller perturbations (i.e., smaller and smaller steps in the random walk), the parameters converge to the maximum likelihood estimate. For more information on maximum likelihood by iterated filtering, see the references given on the [wikipedia page](https://en.wikipedia.org/wiki/Iterated_filtering#References).
+
+In the function call above, we have used `Nmif = 50` iterations of MIF for finding the parameters that maximise the likelihood, `Np = 1000` particles for the likelihood itself, and a proportion of `cooling.fraction.50 = 0.01` of the random walk intensity remaining after 50 iterations.
+
+Note that we have initialised the method with the maximum likelihood estimate obtained from trajectory matching the deterministic model (`SEITL.tm`). It is a common procedure to initialise more computationally intensive models with results from a simpler, more approximate method.
+
+## Model fitting by sampling from the posterior distribution
+
+Several methods are available in *pomp* for fitting a deterministic or stochastic model to data by sampling from the posterior distribution. Remember that this implies a *Bayesian* method, that is the prior distribution is taken into account, and the parameter vectors sampled from the posterior distribution are interpreted as draws from a random distribution that encodes our uncertainty.
+
+### Particle Markov-Chain Monte Carlo (pMCMC)
+
+```{r results = "hide"}
+## run pMCMC
+SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 50, proposal = mvn.diag.rw(prop.sd), verbose = TRUE, max.fail = Inf)
+## get trace
+trace <- conv.rec(SEITL.pm, names(theta))
+## calculate the empirical standard deviation
+empirical.sd <- apply(trace, 2, sd)
+```
+
+```{r}
+library('coda')
+## acceptance rate
+1 - rejectionRate(trace)
+```
+
+```{r results = "hide"}
+## calculate the empirical standard deviation
+empirical.sd <- apply(trace, 2, sd)
+## re-run pMCMC using the empirical standard deviation
+SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 50, proposal = mvn.diag.rw(empirical.sd), verbose = TRUE, max.fail = Inf)
+trace <- conv.rec(SEITL.pm, names(theta))
+```
+
+```{r}
+## acceptance rate
+1 - rejectionRate(trace)
+
+plot(trace)
+```
+
+This runs pMCMC on the model, here for `Nmcmc = 1000` MCMC iterations with `Np = 50` particles. Note that *pomp* does not provide methods for adaptive MCMC, so we apply heuristic adaptation here by first running the MCMC with independent normal proposals of a guessed standard deviation and then re-running using the empirical standard deviation of accepted proposals.
+
+You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while clearly not running for long enough for a reliable estimation of the posterior densities, could run in only a few minutes to run on your computer.
+
+Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't? With this course coming to an end, we hope to have given you the tools to know what you need to do to whatever might be necessary to obtain a reliable model fit.
+
+## Going further
+
+There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the parameters (if frequentist) or sampling from the posterior distribution (if Bayesian). Have a look at 
+
+<div>
+# Navigate
+Top: [Index](index.html) Previous: [The particle MCMC](pmcmc.html)
+</div>

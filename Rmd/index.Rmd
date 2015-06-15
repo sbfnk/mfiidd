@@ -5,7 +5,7 @@
 <!-- [Local map](http://goo.gl/XEPxch) -->
 
 ## Required software
-* [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.1.0.
+* [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.2.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
 
 If you are not familiar with `R`, check our [introduction page](slides/rintro.pdf).
@@ -36,7 +36,7 @@ library(fitR)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
-7. [Further methods using pomp](pomp.html)
+7. [Fitting models to data using *pomp*](pomp.html)
 
 <!-- ## Further slides
 [Further methods and packages](slides/further_slides.pdf)
