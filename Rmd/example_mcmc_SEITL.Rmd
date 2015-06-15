@@ -323,7 +323,7 @@ print(theta.bar)
 
 # compute its log-likelihood
 init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data = FluTdC1971)
+log.like.theta.bar <- dTrajObs(SEITL_deter, theta.bar, init.state, data = FluTdC1971, log = TRUE)
 print(log.like.theta.bar)
 
 # and its deviance
