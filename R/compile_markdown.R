@@ -15,10 +15,8 @@ library('reshape2')
 # install_github("sbfnk/fitR")
 
 ## recompile all html files
-# Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
-# 	full.names = FALSE)
-
-# Rmd.files <- setdiff(Rmd.files, grep("pomp", Rmd.files, value=TRUE))
+R## md.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
+## 	full.names = FALSE)
 
 ## for (file in Rmd.files) {
 ## 	Rmd.file <- path.expand(paste0(mfiidd.dir, "/", "Rmd/", file))
@@ -27,6 +25,7 @@ library('reshape2')
 ## 	if (!file.exists(html.file) | file.mtime(Rmd.file) > file.mtime(html.file)) {
 ## 		render(Rmd.file, output_dir = path.expand(paste0(mfiidd.dir, "/website/")))
 ## 	}
+## }
 
 Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("play_with_seitl","play_with_seitl_example"),".Rmd"))
 
@@ -34,4 +33,4 @@ for(Rmd.file in Rmd.files){
 	render(Rmd.file, output_dir = path.expand(paste0(mfiidd.dir, "/website/"))) 
 }
 
-#output_format=html_document(smart=FALSE, toc=TRUE, fig_width=5, fig_height=5, theme="spacelab", highlight="pygments")
+## output_format=html_document(smart=FALSE, toc=TRUE, fig_width=5, fig_height=5, theme="spacelab", highlight="pygments")
