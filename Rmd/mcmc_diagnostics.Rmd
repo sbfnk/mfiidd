@@ -10,6 +10,8 @@ data(SIR)
 data(SIR_reporting)
 ```
 
+[Lecture slides](slides/mcmc_slides2.pdf)
+
 # Objectives
 
 The aim of this session is to learn how to interpret the results of MCMC sampling, as well as to improve the performance of the sampler. More specifically, you will

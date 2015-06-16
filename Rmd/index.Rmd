@@ -38,8 +38,7 @@ library(fitR)
 6. Particle MCMC
 7. Further methods
 
-<!--2. [MCMC](mcmc.html)
-3. [MCMC diagnostics](mcmc_diagnostics.html)
+<!--3. [MCMC diagnostics](mcmc_diagnostics.html)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
