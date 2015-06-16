@@ -12,7 +12,7 @@ data(SIR)
 data(SIR_reporting)
 ```
 
-[Lecture slides](slides/mcmc_slides.pdf)
+[Lecture slides](slides/mcmc_slides1.pdf)
 
 # Objectives
 
