@@ -19,3 +19,6 @@ auto
 *.fls
 *.log
 *.synctex.gz
+
+Rmd/cache
+Rmd/figure
