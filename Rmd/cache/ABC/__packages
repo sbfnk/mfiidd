@@ -1,0 +1,11 @@
+base
+devtools
+rmarkdown
+coda
+plyr
+dplyr
+lattice
+ggplot2
+reshape2
+deSolve
+fitR
