@@ -8,7 +8,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pm
 library(fitR)
 set.seed(1234)
 ```
-[Lecture slides](slides/smc_slides.pdf)
+[Lecture slides](slides/smc_2015.pdf)
 
 # Objectives
 
@@ -87,7 +87,7 @@ data(FluTdC1971)
 theta <- c("R0" = 7, "D_lat" = 1 , "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
 
 # init state as before
-init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0,"L" = 0,"Inc" = 0) 
+init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0) 
 
 # run the particle filter with 20 particles 
 my_particleFilter(SEIT4L_stoch, theta, init.state,  data = FluTdC1971,  n.particles = 20)
@@ -238,7 +238,7 @@ Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
 
 ## Optimization
 
-You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in R you can also have a look at the code of `particleFilter`. Actually, all the test runs were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.
+You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in **R** you can also have a look at the code of `particleFilter`. Actually, all the test runs were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.
 
 <div>
 # Navigate
