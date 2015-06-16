@@ -31,8 +31,8 @@ library(fitR)
 ## Contents
 
 1. [Introduction](introduction.html)
-2. MCMC
-3. MCMC diagnostics
+2. [MCMC](mcmc.html)
+3. [MCMC diagnostics](mcmc_diagnostics.html)
 4. Modelling interlude
 5. MCMC and model comparison
 6. Particle MCMC

@@ -31,14 +31,14 @@ library('reshape2')
 # }
 
 
+Rmd.files1 <- c("index","introduction","posterior_example","posterior_example_solution")
+Rmd.files2 <- c("mcmc","mcmc_example","mcmc_example_solution","generate_samples")
+Rmd.files3 <- c("mcmc_diagnostics","epi3_wrapper","mcmc_commands")
+Rmd.files4 <- c("play_with_seitl","play_with_seitl_example")
+Rmd.files5 <- c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert")
+Rmd.files6 <- c("pmcmc","smc_example","smc_example_solution","pmcmc_solution")
+Rmd.files <- c(Rmd.files1, Rmd.files2, Rmd.files3, Rmd.files4, Rmd.files5, Rmd.files6)
 
-# Rmd.files <- c("index")
-Rmd.files <- c("index","introduction","posterior_example","posterior_example_solution")
-Rmd.files <- c("mcmc","mcmc_example","mcmc_example_solution","generate_samples")
-Rmd.files <- c("mcmc_diagnostics","epi3_wrapper","mcmc_commands")
-Rmd.files <- c("play_with_seitl","play_with_seitl_example")
-Rmd.files <- c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert")
-# Rmd.files <- c("pmcmc","smc_example","smc_example_solution","pmcmc_solution")
 # Rmd.files <- c("ABC","sumstat_examples","distance_examples","abc_solution")
 
 
