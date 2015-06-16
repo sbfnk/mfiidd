@@ -222,7 +222,7 @@ summary(trace.burn.thin)
 
 Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with `summary` won't be meaningful for a parameter with a multi-modal posterior.
 
-__By contrast, for a uni-modal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates.__ Furthermore, running several "shorter" chains in parallel is faster than running one "long" chain.
+__By contrast, for a unimodal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates.__ Furthermore, running several "shorter" chains in parallel is faster than running one "long" chain.
 
 Finally, let's assess the fit of the deterministic SEITL model.
 
