@@ -33,14 +33,12 @@ library(fitR)
 1. [Introduction](introduction.html)
 2. [MCMC](mcmc.html)
 3. [MCMC diagnostics](mcmc_diagnostics.html)
-4. Modelling interlude
+4. [Modelling interlude](play_with_seitl.html)
 5. MCMC and model comparison
 6. Particle MCMC
 7. Further methods
 
-<!--3. [MCMC diagnostics](mcmc_diagnostics.html)
-4. [Modelling interlude](play_with_seitl.html)
-5. [MCMC and model comparison](mcmc_and_model_comparison.html)
+<!--5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
 7. [Fitting models to data using *pomp*](pomp.html)-->
 
