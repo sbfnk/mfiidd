@@ -156,7 +156,7 @@ adapt.shape.start &lt;-<span class="st"> </span><span class="co"># INSERT HERE</
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="example_mcmc_SEITL.html#setting-the-mcmc">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMH</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run the MCMC</span>
-my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">arget =</span> my_posteriorTdC,
+my_mcmc.TdC &lt;-<span class="st"> </span><span class="kw">mcmcMH</span>(<span class="dt">target =</span> my_posteriorTdC,
                       <span class="dt">init.theta =</span> init.theta,
                       <span class="dt">proposal.sd =</span> proposal.sd,
                       <span class="dt">limits =</span> <span class="kw">list</span>(<span class="dt">lower =</span> lower,<span class="dt">upper =</span> upper),
