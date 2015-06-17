@@ -97,7 +97,7 @@ Then you should be able to run `mcmcMH`:
 
 ```{r run-mcmc, eval=FALSE,tidy = FALSE}
 # run the MCMC
-my_mcmc.TdC <- mcmcMH(arget = my_posteriorTdC,
+my_mcmc.TdC <- mcmcMH(target = my_posteriorTdC,
                       init.theta = init.theta,
                       proposal.sd = proposal.sd,
                       limits = list(lower = lower,upper = upper),
