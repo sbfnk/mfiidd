@@ -37,7 +37,8 @@ Rmd.files3 <- c("mcmc_diagnostics","epi3_wrapper","mcmc_commands")
 Rmd.files4 <- c("play_with_seitl","play_with_seitl_example")
 Rmd.files5 <- c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert")
 Rmd.files6 <- c("pmcmc","smc_example","smc_example_solution","pmcmc_solution")
-Rmd.files <- c(Rmd.files1, Rmd.files2, Rmd.files3, Rmd.files4, Rmd.files5, Rmd.files6)
+Rmd.files7 <- c("pomp", "pomp_seitl_explanation")
+Rmd.files <- c(Rmd.files7)
 
 # Rmd.files <- c("ABC","sumstat_examples","distance_examples","abc_solution")
 
