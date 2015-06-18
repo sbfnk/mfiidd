@@ -219,6 +219,7 @@ SEITL.sim.c &lt;-<span class="st"> '</span>
 SEITL.rmeas.c &lt;-<span class="st"> '</span>
 <span class="st">    obs = rpois(rho * Inc);</span>
 <span class="st">'</span></code></pre></div>
+<p>(you may notice that the function in the example looks slightly different, to prevent numerical problems later)</p>
 <p>This, again, defines a character string with C code, to be used later with <code>Csnippet</code>. It defines a function to randomly generate point observations from model incidence, like our function <code>rPointObs</code> earlier. In this case, it uses a random draw from a Poisson distribution with mean <code>rho*Inc</code>, and stores it in the variable <code>obs</code>.</p>
 </div>
 <div id="point-observation-probability-density" class="section level3">
@@ -227,6 +228,7 @@ SEITL.rmeas.c &lt;-<span class="st"> '</span>
 SEITL.dmeas.c &lt;-<span class="st"> '</span>
 <span class="st">    lik = dpois(obs, rho * Inc, give_log);</span>
 <span class="st">'</span></code></pre></div>
+<p>(you may notice that the function in the example looks slightly different, to prevent numerical problems later)</p>
 <p>This, again, defines a character string with C code, to be used later with <code>Csnippet</code>. It defines a function to evaluate the probability density of point observations of the model incidence, like our function <code>dPointObs</code> earlier. In this case, it evaluates the probability following a Poisson probability distribution with mean <code>rho * Inc</code> and stores it in the variable <code>lik</code>. It can do both the logged and natural likelihood; which of the two is used will be given by <code>give_log</code>.</p>
 </div>
 <div id="prior-density" class="section level3">
