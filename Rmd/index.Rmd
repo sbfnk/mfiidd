@@ -1,8 +1,8 @@
 % Model fitting and inference for infectious disease dynamics
 
-<!-- ## Lunch options -->
+## Lunch options
 
-<!-- [Local map](http://goo.gl/XEPxch) -->
+[Local map](http://goo.gl/XEPxch)
 
 ## Required software
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.2.0.
@@ -40,8 +40,7 @@ library(fitR)
 
 <!--7. [Fitting models to data using *pomp*](pomp.html)-->
 
-<!-- ## Further slides
-[Further methods and packages](slides/further_slides.pdf)
+<!--8. [Approximate Bayesian Compuation](ABC.html)
 
 ### Thursday afternoon talks
 
