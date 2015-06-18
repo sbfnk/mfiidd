@@ -10,7 +10,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pomp/', cache.path='cache/pom
 library(fitR)
 set.seed(1234)
 ```
-[Lecture slides](slides/pomp_slides.pdf)
+[Lecture slides](slides/revision_slides.pdf)
 
 # Objectives
 
