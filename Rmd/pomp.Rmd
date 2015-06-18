@@ -50,9 +50,25 @@ example(SEITL_pomp)
 
 (if this yields a compile error, have a look at the [important information for windows and mac users](http://pomp.r-forge.r-project.org/vignettes/getting_started.html#important-information-for-windows-and-mac-users) or ask us for help).
 
-__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
+__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help. How would you change this to get the `SEIT4L` model? You can have a go at it yourself, or load our version using
 
-The `pomp` objects `SEITL_pomp` and `SEIT4L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values:
+```{r results = "hide"}
+example(SEIT4L_pomp)
+```
+
+We now have a `pomp` object called `SEITL_pomp`, containing the data, the deterministic skeleton, the stochastic model and the observation process. All the functions we use below take this object as argument and pick whichever elements from within the `SEITL_pomp` are needed. We have coded up an equivalent `SEIT4L_pomp` object for the SEIT4L model, which you can load using.
+
+```{r results = "hide"}
+example(SEIT4L_pomp)
+```
+
+__Take 30 minutes__ and try the following operations (with SEITL or SEIT4L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
+
+We suggest that you try the methods described below with both of the models. 
+
+## Simulating the model and estimating the likelihood
+
+Let's, again, guess some parameters and initial values:
 
 ```{r}
 theta <-
@@ -63,19 +79,7 @@ SEIT4L.init.state <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
 ```
 
-Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended.
-
-__Take 30 minutes__ and try the following operations (with SEITL or SEIT4L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
-
-We now have a `pomp` object called `SEITL_pomp`, containing the data, the deterministic skeleton, the stochastic model and the observation process. All the functions we use below take this object as argument and pick whichever elements from within the `SEITL_pomp` are needed. We have coded up an equivalent `SEIT4L_pomp` object for the SEIT4L model, which you can load using
-
-```{r results = "hide"}
-example(SEIT4L_pomp)
-```
-
-We suggest that you try the methods described below with both of the models. Note that the SEIT4L model needs a slightly different initial state (because the variable names are different), as given above.
-
-## Simulating the model and estimating the likelihood
+Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).
 
 ### Deterministic trajectory
 
