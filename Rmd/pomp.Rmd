@@ -62,7 +62,7 @@ We now have a `pomp` object called `SEITL_pomp`, containing the data, the determ
 example(SEIT4L_pomp)
 ```
 
-__Take 30 minutes__ and try the following operations (with SEITL or SEIT4L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
+Now try the following operations (with SEITL or SEIT4L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
 
 We suggest that you try the methods described below with both of the models. 
 
