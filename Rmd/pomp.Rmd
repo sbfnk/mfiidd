@@ -194,13 +194,13 @@ plot(trace)
 
 This runs pMCMC on the model, here for `Nmcmc = 1000` MCMC iterations with `Np = 50` particles. Note that *pomp* does not provide methods for adaptive MCMC, so we apply heuristic adaptation here by first running the MCMC with independent normal proposals of a guessed standard deviation and then re-running using the empirical standard deviation of accepted proposals.
 
-You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while clearly not running for long enough for a reliable estimation of the posterior densities, could run in only a few minutes to run on your computer.
+You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while clearly not running for long enough for a reliable estimation of the posterior densities, should run in only a few minutes to run on your computer.
 
-Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't? With this course coming to an end, we hope to have given you the tools to know what you need to do to whatever might be necessary to obtain a reliable model fit.
+Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't? With this course coming to an end, we hope to have given you the tools to know what you need to do to whatever might be necessary to obtain a reliable model fit. Do you get the same answers as yesterday?
 
 ## Going further
 
-There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the parameters (if frequentist) or sampling from the posterior distribution (if Bayesian). Have a look at 
+There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the parameters (if frequentist) or sampling from the posterior distribution (if Bayesian). You can read up on the different methods on the [pomp website](http://pomp.r-forge.r-project.org/), and try to use them for the Tristan da Cunha dataset.
 
 <div>
 # Navigate
