@@ -208,5 +208,5 @@ There are other methods available in *pomp*, such as ABC (Approximate Bayesian C
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [The particle MCMC](pmcmc.html)
+Top: [Index](index.html) Previous: [Particle MCMC](pmcmc.html) Next: [Fitting models to data using pomp](pomp.html)
 </div>
