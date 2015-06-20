@@ -167,28 +167,28 @@ Several methods are available in *pomp* for fitting a deterministic or stochasti
 ### Particle Markov-Chain Monte Carlo (pMCMC)
 
 ```{r results = "hide"}
-## run pMCMC
+# run pMCMC
 SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 200, proposal = mvn.diag.rw(prop.sd), verbose = TRUE, max.fail = Inf)
-## get trace
+# get trace
 trace <- conv.rec(SEITL.pm, names(theta))
 ```
 
 ```{r}
 library('coda')
-## acceptance rate
+# acceptance rate
 1 - rejectionRate(trace)
 ```
 
 ```{r results = "hide"}
-## calculate the empirical covariance matrix
+# calculate the empirical covariance matrix
 empirical.cov <- cov(trace)
-## re-run pMCMC using the empirical correlations
+# re-run pMCMC using the empirical correlations
 SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 200, proposal = mvn.rw(empirical.cov), verbose = TRUE, max.fail = Inf)
 trace <- conv.rec(SEITL.pm, names(theta))
 ```
 
 ```{r fig.height = 12, fig.width = 10}
-## acceptance rate
+# acceptance rate
 1 - rejectionRate(trace)
 
 plot(trace)
