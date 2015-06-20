@@ -171,8 +171,6 @@ Several methods are available in *pomp* for fitting a deterministic or stochasti
 SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 200, proposal = mvn.diag.rw(prop.sd), verbose = TRUE, max.fail = Inf)
 ## get trace
 trace <- conv.rec(SEITL.pm, names(theta))
-## calculate the empirical standard deviation
-empirical.sd <- apply(trace, 2, sd)
 ```
 
 ```{r}
