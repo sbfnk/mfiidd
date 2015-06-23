@@ -1,8 +1,8 @@
 % Model fitting and inference for infectious disease dynamics
 
-## Lunch options
+<!-- ## Lunch options -->
 
-[Local map](http://goo.gl/XEPxch)
+<!-- [Local map](http://goo.gl/XEPxch) -->
 
 ## Required software
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.2.0.
@@ -26,9 +26,7 @@ Then you can check that the installation completed successfully by loading the p
 library(fitR)
 ```
 
-<div>
-
-## Contents
+## Practial session
 
 1. [Introduction](introduction.html)
 2. [MCMC](mcmc.html)
@@ -38,7 +36,16 @@ library(fitR)
 6. [Particle MCMC](pmcmc.html)
 7. [Fitting models to data using *pomp*](pomp.html)
 
-<!--8. [Approximate Bayesian Compuation](ABC.html)-->
+## Extra practical session
+
+8. [Approximate Bayesian Compuation](ABC.html)
+
+## Examples of model fitting
+
+[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
+
+[Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf)
+
 # Navigate
 Next: [Introduction](introduction.html)
 
