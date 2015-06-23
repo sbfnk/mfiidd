@@ -38,16 +38,7 @@ library(fitR)
 6. [Particle MCMC](pmcmc.html)
 7. [Fitting models to data using *pomp*](pomp.html)
 
-<!--8. [Approximate Bayesian Compuation](ABC.html)
-
-### Thursday afternoon talks
-
-[Assessing changes in vaccination programmes of seasonal influenza: an evidence synthesis and modelling study](slides/marc_talk.pdf)
-
-[History matching of complex infectious disease models using emulation](slides/yiannis_talk.pdf)
-
-[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
- -->
+<!--8. [Approximate Bayesian Compuation](ABC.html)-->
 # Navigate
 Next: [Introduction](introduction.html)
 
