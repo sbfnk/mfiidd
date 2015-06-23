@@ -10,6 +10,8 @@ data(SIR)
 data(SIR_reporting)
 ```
 
+[Lecture slides](slides/mcmc_slides2.pdf)
+
 # Objectives
 
 The aim of this session is to learn how to interpret the results of MCMC sampling, as well as to improve the performance of the sampler. More specifically, you will
@@ -320,5 +322,5 @@ SIR_reporting$dPointObs
 Can you fit this to the `epi4` data set?
 
 <div>
-Top: [Index](index.html) Previous: [MCMC](mcmc.html) <!-- Next: [Modelling interlude](play_with_seitl.html) -->
+Top: [Index](index.html) Previous: [MCMC](mcmc.html) Next: [Modelling interlude](play_with_seitl.html)
 </div>

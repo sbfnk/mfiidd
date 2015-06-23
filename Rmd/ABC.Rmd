@@ -219,7 +219,7 @@ We are nearly ready to run MCMC to generate samples that follow our ABC estimate
 ```{r abc_wrapper}
 my_ABCLogPosterior_tdc <- function(theta) {
 
-    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
+    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0)
 
     # log posterior with several summary statistics, distance given
     # by the mean relative distance in the summary statistics,
@@ -263,7 +263,7 @@ Write a wrapper function `my_ABCLogPosterior_tdc_det` to calculate the posterior
 ```{r abc_wrapper_det, echo = FALSE}
 my_ABCLogPosterior_tdc_det <- function(theta) {
 
-    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
+    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0)
 
     # log posterior with several summary statistics, distance given
     # by the mean relative distance in the summary statistics,
@@ -298,5 +298,5 @@ A [recent review of ABC](http://www.ploscompbiol.org/article/info%3Adoi%2F10.137
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [Particle MCMC](pmcmc.html)
+Top: [Index](index.html)
 <div>

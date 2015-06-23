@@ -97,7 +97,7 @@ Then you should be able to run `mcmcMH`:
 
 ```{r run-mcmc, eval=FALSE,tidy = FALSE}
 # run the MCMC
-my_mcmc.TdC <- mcmcMH(arget = my_posteriorTdC,
+my_mcmc.TdC <- mcmcMH(target = my_posteriorTdC,
                       init.theta = init.theta,
                       proposal.sd = proposal.sd,
                       limits = list(lower = lower,upper = upper),
@@ -228,18 +228,23 @@ where $\bar\theta$ is the mean of $\theta$ with respect to the posterior distrib
 $$p_D=\frac{1}{2}\hat{\mathrm{var}}(D(\theta))$$
 that is half of the variance of the deviance with respect to the posterior distribution.
 
-The idea is that models with smaller DIC should be preferred to models with larger DIC. Models are penalized both by the value of $D(\bar\theta)$, which favors a good fit, but also by the effective number of parameters $p_D$. Since $D(\bar\theta)$ will decrease as the number of parameters in a model increases, the $p_D$ term compensates for this effect by favouring models with a smaller number of effective parameters.
+__The idea is that models with smaller DIC should be preferred to models with larger DIC.__ Models are penalized both by the value of $D(\bar\theta)$, which favors a good fit, but also by the effective number of parameters $p_D$. Since $D(\bar\theta)$ will decrease as the number of parameters in a model increases, the $p_D$ term compensates for this effect by favouring models with a smaller number of effective parameters.
 
 Compute the DIC for your model. A solution is provided [here](example_mcmc_SEITL.html#model-selection). 
 
-Now, it's time to compare the DIC of the SEITL and SEIT4L model. Which model should be preferred? Is the difference substantial?
+__Now, it's time to compare the DIC of the SEITL and SEIT4L model. Which model should be preferred? Is the difference substantial?__
+
 You can have a look at the [MRC FAQ](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-dic/) on DIC to decide which model is the best. 
 
 # Posterior predictive checks
 
-The DIC can only tell you which one of two or more models fit the data best; it doesn't give you any information on whether the best model provides actually a good fit to the data *overall* (in the kingdom of the blind, the one-eyed man is king).
+The DIC can only tell you which one of two or more models fit the data best; __it doesn't give you any information on whether the best model provides actually a good fit to the data__ *overall* (in the kingdom of the blind, the one-eyed man is king).
 
-One way to assess the overall quality of a fit is to perform *posterior predictive checks*. It works by choosing a test statistic of the data (i.e., the peak, final size, etc.) and running many model replicates from parameter values that have been sampled from the posterior. One then tests how often in the simulations the test statistic takes a value as extreme or more extreme than the value it takes in the data. This allows us to compute a p-value (a frequentist quantity, strictly speaking). If the data come out as an extreme case of model output (that is, the chosen test statistic or a more extreme value only comes up very rarely in the simulations), it would indicate that the model is not a good fit to the data.
+One way to assess the overall quality of a fit is to perform *posterior predictive checks*. It works by choosing a test statistic of the data (i.e., the peak, final size, etc.) and running many model replicates from parameter values that have been sampled from the posterior.
+
+One then tests how often in the simulations the test statistic takes a value as extreme or more extreme than the value it takes in the data. This allows us to compute a p-value (a frequentist quantity, strictly speaking).
+
+If the data come out as an extreme case of model output (that is, the chosen test statistic or a more extreme value only comes up very rarely in the simulations), it would indicate that the model is not a good fit to the data.
 
 Let's look at the maximum in the data
 
@@ -311,6 +316,6 @@ Does the best model yield to a "better" (higher) p-value?
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [Modelling interlude](play_with_seitl.html) <!--Next: [Particle MCMC](pmcmc.html)-->
+Top: [Index](index.html) Previous: [Modelling interlude](play_with_seitl.html) Next: [Particle MCMC](pmcmc.html)
 </div>
 

@@ -3,14 +3,14 @@ title: "Fitting models to data using *pomp*"
 --- 
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pmcmc/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pomp/', cache.path='cache/pomp/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
 library(fitR)
 set.seed(1234)
 ```
-[Lecture slides](slides/pomp_slides.pdf)
+[Lecture slides](slides/revision_slides.pdf)
 
 # Objectives
 
@@ -50,36 +50,40 @@ example(SEITL_pomp)
 
 (if this yields a compile error, have a look at the [important information for windows and mac users](http://pomp.r-forge.r-project.org/vignettes/getting_started.html#important-information-for-windows-and-mac-users) or ask us for help).
 
-__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
+__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help. How would you change this to get the `SEIT4L` model? You can have a go at it yourself, or load our version using
 
-The `pomp` objects `SEITL_pomp` and `SEIT2L_pomp` now contain everything needed for model fitting and inference. Let's, again, guess some parameters and initial values:
+```{r results = "hide"}
+example(SEIT4L_pomp)
+```
+
+We now have a `pomp` object called `SEITL_pomp`, containing the data, the deterministic skeleton, the stochastic model and the observation process. All the functions we use below take this object as argument and pick whichever elements from within the `SEITL_pomp` are needed. We have coded up an equivalent `SEIT4L_pomp` object for the SEIT4L model, which you can load using.
+
+```{r results = "hide"}
+example(SEIT4L_pomp)
+```
+
+Now try the following operations (with SEITL or SEIT4L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
+
+We suggest that you try the methods described below with both of the models. 
+
+## Simulating the model and estimating the likelihood
+
+Let's, again, guess some parameters and initial values:
 
 ```{r}
 theta <-
     c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 SEITL.init.state <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
-SEIT2L.init.state <-
+SEIT4L.init.state <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
 ```
 
-Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended.
-
-__Take 30 minutes__ and try the following operations (with SEITL or SEIT2L). For full documentation of the functions used, refer to the *R* help pages, which you can access using `?function` (replacing 'function' with the name of the function you are interested in).
-
-We now have a `pomp` object called `SEITL_pomp`, containing the data, the deterministic skeleton, the stochastic model and the observation process. All the functions we use below take this object as argument and pick whichever elements from within the `SEITL_pomp` are needed. We have coded up an equivalent `SEIT2L_pomp` object for the SEI2TL model, which you can load using
-
-```{r results = "hide"}
-example(SEIT2L_pomp)
-```
-
-We suggest that you try the methods described below with both of the models. Note that the SEIT2L model needs a slightly different initial state (because the variable names are different), as given above.
-
-## Simulating the model and estimating the likelihood
+Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).
 
 ### Deterministic trajectory
 
-```{r}
+```{r fig.height = 6,fig.width = 10, results = "hide"}
 SEITL.traj <- trajectory(SEITL_pomp,
                          params = c(theta, SEITL.init.state),
                          as.data.frame = TRUE)
@@ -90,7 +94,7 @@ The `trajectory` function simulates the deterministic skeleton of the `pomp` obj
 
 ### Stochastic trajectories
 
-```{r results = "hide"}
+```{r results  =  "hide",fig.height = 6,fig.width = 10}
 SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.init.state),
                       obs = TRUE, states = TRUE, 
                       as.data.frame = TRUE)
@@ -164,7 +168,7 @@ Several methods are available in *pomp* for fitting a deterministic or stochasti
 
 ```{r results = "hide"}
 ## run pMCMC
-SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 50, proposal = mvn.diag.rw(prop.sd), verbose = TRUE, max.fail = Inf)
+SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 200, proposal = mvn.diag.rw(prop.sd), verbose = TRUE, max.fail = Inf)
 ## get trace
 trace <- conv.rec(SEITL.pm, names(theta))
 ## calculate the empirical standard deviation
@@ -178,31 +182,31 @@ library('coda')
 ```
 
 ```{r results = "hide"}
-## calculate the empirical standard deviation
-empirical.sd <- apply(trace, 2, sd)
-## re-run pMCMC using the empirical standard deviation
-SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 50, proposal = mvn.diag.rw(empirical.sd), verbose = TRUE, max.fail = Inf)
+## calculate the empirical covariance matrix
+empirical.cov <- cov(trace)
+## re-run pMCMC using the empirical correlations
+SEITL.pm <- pmcmc(SEITL.mf, Nmcmc = 1000, Np = 200, proposal = mvn.rw(empirical.cov), verbose = TRUE, max.fail = Inf)
 trace <- conv.rec(SEITL.pm, names(theta))
 ```
 
-```{r}
+```{r fig.height = 12, fig.width = 10}
 ## acceptance rate
 1 - rejectionRate(trace)
 
 plot(trace)
 ```
 
-This runs pMCMC on the model, here for `Nmcmc = 1000` MCMC iterations with `Np = 50` particles. Note that *pomp* does not provide methods for adaptive MCMC, so we apply heuristic adaptation here by first running the MCMC with independent normal proposals of a guessed standard deviation and then re-running using the empirical standard deviation of accepted proposals.
+This runs pMCMC on the model, here for `Nmcmc = 1000` MCMC iterations with `Np = 200` particles. Note that *pomp* does not provide methods for adaptive MCMC, so we apply heuristic adaptation here by first running the MCMC with independent normal proposals of a guessed standard deviation and then re-running using the empirical covariance matrix accepted proposals.R
 
-You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while clearly not running for long enough for a reliable estimation of the posterior densities, could run in only a few minutes to run on your computer.
+You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while clearly not running for long enough for a reliable estimation of the posterior densities, should run in only a few minutes to run on your computer.
 
-Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't? With this course coming to an end, we hope to have given you the tools to know what you need to do to whatever might be necessary to obtain a reliable model fit.
+Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't? With this course coming to an end, we hope to have given you the tools to know what you need to do to whatever might be necessary to obtain a reliable model fit. Do you get the same answers as yesterday?
 
 ## Going further
 
-There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the parameters (if frequentist) or sampling from the posterior distribution (if Bayesian). Have a look at 
+There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the parameters (if frequentist) or sampling from the posterior distribution (if Bayesian). You can read up on the different methods on the [pomp website](http://pomp.r-forge.r-project.org/), and try to use them for the Tristan da Cunha dataset.
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [The particle MCMC](pmcmc.html)
+Top: [Index](index.html) Previous: [Particle MCMC](pmcmc.html) Next: [Fitting models to data using pomp](pomp.html)
 </div>
