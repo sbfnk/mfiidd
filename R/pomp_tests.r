@@ -14,7 +14,7 @@ SEITL_tm <- traj.match(SEITL_pomp,start = c(theta, SEITL_init_state),
                        est = names(theta))
 prop.sd <- theta
 prop.sd[] <- 0.01
-SEITL_pm <- pmcmc(SEITL_tm, Nmcmc = 100000, Np = 200, proposal = prop.sd, verbose = TRUE, max.fail = Inf, adapt.size.start = 100, adapt.shape.start = 5000, max.scaling = 50, adapt.size.cooling = 0.999)
+SEITL_pm <- pmcmc(SEITL_tm, Nmcmc = 100, Np = 200, proposal = prop.sd, verbose = TRUE, max.fail = Inf, filter.traj=TRUE)
 
 SEITL_pm <- pmcmc(SEITL_tm, Nmcmc = 100000, Np = 200, proposal = prop.sd, verbose = TRUE, max.fail = Inf, adapt.size.start = 100, adapt.shape.start = 5000, max.scaling = 50, adapt.size.cooling = 0.999)
 
