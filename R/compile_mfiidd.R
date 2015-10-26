@@ -53,12 +53,12 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
 
         practical <- as.integer(practical)
 
-        if (is.na(practical))
+        if (any(is.na(practical)))
         {
-            stop(sQuote("practical"), " must be a number")
+            stop(sQuote("practical"), " must be a vector of interger")
         } else
         {
-            Rmd.files <- intersect(Rmd.files, unlist(practical.files[practical]))
+            Rmd.files <- unlist(practical.files[practical])
         }
     }
 
