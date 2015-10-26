@@ -17,7 +17,7 @@ The simplest way to install the `fitR` is to use the `devtools` package:
 ```{r install, eval=FALSE}
 install.packages("devtools")
 library(devtools)
-install_github("sbfnk/fitR")
+install_github("sbfnk/fitR@fitcourse_2015")
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
@@ -33,16 +33,10 @@ library(fitR)
 1. [Introduction](introduction.html)
 2. [MCMC](mcmc.html)
 3. [MCMC diagnostics](mcmc_diagnostics.html)
-4. Modelling interlude
-5. MCMC and model comparison
-6. Particle MCMC
-7. Further methods
-
-<!--3. [MCMC diagnostics](mcmc_diagnostics.html)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
-7. [Fitting models to data using *pomp*](pomp.html)-->
+<!-- 7. [Fitting models to data using *pomp*](pomp.html) -->
 
 <!-- ## Further slides
 [Further methods and packages](slides/further_slides.pdf)
