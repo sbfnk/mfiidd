@@ -4,7 +4,7 @@ This repository contains all the material to create the mfiidd webpage with the 
 
 All the raw material is in the folder `/Rmd` and is written in `Rmarkdown`.
 
-The `html` pages are generated using the function `generate_html` in `R/generate_html.R`.
+The `html` pages are generated using the file `R/compile_markdown.R`.
 
 The `html` pages are created in `/website`, whose content need to be transfered to the `gh-pages` branch.
 
