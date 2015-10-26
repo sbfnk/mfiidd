@@ -97,7 +97,7 @@ Then you should be able to run `mcmcMH`:
 
 ```{r run-mcmc, eval=FALSE,tidy = FALSE}
 # run the MCMC
-my_mcmc.TdC <- mcmcMH(arget = my_posteriorTdC,
+my_mcmc.TdC <- mcmcMH(target = my_posteriorTdC,
                       init.theta = init.theta,
                       proposal.sd = proposal.sd,
                       limits = list(lower = lower,upper = upper),
@@ -316,6 +316,6 @@ Does the best model yield to a "better" (higher) p-value?
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [Modelling interlude](play_with_seitl.html) <!--Next: [Particle MCMC](pmcmc.html)-->
+Top: [Index](index.html) Previous: [Modelling interlude](play_with_seitl.html) Next: [Particle MCMC](pmcmc.html)
 </div>
 

@@ -151,6 +151,8 @@ SEITL.rmeas.c <- '
 '
 ```
 
+(you may notice that the function in the example looks slightly different, to prevent numerical problems later)
+
 This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to randomly generate point observations from model incidence, like our function `rPointObs` earlier. In this case, it uses a random draw from a Poisson distribution with mean `rho*Inc`, and stores it in the variable `obs`.
 
 ### Point observation probability density
@@ -161,6 +163,8 @@ SEITL.dmeas.c <- '
     lik = dpois(obs, rho * Inc, give_log);
 '
 ```
+
+(you may notice that the function in the example looks slightly different, to prevent numerical problems later)
 
 This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to evaluate the probability density of point observations of the model incidence, like our function `dPointObs` earlier. In this case, it evaluates the probability following a Poisson probability distribution with mean `rho * Inc` and stores it in the variable `lik`. It can do both the logged and natural likelihood; which of the two is used will be given by `give_log`.
 

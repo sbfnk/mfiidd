@@ -26,9 +26,7 @@ Then you can check that the installation completed successfully by loading the p
 library(fitR)
 ```
 
-<div>
-
-## Contents
+## Practial session
 
 1. [Introduction](introduction.html)
 2. [MCMC](mcmc.html)
@@ -36,19 +34,22 @@ library(fitR)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
+
 <!-- 7. [Fitting models to data using *pomp*](pomp.html) -->
 
-<!-- ## Further slides
-[Further methods and packages](slides/further_slides.pdf)
+<!-- [Further methods and packages](slides/further_slides.pdf)
 
-### Thursday afternoon talks
+## Extra practical session
 
-[Assessing changes in vaccination programmes of seasonal influenza: an evidence synthesis and modelling study](slides/marc_talk.pdf)
+8. [Approximate Bayesian Compuation](ABC.html)
 
-[History matching of complex infectious disease models using emulation](slides/yiannis_talk.pdf)
+## Examples of model fitting
 
 [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
+
+[Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf)
  -->
+ 
 # Navigate
 Next: [Introduction](introduction.html)
 
