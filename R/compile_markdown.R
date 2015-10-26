@@ -12,7 +12,7 @@ library('ggplot2')
 library('reshape2')
 
 ## first reinstall latest release of fitR so it is the one used in "render()"
-# install_github("sbfnk/fitR")
+# install_github("sbfnk/fitR@fitcourse_2015")
 
 ## recompile all html files
 # Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
@@ -30,7 +30,7 @@ library('reshape2')
 # 	}
 # }
 
-
+# recompile by block, thus preserving the compilation order
 Rmd.files1 <- c("index","introduction","posterior_example","posterior_example_solution")
 Rmd.files2 <- c("mcmc","mcmc_example","mcmc_example_solution","generate_samples")
 Rmd.files3 <- c("mcmc_diagnostics","epi3_wrapper","mcmc_commands")
@@ -40,7 +40,6 @@ Rmd.files6 <- c("pmcmc","smc_example","smc_example_solution","pmcmc_solution")
 Rmd.files <- c(Rmd.files1, Rmd.files2, Rmd.files3, Rmd.files4, Rmd.files5, Rmd.files6)
 
 # Rmd.files <- c("ABC","sumstat_examples","distance_examples","abc_solution")
-
 
 # Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("","play_with_seitl_example"),".Rmd"))
 # Rmd.files <- path.expand(paste0(mfiidd.dir, "/Rmd/",c("play_with_seitl","play_with_seitl_example"),".Rmd"))
