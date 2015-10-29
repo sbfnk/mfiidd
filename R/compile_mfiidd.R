@@ -83,3 +83,7 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
         stop("No files to compile")
     }
 }
+
+
+compile_mfiidd(c("index","STRU_project"))
+
