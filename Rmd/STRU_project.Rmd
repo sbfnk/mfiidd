@@ -37,7 +37,7 @@ Download the dataset you have been assigned:
 * [Dataset 1](data/ebola_dataset_1.csv): Willem & Chéima
 * [Dataset 2](data/ebola_dataset_2.csv): Hugo & Rémi
 * [Dataset 3](data/ebola_dataset_3.csv): Alexis & Tim
-* [Dataset 4](data/ebola_dataset_4.csv): Ségolène, Marc & Mathieu
+* [Dataset 4](data/ebola_dataset_4.csv): Ségolène, Marc & Matthieu
 
 Each dataset contains the __weekly__ observed incidence of new cases for a period of 64 weeks and is a unique combination of one intervention (linear or step) and one observation (random or expected).
 
