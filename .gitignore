@@ -33,3 +33,5 @@ docs/_minted-rintro/
 docs/*.png
 docs/*.pdf
 docs/rintro.tex
+
+website/*.html

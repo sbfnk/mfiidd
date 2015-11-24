@@ -34,7 +34,11 @@ library(fitR)
 4. [Modelling interlude](play_with_seitl.html)
 5. [MCMC and model comparison](mcmc_and_model_comparison.html)
 6. [Particle MCMC](pmcmc.html)
-7. [Fitting models to data using *pomp*](pomp.html)
+6. [STRU projects](STRU_project.html)
+
+<!-- 7. [Fitting models to data using *pomp*](pomp.html) -->
+
+<!-- [Further methods and packages](slides/further_slides.pdf)
 
 ## Extra practical session
 
@@ -45,7 +49,8 @@ library(fitR)
 [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
 
 [Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf)
-
+ -->
+ 
 # Navigate
 Next: [Introduction](introduction.html)
 

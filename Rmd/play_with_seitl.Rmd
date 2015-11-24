@@ -234,5 +234,5 @@ In the next session, you will verify your intuition by using a statistical crite
 
 <div>
 # Navigate
-Top: [Index](index.html) Previous: [MCMC diagnostics](mcmc_diagnostics.html) <!--Next: [MCMC and model comparison](mcmc_and_model_comparison.html)-->
+Top: [Index](index.html) Previous: [MCMC diagnostics](mcmc_diagnostics.html) Next: [MCMC and model comparison](mcmc_and_model_comparison.html)
 </div>
