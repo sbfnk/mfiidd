@@ -36,7 +36,7 @@ Then you can check that the installation completed successfully by loading the p
 library(fitR)
 ```
 
-## Practial session
+## Practical session
 
 1. [Introduction](introduction.html)
 2. [MCMC](mcmc.html)
