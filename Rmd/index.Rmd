@@ -1,4 +1,7 @@
-% Model fitting and inference for infectious disease dynamics
+---
+title: Model fitting and inference for infectious disease dynamics
+author: by Sebastian Funk, Anton Camacho and Helen Johnson
+---
 
 <!-- ## Lunch options -->
 
