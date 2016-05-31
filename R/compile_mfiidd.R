@@ -7,18 +7,17 @@
 ##' @param practical integer vector. If given, will only compile the files for the given practical session. This respects any information given in \code{Rmd.files} or \code{exclude}
 ##' @param clear.cache boolean. Whether to clear the cache before compiling
 ##' @author seb
-compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, reinstall.fitR = FALSE, practical = NULL, clear.cache = FALSE)
+compile_mfiidd <- function(Rmd.files, exclude, mfiidd.dir, practical, reinstall.fitR = FALSE, clear.cache = FALSE)
 {
 
     require('rmarkdown')
     require('coda')
-    require('plyr')
-    require('dplyr')
     require('lattice')
+    require('devtools')
     require('ggplot2')
     require('reshape2')
 
-    if (is.null(mfiidd.dir))
+    if (missing(mfiidd.dir))
     {
         mfiidd.dir <- switch(Sys.info()[["user"]],
                              Tonton = "~/edu/Fit_course/mfiidd", ## Anton
@@ -32,7 +31,7 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
         install_github("sbfnk/fitR")
     }
 
-    if (is.null(Rmd.files))
+    if (missing(Rmd.files))
     {
         Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
                                 full.names = FALSE)
@@ -40,7 +39,7 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
 
     Rmd.files <- sub(".Rmd$", "", Rmd.files)
 
-    if (!is.null(practical))
+    if (!missing(practical))
     {
         practical.files <- list(c("index","introduction","posterior_example","posterior_example_solution"), 
                                 c("mcmc","mcmc_example","mcmc_example_solution","generate_samples"), 
@@ -62,7 +61,7 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
         }
     }
 
-    if (!is.null(exclude))
+    if (!missing(exclude))
     {
         exclude <- sub(".Rmd$", "", Rmd.files)
         Rmd.files <- setdiff(Rmd.files, exclude)
@@ -83,7 +82,4 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
         stop("No files to compile")
     }
 }
-
-
-compile_mfiidd(c("index","STRU_project"))
 
