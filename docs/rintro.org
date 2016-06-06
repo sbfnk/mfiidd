@@ -1,15 +1,15 @@
 #+LANGUAGE: en
-#+TITLE: Model fitting and inference for\\ infectious disease dynamics\\\vspace{0.5cm}Useful *R* commands
+#+TITLE: Model fitting and inference for@@latex:\\@@ infectious disease dynamics@@latex:\\\vspace{0.5cm}@@Useful *R* commands
 #+OPTIONS: H:3 num:t toc:t \n:t @:t ::t |:t ^:t -:t f:t *:t <:t ':t
 #+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:nil pri:nil tags:not-in-toc
 #+OPTIONS: author:nil date:nil
-#+LaTeX_CLASS: my-org-article
+#+LaTeX_CLASS: org-article
 
 #+LATEX: \newpage
 
 * Introduction
 
-This document provides a summary of *R* commands that will be useful to learn or refresh in preparation for the course on /Model fitting and inference for infectious disease dynamics/, 16-19 June at the London School of Hygiene & Tropical Medicine. While we expect that you will have some knowledge of *R*, the commands listed below are the ones that we think it would be most useful for you to familiarise yourselves with in order to be able to read the code we will provide for the practical session, and to debug any code you write yourselves during the sessions. There are links in various places which will take you to web sites that provide further information, if you would like more detail on any particular concept. A good general and detailed introduction to *R* is provided in the [[http://cran.r-project.org/doc/manuals/R-intro.html][R manual]].
+This document provides a summary of *R* commands that will be useful to learn or refresh in preparation for the course on /Model fitting and inference for infectious disease dynamics/, 14-17 June at the London School of Hygiene & Tropical Medicine. While we expect that you will have some knowledge of *R*, the commands listed below are the ones that we think it would be most useful for you to familiarise yourselves with in order to be able to read the code we will provide for the practical session, and to debug any code you write yourselves during the sessions. There are links in various places which will take you to web sites that provide further information, if you would like more detail on any particular concept. A good general and detailed introduction to *R* is provided in the [[http://cran.r-project.org/doc/manuals/R-intro.html][R manual]].
 
 Any line in *R* that starts with a hash (=#=) is interpreted as a comment and not evaluated:
 
@@ -476,13 +476,9 @@ The simplest way to plot a function using =plot=. To plot the output of the dete
 
 We can then plot the number of infected against time using
 
-#+header: :width 400 :height 300
-#+BEGIN_SRC R :results output graphics :file trajectory_plot.png
+#+BEGIN_SRC R :results output graphics :file trajectory_plot.pdf
   plot(x = trajectory_df$time, y = trajectory_df$I)
 #+END_SRC
-
-#+RESULTS:
-[[file:trajectory_plot.png]]
 
 A slightly more involved way with many options for different types of plot is using the =ggplot2= package. This can be installed with =install.packages("ggplot2")= and loaded with
 
@@ -492,12 +488,8 @@ A slightly more involved way with many options for different types of plot is us
 
 =ggplot2= uses a somewhat peculiar syntax. To create a similar plot to the one above using =ggplot=, we would write
 
-#+header: :width 400 :height 300
-#+BEGIN_SRC R :results output graphics :file trajectory_ggplot.png
+#+BEGIN_SRC R :results output graphics :file trajectory_ggplot.pdf
   ggplot(trajectory_df, aes(x = time, y = I)) + geom_point()
 #+END_SRC
-
-#+RESULTS:
-[[file:trajectory_ggplot.png]]
 
 A detailed introduction to =ggplot2= and its numerous options for plotting is beyond the scope of this introduction, but comprehensive documentation as well as many examples can be found on the [[http://ggplot2.org/][ggplot2 website]].
