@@ -1,29 +1,29 @@
 name: "mfiidd"
-navbar:
-  title: "MFIIDD 2016"
-  type: inverse
-  left:
-    - text: "Introduction"
-      # icon: fa-area-chart
-      href: introduction.html
-    - text: "MCMC"
-      # icon: fa-area-chart
-      href: mcmc.html
-    - text: "Diagnostics"
-      # icon: fa-area-chart
-      href: mcmc_diagnostics.html
-    - text: "Modelling interlude"
-      # icon: fa-area-chart
-      href: play_with_seitl.html
-    - text: "Model comparison"
-      # icon: fa-area-chart
-      href: mcmc_and_model_comparison.html
-    - text: "Particle MCMC"
-      # icon: fa-area-chart
-      href: pmcmc.html   
-    - text: "POMP"
-      # icon: fa-area-chart
-      href: pomp.html  
-    - text: "ABC"
-      # icon: fa-area-chart
-      href: ABC.html   
+# navbar:
+#   title: "MFIIDD 2016"
+#   type: inverse
+#   left:
+#     - text: "Introduction"
+#       # icon: fa-area-chart
+#       href: introduction.html
+#     - text: "MCMC"
+#       # icon: fa-area-chart
+#       href: mcmc.html
+#     - text: "Diagnostics"
+#       # icon: fa-area-chart
+#       href: mcmc_diagnostics.html
+#     - text: "Modelling interlude"
+#       # icon: fa-area-chart
+#       href: play_with_seitl.html
+#     - text: "Model comparison"
+#       # icon: fa-area-chart
+#       href: mcmc_and_model_comparison.html
+#     - text: "Particle MCMC"
+#       # icon: fa-area-chart
+#       href: pmcmc.html   
+#     - text: "POMP"
+#       # icon: fa-area-chart
+#       href: pomp.html  
+#     - text: "ABC"
+#       # icon: fa-area-chart
+#       href: ABC.html   
