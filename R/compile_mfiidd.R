@@ -75,7 +75,7 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
 
     if (length(Rmd.files) > 0) {
 
-        Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution")
+        Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution", "pomp", "pomp_seitl_explanation", "ABC", "abc_solution")
 
         for (Rmd.file in Rmd.files) {
             render(
