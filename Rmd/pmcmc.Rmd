@@ -240,7 +240,3 @@ Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
 
 You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in **R** you can also have a look at the code of `particleFilter`. Actually, all the test runs were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.
 
-<div>
-# Navigate
-Top: [Index](index.html) Previous: [MCMC and model comparison](mcmc_and_model_comparison.html) <!--Next: [Fitting models to data using *pomp*](pomp.html)-->
-</div>

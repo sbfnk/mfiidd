@@ -232,7 +232,3 @@ In the next session, you will verify your intuition by using a statistical crite
 * Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](external_ref/poisson_obs.pdf).
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?
 
-<div>
-# Navigate
-Top: [Index](index.html) Previous: [MCMC diagnostics](mcmc_diagnostics.html) Next: [MCMC and model comparison](mcmc_and_model_comparison.html)
-</div>

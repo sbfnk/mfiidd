@@ -298,7 +298,3 @@ This was created with an infectious period 2 and a reporting rate of 10%. Can yo
 ## Including demographic processes and seasonal forcing
 
 Recurrent diseases like Influenza require additional mechanisms to explain their [long-term dynamics](https://websenti.u707.jussieu.fr/sentiweb/?lang=en&page=serie). To get a better feel for the code used to simulate the model, you could modify the `SIR` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).
-
-<div>
-Previous: [Installation](index.html) Next: [MCMC](mcmc.html)
-</div>

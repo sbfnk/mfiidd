@@ -92,8 +92,4 @@ Your report should be formatted like an article:
 
 Implement your _best_ model using a stochastic framework and compare the stochastic simulations (using the distribution a posteriori of the parameters) with the data.
 
-<div>
-# Navigate
-Top: [Index](index.html)
-</div>
 
