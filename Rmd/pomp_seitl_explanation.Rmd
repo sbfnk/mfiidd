@@ -1,7 +1,7 @@
 % The SEITL model in *pomp*
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pmcmc/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pomp/', cache.path='cache/pomp/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 # Preliminaries
@@ -205,8 +205,7 @@ SEITL_pomp <- pomp(data = FluTdC1971[, c("time", "obs")],
                                         delta.t = 0.1),
                    rmeasure = Csnippet(SEITL.rmeas.c),
                    dmeasure = Csnippet(SEITL.dmeas.c),
-                   skeleton = Csnippet(SEITL.skel.c),
-                   skeleton.type = "vectorfield",
+                   skeleton = vectorfield(Csnippet(SEITL.skel.c)),
                    times = "time",
                    t0 = 1,
                    zeronames = "Inc", 
@@ -224,10 +223,9 @@ This constructs the pomp object `SEITL_pomp` from the C functions defined above.
 This specifies the data set. We select the two relevant columns, `time` and `obs`.
 
 ```{r tidy = FALSE, eval = FALSE}
-                   skeleton = Csnippet(SEITL.skel.c),
-                   skeleton.type = "vectorfield",
+                   skeleton = vectorfield(Csnippet(SEITL.skel.c)),
 ```
-These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `skeleton.type`, see `?pomp`.
+These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `vectorfield`, see `?pomp`.
 
 ```{r tidy = FALSE, eval = FALSE}
                    rprocess = euler.sim(step.fun = Csnippet(SEITL.sim.c),
