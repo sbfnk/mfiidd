@@ -66,7 +66,7 @@ Now try the following operations (with SEITL or SEIT4L). For full documentation 
 
 We suggest that you try the methods described below with both of the models. 
 
-## Simulating the model and estimating the likelihood
+# Simulating the model and estimating the likelihood
 
 Let's, again, guess some parameters and initial values:
 
@@ -81,7 +81,7 @@ SEIT4L.init.state <-
 
 Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).
 
-### Deterministic trajectory
+## Deterministic trajectory
 
 ```{r fig.height = 6,fig.width = 10, results = "hide"}
 SEITL.traj <- trajectory(SEITL_pomp,
@@ -92,17 +92,19 @@ plotTraj(SEITL.traj)
 
 The `trajectory` function simulates the deterministic skeleton of the `pomp` object it is given, ignoring all process or measurement stochasticity.
 
-### Stochastic trajectories
+## Stochastic trajectories
 
 ```{r results  =  "hide",fig.height = 6,fig.width = 10}
 SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.init.state),
                       obs = TRUE, states = TRUE, 
                       as.data.frame = TRUE)
+
 plotTraj(SEITL.sim)
+
 ```
 The `simulate` function simulates the (stochastic) model of the `pomp` object it is given. By specifying `obs = TRUE` and `states = TRUE`, we indicate that we want to have both the model states and observations in the data frame that is returned.
 
-### Particle filter
+# Particle filter
 
 ```{r}
 pf <- pfilter(SEITL_pomp, params = c(theta, SEITL.init.state), Np = 100)
@@ -111,11 +113,11 @@ logLik(pf)
 
 This estimates the likelihood of the given parameters using a particle filter with `Np = 100` particles.
 
-## Model fitting by maximising the likelihood
+# Model fitting by maximising the likelihood
 
 Several methods are available in *pomp* for fitting a deterministic or stochastic model to data using maximum likelihood. Remember that this implies a *frequentist* method, that is the prior distribution is ignored, and the parameter values that yield maximum likelihood are interpreted as the true parameters.
 
-### Trajectory matching
+## Trajectory matching
 
 ```{r results = "hide"}
 SEITL.tm <- traj.match(SEITL_pomp, start = c(theta, SEITL.init.state),
@@ -140,7 +142,7 @@ SEITL.tm.sim <- simulate(SEITL.tm, nsim = 10, as.data.frame = TRUE)
 plotTraj(SEITL.tm.sim, data = FluTdC1971, state.names = "obs")
 ```
 
-### Maximum likelihood by iterated filtering (MIF)
+## Maximum likelihood by iterated filtering (MIF)
 
 ```{r results = "hide"}
 prop.sd <- rep(0.01, length(theta))
@@ -164,7 +166,7 @@ Note that we have initialised the method with the maximum likelihood estimate ob
 
 Several methods are available in *pomp* for fitting a deterministic or stochastic model to data by sampling from the posterior distribution. Remember that this implies a *Bayesian* method, that is the prior distribution is taken into account, and the parameter vectors sampled from the posterior distribution are interpreted as draws from a random distribution that encodes our uncertainty.
 
-### Particle Markov-Chain Monte Carlo (pMCMC)
+## Particle Markov-Chain Monte Carlo (pMCMC)
 
 ```{r results = "hide"}
 # run pMCMC
@@ -200,11 +202,6 @@ You will notice that the pMCMC runs much faster than the one we implemented earl
 
 Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you didn't? With this course coming to an end, we hope to have given you the tools to know what you need to do to whatever might be necessary to obtain a reliable model fit. Do you get the same answers as yesterday?
 
-## Going further
+# Going further
 
 There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the parameters (if frequentist) or sampling from the posterior distribution (if Bayesian). You can read up on the different methods on the [pomp website](http://pomp.r-forge.r-project.org/), and try to use them for the Tristan da Cunha dataset.
-
-<div>
-# Navigate
-Top: [Index](index.html) Previous: [Particle MCMC](pmcmc.html) Next: [Fitting models to data using pomp](pomp.html)
-</div>
