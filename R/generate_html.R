@@ -7,6 +7,7 @@ start_me <- function(){
 	rmd_dir <<- file.path(repo_dir, "Rmd")
 	html_dir <<- file.path(repo_dir, "website")
 
+	source(file.path(repo_dir, "R", "compile_mfiidd.R"))
 
 }
 
@@ -61,7 +62,9 @@ main <- function() {
 
 	start_me()
 	# create_data_for_ebola_project()
-	generate_html()
+	# generate_html()
+
+	compile_mfiidd(practical = 1)
 
 }
 

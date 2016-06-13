@@ -21,9 +21,9 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
     if (is.null(mfiidd.dir))
     {
         mfiidd.dir <- switch(Sys.info()[["user"]],
-                             Tonton = "~/edu/Fit_course/mfiidd", ## Anton
-                             seb ="~/teaching/mfiidd" ## Seb
-                             )
+           Tonton = "~/edu/Fit_course/mfiidd", ## Anton
+           seb ="~/teaching/mfiidd" ## Seb
+           )
     }
 
     if (reinstall.fitR)
@@ -35,7 +35,7 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
     if (is.null(Rmd.files))
     {
         Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
-                                full.names = FALSE)
+            full.names = FALSE)
     }
 
     Rmd.files <- sub(".Rmd$", "", Rmd.files)
@@ -43,13 +43,13 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
     if (!is.null(practical))
     {
         practical.files <- list(c("index","introduction","posterior_example","posterior_example_solution"), 
-                                c("mcmc","mcmc_example","mcmc_example_solution","generate_samples"), 
-                                c("mcmc_diagnostics","epi3_wrapper","mcmc_commands"),
-                                c("play_with_seitl","play_with_seitl_example"),
-                                c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert"), 
-                                c("pmcmc","smc_example","smc_example_solution","pmcmc_solution"), 
-                                c("pomp", "pomp_seitl_explanation"), 
-                                c("ABC","sumstat_examples","distance_examples","abc_solution"))
+            c("mcmc","mcmc_example","mcmc_example_solution","generate_samples"), 
+            c("mcmc_diagnostics","epi3_wrapper","mcmc_commands"),
+            c("play_with_seitl","play_with_seitl_example"),
+            c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert"), 
+            c("pmcmc","smc_example","smc_example_solution","pmcmc_solution"), 
+            c("pomp", "pomp_seitl_explanation"), 
+            c("ABC","sumstat_examples","distance_examples","abc_solution"))
 
         practical <- as.integer(practical)
 
@@ -74,16 +74,28 @@ compile_mfiidd <- function(Rmd.files = NULL, exclude = NULL, mfiidd.dir = NULL, 
     }
 
     if (length(Rmd.files) > 0) {
+
+        Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution")
+
         for (Rmd.file in Rmd.files) {
-            render(path.expand(paste0(mfiidd.dir, "/Rmd/", Rmd.file,".Rmd")),
-                   output_dir = path.expand(paste0(mfiidd.dir, "/website/")))
+            render(
+                path.expand(paste0(mfiidd.dir, "/Rmd/", Rmd.file,".Rmd")), 
+                output_dir = path.expand(paste0(mfiidd.dir, "/website/")), 
+                output_format = html_document(
+                    toc = Rmd.file %in% Rmd_with_toc_float, 
+                    toc_float = Rmd.file %in% Rmd_with_toc_float,
+                    number_sections = TRUE,
+                    theme = "yeti",
+                    highlight = "tango",
+                    smart = FALSE,
+                    fig_width = 5,
+                    fig_height = 5
+                    )
+                )
         }
     } else
     {
         stop("No files to compile")
     }
 }
-
-
-compile_mfiidd(c("index","STRU_project"))
 
