@@ -1,10 +1,10 @@
 % The SEITL model in *pomp*
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pmcmc/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pomp/', cache.path='cache/pomp/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
-### Preliminaries
+# Preliminaries
 
 ```{r}
 ## load pomp package
@@ -15,7 +15,7 @@ data(FluTdC1971)
 
 This loads the `pomp` package, and the Tristan da Cunha data from the `fitR` package.
 
-### The deterministic skeleton
+# The deterministic skeleton
 
 ```{r tidy = FALSE}
 ## define deterministic skeleton
@@ -86,7 +86,7 @@ Lastly, it is defined how the transitions change the compartments:
     DInc = trans[1];
 ```
 
-### The stochastic model
+# The stochastic model
 ```{r tidy = FALSE}
 ## define stochastic model, for use with euler.sim, see ?euler.sim
 SEITL.sim.c <- '
@@ -142,7 +142,7 @@ Instead of calculating the rates of transition as in the deterministic skeleton 
 
 The number of susceptibles decreases by the number of individuals randomly drawn from `S` at rate `rate[0]` (infection rate) and increases by the number of individuals randomly drawn from `T` at rate `rate[4]` (rate of loss of temporary immunity), and so on.
 
-### Random point observations
+# Random point observations
 
 ```{r tidy = FALSE}
 ## define sampling random point observations
@@ -155,7 +155,7 @@ SEITL.rmeas.c <- '
 
 This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to randomly generate point observations from model incidence, like our function `rPointObs` earlier. In this case, it uses a random draw from a Poisson distribution with mean `rho*Inc`, and stores it in the variable `obs`.
 
-### Point observation probability density
+# Point observation probability density
 
 ```{r tidy = FALSE}
 ## define point observation probability density
@@ -168,7 +168,7 @@ SEITL.dmeas.c <- '
 
 This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to evaluate the probability density of point observations of the model incidence, like our function `dPointObs` earlier. In this case, it evaluates the probability following a Poisson probability distribution with mean `rho * Inc` and stores it in the variable `lik`. It can do both the logged and natural likelihood; which of the two is used will be given by `give_log`.
 
-### Prior density
+# Prior density
 
 ```{r tidy = FALSE}
 SEITL.dprior.c <- '
@@ -197,7 +197,7 @@ calculates the logged probability density according to uniform distributions wit
 ```
 returns the calculated log-likelihood if `give_log` is 1, and the exponential of that number (that is, the natural likelihood), if it is 0. The value of `give_log` is set by whichever function calls the snippet.
 
-### Constructing the `pomp` object
+# Constructing the `pomp` object
 
 ```{r tidy = FALSE}
 SEITL_pomp <- pomp(data = FluTdC1971[, c("time", "obs")],
@@ -205,8 +205,7 @@ SEITL_pomp <- pomp(data = FluTdC1971[, c("time", "obs")],
                                         delta.t = 0.1),
                    rmeasure = Csnippet(SEITL.rmeas.c),
                    dmeasure = Csnippet(SEITL.dmeas.c),
-                   skeleton = Csnippet(SEITL.skel.c),
-                   skeleton.type = "vectorfield",
+                   skeleton = vectorfield(Csnippet(SEITL.skel.c)),
                    times = "time",
                    t0 = 1,
                    zeronames = "Inc", 
@@ -224,10 +223,9 @@ This constructs the pomp object `SEITL_pomp` from the C functions defined above.
 This specifies the data set. We select the two relevant columns, `time` and `obs`.
 
 ```{r tidy = FALSE, eval = FALSE}
-                   skeleton = Csnippet(SEITL.skel.c),
-                   skeleton.type = "vectorfield",
+                   skeleton = vectorfield(Csnippet(SEITL.skel.c)),
 ```
-These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `skeleton.type`, see `?pomp`.
+These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `vectorfield`, see `?pomp`.
 
 ```{r tidy = FALSE, eval = FALSE}
                    rprocess = euler.sim(step.fun = Csnippet(SEITL.sim.c),

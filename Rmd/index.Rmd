@@ -1,4 +1,3 @@
----
 title: Model fitting and inference for infectious disease dynamics
 author: by Sebastian Funk, Anton Camacho and Helen Johnson
 output:
@@ -6,21 +5,19 @@ output:
     toc: false
 ---
 
----------------------------------------------------------------------------------------------------------------------------------------------     -------------------------------------------------------------------------------------------------------------------------------------
-[![Centre for the Mathematical Modelling of Infectious Diseases](http://cmmid.lshtm.ac.uk/files/2016/03/logo1.png)](http://cmmid.lshtm.ac.uk)     [![London School of Hygiene & Tropical Medicine](http://www.lshtm.ac.uk/assets/display_images/logo_home.png)](http://www.lshtm.ac.uk)
----------------------------------------------------------------------------------------------------------------------------------------------     -------------------------------------------------------------------------------------------------------------------------------------
+![](external_fig/import/lshtm_cmmid.png)
 
-<!-- ## Lunch options -->
+## Lunch options 
 
-<!-- [Local map](http://goo.gl/XEPxch) -->
+[Local map](http://goo.gl/XEPxch) 
 
-## Required software
+# Required software
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.2.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
 
 If you are not familiar with `R`, check our [list of useful commands](slides/rintro.pdf).
 
-## Installation of the fitR package
+# Installation of the fitR package
 
 The simplest way to install the `fitR` is to use the `devtools` package:
 
@@ -36,29 +33,9 @@ Then you can check that the installation completed successfully by loading the p
 library(fitR)
 ```
 
-## Practical sessions
+<!-- [Further methods and packages](slides/further_slides.pdf) -->
 
-1. [Introduction](introduction.html)
-2. [MCMC](mcmc.html)
-3. [MCMC diagnostics](mcmc_diagnostics.html)
-4. [Modelling interlude](play_with_seitl.html)
-5. [MCMC and model comparison](mcmc_and_model_comparison.html)
-6. [Particle MCMC](pmcmc.html)
-7. [Fitting models to data using *pomp*](pomp.html)
+<!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
 
-[Further methods and packages](slides/further_slides.pdf)
-
-## Extra practical session
-
-8. [Approximate Bayesian Compuation](ABC.html)
-
-## Examples of model fitting
-
-[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
-
-[Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf)
+<!-- [Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf) -->
  
-# Navigate
-Next: [Introduction](introduction.html)
-
-</div>

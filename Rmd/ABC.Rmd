@@ -44,7 +44,7 @@ Once again, you can plot the Tristan da Cunha data with
 plotTraj(data = FluTdC1971)
 ```
 
-## Summary statistics
+# Summary statistics
 
 First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and think of statistics that would describe the data, and capture the features you want to capture. Finally, code at least two functions that take a trajectory (with an `obs` column containing the observations) as input and return the values of your summary statistics.
 
@@ -84,7 +84,7 @@ The last command is easiest read from the inside out: `rTrajObs` with the given 
 
 Do you think your summary statistics are [sufficient](http://en.wikipedia.org/wiki/Sufficient_statistic)?
 
-## Distance between observed and simulated summary statistics
+# Distance between observed and simulated summary statistics
 
 The second step is to compare your data with your simulation using a function that computes the distance between your observed and simulated summary statistics. In the most general case, you will want to write a distance function for each summary statistic. Here, let's write a single function that calculates the distance between all summary statistics and returns either a single (e.g., mean) distance or a vector of distances.
 
@@ -156,7 +156,7 @@ hist(replicate(100, computeDistanceABC(sum.stats = list(ssSize, ssMax),
 
 Again, these are stochastic simulations so your histogram will look different, and again you can test this with different summary statistics (including more, or fewer) and distance functions. How widely are the distances distributed for a single set of parameters? This should give you an indication for a reasonable acceptance window. Ideally, you want to have summary statistics that vary a lot between parameter values (so the acceptance window can distinguish between good or bad fits), but not so much within parameter values (so you don't have to reject many runs from good parameters). Finding the right combination summary statistics and distance functions to achieve this can be very difficult, though, and one usually ends up having to make compromises between the two.
 
-## ABC posterior estimate
+# ABC posterior estimate
 
 Lastly, write a function that will return the approximated posterior value for a given parameter, based on a single model run.
 
@@ -212,7 +212,7 @@ Again, you can change the list of summary statistics and distance values to some
 
 You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.
 
-## ABC-MCMC on the stochastic model
+# ABC-MCMC on the stochastic model
 
 We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding [examples](sumstat_examples.html) and one of the distance functions from the other [examples](distance_examples.html))
 
@@ -254,7 +254,7 @@ You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to us
 
 Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?
 
-## Comparison with exact posterior
+# Comparison with exact posterior
 
 In the deterministic model, we can calculate the likelihood directly, and don't need an approximation. This is a good test case for the accuracy of ABC, as well as our summary statistics.
 
@@ -296,7 +296,3 @@ A [paper](http://www.genetics.org/content/182/4/1207.full.pdf) by Wegmann et al.
 
 A [recent review of ABC](http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002803) discussed many of the strengths and weaknesses of ABC, as well as recent developments.
 
-<div>
-# Navigate
-Top: [Index](index.html)
-<div>
