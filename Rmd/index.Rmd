@@ -32,6 +32,9 @@ Then you can check that the installation completed successfully by loading the p
 library(fitR)
 ```
 
+[fitR manual](fitR.pdf)
+
+
 <!-- [Further methods and packages](slides/further_slides.pdf) -->
 
 <!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
