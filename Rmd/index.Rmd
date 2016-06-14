@@ -23,7 +23,7 @@ The simplest way to install the `fitR` is to use the `devtools` package:
 ```{r install, eval=FALSE}
 install.packages("devtools")
 library(devtools)
-install_github("sbfnk/fitR")
+install_url("http://sbfnk.github.io/fitR.tar.gz")
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
