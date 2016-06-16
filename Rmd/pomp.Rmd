@@ -76,7 +76,7 @@ theta <-
 SEITL.init.state <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
 SEIT4L.init.state <-
-    c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, L.0 = 30, Inc.0 = 0)
+    c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0, T4.0, L.0 = 30, Inc.0 = 0)
 ```
 
 Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).
