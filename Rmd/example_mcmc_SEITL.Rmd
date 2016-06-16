@@ -272,7 +272,7 @@ In order to include previous empirical information on $D_{lat}$ and $D_{inf}$, l
 
 ```{r correlation-info-prior, eval = FALSE}
 
-SEITL_deter$dprior <- function(theta) {
+SEITL_deter$dprior <- function(theta, log = FALSE) {
 
 	# package with truncated normal distribution
 	library(truncnorm)
@@ -286,8 +286,9 @@ SEITL_deter$dprior <- function(theta) {
 	log.prior.probability.long.term.immunity <- dunif(theta[["alpha"]], min = 0, max = 1, log = TRUE)
 	log.prior.reporting.rate <- dunif(theta[["rho"]], min = 0, max = 1, log = TRUE)
 
-	return(log.prior.R0 + log.prior.latent.period + log.prior.infectious.period + log.prior.temporary.immune.period + log.prior.probability.long.term.immunity + log.prior.reporting.rate)
+    log.sum <- log.prior.R0 + log.prior.latent.period + log.prior.infectious.period + log.prior.temporary.immune.period + log.prior.probability.long.term.immunity + log.prior.reporting.rate
 
+    return(ifelse(log, log.sum, exp(log.sum)))
 }
 
 ```
