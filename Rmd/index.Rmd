@@ -37,7 +37,7 @@ library(fitR)
 
 <!-- [Further methods and packages](slides/further_slides.pdf) -->
 
-<!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
+[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) 
 
 <!-- [Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf) -->
  
