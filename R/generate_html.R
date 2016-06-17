@@ -64,7 +64,7 @@ main <- function() {
 	# create_data_for_ebola_project()
 	# generate_html()
 
-	compile_mfiidd(practical = 1:8, clear.cache = FALSE)
+	compile_mfiidd(practical = 7, clear.cache = FALSE)
 
 }
 
