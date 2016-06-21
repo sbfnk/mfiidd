@@ -8,7 +8,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pm
 library(fitR)
 set.seed(1234)
 ```
-[Lecture slides](slides/smc_2015.pdf)
+[Lecture slides](slides/smc_2016.pdf)
 
 # Objectives
 
