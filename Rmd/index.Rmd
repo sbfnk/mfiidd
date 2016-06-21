@@ -23,7 +23,7 @@ The simplest way to install the `fitR` is to use the `devtools` package:
 ```{r install, eval=FALSE}
 install.packages("devtools")
 library(devtools)
-install_url("http://sbfnk.github.io/mfiidd/fitR.tar.gz")
+install_github("sbfnk/fitR@fitcourse_2016")
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
@@ -32,12 +32,7 @@ Then you can check that the installation completed successfully by loading the p
 library(fitR)
 ```
 
-[fitR manual](fitR.pdf)
-
-
-<!-- [Further methods and packages](slides/further_slides.pdf) -->
+To see all the commands available in fitR, you can have a look at the [fitR manual](fitR.pdf).
 
 [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) 
 
-<!-- [Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf) -->
- 
