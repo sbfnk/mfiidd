@@ -34,7 +34,7 @@ To load the `pomp` library, type
 library('pomp')
 ```
 
-If this does not work, you need to install the `pomp` library. You can do this using
+If this does not work, you need to install the `pomp` library first. You can do this using
 ```{r eval = FALSE}
 install.packages('pomp')
 ```

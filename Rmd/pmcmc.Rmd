@@ -199,6 +199,7 @@ dim(pmcmc_SEIT4L_infoPrior_n50[["chain1"]]$trace)
 We can combine the traces of the 5 chains into a `mcmc.list` object as follows:
 
 ```{r combine-trace, collapse=TRUE}
+library('coda')
 trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {mcmc(chain$trace)}))
 head(trace,1)
 ```
