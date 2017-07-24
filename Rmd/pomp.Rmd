@@ -27,7 +27,7 @@ In this session you will:
 
 # Code a model in *pomp*
 
-To do model fitting with *pomp*, you need to create a `pomp` object. This works a bit like the fitmodel objects we created earlier. To create a `pomp` object, you need to specify a data set as well as functions that simulate the model, evaluate the prior density, etc. The components and functions that need to go into a `pomp` object are determined by the method that one wants to use. For more information on this, you can have a look at the recent [article](http://pomp.r-forge.r-project.org/vignettes/pompjss.pdf) on *pomp* in the Journal of Statistical Software.
+To do model fitting with *pomp*, you need to create a `pomp` object. This works a bit like the fitmodel objects we created earlier. To create a `pomp` object, you need to specify a data set as well as functions that simulate the model, evaluate the prior density, etc. The components and functions that need to go into a `pomp` object are determined by the method that one wants to use. For more information on this, you can have a look at the recent [article](http://kingaa.github.io/pomp/vignettes/pompjss.pdf) on *pomp* in the Journal of Statistical Software.
 
 To load the `pomp` library, type
 ```{r}
@@ -47,7 +47,7 @@ We have coded up the models of the previous practical sessions in *pomp* for you
 example(SEITL_pomp)
 ```
 
-If this yields a compile error, have a look at the [important information for windows and mac users](http://pomp.r-forge.r-project.org/vignettes/getting_started.html#important-information-for-windows-and-mac-users) or ask us for help. If you can't get it to work at all, you work with the *R* versions of the  code (see the note after the next paragraph).
+If this yields a compile error, have a look at the [important information for windows and mac users](http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.) or ask us for help. If you can't get it to work at all, you work with the *R* versions of the  code (see the note after the next paragraph).
 
 __Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help. 
 

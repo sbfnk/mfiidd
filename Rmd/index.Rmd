@@ -32,12 +32,7 @@ Then you can check that the installation completed successfully by loading the p
 library('fitR')
 ```
 
-[fitR manual](fitR.pdf)
+To see all the commands available in fitR, you can have a look at the [fitR manual](fitR.pdf).
 
+[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) 
 
-<!-- [Further methods and packages](slides/further_slides.pdf) -->
-
-<!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
-
-<!-- [Modelling the Ebola outbreak in West Africa](slides/seb_talk.pdf) -->
- 
