@@ -196,16 +196,20 @@ We don't provide an intermediate solution in this case, but if you are strugglin
 ABCLogPosterior
 ```
 
+```{r abclogpost_assign, echo = FALSE}
+my_ABCLogPosterior<-ABCLogPosterior
+```
+
 Once you have coded this function you can perform some tests to calibrate the tolerances.
 
 ```{r abclogpost}
-ABCLogPosterior(epsilon = 5,
-                sum.stats = list(ssMax, ssSize),
-                distanceABC = ssMeanRelDistance,
-                fitmodel = SEITL_stoch,
-                theta = theta,
-                init.state = init.state,
-                data = FluTdC1971)
+my_ABCLogPosterior(epsilon = 5,
+                   sum.stats = list(ssMax, ssSize),
+                   distanceABC = ssMeanRelDistance,
+                   fitmodel = SEITL_stoch,
+                   theta = theta,
+                   init.state = init.state,
+                   data = FluTdC1971)
 ```
 
 Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.

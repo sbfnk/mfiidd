@@ -47,6 +47,7 @@ init.state <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 The results from the deterministic run were:
 
 ```{r summary}
+library('coda')
 summary(mcmc(mcmc_SEITL_theta1$trace))
 ```
 
@@ -68,7 +69,7 @@ Now we can define a wrapper function for the ABC posterior. Let's try $\epsilon 
 ```{r write_ABClogpost}
 my_ABCLogPosterior_tdc_det <- function(theta) {
 
-    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, L = 0, Inc = 0)
+    init.state = c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 
     # log posterior with several summary statistics, distance given
     # by the mean relative distance in the summary statistics,
@@ -82,7 +83,7 @@ my_ABCLogPosterior_tdc_det <- function(theta) {
                                          ssMax_25_36 = ssMax_25_36,
                                          ssSum_37_60 = ssSum_37_60),
                         distanceABC = ssMeanRelDistance,
-                        fitmodel = SEIT4L_deter,
+                        fitmodel = SEITL_deter,
                         theta = theta,
                         init.state = init.state,
                       data = FluTdC1971)

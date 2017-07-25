@@ -4,7 +4,6 @@
 #+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:nil pri:nil tags:not-in-toc
 #+OPTIONS: author:nil date:nil
 #+LaTeX_CLASS: org-article
-
 #+LATEX: \newpage
 
 * Introduction
@@ -22,6 +21,9 @@ For the course, please try and make sure you are running at least version 3.2.0 
 #+BEGIN_SRC R
   R.Version()$version.string
 #+END_SRC
+
+#+RESULTS:
+: R version 3.3.2 (2016-10-31)
 
 in an *R* session. If your version is smaller than 3.2.0, please update to at least version 3.2.0 following the instructions on the [[http://cran.rstudio.com/][CRAN website]].
 

@@ -53,6 +53,7 @@ for(n.particles in test.n.particles){
 	# start measuring time
 	start.time  <- Sys.time()
 	for(i in 1:n.replicates){
+    cat("Testing ", i, " particles\n")
 		# one Monte-Carlo estimate of the log-likelihood
             sample.log.like[i] <- my_particleFilter(SEIT4L_stoch, theta,
                                                     init.state, FluTdC1971,
@@ -157,6 +158,7 @@ Here is an example of analysis of our 5 chains of 3000 iterations with 50 partic
 data(pmcmc_SEIT4L_infoPrior_n50)
 
 # combine into a `mcmc.list` object
+library('coda')
 trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) { mcmc(chain$trace) }))
 
 # acceptance rate is below the optimal 23%
@@ -166,16 +168,17 @@ trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) { mcmc(cha
 effectiveSize(trace)
 
 # Let's have a look at the traces
+library('lattice')
 xyplot(trace)
 ```
 
-The burning period looks relatively short, this is because we started the chains with a "good" `init.theta`. That said, since we have relatively short runs it might be useful to carefully choose the burning period with `plotESSBurn`.
+The burn-in period looks relatively short, this is because we started the chains with a "good" `init.theta`. That said, since we have relatively short runs it might be useful to carefully choose the burn-in period with `plotESSBurn`.
 
 ```{r analyse-n50-burn, collapse=TRUE, fig.height=7, fig.width=10}
 # this can take some time as we have 5 chains
 plotESSBurn(trace)
 
-# Actually, it doesn't seem necessary to burn. 
+# Actually, it looks like no burn-in is needed
 # What about autocorrelation
 acfplot(x = trace, lag.max = 50)
 
@@ -203,6 +206,7 @@ Here is an example of analysis of our 5 chains of 3000 iterations with 400 parti
 data(pmcmc_SEIT4L_infoPrior_n400)
 
 # combine into a `mcmc.list` object
+library('coda')
 trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n400, function(chain) { mcmc(chain$trace) }))
 
 # acceptance rate is near optimal
@@ -212,13 +216,14 @@ trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n400, function(chain) { mcmc(ch
 effectiveSize(trace)
 
 # Let's have a look at the traces
+library('lattice')
 xyplot(trace)
 ```
 
-As in the analysis with 50 particles, the burning period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burning period with `plotESSBurn`.
+As in the analysis with 50 particles, the burn-in period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burn-in period with `plotESSBurn`.
 
 ```{r analyse-n400-burn, collapse=TRUE, fig.height=6, fig.width=10}
-# Actually, it looks like no burning is needed:
+# Actually, it looks like no burn-in is needed:
 plotESSBurn(trace)
 
 # What about autocorrelation?
@@ -255,6 +260,7 @@ Here we compare the combined traces of the deterministic SEIT4L model (2 chains 
 # load, burn and thin the deterministic fit
 
 # create mcmc object
+library('coda')
 trace1 <- mcmc(mcmc_SEIT4L_infoPrior_theta1$trace)
 trace2 <- mcmc(mcmc_SEIT4L_infoPrior_theta2$trace)
 
@@ -274,6 +280,7 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
+library('plyr')
 trace.combined <- ldply(trace.thin.n400)
 
 # take the mean of theta

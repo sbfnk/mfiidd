@@ -94,6 +94,7 @@ This run was created using the commands shown [here](mcmc_commands.html). In the
 To use `coda`, we must first convert our trace to a format that `coda` understands. To this end, we use the `mcmc` function from that package:
 
 ```{r coda_trace}
+library('coda')
 mcmc.trace <- mcmc(trace)
 ```
 
@@ -268,13 +269,13 @@ The best proposal distribution is the one that best matches the target distribut
 In addition to truncated proposal distributions, our function `mcmcMH` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
 
-```{r adapt, eval=FALSE, message = FALSE, warn = FALSE}
-trace <- mcmcMH(target = my_dLogPosterior_epi3,
-	init.theta = c(R0 = 1, D_inf = 2),
-	proposal.sd = c(0.1, 0.01),
-	n.iterations = 1000,
-	limits = list(lower = c(R0 = 0, D_inf = 0)))
-```
+<!-- ```{r adapt, eval=FALSE, message = FALSE, warn = FALSE} -->
+<!-- trace <- mcmcMH(target = my_dLogPosterior_epi3, -->
+<!-- 	init.theta = c(R0 = 1, D_inf = 2), -->
+<!-- 	proposal.sd = c(0.1, 0.01), -->
+<!-- 	n.iterations = 1000, -->
+<!-- 	limits = list(lower = c(R0 = 0, D_inf = 0))) -->
+<!-- ``` -->
 
 ```{r print_covmat}
 trace$covmat.empirical
