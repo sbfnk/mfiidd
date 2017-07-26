@@ -7,7 +7,7 @@ knitr::opts_chunk$set(cache=TRUE,fig.path='figure/mcmc_and_model_comparison/', c
 ```
 
 ```{r fitR, cache=FALSE, include=FALSE}
-library(fitR)
+library('fitR')
 set.seed(1234)
 ```
 # Objectives
@@ -117,6 +117,10 @@ __Take 10 minutes to change the parameters controlling the adaptive part of the 
 
 __Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package.__
 
+```{r load_coda, eval=FALSE,tidy = FALSE}
+library('coda')
+```
+
 Didn't manage to run `mcmcMH`? Just use the results from our [example](example_mcmc_SEITL.html#run-mcmc).
 
 Note that because there are more than 6 parameters to look at, the `coda` functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels take too much space). Fortunately, `coda` has another set of functions to make the plots more compact:
@@ -133,6 +137,7 @@ __Take 15 minutes to analyse the trace returned by `mcmcMH`.__ Remember that, wi
 # convert to a mcmc object for coda
 my_trace <- mcmc(my_mcmc.TdC$trace)
 # plot the trace
+library('lattice') ## for xyplot
 xyplot(my_trace)
 ```
 
