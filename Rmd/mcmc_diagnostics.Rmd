@@ -2,6 +2,8 @@
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc_diagnostics/', cache.path='cache/mcmc_diagnostics/' , fig.cap='', fig.align="center", tidy=FALSE)
+source("our_posterior.r")
+source("epi3_wrapper.r")
 ```
 
 ```{r load, include=FALSE,cache=FALSE}
@@ -22,11 +24,11 @@ The aim of this session is to learn how to interpret the results of MCMC samplin
 
 # Sampling more than one parameter
 
-<!-- If we are fitting more than one parameter, we need to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which extends the Metropolis-Hastings sampler of the last session to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later. -->
+If we are fitting more than one parameter, it can be beneficial to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which is built on the Metropolis-Hastings sampler of the last session but extends it to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later.
 
-<!-- The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session, except that it takes a parameter `gaussian.proposal` instead of `proposal.sd`. -->
+The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session and can be used the same way, but it also allows to specify a covariance matrix (via the `covmat` parameter) instead of `proposal.sd`. For now, we will keep using `proposal.sd` but pass it a named vector of standard deviations, e.g. `proposal.sd=c(R0=1, D_inf=2)`, in which case the sampler will use independent normal draws for the proposal distribution with standard deviation 1 and 2, respectively.
 
-In the previous practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters so that our MCMC needs to sample from a multivariate posterior distribution.
+<!-- In the previous practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters so that our MCMC needs to sample from a multivariate posterior distribution. -->
 
 As a running example, we are going to analyse the data set `epi3`, which was generated from an SIR model with unknown basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. 
 
@@ -38,35 +40,33 @@ plotTraj(data = epi3)
 
 The first step is to write a wrapper for the log-posterior similar to `my_dLogPosterior_R0_epi1` but for more than one parameter and using the data set `epi3`  -- if you have trouble with that, you can use our [solution](epi3_wrapper.html). 
 
-__Once you have your wrapper, take 15 minutes to modify your MCMC sampler coded in the previous session to generate samples from a multivariate posterior distribution corresponding to any `fitmodel` object. Use the new wrapper to check that your code works without bugs.__ 
 
-Note that you should take advantage of the fact that most **R** functions, like `rnorm`, are vectorized over their arguments:
+<!-- Note that you should take advantage of the fact that most **R** functions, like `rnorm`, are vectorized over their arguments: -->
 
-```{r vectorization_1}
+<!-- ```{r vectorization_1} -->
 
-set.seed(12345)
-rnorm(2, mean = c(1,2), sd = c(1, 0.5))
+<!-- set.seed(12345) -->
+<!-- rnorm(2, mean = c(1,2), sd = c(1, 0.5)) -->
 
-```
-is equivalent to 
+<!-- ``` -->
+<!-- is equivalent to  -->
 
-```{r vectorization_2}
+<!-- ```{r vectorization_2} -->
 
-set.seed(12345)
-c(rnorm(1, mean = 1, sd = 1), rnorm(1, mean = 2, sd = 0.5))
+<!-- set.seed(12345) -->
+<!-- c(rnorm(1, mean = 1, sd = 1), rnorm(1, mean = 2, sd = 0.5)) -->
 
-```
+<!-- ``` -->
 
-_Note that `set.seed` allows us to initialise the random number generator with the same seed in both examples. This is a useful trick to know when you want to make fully reproducible stochastic examples._
+<!-- _Note that `set.seed` allows us to initialise the random number generator with the same seed in both examples. This is a useful trick to know when you want to make fully reproducible stochastic examples._ -->
 
-If you have difficulties to generalise your MCMC sampler to a multivariate distribution or if you didn't get to write your own MCMC sampler, take a look or just use the one from our [solution](mcmc_example_solution.html).
+<!-- If you have difficulties to generalise your MCMC sampler to a multivariate distribution or if you didn't get to write your own MCMC sampler, take a look or just use the one from our [solution](mcmc_example_solution.html). -->
 
-__Take 15 minutes to sample from the joint posterior of $R_0$ and $D_\mathrm{inf}$. In particular, try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.__
+__Once you have your wrapper, use the `mcmcMH` function with parameters `target`, `init.theta`, `proposal.sd` and `n.iterations` to sample from the posterior distribution. Take 15 minutes to sample from the joint posterior of $R_0$ and $D_\mathrm{inf}$. In particular, try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.__
 
 You should notice that getting the acceptance rate to a desired value is harder when dealing with multiple parameters. Actually, there are a few strategies available for doing so, which we will learn about in this practical session.
 
-For instance, if you experience a very low or a very high acceptance rate, it is a good idea to first consider each parameter individually, and twick the corresponding standard deviation of the proposal until a desired acceptance rate is achieved. Once this is done, you can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rates. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
-
+For instance, if you experience a very low or a very high acceptance rate, it is a good idea to first consider each parameter individually, and tweak the corresponding standard deviation of the proposal until a desired acceptance rate is achieved. Once this is done, you can start exploring multiple parameters at once, and carefully adjust the proposal steps to get good acceptance rates. Later, we will look at a way to automatically adapt the proposal steps on the basis of the samples taken so far.
 
 # Diagnostics
 
@@ -239,7 +239,7 @@ __Take 10 minutes to check whether this makes a difference to acceptance rates?_
 
 Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. However, the use of such truncated distributions in the proposal kernel must be accounted for when computing the acceptance ratio. Otherwise your chain might not converge to the correct posterior distribution (look at this excellent [post](http://darrenjw.wordpress.com/tag/truncate/) by Darren Wilkinson for a detailed example).
 
-In the `fitR` package, we have implemented a function called `mcmcMH` that uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this asymmetric proposal to calculate the acceptance ratio. The limits of the support of the proposal distribution can be specified with the `limits` argument to `mcmcMH`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
+The `mcmcMH` function implemented in the `fitR` package uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this asymmetric proposal to calculate the acceptance ratio. The limits of the support of the proposal distribution can be specified with the `limits` argument to `mcmcMH`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
 
 ```{r posterior_epi3}
 my_dLogPosterior_epi3 <- function(theta) {
