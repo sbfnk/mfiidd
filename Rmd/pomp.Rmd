@@ -195,3 +195,5 @@ Look at the trace and density plots above. Are you satisfied with the performanc
 # Going further
 
 There are other methods available in *pomp*, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the it (if frequentist) or sampling from the posterior distribution (if Bayesian). You can read up on the different methods on the [pomp website](http://pomp.r-forge.r-project.org/), and try to use them on the Tristan da Cunha dataset.
+
+As another example of a library for model fitting and inference you could have a go at LibBi and the corresponding R package RBi. The deterministic and stochastic SEITL models can be found [here](libbi.html). Can you fit them to the Tristan da Cunha data set?

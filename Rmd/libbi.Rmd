@@ -1,0 +1,174 @@
+---
+title: "The SEITL model in *libbi*"
+--- 
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/libbi/', cache.path='cache/libbi/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+```
+
+```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
+library(fitR)
+set.seed(1234)
+```
+# Installing LibBi and RBi
+
+By far the easiest way for installing [LibBi](http: is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following commands (using a command shell, i.e. Terminal or similar):
+
+```sh
+brew tap sbfnk/libbi
+brew install libbi-sbfnk --HEAD
+``` 
+
+You'll also need the 'rbi' and 'rbi.helpers' packages:
+
+```r
+library('devtools')
+install_github('libbi/rbi')
+install_github('sbfnk/rbi.helpers')
+```
+
+```r
+library('rbi')
+library('rbi.helpers')
+```
+
+To get started, have a look at the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html).
+
+# Deterministic SEITL model
+
+```r
+model_det <- '
+model SEITL_deter {
+
+  const k_erlang = 1
+  const N = 1000
+
+  dim k(k_erlang)
+
+  state S, E, I, T[k], L, Inc
+
+  param R0, D_lat, D_inf, alpha, D_imm, rho
+
+  obs Cases
+
+  sub initial { 
+    E <- 0
+    I <- 2
+    T[k] <- (k == 0 ? 3 : 0)
+    L <- 0
+    Inc <- 0
+    S <- N - I - T[0]
+  }
+
+  sub parameter { 
+    R0 ~ uniform(1, 50)
+    D_lat ~ uniform(0, 10)
+    D_inf ~ uniform(0, 15)
+    D_imm ~ uniform(0, 50)
+    alpha ~ uniform(0, 1)
+    rho ~ uniform(0, 1)
+  }
+
+  sub transition {
+
+    inline beta = R0/D_inf
+    inline epsilon = 1/D_lat
+    inline nu = 1/D_inf
+    inline tau = 1/D_imm
+
+    Inc <- 0
+
+    ode { 
+      dS/dt = -beta * S * I/N + (1-alpha) * tau * k_erlang * T[k_erlang - 1]
+      dE/dt = beta * S * I/N - epsilon * E
+      dI/dt = epsilon * E - nu * I
+      dT[k]/dt =
+          + (k == 0 ? nu * I : 0)
+          - k_erlang * tau * T[k]
+          + (k > 0 ? k_erlang * tau * T[k-1] : 0)
+      dL/dt = alpha * k_erlang * tau * T[k_erlang - 1]
+      dInc/dt = epsilon * E
+    }
+  }
+
+  sub observation {
+    Cases ~ poisson(rho * Inc)
+  }
+}
+'
+deter <- bi_model(lines=model_det)
+```
+
+# Stochastic SEITL model
+
+```r
+model_sto <- '
+model SEITL_sto {
+
+  const k_erlang = 1 
+  const N = 1000 
+  const timestep = 1
+
+  dim k(k_erlang)
+
+  state S, E, I, T[k], L, Inc
+
+  param R0, D_lat, D_inf, alpha, D_imm, rho
+
+  noise infection
+  noise incubation
+  noise loss_infectiousness
+  noise immunity[k]
+  noise loss_immunity
+
+  obs Cases
+
+  sub initial { 
+    E <- 0
+    I <- 2
+    T[k] <- (k == 0 ? 3 : 0)
+    L <- 0
+    Inc <- 0
+    S <- N - I - T[0]
+  }
+
+  sub parameter { 
+    R0 ~ uniform(1, 50)
+    D_lat ~ uniform(0, 10)
+    D_inf ~ uniform(0, 15)
+    D_imm ~ uniform(0, 50)
+    alpha ~ uniform(0, 1)
+    rho ~ uniform(0, 1)
+  }
+
+  sub transition (delta=timestep) {
+
+    inline beta = R0/D_inf
+    inline epsilon = 1/D_lat
+    inline nu = 1/D_inf
+    inline tau = 1/D_imm
+
+    Inc <- 0
+
+    infection ~ binomial(S, 1 - exp(-beta * I/N * timestep))
+    incubation ~ binomial(E, 1 - exp(-epsilon * timestep))
+    loss_infectiousness ~ binomial(I, 1 - exp(-nu * timestep))
+    immunity[k] ~ binomial(T[k], 1 - exp(-k_erlang * tau * timestep))
+    loss_immunity ~ binomial(immunity[k_erlang - 1], 1 - alpha)
+
+    S <- S - infection + loss_immunity
+    E <- E + infection - incubation
+    I <- I + incubation - loss_infectiousness
+    T[k] <- T[k] + (k == 0 ? loss_infectiousness : 0) + (k > 0 ? immunity[k - 1] : 0) - immunity[k]
+    L <- L + immunity[k_erlang - 1] - loss_immunity
+    Inc <- Inc + infection
+  }
+
+  sub observation {
+    Cases ~ poisson(rho * Inc)
+  }
+}
+'
+sto <- bi_model(lines=model_sto)
+```
+
