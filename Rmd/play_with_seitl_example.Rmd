@@ -51,7 +51,7 @@ theta.guess3 <- c("R0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.4, "D_imm"=13, "rho"
 plotFit(SEITL_deter,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100)
 ```
 
-This is a descent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process. 
+This is a decent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process. 
 
 Now, you can now go back to the [practical](play_with_seitl.html#stochastic-simulations) and check whether the stochastic model provides a better fit to the data.
 
