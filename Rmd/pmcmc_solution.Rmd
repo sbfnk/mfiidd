@@ -192,7 +192,7 @@ densityplot(x = trace.thin.n50)
 
 The 5 chains converged to somewhat different posterior distributions, with different shapes and modes. This is particularly evident for the posterior of $R_0$, which looks bimodal. In addition, the ESS is too small to have smooth posterior distributions.
 
-With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. This is why we have a lot of autocorrelation and small ESSs. That said, the theoretical properties of the pMCMC guaranty that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to the number of iterations.
+With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. This is why we have a lot of autocorrelation and small ESSs. That said, the theoretical properties of the pMCMC guaranty that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to reduce the number of iterations.
 
 You can now return to the [practical](pmcmc.html#analyse-a-pmcmc-with-400-particles) and analyse a pMCMC with much more particles that we ran for you.
 
