@@ -12,14 +12,14 @@ set.seed(1234)
 ```
 # Installing LibBi and RBi
 
-By far the easiest way for installing [LibBi](http: is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following commands (using a command shell, i.e. Terminal or similar):
+By far the easiest way for installing [LibBi](http://libbi.org) is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following commands (using a command shell, i.e. Terminal or similar):
 
 ```sh
-brew tap sbfnk/libbi
-brew install libbi-sbfnk --HEAD
+brew tap homebrew/science
+brew install libbi --HEAD
 ``` 
 
-You'll also need the 'rbi' and 'rbi.helpers' packages:
+You'll also need the `rbi` and `rbi.helpers` packages:
 
 ```r
 library('devtools')
@@ -32,7 +32,7 @@ library('rbi')
 library('rbi.helpers')
 ```
 
-To get started, have a look at the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html).
+To get started, have a look at the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html) and [RBi.helpers vignette](rbi_helpers.html).
 
 # Deterministic SEITL model
 

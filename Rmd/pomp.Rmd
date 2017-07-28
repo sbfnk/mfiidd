@@ -165,7 +165,7 @@ In the function call above, we have used `Nmif = 50` iterations of MIF for findi
 
 Note that we have initialised the method with the maximum likelihood estimate obtained from trajectory matching the deterministic model (`SEITL.tm`). It is a common procedure to initialise more computationally intensive models with results from a simpler, more approximate method.
 
-## Model fitting by sampling from the posterior distribution
+# Model fitting by sampling from the posterior distribution
 
 Several methods are available in *pomp* for fitting a deterministic or stochastic model to data by sampling from the posterior distribution. Remember that this implies a *Bayesian* method, that is the prior distribution is taken into account, and the parameter vectors sampled from the posterior distribution are interpreted as draws from a random distribution that encodes our uncertainty.
 
