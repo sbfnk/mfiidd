@@ -247,15 +247,15 @@ $(document).ready(function () {
 <div id="installing-libbi-and-rbi" class="section level1">
 <h1><span class="header-section-number">1</span> Installing LibBi and RBi</h1>
 <p>By far the easiest way for installing [LibBi](http: is using <a href="https://brew.sh">Homebrew</a> (on OS X) or <a href="http://linuxbrew.sh">Linuxbrew</a> (on linux). Once one of these is installed, issue the following commands (using a command shell, i.e. Terminal or similar):</p>
-<div class="sourceCode"><pre class="sourceCode sh"><code class="sourceCode bash"><span class="ex">brew</span> tap sbfnk/libbi
-<span class="ex">brew</span> install libbi-sbfnk --HEAD</code></pre></div>
-<p>You'll also need the 'rbi' and 'rbi.helpers' packages:</p>
+<div class="sourceCode"><pre class="sourceCode sh"><code class="sourceCode bash"><span class="ex">brew</span> tap homebrew/science
+<span class="ex">brew</span> install libbi --HEAD</code></pre></div>
+<p>You'll also need the <code>rbi</code> and <code>rbi.helpers</code> packages:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'devtools'</span>)
 <span class="kw">install_github</span>(<span class="st">'libbi/rbi'</span>)
 <span class="kw">install_github</span>(<span class="st">'sbfnk/rbi.helpers'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'rbi'</span>)
 <span class="kw">library</span>(<span class="st">'rbi.helpers'</span>)</code></pre></div>
-<p>To get started, have a look at the <a href="https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html">RBi vignette</a>.</p>
+<p>To get started, have a look at the <a href="https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html">RBi vignette</a> and <a href="rbi_helpers.html">RBi.helpers vignette</a>.</p>
 </div>
 <div id="deterministic-seitl-model" class="section level1">
 <h1><span class="header-section-number">2</span> Deterministic SEITL model</h1>
