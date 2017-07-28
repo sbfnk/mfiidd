@@ -442,12 +442,12 @@ SEITL.mf.sim &lt;-<span class="st"> </span><span class="kw">simulate</span>(SEIT
 <p>In the function call above, we have used <code>Nmif = 50</code> iterations of MIF for finding the parameters that maximise the likelihood, <code>Np = 1000</code> particles for the likelihood itself, and a proportion of <code>cooling.fraction.50 = 0.01</code> of the random walk intensity remaining after 50 iterations.</p>
 <p>Note that we have initialised the method with the maximum likelihood estimate obtained from trajectory matching the deterministic model (<code>SEITL.tm</code>). It is a common procedure to initialise more computationally intensive models with results from a simpler, more approximate method.</p>
 </div>
-<div id="model-fitting-by-sampling-from-the-posterior-distribution" class="section level2">
-<h2><span class="header-section-number">5.3</span> Model fitting by sampling from the posterior distribution</h2>
-<p>Several methods are available in <em>pomp</em> for fitting a deterministic or stochastic model to data by sampling from the posterior distribution. Remember that this implies a <em>Bayesian</em> method, that is the prior distribution is taken into account, and the parameter vectors sampled from the posterior distribution are interpreted as draws from a random distribution that encodes our uncertainty.</p>
 </div>
+<div id="model-fitting-by-sampling-from-the-posterior-distribution" class="section level1">
+<h1><span class="header-section-number">6</span> Model fitting by sampling from the posterior distribution</h1>
+<p>Several methods are available in <em>pomp</em> for fitting a deterministic or stochastic model to data by sampling from the posterior distribution. Remember that this implies a <em>Bayesian</em> method, that is the prior distribution is taken into account, and the parameter vectors sampled from the posterior distribution are interpreted as draws from a random distribution that encodes our uncertainty.</p>
 <div id="particle-markov-chain-monte-carlo-pmcmc" class="section level2">
-<h2><span class="header-section-number">5.4</span> Particle Markov-Chain Monte Carlo (pMCMC)</h2>
+<h2><span class="header-section-number">6.1</span> Particle Markov-Chain Monte Carlo (pMCMC)</h2>
 <p>The following code runs pMCMC with adaptation of the proposal distribution using the model given to the <code>POMP</code> object. <strong>Note</strong>: you can try first with a smaller value of the <code>Nmcmc</code> parameter; depending on the power of your computer, the code below can take a while to run.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run pMCMC with adaptive MCMC</span>
 SEITL.pm &lt;-<span class="st"> </span><span class="kw">pmcmc</span>(SEITL.tm, <span class="dt">Nmcmc =</span> <span class="dv">5000</span>, <span class="dt">Np =</span> <span class="dv">200</span>, <span class="dt">proposal =</span> <span class="kw">mvn.rw.adaptive</span>(<span class="dt">rw.sd =</span> prop.sd, 
@@ -465,7 +465,7 @@ trace &lt;-<span class="st"> </span><span class="kw">conv.rec</span>(SEITL.pm, <
 </div>
 </div>
 <div id="going-further" class="section level1">
-<h1><span class="header-section-number">6</span> Going further</h1>
+<h1><span class="header-section-number">7</span> Going further</h1>
 <p>There are other methods available in <em>pomp</em>, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the it (if frequentist) or sampling from the posterior distribution (if Bayesian). You can read up on the different methods on the <a href="http://pomp.r-forge.r-project.org/">pomp website</a>, and try to use them on the Tristan da Cunha dataset.</p>
 <p>As another example of a library for model fitting and inference you could have a go at LibBi and the corresponding R package RBi. The deterministic and stochastic SEITL models can be found <a href="libbi.html">here</a>. Can you fit them to the Tristan da Cunha data set?</p>
 </div>
