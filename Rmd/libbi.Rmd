@@ -15,8 +15,7 @@ set.seed(1234)
 By far the easiest way for installing [LibBi](http://libbi.org) is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following commands (using a command shell, i.e. Terminal or similar):
 
 ```sh
-brew tap homebrew/science
-brew install libbi --HEAD
+brew install libbi
 ``` 
 
 You'll also need the `rbi` and `rbi.helpers` packages:
