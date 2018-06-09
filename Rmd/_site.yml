@@ -1,6 +1,6 @@
 name: "mfiidd"
 navbar:
-  title: "MFIIDD 2017"
+  title: "MFIIDD 2018"
   type: inverse
   left:
     - text: "Introduction"
@@ -21,9 +21,6 @@ navbar:
     - text: "Particle MCMC"
       # icon: fa-area-chart
       href: pmcmc.html   
-    - text: "POMP"
-      # icon: fa-area-chart
-      href: pomp.html  
     - text: "ABC"
       # icon: fa-area-chart
       href: ABC.html   
