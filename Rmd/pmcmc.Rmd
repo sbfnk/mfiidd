@@ -1,4 +1,4 @@
-% The particle MCMC
+% Particle MCMC
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pmcmc/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
@@ -17,17 +17,17 @@ The aim of this session is to learn how you can fit a stochastic model using the
 * To explore the parameter space efficiently
 * To evaluate the likelihood at a given parameter 
 
-In the [previous session](mcmc_and_model_comparison.html), you have used the function `mcmcMH` to explore the parameter space with a Metropolis-Hastings algorithm and the function `dTrajObs` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
+In the [previous session](mcmc_and_model_comparison.html), you have used the function `mcmcMH` to explore the parameter space with the Metropolis-Hastings algorithm and the function `dTrajObs` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
 
 In this session you will:
 
 1. code a particle filter to estimate the likelihood of a stochastic model
 2. learn how to calibrate the number of particles
-3. fit the stochastic SEIT4L model to the Tristan da Cunha outbreak with a pMCMC
+3. fit the stochastic SEIT4L model to the Tristan da Cunha outbreak with pMCMC
 
 # Code a particle filter
 
-Before running a pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data at a given proposed `theta`.
+Before running pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data at a given proposed `theta`.
 
 Below you can find the skeleton of such a function. We have inserted comments at each step of the algorithm. If you are struggling at any point, follow the link below the code for a more guided example.
 
