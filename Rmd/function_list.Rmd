@@ -1,0 +1,80 @@
+---
+title: '`fitR` contents'
+output:
+  pdf_document
+---
+
+```{r setup, echo = FALSE, cache = FALSE}
+library('fitR')
+library('dplyr')
+library('xtable')
+f <- system.file("INDEX", package = "fitR")
+
+desc <- lapply(readLines(f), function(x) {
+  s <- strsplit(x, split=" +")
+  if (length(s[[1]]) == 1) s[[1]][2] <- ""
+  c(s[[1]][1], paste(s[[1]][2:length(s[[1]])], collapse=" "))
+})
+
+empty_first <- which(vapply(desc, function(x) nchar(x[1]) == 0, TRUE))
+for (id in rev(empty_first))
+  desc[[id-1]][2] <- paste(desc[[id-1]][2], desc[[id]][2], collapse=" ")
+
+desc <- desc[-empty_first]
+
+df <- tbl_df(t(vapply(desc, function(x) x, c("a", "b")))) %>%
+  rename(name=V1, desc=V2) %>%
+  mutate(desc=sub("^ ", "", desc)) %>%
+  filter(!grepl("_pomp(_r)?$", name)) %>%
+  filter(!(name %in% c("distanceOscillation", "testFitModel")))
+  
+df$func <- apply(df, 1, function(x) {"function" %in% class(get(x[["name"]]))})  
+
+ds <- df %>% 
+  filter(!func) %>%
+  filter(name %in% c("FluTdC1971", "measles"))
+  
+ms <- df %>%
+  filter(!func) %>%
+  filter(!(name %in% ds$name))
+  
+fs <- df %>%
+  filter(func)
+
+ds <- ds %>%
+  filter(!(name %in% c("measles")))
+```
+
+# Functions
+
+```{r func_table, results='asis', echo = FALSE }
+print(xtable(fs[, 1:2],
+             align=c("l", "l", "p{0.7\\textwidth}")),
+      comment=FALSE,
+      include.rownames=FALSE,
+      include.colnames=FALSE,
+      hline.after=c())
+```
+
+# Data sets
+
+```{r data_table, results='asis', echo = FALSE }
+print(xtable(ds[, 1:2],
+             align=c("l", "l", "p{0.7\\textwidth}")),
+      comment=FALSE,
+      include.rownames=FALSE,
+      include.colnames=FALSE,
+      hline.after=c())
+```
+
+# Models
+
+```{r model_table, results='asis', echo = FALSE }
+print(xtable(ms[, 1:2],
+             align=c("l", "l", "p{0.7\\textwidth}")),
+      comment=FALSE,
+      include.rownames=FALSE,
+      include.colnames=FALSE,
+      hline.after=c())
+```
+
