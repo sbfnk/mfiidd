@@ -32,9 +32,9 @@ First, we will work with a simple deterministic SIR model. We will later fit thi
 $$
 \begin{cases}
 \begin{aligned}
-\frac{dS}{dt} &= - \beta S \frac{I}{N}\\
-\frac{dI}{dt} &= \beta S \frac{I}{N} - \nu I\\
-\frac{dR}{dt} &= \nu I\\
+\frac{\mathrm{d}S}{\mathrm{d}t} &= - \beta S \frac{I}{N}\\
+\frac{\mathrm{d}I}{\mathrm{d}t} &= \beta S \frac{I}{N} - \nu I\\
+\frac{\mathrm{d}R}{\mathrm{d}t} &= \nu I\\
 \end{aligned}
 \end{cases}
 $$
