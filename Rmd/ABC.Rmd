@@ -17,8 +17,7 @@ The aim of this practical is to use Approximate Bayesian Computation (ABC) to ci
 
 1. write some functions to evaluate summary statistics
 2. use the summary statistics to calculate a distance between model runs and the data
-3. approximate the SEITL model posterior using ABC-MCMC
-4. compare an approximated posterior from ABC with the true posterior
+3. approximate the SEITL model posterior using ABC rejection algorithm 
 
 To illustrate ABC, you are again going to fit the [SEITL model](play_with_seitl.html) to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative. Running and evaluating pMCMC and ABC on this same data set also gives us the chance to compare the two approaches.
 
@@ -156,147 +155,121 @@ hist(replicate(100, computeDistanceABC(sum.stats = list(ssSize, ssMax),
 
 Again, these are stochastic simulations so your histogram will look different, and again you can test this with different summary statistics (including more, or fewer) and distance functions. How widely are the distances distributed for a single set of parameters? This should give you an indication for a reasonable acceptance window. Ideally, you want to have summary statistics that vary a lot between parameter values (so the acceptance window can distinguish between good or bad fits), but not so much within parameter values (so you don't have to reject many runs from good parameters). Finding the right combination summary statistics and distance functions to achieve this can be very difficult, though, and one usually ends up having to make compromises between the two.
 
-# ABC posterior estimate
+# ABC rejection algorithm
 
-Lastly, write a function that will return the approximated posterior value for a given parameter, based on a single model run.
+Lastly, write a function that will return the approximated posterior distribution for theta using the ABC rejection algorithm. We will propose $D_{lat}$ anf $D_{inf}$ from informative priors:
+
+* $D_{lat}\sim\mathcal{Gamma}(shape=16,rate=8)$
+* $D_{inf}\sim\mathcal{Gamma}(shape=16,rate=8))$
+
+We choose the Gamma distribution as our parameters must be positive in value. The mean of the gamma distribution is $shape/rate$ and the variance is $shape/rate^2$. Hence here the mean of the distribution is 2 and the variance is 0.25.
+
+For the sake of simplicity and time, we will assume the remaining parameters are fixed at: R0 = 2, alpha = 0.9, D_imm = 13, rho = 0.85.
 
 ```{r my_abclogpost, eval=FALSE}
 # a function that takes 7 arguments:
+# - N :the number of desired samples
 # - epsilon: a vector (if the distance function returns a vector) or
 #            single number, the tolerance for ABC
 # - sum.stats: list of summary statistic functions
 # - distanceABC: ABC distance function
 # - fitmodel: model to compare to the data
-# - theta: parameter vector
 # - init.state: initial state for the simulation
 # - data: data to compare the model to
-my_ABCLogPosterior <- function(epsilon, sum.stats, distanceABC,
-                               fitmodel, theta, init.state, data) {
+my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
+                               fitmodel, init.state, data) {
 
-    # use computeDistanceABC to calculate a distance between the model
-    # and data
+  
+  
+  #set up empty matrix to store results
 
-    ## if the model distance is within the epsilon window
+  #initialise with i=0
+  
 
-        # set log.density to the prior
+  # while the length of the accepted values (result) is less than the desired length (N)
+  
+  
+  # - draw a new d_lat and d_inf from their prior distributions
+  #create a theta vector with the new d_lat and d_inf
+  
+  # use computeDistanceABC to calculate a distance between the model
+  # and data
 
-    ## else
+  ## if the model distance is within the epsilon window
+  # store the accepeted parameter values
 
-        # set log.density to -Inf
+  #update i (dimension of results store)
 
-    ## end if
-
-    # return log.density, the ABC posterior approximation
+  # return the accepted values 
 }
 ```
 
-We don't provide an intermediate solution in this case, but if you are struggling with this have a look at the `ABCLogPosterior` function that comes packaged in `fitR` by typing
 
-```{r abclogpost_func, eval = FALSE}
-ABCLogPosterior
-```
-
-```{r abclogpost_assign, echo = FALSE}
-my_ABCLogPosterior<-ABCLogPosterior
-```
+If you have trouble filling any of the empty bits in, have a look at our [more guided example](abc_example.html).
 
 Once you have coded this function you can perform some tests to calibrate the tolerances.
 
-```{r abclogpost}
-my_ABCLogPosterior(epsilon = 5,
+```{r abclogpost, eval=F}
+my_ABC_algorithm(N=1000, epsilon = 5,
                    sum.stats = list(ssMax, ssSize),
                    distanceABC = ssMeanRelDistance,
                    fitmodel = SEITL_stoch,
-                   theta = theta,
                    init.state = init.state,
-                   data = FluTdC1971)
+                    data = FluTdC1971)
 ```
 
 Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.
 
 You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.
 
-# ABC-MCMC on the stochastic model
+# Going further: ABC-SMC with two populations 
 
-We are nearly ready to run MCMC to generate samples that follow our ABC estimate of the posterior distribution. Again, however, we need to write a wrapper function that only depends on one parameter. For example (using several summary statistics from the corresponding [examples](sumstat_examples.html) and one of the distance functions from the other [examples](distance_examples.html))
+The ABC rejection algorithm can be slow and inefficient. An improvement is to resample populations of parameters with decreasing values of tolerance. 
 
-```{r abc_wrapper}
-my_ABCLogPosterior_tdc <- function(theta) {
+Run your function `my_ABC_algorithm` with a large tolerance for `N=1000`. This is your first population (`pop_1`). From this population, we will randomly sample parameter sets (rows of the matrix), perturb them by a small value and perform the ABC rejection step with a smalller tolerance. 
 
-    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0)
 
-    # log posterior with several summary statistics, distance given
-    # by the mean relative distance in the summary statistics,
-    # tolerance of 2
-    log.posterior <-
-        ABCLogPosterior(epsilon = 2,
-                        sum.stats = list(ssSize = ssSize,
-                                         ssMax = ssMax,
-                                         ssMaxTime = ssMaxTime,
-                                         ssSum_13_24 = ssSum_13_24,
-                                         ssMax_25_36 = ssMax_25_36,
-                                         ssSum_37_60 = ssSum_37_60),
-                        distanceABC = ssMeanRelDistance,
-                        fitmodel = SEIT4L_stoch,
-                        theta = theta,
-                        init.state = init.state,
-                      data = FluTdC1971)
+```{r abclogpost_smc, eval=F}
 
-    return(log.posterior)
-}
+# use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm
+
+pop_1<-my_ABC_algorithm(N=1000, epsilon = 10000,
+                   sum.stats = list(ssMax, ssSize),
+                   distanceABC = ssMeanRelDistance,
+                   fitmodel = SEITL_stoch,
+                   init.state = init.state,
+                    data = FluTdC1971)
+
+  #set up empty matrix to store results of population 2
+
+  #initialise with i=0
+  
+
+  # while the length of the accepted values (result) is less than the desired length (N)
+  
+  # - draw a random number between 1 and 1000
+
+  # extract corresponding row from pop_1 using this number
+
+  #perturb these parameters using multivariate Gaussian distribution
+
+  #create a theta vector with the new d_lat and d_inf
+  
+  # use computeDistanceABC to calculate a distance between the model
+  # and data
+
+  ## if the model distance is within the epsilon window
+  # store the accepted parameter values
+
+  #update i (dimension of results store)
+
+  # return the accepted values 
+
 ```
 
-Change this function to your own liking, e.g. with different summary statistics, a different distance function, different tolerance etc. Test the function using
+Try running the ABC rejection algorithm with a small tolerance and compare the computation time to ABC-SMC with two populations.
 
-```{r abc_wrapper_test}
-my_ABCLogPosterior_tdc(theta)
-```
+We can add more populations to the ABC-SMC algorithm described above, but then we will need to calculate 'weights' for each parameter set. A [paper](http://rsif.royalsocietypublishing.org/content/6/31/187.short) by Toni et al. describes weights for the ABC-SMC algorithm (for deterministic and stochastic models) in detail.
 
-(You will get a different value here, as this is the outcome of a random simulation)
 
-You can now plug this into the `mcmcMH` (or `my_mcmcMH`, if you would like to use your own) function. Can you work out the command to run ABC-MCMC? If not, have a look at the [solution](abc_solution.html#abc-mcmc-on-the-stochastic-model).
-
-Run ABC-MCMC with various values for the tolerance, different summary statistics and different distance functions. Can you get the MCMC to mix well?
-
-# Comparison with exact posterior
-
-In the deterministic model, we can calculate the likelihood directly, and don't need an approximation. This is a good test case for the accuracy of ABC, as well as our summary statistics.
-
-Write a wrapper function `my_ABCLogPosterior_tdc_det` to calculate the posterior using the deterministic model by changing the `my_ABCLogPosterior_tdc` function.
-
-```{r abc_wrapper_det, echo = FALSE}
-my_ABCLogPosterior_tdc_det <- function(theta) {
-
-    init.state = c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0)
-
-    # log posterior with several summary statistics, distance given
-    # by the mean relative distance in the summary statistics,
-    # tolerance of 2
-    log.posterior <-
-        ABCLogPosterior(epsilon = 2,
-                        sum.stats = list(ssSize = ssSize,
-                                           Max = ssMax,
-                                           MaxTime = ssMaxTime,
-                                           Sum_13_24 = ssSum_13_24,
-                                           Max_25_36 = ssMax_25_36,
-                                           Sum_37_60 = ssSum_37_60),
-                        distanceABC = ssMeanRelDistance,
-                        fitmodel = SEIT4L_deter,
-                        theta = theta,
-                        init.state = init.state,
-                        data = FluTdC1971)
-
-    return(log.posterior)
-}
-```
-
-You can now explore this using the `mcmcMH` function, and the same command as before. Compare this to MCMC using the `SEITL2_deter` function directly (in a posterior wrapper function, as you did [here](play_with_seitl.html#run-mcmc)). Compare the two using `coda` plot functions. How good is your the ABC estimate using different summary statistics?
-
-If you have any trouble running the MCMC, have a look at our [solution](abc_solution.html#comparison-with-exact-posterior).
-
-# Going further
-
-A [paper](http://www.genetics.org/content/182/4/1207.full.pdf) by Wegmann et al. describes various improvements to the ABC-MCMC algorithm, for example an initial run of ~10000 randomly sampled parameter sets to calibrate the tolerance.
-
-A [recent review of ABC](http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002803) discussed many of the strengths and weaknesses of ABC, as well as recent developments.
 

@@ -1,12 +1,8 @@
 # ABC rejection algorithm 
 
-Here is a possible solution for the ABC rejection algorithm.
+Below, you can find an example of how to code a Metropolis-Hastings sampler. Some bits are left out for you to fill in (marked "INSERT HERE"). Each "INSERT HERE" statement requires one line of code. If you struggle, you can find a link to a solution below the function.
 
 ```{r abcsolution, eval=F}
-library(fitR)
-source("sumstat_examples.r")
-source("distance_examples.r")
-
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
 my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
@@ -24,8 +20,8 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
     
     # - draw a new theta from prior distributions
     
-    d_lat<-rgamma(1,shape=16,rate=8)
-    d_inf<-rgamma(1,shape=16,rate=8)
+    d_lat<-# INSERT HERE:
+    d_inf<-# INSERT HERE:
     
     theta <- c(R0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85)
 
@@ -39,23 +35,35 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
                              data = data)
     
     ## if the model distance is within the epsilon window
-   
+    
     if(dist<=epsilon){
-       # store the accepted parameter values
-      results<-rbind(results,theta)
+      
+      # store the accepted parameter values
+      # INSERT HERE:
     }
     
     #update i (dimension of results store)
-    i<-dim(results)[1]
+    i<-# INSERT HERE:
     
   }
   # return the accepted values 
   return(results)
 }
 
+my_results<-my_ABC_algorithm(N=10, epsilon = 5,
+                   sum.stats = list(ssMax, ssSize),
+                   distanceABC = ssMeanRelDistance,
+                   fitmodel = SEITL_stoch,
+                   init.state = init.state,
+                    data = FluTdC1971)
+
+head(my_results)
+
+hist(my_results[,2])
+hist(my_results[,3])
 
 ```
 
-You can copy and paste the function into your **R** session, and proceed from there.
+If you run into any problems, have a look at our [solution](abc_solution.html). Otherwise you can [return](ABC.html) to the ABC session.
 
-[Return](ABC.html) to the ABC session.
+
