@@ -68,11 +68,11 @@ and the following deterministic equations:
 $$
 \begin{cases}
 \begin{aligned}
-\frac{dS}{dt} &= - \beta S \frac{I}{N} + (1-\alpha) \tau T\\
-\frac{dE}{dt} &= \beta S \frac{I}{N} - \epsilon E\\
-\frac{dI}{dt} &= \epsilon E - \nu I\\
-\frac{dT}{dt} &= \nu I - \tau T\\
-\frac{dL}{dt} &= \alpha \tau T\\
+\frac{\mathrm{d}S}{\mathrm{d}t} &= - \beta S \frac{I}{N} + (1-\alpha) \tau T\\
+\frac{\mathrm{d}E}{\mathrm{d}t} &= \beta S \frac{I}{N} - \epsilon E\\
+\frac{\mathrm{d}I}{\mathrm{d}t} &= \epsilon E - \nu I\\
+\frac{\mathrm{d}T}{\mathrm{d}t} &= \nu I - \tau T\\
+\frac{\mathrm{d}L}{\mathrm{d}t} &= \alpha \tau T\\
 \end{aligned}
 \end{cases}
 $$
@@ -229,6 +229,6 @@ In the next session, you will verify your intuition by using a statistical crite
 
 # Going further
 
-* Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](external_ref/poisson_obs.pdf).
+* Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](external_ref/poisson_obs.pdf) from Germán Rodríguez' [lecture notes on generalized linear models](http://data.princeton.edu/wws509/notes).
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?
 
