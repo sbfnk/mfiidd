@@ -1,24 +1,17 @@
 model SEITL_sto {
-
-  const k_erlang = 1 
-  const N = 1000 
+  const k_erlang = 1
+  const N = 1000
   const timestep = 1
-
   dim k(k_erlang)
-
   state S, E, I, T[k], L, Inc
-
   param R0, D_lat, D_inf, alpha, D_imm, rho
-
   noise infection
   noise incubation
   noise loss_infectiousness
   noise immunity[k]
   noise loss_immunity
-
   obs Cases
-
-  sub initial { 
+  sub initial {
     E <- 0
     I <- 2
     T[k] <- (k == 0 ? 3 : 0)
@@ -26,8 +19,7 @@ model SEITL_sto {
     Inc <- 0
     S <- N - I - T[0]
   }
-
-  sub parameter { 
+  sub parameter {
     R0 ~ uniform(1, 50)
     D_lat ~ uniform(0, 10)
     D_inf ~ uniform(0, 15)
@@ -35,22 +27,17 @@ model SEITL_sto {
     alpha ~ uniform(0, 1)
     rho ~ uniform(0, 1)
   }
-
   sub transition (delta=timestep) {
-
     inline beta = R0/D_inf
     inline epsilon = 1/D_lat
     inline nu = 1/D_inf
     inline tau = 1/D_imm
-
     Inc <- 0
-
     infection ~ binomial(S, 1 - exp(-beta * I/N * timestep))
     incubation ~ binomial(E, 1 - exp(-epsilon * timestep))
     loss_infectiousness ~ binomial(I, 1 - exp(-nu * timestep))
     immunity[k] ~ binomial(T[k], 1 - exp(-k_erlang * tau * timestep))
     loss_immunity ~ binomial(immunity[k_erlang - 1], 1 - alpha)
-
     S <- S - infection + loss_immunity
     E <- E + infection - incubation
     I <- I + incubation - loss_infectiousness
@@ -58,8 +45,15 @@ model SEITL_sto {
     L <- L + immunity[k_erlang - 1] - loss_immunity
     Inc <- Inc + infection
   }
-
   sub observation {
     Cases ~ poisson(rho * Inc)
+  }
+  sub proposal_parameter {
+    R0 ~ truncated_gaussian(mean = R0, std = 1, lower = 1, upper = 50)
+    D_lat ~ truncated_gaussian(mean = D_lat, std = 2, lower = 0, upper = 10)
+    D_inf ~ truncated_gaussian(mean = D_inf, std = 1, lower = 0, upper = 15)
+    alpha ~ truncated_gaussian(mean = alpha, std = 0.05, lower = 0, upper = 1)
+    D_imm ~ truncated_gaussian(mean = D_imm, std = 2, lower = 0, upper = 50)
+    rho ~ truncated_gaussian(mean = rho, std = 0.02, lower = 0, upper = 1)
   }
 }

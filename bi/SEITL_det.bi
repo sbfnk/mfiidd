@@ -1,17 +1,11 @@
-model SEITL_deter {
-
+model SEITL_det {
   const k_erlang = 1
   const N = 1000
-
   dim k(k_erlang)
-
   state S, E, I, T[k], L, Inc
-
   param R0, D_lat, D_inf, alpha, D_imm, rho
-
   obs Cases
-
-  sub initial { 
+  sub initial {
     E <- 0
     I <- 2
     T[k] <- (k == 0 ? 3 : 0)
@@ -19,8 +13,7 @@ model SEITL_deter {
     Inc <- 0
     S <- N - I - T[0]
   }
-
-  sub parameter { 
+  sub parameter {
     R0 ~ uniform(1, 50)
     D_lat ~ uniform(0, 10)
     D_inf ~ uniform(0, 15)
@@ -28,30 +21,32 @@ model SEITL_deter {
     alpha ~ uniform(0, 1)
     rho ~ uniform(0, 1)
   }
-
   sub transition {
-
     inline beta = R0/D_inf
     inline epsilon = 1/D_lat
     inline nu = 1/D_inf
     inline tau = 1/D_imm
-
     Inc <- 0
-
-    ode { 
+    ode {
       dS/dt = -beta * S * I/N + (1-alpha) * tau * k_erlang * T[k_erlang - 1]
       dE/dt = beta * S * I/N - epsilon * E
       dI/dt = epsilon * E - nu * I
-      dT[k]/dt =
-          + (k == 0 ? nu * I : 0)
-          - k_erlang * tau * T[k]
-          + (k > 0 ? k_erlang * tau * T[k-1] : 0)
+      dT[k]/dt = + (k == 0 ? nu * I : 0)
+      - k_erlang * tau * T[k]
+      + (k > 0 ? k_erlang * tau * T[k-1] : 0)
       dL/dt = alpha * k_erlang * tau * T[k_erlang - 1]
       dInc/dt = epsilon * E
     }
   }
-
   sub observation {
     Cases ~ poisson(rho * Inc)
+  }
+  sub proposal_parameter {
+    R0 ~ truncated_gaussian(mean = R0, std = 3, lower = 1, upper = 50)
+    D_lat ~ truncated_gaussian(mean = D_lat, std = 0.2, lower = 0, upper = 10)
+    D_inf ~ truncated_gaussian(mean = D_inf, std = 0.9, lower = 0, upper = 15)
+    alpha ~ truncated_gaussian(mean = alpha, std = 0.02, lower = 0, upper = 1)
+    D_imm ~ truncated_gaussian(mean = D_imm, std = 1, lower = 0, upper = 50)
+    rho ~ truncated_gaussian(mean = rho, std = 0.006, lower = 0, upper = 1)
   }
 }
