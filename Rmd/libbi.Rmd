@@ -1,5 +1,5 @@
 ---
-title: "The SEITL model in *libbi*"
+title: "The SEITL model in *LibBi*"
 --- 
 
 ```{r setup, echo=FALSE}
@@ -10,9 +10,16 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/libbi/', cache.path='cache/li
 library(fitR)
 set.seed(1234)
 ```
+
+# Introduction
+
+So far, we have used self-written R code and the `fitR` package to conduct inference. This is highly inefficient. Generally, code written in machine-compiled languages such as C or C++ can be several orders of magnitude faster. Moreover, smart parallelisation of the various steps involved as well as other techniques that accelerate computation can have a big impact on the time needed to obtain satisfactory results.
+
+Here, we will look at a library called *LibBi* (Library for Bayesian inference). It can be used from R via the `rbi` package.
+
 # Installing LibBi and RBi
 
-By far the easiest way for installing [LibBi](http://libbi.org) is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following commands (using a command shell, i.e. Terminal or similar):
+By far the easiest way for installing [LibBi](http://libbi.org) is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following command (using a command shell, i.e. Terminal or similar):
 
 ```sh
 brew install libbi
@@ -21,9 +28,8 @@ brew install libbi
 You'll also need the `rbi` and `rbi.helpers` packages:
 
 ```r
-library('devtools')
 install.packages('rbi')
-install_github('sbfnk/rbi.helpers')
+devtools::install_github('sbfnk/rbi.helpers')
 ```
 
 ```r
@@ -35,21 +41,58 @@ For an introduction to the functionalities of the `rbi` and `rbi.helpers` packag
 
 # Deterministic SEITL model
 
-```r
-model_det <- '
-model SEITL_deter {
+Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using
 
+```r
+SEITL_deter <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_deter.bi"))
+```
+
+Here, `readLines` simple reads in the text file from the web site, and `bi_model` prepares it to be used with the `rbi` package.
+
+Look at the contents of the model file by typing
+
+```{r eval=FALSE}
+SEITL_deter
+```
+
+This file has the following sections:
+
+```c
+model SEITL_deter {
+```
+
+```c
   const k_erlang = 1
   const N = 1000
+```
 
+This defines two constants: the number of Erlang compartments (here: 1) and the population size (here: 1000). We can change these from within R, for example if we want more than one Erlang compartment.
+
+```c
   dim k(k_erlang)
+```
 
+This defines a /dimension/ (i.e., the number of elements in a vector), that we’ll later use for the temporary immune compartments /T/.
+
+```c
   state S, E, I, T[k], L, Inc
+```
 
+This defines the model states, that is variables that change over time. Note the `[k]` after `T`, specifying that `T` has dimension `k` (that is, `k_erlang` compartments).
+
+```c
   param R0, D_lat, D_inf, alpha, D_imm, rho
+```
 
+This defines the parameter, that is variables that don’t change over time.
+
+```c
   obs Cases
+``
 
+This defines an /observation/ variable, that is one that will be expected in the data passed to LibBi.
+
+```c
   sub initial { 
     E <- 0
     I <- 2
@@ -58,7 +101,11 @@ model SEITL_deter {
     Inc <- 0
     S <- N - I - T[0]
   }
+```
 
+This specifies the initial states of the system. Here they are fixed, but they could be drawn from distributions, too. We start with 2 infectious individuals and 3 in the first `T` compartment.
+
+```c
   sub parameter { 
     R0 ~ uniform(1, 50)
     D_lat ~ uniform(0, 10)
@@ -67,16 +114,33 @@ model SEITL_deter {
     alpha ~ uniform(0, 1)
     rho ~ uniform(0, 1)
   }
+```
 
+This specifies the prior distributions. Here, they are all uniform, just in the `fitmodel` implementation of the SEITL model.
+
+
+```c
   sub transition {
+```
 
+This starts the /transition/ block, that is the process model.
+
+```c
     inline beta = R0/D_inf
     inline epsilon = 1/D_lat
     inline nu = 1/D_inf
     inline tau = 1/D_imm
+```
 
+This defines a few auxiliary variables to be used later.
+
+```c
     Inc <- 0
+```
 
+This resets incidence (`Inc`) at every time step.
+
+```c
     ode { 
       dS/dt = -beta * S * I/N + (1-alpha) * tau * k_erlang * T[k_erlang - 1]
       dE/dt = beta * S * I/N - epsilon * E
@@ -88,67 +152,35 @@ model SEITL_deter {
       dL/dt = alpha * k_erlang * tau * T[k_erlang - 1]
       dInc/dt = epsilon * E
     }
-  }
+```
 
+This defines the system of ODEs. Note the notation for `dT[k]/dt`, where the ODE depends on whether `k` is zero or greater than zero.
+    
+```c
   sub observation {
     Cases ~ poisson(rho * Inc)
   }
-}
-'
-deter <- bi_model(lines=model_det)
 ```
+
+This defines the observation model. We use a observations distributed according to a Poisson distribution.
 
 # Stochastic SEITL model
 
+Let’s load the stochastic model using
+    
 ```r
-model_sto <- '
-model SEITL_sto {
+SEITL_sto <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
+```
 
-  const k_erlang = 1 
-  const N = 1000 
-  const timestep = 1
+Again, you can look at the contents of the model file by typing
 
-  dim k(k_erlang)
+```{r eval=FALSE}
+SEITL_sto
+```
 
-  state S, E, I, T[k], L, Inc
+This is very similar to the deterministic model, but the `transition` block (the process model) is different:
 
-  param R0, D_lat, D_inf, alpha, D_imm, rho
-
-  noise infection
-  noise incubation
-  noise loss_infectiousness
-  noise immunity[k]
-  noise loss_immunity
-
-  obs Cases
-
-  sub initial { 
-    E <- 0
-    I <- 2
-    T[k] <- (k == 0 ? 3 : 0)
-    L <- 0
-    Inc <- 0
-    S <- N - I - T[0]
-  }
-
-  sub parameter { 
-    R0 ~ uniform(1, 50)
-    D_lat ~ uniform(0, 10)
-    D_inf ~ uniform(0, 15)
-    D_imm ~ uniform(0, 50)
-    alpha ~ uniform(0, 1)
-    rho ~ uniform(0, 1)
-  }
-
-  sub transition (delta=timestep) {
-
-    inline beta = R0/D_inf
-    inline epsilon = 1/D_lat
-    inline nu = 1/D_inf
-    inline tau = 1/D_imm
-
-    Inc <- 0
-
+```c
     infection ~ binomial(S, 1 - exp(-beta * I/N * timestep))
     incubation ~ binomial(E, 1 - exp(-epsilon * timestep))
     loss_infectiousness ~ binomial(I, 1 - exp(-nu * timestep))
@@ -161,13 +193,42 @@ model SEITL_sto {
     T[k] <- T[k] + (k == 0 ? loss_infectiousness : 0) + (k > 0 ? immunity[k - 1] : 0) - immunity[k]
     L <- L + immunity[k_erlang - 1] - loss_immunity
     Inc <- Inc + infection
-  }
-
-  sub observation {
-    Cases ~ poisson(rho * Inc)
-  }
-}
-'
-sto <- bi_model(lines=model_sto)
 ```
 
+Now, a number of random variables (defined earlier in the file as so-called `noise` variables) are first drawn from a binomial distribution and then used to update the model states.
+
+# pMCMC with the stochastic SEITL model
+
+We want to determine the optimal number of T compartments in the stochastic SEITL model. To do this, we run pMCMC with 400 particles and 3000 iterations (i.e., same as in the [pMCMC pratical](pmcmc.html)). But first, we prepare the Tristan da Cunha data set to be used as observation data set with `rbi`:
+
+```r
+tdc <- list(Cases=FluTdC1971 %>% dplyr::select(time, value=obs))
+```
+
+The `rbi` object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns `time` and `value`. Here, the observations are called `Cases`, the same as in the line specifying the observation density in the LibBi file above.
+
+Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain:
+
+```r
+  prep <- sample(SEITL_sto, nsamples=3000, proposal="prior", obs=tdc, 
+                 end_time=max(tdc$Cases$time), nparticles=400)
+```
+
+Next, we run 3000 pMCMC iterations for 1 to 10 Erlang compartments for T.
+
+```r
+max_erlang <- 10
+
+for (i in 1:max_erlang) {
+  bi[[i]] <- sample(prep, model=adapted$model %>% fix(k_erlang=i), 
+                    sample_obs=TRUE, nsamples=3000)
+}
+```
+
+Lastly, we compute the DIC for each of these pMCMC runs.
+
+
+
+Let's plot the DIC as a function of the number of Erlang compartments.
+
+It looks like the best is 4, although only slightly better than 1. You can plot the fit plotting filtered trajectories as generated by the pMCMC algorithgg
