@@ -48,12 +48,4 @@ model SEITL_sto {
   sub observation {
     Cases ~ poisson(rho * Inc)
   }
-  sub proposal_parameter {
-    R0 ~ truncated_gaussian(mean = R0, std = 1, lower = 1, upper = 50)
-    D_lat ~ truncated_gaussian(mean = D_lat, std = 2, lower = 0, upper = 10)
-    D_inf ~ truncated_gaussian(mean = D_inf, std = 1, lower = 0, upper = 15)
-    alpha ~ truncated_gaussian(mean = alpha, std = 0.05, lower = 0, upper = 1)
-    D_imm ~ truncated_gaussian(mean = D_imm, std = 2, lower = 0, upper = 50)
-    rho ~ truncated_gaussian(mean = rho, std = 0.02, lower = 0, upper = 1)
-  }
 }
