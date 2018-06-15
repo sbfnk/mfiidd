@@ -1622,6 +1622,9 @@ div.tocify {
 <li>
   <a href="ABC.html">ABC</a>
 </li>
+<li>
+  <a href="libbi.html">LibBi</a>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -1788,11 +1791,11 @@ div.tocify {
 <p>If you have trouble filling any of the empty bits in, have a look at our <a href="abc_example.html">more guided example</a>.</p>
 <p>Once you have coded this function you can perform some tests to calibrate the tolerances.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw">my_ABC_algorithm</span>(<span class="dt">N=</span><span class="dv">1000</span>, <span class="dt">epsilon =</span> <span class="dv">5</span>,</a>
-<a class="sourceLine" id="cb12-2" data-line-number="2">                 <span class="dt">sum.stats =</span> <span class="kw">list</span>(ssMax, ssSize),</a>
-<a class="sourceLine" id="cb12-3" data-line-number="3">                 <span class="dt">distanceABC =</span> ssMeanRelDistance,</a>
-<a class="sourceLine" id="cb12-4" data-line-number="4">                 <span class="dt">fitmodel =</span> SEITL_stoch,</a>
-<a class="sourceLine" id="cb12-5" data-line-number="5">                 <span class="dt">init.state =</span> init.state,</a>
-<a class="sourceLine" id="cb12-6" data-line-number="6">                 <span class="dt">data =</span> FluTdC1971)</a></code></pre></div>
+<a class="sourceLine" id="cb12-2" data-line-number="2">                   <span class="dt">sum.stats =</span> <span class="kw">list</span>(ssMax, ssSize),</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">                   <span class="dt">distanceABC =</span> ssMeanRelDistance,</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">                   <span class="dt">fitmodel =</span> SEITL_stoch,</a>
+<a class="sourceLine" id="cb12-5" data-line-number="5">                   <span class="dt">init.state =</span> init.state,</a>
+<a class="sourceLine" id="cb12-6" data-line-number="6">                    <span class="dt">data =</span> FluTdC1971)</a></code></pre></div>
 <p>Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.</p>
 <p>You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have have a better approximation of the posterior but very low acceptance rate.</p>
 </div>
@@ -1802,12 +1805,12 @@ div.tocify {
 <p>Run your function <code>my_ABC_algorithm</code> with a large tolerance for <code>N=1000</code>. This is your first population (<code>pop_1</code>). From this population, we will randomly sample parameter sets (rows of the matrix), perturb them by a small value and perform the ABC rejection step with a smalller tolerance.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="co"># use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm</span></a>
 <a class="sourceLine" id="cb13-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb13-3" data-line-number="3">pop_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">my_ABC_algorithm</span>(<span class="dt">N =</span> <span class="dv">1000</span>, <span class="dt">epsilon =</span> <span class="dv">10000</span>,</a>
-<a class="sourceLine" id="cb13-4" data-line-number="4">                          <span class="dt">sum.stats =</span> <span class="kw">list</span>(ssMax, ssSize),</a>
-<a class="sourceLine" id="cb13-5" data-line-number="5">                          <span class="dt">distanceABC =</span> ssMeanRelDistance,</a>
-<a class="sourceLine" id="cb13-6" data-line-number="6">                          <span class="dt">fitmodel =</span> SEITL_stoch,</a>
-<a class="sourceLine" id="cb13-7" data-line-number="7">                          <span class="dt">init.state =</span> init.state,</a>
-<a class="sourceLine" id="cb13-8" data-line-number="8">                          <span class="dt">data =</span> FluTdC1971)</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">pop_<span class="dv">1</span>&lt;-<span class="kw">my_ABC_algorithm</span>(<span class="dt">N=</span><span class="dv">1000</span>, <span class="dt">epsilon =</span> <span class="dv">10000</span>,</a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">                   <span class="dt">sum.stats =</span> <span class="kw">list</span>(ssMax, ssSize),</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5">                   <span class="dt">distanceABC =</span> ssMeanRelDistance,</a>
+<a class="sourceLine" id="cb13-6" data-line-number="6">                   <span class="dt">fitmodel =</span> SEITL_stoch,</a>
+<a class="sourceLine" id="cb13-7" data-line-number="7">                   <span class="dt">init.state =</span> init.state,</a>
+<a class="sourceLine" id="cb13-8" data-line-number="8">                    <span class="dt">data =</span> FluTdC1971)</a>
 <a class="sourceLine" id="cb13-9" data-line-number="9"></a>
 <a class="sourceLine" id="cb13-10" data-line-number="10">  <span class="co">#set up empty matrix to store results of population 2</span></a>
 <a class="sourceLine" id="cb13-11" data-line-number="11"></a>
