@@ -34,7 +34,7 @@ library('fitR')
 
 To see all the commands available in fitR, have a look at the [fitR documentation](https://sbfnk.github.io/fitR).
 
-<!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
+[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
 
 <!-- [Modelling process uncertainty](process_uncertainty.html) -->
 
