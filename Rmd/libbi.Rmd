@@ -1,38 +1,34 @@
----
-title: "The SEITL model in *LibBi*"
---- 
+% The SEITL model in *LibBi*
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/libbi/', cache.path='cache/libbi/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/libbi/', cache.path='cache/libbi/' , fig.cap='', fig.align="center", tidy=FALSE)
 ```
 
-```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
+```{r fitR, include=FALSE, cache=FALSE}
 library(fitR)
 set.seed(1234)
 ```
 
-# Introduction
+So far, we have used self-written R code and the `fitR` package to conduct inference. This is highly inefficient. Generally, code written in machine-compiled languages such as C or C++ can be several orders of magnitude faster. Moreover, smart parallelisation of the various steps involved, as well as other techniques that accelerate computation can have a big impact on the time needed to obtain satisfactory results.
 
-So far, we have used self-written R code and the `fitR` package to conduct inference. This is highly inefficient. Generally, code written in machine-compiled languages such as C or C++ can be several orders of magnitude faster. Moreover, smart parallelisation of the various steps involved as well as other techniques that accelerate computation can have a big impact on the time needed to obtain satisfactory results.
-
-Here, we will look at a library called *LibBi* (Library for Bayesian inference). It can be used from R via the `rbi` package.
+There are numerous tools around that address this, and it is difficult to come up with a comprehensive list. A popular package is [pomp](https://kingaa.github.io/pomp), which includes multiple methods and many examples from infectious disease modelling. Here, we will look at a library called *LibBi* (Library for Bayesian inference). It can be used from R via the `rbi` package.
 
 # Installing LibBi and RBi
 
 By far the easiest way for installing [LibBi](http://libbi.org) is using [Homebrew](https://brew.sh) (on OS X) or [Linuxbrew](http://linuxbrew.sh) (on linux). Once one of these is installed, issue the following command (using a command shell, i.e. Terminal or similar):
 
-```sh
+```{sh eval=FALSE}
 brew install libbi
 ``` 
 
 You'll also need the `rbi` and `rbi.helpers` packages:
 
-```r
+```{r eval=FALSE}
 install.packages('rbi')
 devtools::install_github('sbfnk/rbi.helpers')
 ```
 
-```r
+```{r}
 library('rbi')
 library('rbi.helpers')
 ```
@@ -43,7 +39,7 @@ For an introduction to the functionalities of the `rbi` and `rbi.helpers` packag
 
 Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using
 
-```r
+```{r}
 SEITL_deter <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_det.bi"))
 ```
 
@@ -72,7 +68,7 @@ This defines two constants: the number of Erlang compartments (here: 1) and the 
   dim k(k_erlang)
 ```
 
-This defines a /dimension/ (i.e., the number of elements in a vector), that we’ll later use for the temporary immune compartments /T/.
+This defines a _dimension_ (i.e., the number of elements in a vector), that we’ll later use for the temporary immune compartments _T_.
 
 ```c
   state S, E, I, T[k], L, Inc
@@ -88,9 +84,9 @@ This defines the parameter, that is variables that don’t change over time.
 
 ```c
   obs Cases
-``
+```
 
-This defines an /observation/ variable, that is one that will be expected in the data passed to LibBi.
+This defines an _observation_ variable, that is one that will be expected in the data passed to LibBi.
 
 ```c
   sub initial { 
@@ -123,7 +119,7 @@ This specifies the prior distributions. Here, they are all uniform, just in the 
   sub transition {
 ```
 
-This starts the /transition/ block, that is the process model.
+This starts the _transition_ block, that is the process model.
 
 ```c
     inline beta = R0/D_inf
@@ -182,7 +178,7 @@ This defines the observation model. We use a observations distributed according 
 
 Let’s load the stochastic model using
     
-```r
+```{r}
 SEITL_sto <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
 ```
 
@@ -215,15 +211,17 @@ Now, a number of random variables (defined earlier in the file as so-called `noi
 
 We want to determine the optimal number of T compartments in the stochastic SEITL model. To do this, we run pMCMC with 400 particles and 3000 iterations (i.e., same as in the [pMCMC pratical](pmcmc.html)). But first, we prepare the Tristan da Cunha data set to be used as observation data set with `rbi`:
 
-```r
+```{r}
+library('dplyr')
 tdc <- list(Cases=FluTdC1971 %>% dplyr::select(time, value=obs))
+tdc
 ```
 
 The `rbi` object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns `time` and `value`. Here, the observations are called `Cases`, the same as in the line specifying the observation density in the LibBi file above.
 
 Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.
 
-```r
+```{r}
   prep <- sample(SEITL_sto, nsamples=3000, proposal="prior", obs=tdc, 
                  end_time=max(tdc$Cases$time), nparticles=400)
   prep <- adapt_proposal(prep, min=0.1, max=0.3)
@@ -239,7 +237,7 @@ This now contains a `proposal_parameter` block at the bottom, which contains the
 
 Next, we run 3000 pMCMC iterations for 1 to 10 Erlang compartments for T.
 
-```r
+```{r}
 bi <- list()
 max_erlang <- 10
 
@@ -252,7 +250,7 @@ for (i in 1:max_erlang) {
 
 Lastly, we compute the DIC for each of these pMCMC runs.
 
-```r
+```{r}
 dic <- data.frame(compartments=integer(0), DIC=numeric(0))
 for (i in 1:max_erlang) {
   dic <- rbind(dic, data.frame(compartments=i, DIC=DIC(bi[[i]])))
@@ -261,7 +259,7 @@ for (i in 1:max_erlang) {
 
 Let's plot the DIC as a function of the number of Erlang compartments.
 
-```r
+```{r}
 ggplot(dic, aes(x=compartments, y=DIC)) +
   geom_point() +
   geom_line()
@@ -269,8 +267,18 @@ ggplot(dic, aes(x=compartments, y=DIC)) +
 
 Which model fits best?
 
-You can visually inspect the fit by plotting filtered trajectories as generated by the pMCMC algorithm.
+You can visually inspect the fit of, for example, the SEIT4L model by plotting filtered trajectories as generated by the pMCMC algorithm
 
-```r
+```{r}
 p <- plot(bi[[4]], type="obs")
 ```
+
+and you can get a summary of the parameter estimates using
+
+```{r}
+summary(bi[[4]])
+```
+
+# Going further
+
+LibBi is being superseded by a new library called [Birch](https://birch-lang.org/). This allows to specify more general models than is possible in LibBi.
