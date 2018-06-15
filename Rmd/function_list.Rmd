@@ -23,7 +23,7 @@ for (id in rev(empty_first))
 desc <- desc[-empty_first]
 
 df <- tbl_df(t(vapply(desc, function(x) x, c("a", "b")))) %>%
-  rename(name=V1, desc=V2) %>%
+  dplyr::rename(name=V1, desc=V2) %>%
   mutate(desc=sub("^ ", "", desc)) %>%
   filter(!grepl("_pomp(_r)?$", name)) %>%
   filter(!(name %in% c("distanceOscillation", "testFitModel")))

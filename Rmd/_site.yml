@@ -24,3 +24,6 @@ navbar:
     - text: "ABC"
       # icon: fa-area-chart
       href: ABC.html   
+    - text: "LibBi"
+      # icon: fa-area-chart
+      href: libbi.html   
