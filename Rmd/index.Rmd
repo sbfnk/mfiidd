@@ -36,5 +36,5 @@ To see all the commands available in fitR, have a look at the [fitR documentatio
 
 [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
 
-<!-- [Modelling process uncertainty](process_uncertainty.html) -->
+[Modelling process uncertainty](process_uncertainty.html)
 
