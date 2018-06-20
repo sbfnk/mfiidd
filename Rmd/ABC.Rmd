@@ -185,20 +185,18 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
 
   #initialise with i=0
   
-
   # while the length of the accepted values (result) is less than the desired length (N)
   
-  
   # - draw a new d_lat and d_inf from their prior distributions
-  #create a theta vector with the new d_lat and d_inf
+  #   create a theta vector with the new d_lat and d_inf
   
   # use computeDistanceABC to calculate a distance between the model
   # and data
 
-  ## if the model distance is within the epsilon window
+  # if the model distance is within the epsilon window
   # store the accepeted parameter values
 
-  #update i (dimension of results store)
+  # update i (dimension of results store)
 
   # return the accepted values 
 }
@@ -240,9 +238,9 @@ pop_1<-my_ABC_algorithm(N=1000, epsilon = 10000,
                    init.state = init.state,
                     data = FluTdC1971)
 
-  #set up empty matrix to store results of population 2
+  # set up empty matrix to store results of population 2
 
-  #initialise with i=0
+  # initialise with i=0
   
 
   # while the length of the accepted values (result) is less than the desired length (N)
@@ -251,17 +249,17 @@ pop_1<-my_ABC_algorithm(N=1000, epsilon = 10000,
 
   # extract corresponding row from pop_1 using this number
 
-  #perturb these parameters using multivariate Gaussian distribution
+  # perturb these parameters using multivariate Gaussian distribution
 
-  #create a theta vector with the new d_lat and d_inf
+  # create a theta vector with the new d_lat and d_inf
   
   # use computeDistanceABC to calculate a distance between the model
   # and data
 
-  ## if the model distance is within the epsilon window
+  # if the model distance is within the epsilon window
   # store the accepted parameter values
 
-  #update i (dimension of results store)
+  # update i (dimension of results store)
 
   # return the accepted values 
 
