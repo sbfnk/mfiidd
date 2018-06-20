@@ -269,6 +269,8 @@ pop_1<-my_ABC_algorithm(N=1000, epsilon = 10000,
 
 Try running the ABC rejection algorithm with a small tolerance and compare the computation time to ABC-SMC with two populations.
 
+If you have trouble filling any of the empty bits in, have a look at our [solution](abc_smc_solutuion.html).
+
 We can add more populations to the ABC-SMC algorithm described above, but then we will need to calculate 'weights' for each parameter set. A [paper](http://rsif.royalsocietypublishing.org/content/6/31/187.short) by Toni et al. describes weights for the ABC-SMC algorithm (for deterministic and stochastic models) in detail.
 
 
