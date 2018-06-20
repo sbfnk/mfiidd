@@ -3,10 +3,6 @@
 Here is a possible solution for the ABC rejection algorithm.
 
 ```{r abcsolution, eval=F}
-library(fitR)
-source("sumstat_examples.r")
-source("distance_examples.r")
-
 init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
 my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,

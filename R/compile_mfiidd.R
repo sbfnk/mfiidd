@@ -48,7 +48,7 @@ compile_mfiidd <- function(Rmd.files, exclude, mfiidd.dir, practical, reinstall.
             c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert"), 
             c("pmcmc","smc_example","smc_example_solution","pmcmc_solution"), 
             c("pomp", "pomp_seitl_explanation"), 
-            c("ABC","sumstat_examples","distance_examples","abc_solution"),
+            c("ABC","sumstat_examples","distance_examples","abc_example", "abc_solution"),
             c("LibBi"))
 
         practical <- as.integer(practical)
@@ -75,7 +75,7 @@ compile_mfiidd <- function(Rmd.files, exclude, mfiidd.dir, practical, reinstall.
 
     if (length(Rmd.files) > 0) {
 
-        Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution", "pomp", "pomp_seitl_explanation", "ABC", "abc_solution", "LibBi")
+        Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution", "pomp", "pomp_seitl_explanation", "ABC", "abc_example", "abc_solution", "LibBi")
 
         for (Rmd.file in Rmd.files) {
           render(
