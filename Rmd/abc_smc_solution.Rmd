@@ -1,0 +1,78 @@
+# ABC-SMC algorithm with two populations
+
+Here is a possible solution for the ABC-SMC with two populations.
+
+```{r abc_smcsolutions, eval=F}
+
+library(fitR)
+library(MASS)
+source("sumstat_examples.r")
+source("distance_examples.r")
+
+init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+
+
+# use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm
+
+pop_1<-my_ABC_algorithm(N=1000, epsilon = 50,
+                   sum.stats = list(ssMax, ssSize),
+                   distanceABC = ssMeanRelDistance,
+                   fitmodel = SEITL_stoch,
+                   init.state = init.state,
+                    data = FluTdC1971)
+
+
+  N<-dim(pop_1)[1]
+
+  #specify a smaller tolerance for the second population
+  epsilon_2<-5
+
+  #Sigma is the covariance matrix for the multivarite normal distribution pertubation
+  Sigma <- matrix(c(0.5,0,0,0.5),2,2)
+  
+  #set up empty matrix to store results
+  results<-matrix(nrow=0,ncol=6)
+  
+  #initialise with i=0
+  i<-0
+  
+  # while the length of the accepted values (result) is less than the desired length (N)
+  while(i<N){
+    
+    # - draw a random number between 1 and 1000
+    row_no<-sample(1000,1)
+    # extract corresponding row from pop_1 using this number
+    pars<-pop_1[row_no,c("D_lat","D_inf")]
+
+    #perturb these parameters using multivariate Gaussian distribution
+    pars_perturb<-mvrnorm(n = 1,pars, Sigma)
+    
+    theta <- c(R0 = 2, D_lat = pars_perturb[["D_lat"]], D_inf = pars_perturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
+
+    # use computeDistanceABC to calculate a distance between the model
+    # and data
+    dist<-computeDistanceABC(sum.stats = sum.stats,
+                             distanceABC =  distanceABC,
+                             fitmodel = fitmodel,
+                             theta = theta,
+                             init.state = init.state,
+                             data = data)
+    
+    ## if the model distance is within the epsilon window
+    # store the accepeted parameter values
+    if(dist<=epsilon_2){
+      results<-rbind(results,theta)
+    }
+    
+    #update i (dimension of results store)
+    i<-dim(results)[1]
+    
+  }
+
+  # return the accepted values 
+  head(results)
+
+```
+
+
+[Return](ABC.html) to the ABC session.
