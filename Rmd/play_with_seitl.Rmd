@@ -79,7 +79,7 @@ $$
 
 where $\beta=R_0/D_\mathrm{inf}$, $\epsilon=1/D_\mathrm{lat}$, $\nu = 1/D_\mathrm{inf}$, $\tau=1/D_\mathrm{imm}$ and $N = S + E + I + L + T$ is constant. 
 
-As you saw in the lecture, __there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model__. In that sense, the deterministic equations are a description of the stochastic model, too.
+It can be shown that __there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model__. In that sense, the deterministic equations are a description of the stochastic model, too.
 
 In order to fit the SEITL model to the Tristan da Cunha dataset we need to add one state variable and one parameter to the model:
 
@@ -96,7 +96,7 @@ data(SEITL_deter)
 data(SEITL_stoch)
 ```
 
-A brief technical note: You might be confused that we use a function called `data` to load a `fitmodel`. However, this was the only way to provide you with models that preserved comments in the code of the function. Type `SEITL_deter$simulate`, for instance.
+A brief technical note: You might be confused that we use a function called `data` to load a `fitmodel`. However, this was the best way to provide you with models that preserved comments in the code of the function. Type `SEITL_deter$simulate`, for instance.
 
 __Take 10 minutes to look at the different elements of both models.__ In particular, you might be interested in how the daily incidence is computed in the function `SEITL_deter$simulate` and how the likelihood function `SEITL_deter$dPointObs` accounts for under-reporting. 
 
