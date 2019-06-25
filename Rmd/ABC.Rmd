@@ -183,7 +183,7 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
   
   #set up empty matrix to store results
 
-  #initialise with i=0
+  #initialise with i = 0
   
   # while the length of the accepted values (result) is less than the desired length (N)
   
