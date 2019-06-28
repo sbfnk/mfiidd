@@ -9,7 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="by Sebastian Funk, Anton Camacho and Helen Johnson" />
+<meta name="author" content="by Sebastian Funk, Anton Camacho, Helen Johnson, Amanda Minter, Kathleen O’Reilly and Nicholas Davies" />
 
 
 <title>Model fitting and inference for infectious disease dynamics</title>
@@ -232,7 +232,7 @@ window.buildTabsets = function(tocID) {
 <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -245,13 +245,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -349,6 +347,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -432,7 +433,7 @@ $(document).ready(function () {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">MFIIDD 2018</a>
+      <a class="navbar-brand" href="index.html">MFIIDD 2019</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -473,7 +474,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Model fitting and inference for infectious disease dynamics</h1>
-<h4 class="author"><em>by Sebastian Funk, Anton Camacho and Helen Johnson</em></h4>
+<h4 class="author"><em>by Sebastian Funk, Anton Camacho, Helen Johnson, Amanda Minter, Kathleen O’Reilly and Nicholas Davies</em></h4>
 
 </div>
 
@@ -491,14 +492,13 @@ $(document).ready(function () {
 <div id="installation-of-the-fitr-package" class="section level1">
 <h1><span class="header-section-number">2</span> Installation of the fitR package</h1>
 <p>The simplest way to install the <code>fitR</code> is to use the <code>devtools</code> package:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(<span class="st">'devtools'</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(<span class="st">'devtools'</span>)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">install_github</span>(<span class="st">'sbfnk/fitR'</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">install.packages</span>(<span class="st">&#39;remotes&#39;</span>)</a>
+<a class="sourceLine" id="cb1-2" title="2">remotes<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&#39;sbfnk/fitR&#39;</span>)</a></code></pre></div>
 <p>Then you can check that the installation completed successfully by loading the package into your <code>R</code> session:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(<span class="st">'fitR'</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">library</span>(<span class="st">&#39;fitR&#39;</span>)</a></code></pre></div>
 <p>To see all the commands available in fitR, have a look at the <a href="fitR.pdf">fitR documentation</a>.</p>
-<p><a href="slides/anton_talk.pdf">So what did happen on Tristan da Cunha?</a></p>
-<p><a href="process_uncertainty.html">Modelling process uncertainty</a></p>
+<!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
+<!-- [Modelling process uncertainty](process_uncertainty.html) -->
 </div>
 
 
