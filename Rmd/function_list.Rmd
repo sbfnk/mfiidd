@@ -8,9 +8,9 @@ output:
 library('fitR')
 library('dplyr')
 library('xtable')
-f <- system.file("INDEX", package = "fitR")
+f <- capture.output(tools::Rdindex(find.package('fitR')))
 
-desc <- lapply(readLines(f), function(x) {
+desc <- lapply(f, function(x) {
   s <- strsplit(x, split=" +")
   if (length(s[[1]]) == 1) s[[1]][2] <- ""
   c(s[[1]][1], paste(s[[1]][2:length(s[[1]])], collapse=" "))
@@ -22,27 +22,27 @@ for (id in rev(empty_first))
 
 desc <- desc[-empty_first]
 
-df <- tbl_df(t(vapply(desc, function(x) x, c("a", "b")))) %>%
-  dplyr::rename(name=V1, desc=V2) %>%
+df <- data.frame(t(vapply(desc, function(x) x, c("a", "b")))) %>%
+  dplyr::rename(name=X1, desc=X2) %>%
   mutate(desc=sub("^ ", "", desc)) %>%
-  filter(!grepl("_pomp(_r)?$", name)) %>%
-  filter(!(name %in% c("distanceOscillation", "testFitModel")))
+  dplyr::filter(!grepl("_pomp(_r)?$", name)) %>%
+  dplyr::filter(!(name %in% c("distanceOscillation", "testFitModel")))
   
 df$func <- apply(df, 1, function(x) {"function" %in% class(get(x[["name"]]))})  
 
 ds <- df %>% 
-  filter(!func) %>%
-  filter(name %in% c("FluTdC1971", "measles"))
+  dplyr::filter(!func) %>%
+  dplyr::filter(name %in% c("FluTdC1971", "measles"))
   
 ms <- df %>%
-  filter(!func) %>%
-  filter(!(name %in% ds$name))
+  dplyr::filter(!func) %>%
+  dplyr::filter(!(name %in% ds$name))
   
 fs <- df %>%
-  filter(func)
+  dplyr::filter(func)
 
 ds <- ds %>%
-  filter(!(name %in% c("measles")))
+  dplyr::filter(!(name %in% c("measles")))
 ```
 
 # Functions
