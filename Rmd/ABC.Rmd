@@ -160,7 +160,7 @@ Again, these are stochastic simulations so your histogram will look different, a
 Lastly, write a function that will return the approximated posterior distribution for theta using the ABC rejection algorithm. We will propose $D_{lat}$ anf $D_{inf}$ from informative priors:
 
 * $D_{lat}\sim\mathcal{Gamma}(shape=16,rate=8)$
-* $D_{inf}\sim\mathcal{Gamma}(shape=16,rate=8))$
+* $D_{inf}\sim\mathcal{Gamma}(shape=16,rate=8)$
 
 We choose the Gamma distribution as our parameters must be positive in value. The mean of the gamma distribution is $shape/rate$ and the variance is $shape/rate^2$. Hence here the mean of the distribution is 2 and the variance is 0.25.
 
