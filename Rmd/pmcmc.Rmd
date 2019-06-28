@@ -110,9 +110,9 @@ Compare your approach with [ours](pmcmc_solution.html#calibrate-the-number-of-pa
 
 # Run pMCMC
 
-You can now write a new wrapper for the function `logPosterior` that will take `margLogLike = my_particleFilter` as argument. This wrapper will then be passed to `mcmcMH`.
+You can now write a new wrapper for the function `dLogPosterior` that will take `margLogLike = my_particleFilter` as argument. This wrapper will then be passed to `mcmcMH`.
 
-Note that the function `logPosterior` doesn't have a `n.particles` argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `logPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
+Note that the function `dLogPosterior` doesn't have a `n.particles` argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `dLogPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
 
 You have probably noticed that running `my_particleFilter` is time consuming. As we mentioned in the [previous session](mcmc_and_model_comparison.html#objectives) this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target. 
 
@@ -137,12 +137,12 @@ my_posteriorSto <- function(theta){
     my_init.state <- # INSERT HERE
     my_n.particles <- # INSERT HERE
 
-    return(logPosterior(fitmodel = my_fitmodel,
-                        theta = theta,
-                        init.state = my_init.state, 
-                        data = FluTdC1971,
-                        margLogLike = my_particleFilter,
-                        n.particles = my_n.particles))
+    return(dLogPosterior(fitmodel = my_fitmodel,
+                         theta = theta,
+                         init.state = my_init.state, 
+                         data = FluTdC1971,
+                         margLogLike = my_particleFilter,
+                         n.particles = my_n.particles))
     
 }
 
