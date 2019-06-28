@@ -39,13 +39,13 @@ Note also that this function returns a list that contains, in addition to the tr
 
 The first step is to code a wrapper function to evaluate the posterior at a given `theta` value. Here again, you could wrap the function `my_dLogPosterior` that you have already coded and pass it to `mcmcMH` so that it returns samples of `theta` from the posterior distribution.
 
-However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`. Although this could be done by running `dTrajObs` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_dLogPosterior` so we could just use it. This is exactly what the function `logPosterior` does for you.
+However, as you will see at the end of this session, in order to be able to compare different models we also need to track the log-likelihood of the sampled `theta`. Although this could be done by running `dTrajObs` on each returned `theta`, you might remember that the log-likelihood is actually computed in `my_dLogPosterior` so we could just use it. This is exactly what the function `dLogPosterior` does for you.
 
-__Take 5 minutes to look at the code of `logPosterior`.__ As you can see, this function takes similar arguments as your function `my_dLogPosterior`: `fitmodel`, `theta`, `init.state` and `data`, plus one called `margLogLike`, which takes the function that will compute the log-likelihood of `theta`. The last argument (`...`) is called dot-dot-dot and adds some flexibility to the definition of `margLogLike`.
+__Take 5 minutes to look at the code of `dLogPosterior`.__ As you can see, this function takes similar arguments as your function `my_dLogPosterior`: `fitmodel`, `theta`, `init.state` and `data`, plus one called `margLogLike`, which takes the function that will compute the log-likelihood of `theta`. The last argument (`...`) is called dot-dot-dot and adds some flexibility to the definition of `margLogLike`.
 
-For instance, we have seen that for a deterministic model, the likelihood was returned by `dTrajObs`. However, `margLogLike` expects a function that returns the log-likelihood, which can be obtained by passing `log = TRUE` to `dTrajObs`. To do so, we can use the dot-dot-dot argument of `logPosterior`, which allows you to pass any extra argument to the function assigned to `margLogLike`. 
+For instance, we have seen that for a deterministic model, the likelihood was returned by `dTrajObs`. However, `margLogLike` expects a function that returns the log-likelihood, which can be obtained by passing `log = TRUE` to `dTrajObs`. To do so, we can use the dot-dot-dot argument of `dLogPosterior`, which allows you to pass any extra argument to the function assigned to `margLogLike`. 
 
-Eventually, `logPosterior` returns a list of two elements:
+The function `dLogPosterior` returns a list of two elements:
 
 1. `log.density`: the log of the posterior density
 2. `trace`: a vector that contains, among other things, `theta` and its `log.likelihood`. All this information will be collected in the `trace` data frame returned by `mcmcMH`.
@@ -61,7 +61,7 @@ my_posteriorTdC <- function(theta){
 	my_fitmodel <- # INSERT HERE
 	my_init.state <- # INSERT HERE
 
-        return(logPosterior(fitmodel = my_fitmodel,
+        return(dLogPosterior(fitmodel = my_fitmodel,
                             theta = theta,
                             init.state =  my_init.state,
                             data = FluTdC1971,

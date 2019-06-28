@@ -110,7 +110,7 @@ my_posteriorSto <- function(theta){
 	my_n.particles <- 400 
 	# you can reduce the number of particles if your pMCMC is too slow
 
-	return(logPosterior(fitmodel = my_fitmodel,
+	return(dLogPosterior(fitmodel = my_fitmodel,
                             theta = theta,
                             init.state = my_init.state,
                             data = FluTdC1971,
