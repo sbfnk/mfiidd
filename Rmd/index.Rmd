@@ -1,6 +1,6 @@
 ---
 title: Model fitting and inference for infectious disease dynamics
-author: by Sebastian Funk, Anton Camacho and Helen Johnson
+author: by Sebastian Funk, Anton Camacho, Helen Johnson, Amanda Minter, Kathleen O'Reilly and Nicholas Davies
 output:
   html_document:
     toc: false
@@ -21,9 +21,8 @@ If you are not familiar with `R`, check our [list of useful commands](slides/rin
 The simplest way to install the `fitR` is to use the `devtools` package:
 
 ```{r install, eval=FALSE}
-install.packages('devtools')
-library('devtools')
-install_github('sbfnk/fitR')
+install.packages('remotes')
+remotes::install_github('sbfnk/fitR')
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
@@ -34,7 +33,7 @@ library('fitR')
 
 To see all the commands available in fitR, have a look at the [fitR documentation](fitR.pdf).
 
-[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
+<!-- [So what did happen on Tristan da Cunha?](slides/anton_talk.pdf) -->
 
-[Modelling process uncertainty](process_uncertainty.html)
+<!-- [Modelling process uncertainty](process_uncertainty.html) -->
 
