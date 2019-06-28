@@ -262,7 +262,7 @@ Clearly, not a very good fit on this occasion. In the next section, you will exp
 
 You are now ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical, we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$.
 
-As stated above, the infectious period of the `epi1` data set was 2 weeks. You can evaluate the posterior at different values of $R_0$ using the function `my_logPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)).
+As stated above, the infectious period of the `epi1` data set was 2 weeks. You can evaluate the posterior at different values of $R_0$ using the function `my_dLogPosterior` you wrote above (or the one provided by clicking through to our [solution](posterior_example_solution.html)).
 
 __Take 10 minutes to figure out in which range of $R_0$ the posterior is maximised. Does the model fit the data (looking at `plotFit`)?__
 
