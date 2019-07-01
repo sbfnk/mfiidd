@@ -10,6 +10,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc/', cache.path='cache/mcm
 library(fitR)
 data(SIR)
 data(SIR_reporting)
+source('our_posterior.r')
 ```
 
 [Lecture slides](slides/mcmc_slides1.pdf)
@@ -18,11 +19,148 @@ data(SIR_reporting)
 
 The aim of this session is to learn how to sample from a posterior distribution using MCMC with the Metropolis-Hastings algorithm. More specifically, in this session you will
 
-1. code your first MCMC algorithm to sample from an univariate distribution
-2. check your algorithm by sampling from a simple Normal distribution
-3. use it to sample from the posterior distribution of $R_0$ from the previous session. 
+1. use grid approximation and rejection sampling to explore the posterior distribution of $R_0$ from the previous session, as a 'warm up'
+2. code your first MCMC algorithm to sample from an univariate distribution
+3. check your algorithm by sampling from a simple Normal distribution
+4. use it to sample from the posterior distribution of $R_0$ from the previous session. 
+
+# Grid approximation
+
+This code runs the SIR model with a sequence of different values for $R_0$, saving the values of $R_0$ and associated posterior probabilities along the way.
+
+```{r grid_approx, results="hide"}
+theta <- c(R0 = 3, D_inf = 2) # parameter vector
+init.state <- c(S = 999, I = 1, R = 0) # initial conditions
+grid <- NULL # set aside to hold the grid approximation
+
+# Loop through each value of R0 we want to test.
+for (my_R0 in seq(1.6, 1.9, length.out = 25))
+{
+    # Set R0 in theta accordingly
+    theta[["R0"]] <- my_R0
+    
+    # Evaluate the log posterior associated with this R0
+    lp <- my_dLogPosterior(SIR, theta, init.state, epi1)
+    
+    # Save this iteration, using rbind to add another row to the grid data frame
+    grid <- rbind(grid, data.frame(R0 = my_R0, lp = lp))
+}
+```
+
+Run the code above, first making sure that `my_dLogPosterior`, `SIR`, and `epi1` are still available from the previous session.
+
+The grid approximation is now in the data frame `grid`. Have a look at it:
+
+```{r grid_head}
+head(grid)
+```
+
+Each row should show a value for $R_0$ and the associated log posterior probability.
+
+We can find the [maximum a posteriori probability estimate](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation) (MAP) by inspection of the data frame, or locate the associated value of $R_0$ using `which.max` as follows.
+
+```{r grid_max, results="hide"}
+max_row <- which.max(grid[["lp"]]) # row of MAP estimate
+grid[max_row, ] # log posterior probability and R0 at that row
+```
+
+Which value of R0 has the highest posterior probability? Does this match what you found in the previous session?
+
+We can also plot our grid approximation of the posterior distribution:
+
+```{r grid_plot}
+plot(x = grid[["R0"]], y = exp(grid[["lp"]]), type = "p", xlab = "R0", ylab = "posterior")
+```
+
+Note the values on the Y axis. Why are they so small?
+
+We can also estimate the mean posterior value of $R_0$ using a weighted mean, weighting each grid evaluation by its posterior probability.
+
+```{r grid_mean, results="hide"}
+weighted.mean(grid[["R0"]], w = exp(grid[["lp"]]))
+```
+
+__Improving the grid approximation__
+
+From the plot above, it should be clear that we may not have approximated the posterior distribution very well -- we only found a few points for $R_0$ that are substantially supported by the data. This means that `weighted.mean` above will only be influenced by a small number of values. We also may not have as accurate an estimate for $R_0$ as we might like to have.
+
+In the code above, the expression `seq(1.6, 1.9, length.out = 25)` sets up a grid with 25 points for $R_0$ ranging from 1.6 to 1.9. How does exploring a smaller range of values for $R_0$ -- or generating more points -- change the MAP estimate, the estimate of the mean posterior value for $R_0$, and the plot of the approximated posterior distribution?
+
+# Rejection sampling
+
+This code uses rejection sampling to sample from the posterior distribution of $R_0$.
+
+```{r reject_samp}
+# max_lp should be greater than, but not too much greater than, 
+# the maximum log posterior of the target distribution
+max_lp <- -123.8 
+
+# samp will hold the samples
+samp <- NULL
+
+# Make 1000 attempts to draw samples from the target distribution
+for (i in 1:1000)
+{
+    # Select a random value for R0
+    my_R0 <- runif(1, 1.7, 1.8)
+    theta[["R0"]] <- my_R0
+    
+    # Run the simulation to evaluate the log posterior
+    lp <- my_dLogPosterior(SIR, theta, init.state, epi1)
+    
+    # Warn if max_lp is too low
+    if (lp > max_lp) {
+      message("max_lp has been set too low: max_lp is ", max_lp, ", while lp is ", lp);
+    }
+    
+    # Keep this sample with probability proportional to the log posterior
+    if (runif(1) < exp(lp - max_lp)) {
+        samp <- rbind(samp, data.frame(R0 = my_R0, lp = lp))
+    }
+}
+```
+
+Run it, then take a look at what's in `samp`.
+
+```{r reject_head}
+head(samp)
+```
+
+How can we use the samples in `samp` to characterise the posterior distribution of $R_0$?
+
+One way is to plot a histogram of the samples:
+
+```{r reject_hist}
+hist(samp[["R0"]])
+```
+
+Your plot will probably look different, since the code above uses random sampling. We can also calculate some summary statistics, for example:
+
+```{r reject_summary, results = "hide"}
+mean(samp[["R0"]])
+sd(samp[["R0"]])
+quantile(samp[["R0"]])
+```
+
+Note that we are not using "weighted" versions of any of these standard statistical summaries, because each sample of $R_0$ in `samp` is *already* present with a probability proportional to its posterior probability.
+
+For this reason, in many ways it can be easier to work with samples than with a grid approximation, since we don't have to worry about any points in the sample having a different weight.
+
+Since we have, nonetheless, kept track of the log posterior probability of each sample, we can still get an estimate of the MAP for $R_0$, similarly to how we did it before.
+
+```{r greject_max, results="hide"}
+samp[which.max(samp[["lp"]]), "R0"]
+```
+
+__Questions for discussion:__
+
+1. How much do the summary statistics change if you perform the sampling again?
+2. If you decrease the number of attempts from 1000 to 100, would you expect the summary statistics to change more each time sampling is peformed or less? What does this tell you about reliable sampling?
+3. What are the advantages and disadvantages of grid approximation versus rejection sampling?
 
 # My first MCMC sampler
+
+Having been introduced to grid approximation and rejection sampling, we will now learn how to sample from a posterior distribution using MCMC with the Metropolis-Hastings algorithm.
 
 **Code it yourself**: In the next session you will write a function that samples from an arbitrary *target distribution* using MCMC. For now, let us focus on sampling from an univariate distribution, i.e. that has a single parameter, and use a standard Gaussian proposal distribution $q(\theta'|\theta)$. The MCMC function we want to write should take four arguments: 
 
