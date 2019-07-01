@@ -1644,7 +1644,7 @@ div.tocify {
 
 <div id="abc-rejection-algorithm" class="section level1">
 <h1><span class="header-section-number">1</span> ABC rejection algorithm</h1>
-<p>Below, you can find an example of how to code a Metropolis-Hastings sampler. Some bits are left out for you to fill in (marked “INSERT HERE”). Each “INSERT HERE” statement requires one line of code. If you struggle, you can find a link to a solution below the function.</p>
+<p>Below, you can find an example of how to code a ABC rejection algorithm. Some bits are left out for you to fill in (marked “INSERT HERE”). Each “INSERT HERE” statement requires one line of code. If you struggle, you can find a link to a solution below the function.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">init.state &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">S =</span> <span class="dv">250</span>, <span class="dt">E =</span> <span class="dv">0</span>, <span class="dt">I =</span> <span class="dv">4</span>, <span class="dt">T =</span> <span class="dv">0</span>, <span class="dt">L =</span> <span class="dv">30</span>, <span class="dt">Inc =</span> <span class="dv">0</span>)</a>
 <a class="sourceLine" id="cb1-2" title="2"></a>
 <a class="sourceLine" id="cb1-3" title="3">my_ABC_algorithm &lt;-<span class="st"> </span><span class="cf">function</span>(N, epsilon, sum.stats, distanceABC,</a>
@@ -1652,24 +1652,24 @@ div.tocify {
 <a class="sourceLine" id="cb1-5" title="5">  </a>
 <a class="sourceLine" id="cb1-6" title="6">  </a>
 <a class="sourceLine" id="cb1-7" title="7">  <span class="co">#set up empty matrix to store results</span></a>
-<a class="sourceLine" id="cb1-8" title="8">  results&lt;-<span class="kw">matrix</span>(<span class="dt">nrow=</span><span class="dv">0</span>,<span class="dt">ncol=</span><span class="dv">6</span>)</a>
+<a class="sourceLine" id="cb1-8" title="8">  results &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">nrow=</span><span class="dv">0</span>, <span class="dt">ncol=</span><span class="dv">6</span>)</a>
 <a class="sourceLine" id="cb1-9" title="9">  </a>
 <a class="sourceLine" id="cb1-10" title="10">  <span class="co">#initialise with i=0</span></a>
-<a class="sourceLine" id="cb1-11" title="11">  i&lt;-<span class="dv">0</span></a>
+<a class="sourceLine" id="cb1-11" title="11">  i &lt;-<span class="st"> </span><span class="dv">0</span></a>
 <a class="sourceLine" id="cb1-12" title="12">  </a>
 <a class="sourceLine" id="cb1-13" title="13">  <span class="co"># while the length of the accepted values (result) is less than the desired length (N)</span></a>
-<a class="sourceLine" id="cb1-14" title="14">  <span class="cf">while</span>(i<span class="op">&lt;</span>N){</a>
+<a class="sourceLine" id="cb1-14" title="14">  <span class="cf">while</span>(i <span class="op">&lt;</span><span class="st"> </span>N){</a>
 <a class="sourceLine" id="cb1-15" title="15">    </a>
 <a class="sourceLine" id="cb1-16" title="16">    <span class="co"># - draw a new theta from prior distributions</span></a>
 <a class="sourceLine" id="cb1-17" title="17">    </a>
-<a class="sourceLine" id="cb1-18" title="18">    d_lat&lt;-<span class="co"># INSERT HERE:</span></a>
-<a class="sourceLine" id="cb1-19" title="19"><span class="st">    </span>d_inf&lt;-<span class="co"># INSERT HERE:</span></a>
+<a class="sourceLine" id="cb1-18" title="18">    d_lat &lt;-<span class="st"> </span><span class="co"># INSERT HERE:</span></a>
+<a class="sourceLine" id="cb1-19" title="19"><span class="st">    </span>d_inf &lt;-<span class="st"> </span><span class="co"># INSERT HERE:</span></a>
 <a class="sourceLine" id="cb1-20" title="20"><span class="st">    </span></a>
 <a class="sourceLine" id="cb1-21" title="21"><span class="st">    </span>theta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">R0 =</span> <span class="dv">2</span>, <span class="dt">D_lat =</span> d_lat, <span class="dt">D_inf =</span> d_inf, <span class="dt">alpha =</span> <span class="fl">0.9</span>, <span class="dt">D_imm =</span> <span class="dv">13</span>, <span class="dt">rho =</span> <span class="fl">0.85</span>)</a>
 <a class="sourceLine" id="cb1-22" title="22"></a>
 <a class="sourceLine" id="cb1-23" title="23">    <span class="co"># use computeDistanceABC to calculate a distance between the model</span></a>
 <a class="sourceLine" id="cb1-24" title="24">    <span class="co"># and data</span></a>
-<a class="sourceLine" id="cb1-25" title="25">    dist&lt;-<span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> sum.stats,</a>
+<a class="sourceLine" id="cb1-25" title="25">    dist &lt;-<span class="st"> </span><span class="kw">computeDistanceABC</span>(<span class="dt">sum.stats =</span> sum.stats,</a>
 <a class="sourceLine" id="cb1-26" title="26">                             <span class="dt">distanceABC =</span>  distanceABC,</a>
 <a class="sourceLine" id="cb1-27" title="27">                             <span class="dt">fitmodel =</span> fitmodel,</a>
 <a class="sourceLine" id="cb1-28" title="28">                             <span class="dt">theta =</span> theta,</a>
@@ -1678,21 +1678,21 @@ div.tocify {
 <a class="sourceLine" id="cb1-31" title="31">    </a>
 <a class="sourceLine" id="cb1-32" title="32">    <span class="co">## if the model distance is within the epsilon window</span></a>
 <a class="sourceLine" id="cb1-33" title="33">    </a>
-<a class="sourceLine" id="cb1-34" title="34">    <span class="cf">if</span>(dist<span class="op">&lt;=</span>epsilon){</a>
+<a class="sourceLine" id="cb1-34" title="34">    <span class="cf">if</span>(dist <span class="op">&lt;=</span><span class="st"> </span>epsilon){</a>
 <a class="sourceLine" id="cb1-35" title="35">      </a>
 <a class="sourceLine" id="cb1-36" title="36">      <span class="co"># store the accepted parameter values</span></a>
 <a class="sourceLine" id="cb1-37" title="37">      <span class="co"># INSERT HERE:</span></a>
 <a class="sourceLine" id="cb1-38" title="38">    }</a>
 <a class="sourceLine" id="cb1-39" title="39">    </a>
 <a class="sourceLine" id="cb1-40" title="40">    <span class="co">#update i (dimension of results store)</span></a>
-<a class="sourceLine" id="cb1-41" title="41">    i&lt;-<span class="co"># INSERT HERE:</span></a>
+<a class="sourceLine" id="cb1-41" title="41">    i &lt;-<span class="co"># INSERT HERE:</span></a>
 <a class="sourceLine" id="cb1-42" title="42"><span class="st">    </span></a>
 <a class="sourceLine" id="cb1-43" title="43"><span class="st">  </span>}</a>
 <a class="sourceLine" id="cb1-44" title="44">  <span class="co"># return the accepted values </span></a>
 <a class="sourceLine" id="cb1-45" title="45">  <span class="kw">return</span>(results)</a>
 <a class="sourceLine" id="cb1-46" title="46">}</a>
 <a class="sourceLine" id="cb1-47" title="47"></a>
-<a class="sourceLine" id="cb1-48" title="48">my_results&lt;-<span class="kw">my_ABC_algorithm</span>(<span class="dt">N=</span><span class="dv">10</span>, <span class="dt">epsilon =</span> <span class="dv">5</span>,</a>
+<a class="sourceLine" id="cb1-48" title="48">my_results &lt;-<span class="st"> </span><span class="kw">my_ABC_algorithm</span>(<span class="dt">N=</span><span class="dv">10</span>, <span class="dt">epsilon =</span> <span class="dv">5</span>,</a>
 <a class="sourceLine" id="cb1-49" title="49">                   <span class="dt">sum.stats =</span> <span class="kw">list</span>(ssMax, ssSize),</a>
 <a class="sourceLine" id="cb1-50" title="50">                   <span class="dt">distanceABC =</span> ssMeanRelDistance,</a>
 <a class="sourceLine" id="cb1-51" title="51">                   <span class="dt">fitmodel =</span> SEITL_stoch,</a>
@@ -1701,8 +1701,8 @@ div.tocify {
 <a class="sourceLine" id="cb1-54" title="54"></a>
 <a class="sourceLine" id="cb1-55" title="55"><span class="kw">head</span>(my_results)</a>
 <a class="sourceLine" id="cb1-56" title="56"></a>
-<a class="sourceLine" id="cb1-57" title="57"><span class="kw">hist</span>(my_results[,<span class="dv">2</span>])</a>
-<a class="sourceLine" id="cb1-58" title="58"><span class="kw">hist</span>(my_results[,<span class="dv">3</span>])</a></code></pre></div>
+<a class="sourceLine" id="cb1-57" title="57"><span class="kw">hist</span>(my_results[, <span class="dv">2</span>])</a>
+<a class="sourceLine" id="cb1-58" title="58"><span class="kw">hist</span>(my_results[, <span class="dv">3</span>])</a></code></pre></div>
 <p>If you run into any problems, have a look at our <a href="abc_solution.html">solution</a>. Otherwise you can <a href="ABC.html">return</a> to the ABC session.</p>
 </div>
 
