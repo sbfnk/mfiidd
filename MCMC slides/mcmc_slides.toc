@@ -1,4 +1,3 @@
-\beamer@endinputifotherversion {3.36pt}
 \beamer@sectionintoc {1}{Rejection sampling}{2}{0}{1}
 \beamer@sectionintoc {2}{What is Markov Chain Monte Carlo?}{26}{0}{2}
 \beamer@sectionintoc {3}{MCMC in practice}{39}{0}{3}
