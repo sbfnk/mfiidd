@@ -1851,7 +1851,7 @@ div.tocify {
 <a class="sourceLine" id="cb7-20" title="20">      <span class="kw">message</span>(<span class="st">&quot;max_lp has been set too low: max_lp is &quot;</span>, max_lp, <span class="st">&quot;, while lp is &quot;</span>, lp);</a>
 <a class="sourceLine" id="cb7-21" title="21">    }</a>
 <a class="sourceLine" id="cb7-22" title="22">    </a>
-<a class="sourceLine" id="cb7-23" title="23">    <span class="co"># Keep this sample with probability proportional to the log posterior</span></a>
+<a class="sourceLine" id="cb7-23" title="23">    <span class="co"># Keep this sample with probability proportional to the posterior probability</span></a>
 <a class="sourceLine" id="cb7-24" title="24">    <span class="cf">if</span> (<span class="kw">runif</span>(<span class="dv">1</span>) <span class="op">&lt;</span><span class="st"> </span><span class="kw">exp</span>(lp <span class="op">-</span><span class="st"> </span>max_lp)) {</a>
 <a class="sourceLine" id="cb7-25" title="25">        samp &lt;-<span class="st"> </span><span class="kw">rbind</span>(samp, <span class="kw">data.frame</span>(<span class="dt">R0 =</span> my_R0, <span class="dt">lp =</span> lp))</a>
 <a class="sourceLine" id="cb7-26" title="26">    }</a>
