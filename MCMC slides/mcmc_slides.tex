@@ -554,6 +554,16 @@
 For accurate and efficient MCMC we tune the variance and covariance of the proposal distribution.
 \end{frame}
 
+\begin{frame}[label=sec-8-3]{Why I like hairy caterpillars}
+  \includegraphics[width=0.7\linewidth]{hairy_catapillar_1.jpg}\\
+  Key characterisitics
+  \begin{itemize}
+    \item Straight
+    \item Plump head, plump rear!
+    \item Multiple colours
+  \end{itemize}
+\end{frame}
+
 \begin{frame}[label=sec-8-3]{Choosing a proposal distribution}
     If \alert {variance is too small}, the chain will be slow to reach the target distribution.
     \begin{columns}[c] 
@@ -614,7 +624,9 @@ Try several different proposal distributions (\alert{pilot runs}), aiming for an
         \item How much to discard? \\~\\
     \end{itemize}
     \column{.5\textwidth} 
-    \includegraphics[width=1\linewidth]{Burn}
+    \includegraphics[width=0.75\linewidth]{Burn}
+    \includegraphics[width=0.75\linewidth]{Hairy-caterpillar-Lepidoptera.png}
+    \emph{Lepidoptera} caterpillar
 \end{columns}
 \end{frame} 
 
@@ -626,5 +638,18 @@ Try several different proposal distributions (\alert{pilot runs}), aiming for an
         \item We use the R package \textit{coda}.
     \end{itemize}
 \end{frame}
+
+\begin{frame}[label=sec-8-10]{Accuracy and efficiency}
+  How does each element influence accuracy and efficiency?
+  \begin{itemize}
+    \item Burn-in
+    \item MCMC iterations (after burn-in)
+    \item Thinning
+    \item Number of chains (with different initial conditions)
+    \item Proposal distribution
+    \item Transforming parameters
+  \end{itemize}
+\end{frame}
+
 
 \end{document}
