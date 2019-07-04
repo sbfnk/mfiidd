@@ -50,10 +50,10 @@ res <- data.frame()
 
 for(n.particles in test.n.particles){
 
+        cat("Testing ", n.particles, " particles\n")
 	# start measuring time
 	start.time  <- Sys.time()
 	for(i in 1:n.replicates){
-    cat("Testing ", i, " particles\n")
 		# one Monte-Carlo estimate of the log-likelihood
             sample.log.like[i] <- my_particleFilter(SEIT4L_stoch, theta,
                                                     init.state, FluTdC1971,
