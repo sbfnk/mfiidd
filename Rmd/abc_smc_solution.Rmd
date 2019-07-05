@@ -48,15 +48,20 @@ pop_1<-my_ABC_algorithm(N=1000, epsilon = 50,
     pars_perturb <- mvrnorm(n = 1, pars, Sigma)
     
     theta <- c(R0 = 2, D_lat = pars_perturb[["D_lat"]], D_inf = pars_perturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
-
-    # use computeDistanceABC to calculate a distance between the model
+    
+    # if any of the proposed parameters are less than 0, reject them (set distance to infinity)
+    if(any(theta < 0)){
+      dist <- Inf
+    }else{
+          # use computeDistanceABC to calculate a distance between the model
     # and data
-    dist <- computeDistanceABC(sum.stats = sum.stats,
-                             distanceABC =  distanceABC,
-                             fitmodel = fitmodel,
+    dist <- computeDistanceABC(sum.stats = list(ssMax, ssSize),
+                             distanceABC = ssMeanRelDistance,
+                             fitmodel = SEITL_stoch,
                              theta = theta,
                              init.state = init.state,
-                             data = data)
+                             data = FluTdC1971)
+    }
     
     ## if the model distance is within the epsilon window
     # store the accepeted parameter values
