@@ -7,95 +7,85 @@
 ##' @param practical integer vector. If given, will only compile the files for the given practical session. This respects any information given in \code{Rmd.files} or \code{exclude}
 ##' @param clear.cache boolean. Whether to clear the cache before compiling
 ##' @author seb
-compile_mfiidd <- function(Rmd.files, exclude, mfiidd.dir, practical, reinstall.fitR = FALSE, clear.cache = FALSE)
-{
+compile_mfiidd <- function(Rmd.files, exclude, mfiidd.dir, practical, reinstall.fitR = FALSE, clear.cache = FALSE) {
+  require("rmarkdown")
+  require("coda")
+  require("lattice")
+  require("devtools")
+  require("ggplot2")
+  require("reshape2")
 
-    require('rmarkdown')
-    require('coda')
-    require('lattice')
-    require('devtools')
-    require('ggplot2')
-    require('reshape2')
+  if (missing(mfiidd.dir)) {
+    mfiidd.dir <- switch(Sys.info()[["user"]],
+      Tonton = "~/edu/Fit_course/mfiidd", ## Anton
+      seb = "~/teaching/mfiidd" ## Seb
+    )
+  }
 
-    if (missing(mfiidd.dir))
-    {
-        mfiidd.dir <- switch(Sys.info()[["user"]],
-           Tonton = "~/edu/Fit_course/mfiidd", ## Anton
-           seb ="~/teaching/mfiidd" ## Seb
-           )
+  if (reinstall.fitR) {
+    ## first reinstall latest release of fitR so it is the one used in "render()"
+    install_github("sbfnk/fitR")
+  }
+
+  if (missing(Rmd.files)) {
+    Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
+      full.names = FALSE
+    )
+  }
+
+  Rmd.files <- sub(".Rmd$", "", Rmd.files)
+
+  if (!missing(practical)) {
+    practical.files <- list(
+      c("index", "introduction", "posterior_example", "posterior_example_solution"),
+      c("mcmc", "mcmc_example", "mcmc_example_solution", "generate_samples"),
+      c("mcmc_diagnostics", "epi3_wrapper", "mcmc_commands"),
+      c("play_with_seitl", "play_with_seitl_example"),
+      c("mcmc_and_model_comparison", "example_mcmc_SEITL", "our_ppc", "our_ppc_insert"),
+      c("pmcmc", "smc_example", "smc_example_solution", "pmcmc_solution"),
+      c("pomp", "pomp_seitl_explanation"),
+      c("ABC", "sumstat_examples", "distance_examples", "abc_example", "abc_solution"),
+      c("LibBi")
+    )
+
+    practical <- as.integer(practical)
+
+    if (any(is.na(practical))) {
+      stop(sQuote("practical"), " must be a vector of integer")
+    } else {
+      Rmd.files <- unlist(practical.files[practical])
     }
+  }
 
-    if (reinstall.fitR)
-    {
-        ## first reinstall latest release of fitR so it is the one used in "render()"
-        install_github("sbfnk/fitR")
+  if (!missing(exclude)) {
+    exclude <- sub(".Rmd$", "", Rmd.files)
+    Rmd.files <- setdiff(Rmd.files, exclude)
+  }
+
+  if (clear.cache) {
+    unlink(paste0(mfiidd.dir, "/Rmd/cache"), recursive = TRUE)
+  }
+
+  if (length(Rmd.files) > 0) {
+    Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution", "pomp", "pomp_seitl_explanation", "ABC", "abc_example", "abc_solution", "LibBi")
+
+    for (Rmd.file in Rmd.files) {
+      render(
+        path.expand(paste0(mfiidd.dir, "/Rmd/", Rmd.file, ".Rmd")),
+        output_dir = path.expand(paste0(mfiidd.dir, "/website/")),
+        output_format = html_document(
+          toc = TRUE,
+          toc_float = TRUE,
+          number_sections = FALSE,
+          theme = "yeti",
+          highlight = "tango",
+          smart = FALSE,
+          fig_width = 5,
+          fig_height = 5
+        )
+      )
     }
-
-    if (missing(Rmd.files))
-    {
-        Rmd.files <- list.files(path.expand(paste0(mfiidd.dir, "/Rmd/")), ".*\\.Rmd$",
-            full.names = FALSE)
-    }
-
-    Rmd.files <- sub(".Rmd$", "", Rmd.files)
-
-    if (!missing(practical))
-    {
-        practical.files <- list(c("index","introduction","posterior_example","posterior_example_solution"), 
-            c("mcmc","mcmc_example","mcmc_example_solution","generate_samples"), 
-            c("mcmc_diagnostics","epi3_wrapper","mcmc_commands"),
-            c("play_with_seitl","play_with_seitl_example"),
-            c("mcmc_and_model_comparison","example_mcmc_SEITL","our_ppc","our_ppc_insert"), 
-            c("pmcmc","smc_example","smc_example_solution","pmcmc_solution"), 
-            c("pomp", "pomp_seitl_explanation"), 
-            c("ABC","sumstat_examples","distance_examples","abc_example", "abc_solution"),
-            c("LibBi"))
-
-        practical <- as.integer(practical)
-
-        if (any(is.na(practical)))
-        {
-            stop(sQuote("practical"), " must be a vector of integer")
-        } else
-        {
-            Rmd.files <- unlist(practical.files[practical])
-        }
-    }
-
-    if (!missing(exclude))
-    {
-        exclude <- sub(".Rmd$", "", Rmd.files)
-        Rmd.files <- setdiff(Rmd.files, exclude)
-    }
-
-    if (clear.cache)
-    {
-        unlink(paste0(mfiidd.dir, "/Rmd/cache"), recursive = TRUE)
-    }
-
-    if (length(Rmd.files) > 0) {
-
-        Rmd_with_toc_float <- c("introduction", "mcmc", "mcmc_diagnostics", "play_with_seitl", "play_with_seitl_example", "mcmc_and_model_comparison", "example_mcmc_SEITL", "pmcmc", "pmcmc_solution", "pomp", "pomp_seitl_explanation", "ABC", "abc_example", "abc_solution", "LibBi")
-
-        for (Rmd.file in Rmd.files) {
-          render(
-                path.expand(paste0(mfiidd.dir, "/Rmd/", Rmd.file,".Rmd")), 
-                output_dir = path.expand(paste0(mfiidd.dir, "/website/")), 
-                output_format = html_document(
-                    toc = Rmd.file %in% Rmd_with_toc_float, 
-                    toc_float = Rmd.file %in% Rmd_with_toc_float,
-                    number_sections = TRUE,
-                    theme = "yeti",
-                    highlight = "tango",
-                    smart = FALSE,
-                    fig_width = 5,
-                    fig_height = 5
-                    )
-                )
-        }
-    } else
-    {
-        stop("No files to compile")
-    }
+  } else {
+    stop("No files to compile")
+  }
 }
-
