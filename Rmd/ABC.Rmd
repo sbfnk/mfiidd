@@ -1,7 +1,7 @@
 % Inference with ABC
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/ABC/', cache.path='cache/ABC/', fig.cap='', fig.align="center",tidy=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/ABC/", cache.path = "cache/ABC/", fig.cap = "", fig.align = "center", tidy = FALSE)
 ```
 
 ```{r fitR, include=FALSE,cache=FALSE}
@@ -48,13 +48,12 @@ plotTraj(data = FluTdC1971)
 First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and think of statistics that would describe the data, and capture the features you want to capture. Finally, code at least two functions that take a trajectory (with an `obs` column containing the observations) as input and return the values of your summary statistics.
 
 ```{r sumstat, eval=FALSE}
-
 traj <- FluTdC1971
 
 # a function that takes one parameter:
 # - traj: a (model or data) trajectory of observations
-my_summaryStat1 <- function(traj){
-    # calculate summary statistic using the "obs" column in traj
+my_summaryStat1 <- function(traj) {
+  # calculate summary statistic using the "obs" column in traj
 }
 
 # test
@@ -93,19 +92,18 @@ The second step is to compare your data with your simulation using a function th
 # - data.obs: the trajectory of observations (data)
 # - model.obs: a trajectory of simulated observations (model)
 my_distance <- function(sum.stats, data.obs, model.obs) {
+  ## start for() loop over all summary stats in the list sum.stats
 
-    ## start for() loop over all summary stats in the list sum.stats
+  # calculate the distance (e.g., absolute difference, relative
+  # difference, squared distances etc)
 
-       # calculate the distance (e.g., absolute difference, relative
-       # difference, squared distances etc)
+  ## end for () loop
 
-    ## end for () loop
-    
-    # combine distances (via sum, mean, or others)
+  # combine distances (via sum, mean, or others)
 
-    # return an overall distance between the model and data
-    # trajectories in terms of the summary statistics. E.g., a vector
-    # of distances or a mean distance
+  # return an overall distance between the model and data
+  # trajectories in terms of the summary statistics. E.g., a vector
+  # of distances or a mean distance
 }
 ```
 
@@ -119,9 +117,11 @@ Test that your summary distance function returns a sensible value (here, we have
 
 ```{r distance_test}
 simu <- rTrajObs(seitlStoch, theta, initState, FluTdC1971$time)
-ssMeanRelDistance(sum.stats = list(ssSize, ssMax),
-                  data.obs = FluTdC1971,
-                  model.obs = simu)
+ssMeanRelDistance(
+  sum.stats = list(ssSize, ssMax),
+  data.obs = FluTdC1971,
+  model.obs = simu
+)
 ```
 
 Again, you can change `ssMeanRelDistance` to your own `my_distance` function or one from the [examples](distance_examples.html), and try different things for the list of summary statistics (including more or less than two summary statistics).
@@ -129,12 +129,14 @@ Again, you can change `ssMeanRelDistance` to your own `my_distance` function or 
 You can then test the distribution of distances of the summary statistics from model runs to the summary statistic on the data, in the same way as we did before with the distribution of summary statistics. You can use `computeDistanceAbc` function provided in the `fitR` package does the leg work for you. It computes the distance between a `fitmodel` and the `data` for a single simulation using a given parameter vector `theta` and initial state `initState`. Have a look at the code of `computeDistanceAbc`; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as an argument. We can test it using
 
 ```{r computedistanceabc}
-computeDistanceAbc(sumStats = list(ssSize, ssMax),
-                   distanceAbc = ssMeanRelDistance,
-                   fitmodel = seitlStoch,
-                   theta = theta,
-                   initState = initState,
-                   data = FluTdC1971)
+computeDistanceAbc(
+  sumStats = list(ssSize, ssMax),
+  distanceAbc = ssMeanRelDistance,
+  fitmodel = seitlStoch,
+  theta = theta,
+  initState = initState,
+  data = FluTdC1971
+)
 ```
 
 Again, you can change the list of summary statistics (`ssSize`, `ssMax`) and the distance function (`ssMeanRelDistance`) with your own ones, or other ones from the [examples](sumstat_examples.html).
@@ -144,13 +146,17 @@ The returned distance is the outcome of a single simulation run, so you will get
 To plot the distribution of distances from the data for a single set of parameter values `theta`, you can again use `replicate`.
 
 ```{r distances_plot}
-hist(replicate(100, computeDistanceAbc(sumStats = list(ssSize, ssMax),
-                                       distanceAbc = ssMeanRelDistance,
-                                       fitmodel = seitlStoch,
-                                       theta = theta,
-                                       initState = initState,
-                                       data = FluTdC1971)),
-     xlab = "distance")
+hist(
+  replicate(100, computeDistanceAbc(
+    sumStats = list(ssSize, ssMax),
+    distanceAbc = ssMeanRelDistance,
+    fitmodel = seitlStoch,
+    theta = theta,
+    initState = initState,
+    data = FluTdC1971
+  )),
+  xlab = "distance"
+)
 ```
 
 Again, these are stochastic simulations so your histogram will look different, and again you can test this with different summary statistics (including more, or fewer) and distance functions. How widely are the distances distributed for a single set of parameters? This should give you an indication for a reasonable acceptance window. Ideally, you want to have summary statistics that vary a lot between parameter values (so the acceptance window can distinguish between good or bad fits), but not so much within parameter values (so you don't have to reject many runs from good parameters). Finding the right combination summary statistics and distance functions to achieve this can be very difficult, though, and one usually ends up having to make compromises between the two.
@@ -177,19 +183,16 @@ For the sake of simplicity and time, we will assume the remaining parameters are
 # - initState: initial state for the simulation
 # - data: data to compare the model to
 my_abcAlgorithm <- function(N, epsilon, sumStats, distanceAbc,
-                               fitmodel, initState, data) {
+                            fitmodel, initState, data) {
+  # set up empty matrix to store results
 
-  
-  
-  #set up empty matrix to store results
+  # initialise with i = 0
 
-  #initialise with i = 0
-  
   # while the length of the accepted values (result) is less than the desired length (N)
-  
+
   # - draw a new d_lat and d_inf from their prior distributions
   #   create a theta vector with the new d_lat and d_inf
-  
+
   # use computeDistanceAbc to calculate a distance between the model
   # and data
 
@@ -198,7 +201,7 @@ my_abcAlgorithm <- function(N, epsilon, sumStats, distanceAbc,
 
   # update i (dimension of results store)
 
-  # return the accepted values 
+  # return the accepted values
 }
 ```
 
@@ -208,12 +211,14 @@ If you have trouble filling any of the empty bits in, have a look at our [more g
 Once you have coded this function you can perform some tests to calibrate the tolerances.
 
 ```{r abclogpost, eval=F}
-my_abcAlgorithm(N=1000, epsilon = 5,
-                   sum.stats = list(ssMax, ssSize),
-                distanceAbc = ssMeanRelDistance,
-                   fitmodel = seitlStoch,
-                   initState = initState,
-                    data = FluTdC1971)
+my_abcAlgorithm(
+  N = 1000, epsilon = 5,
+  sum.stats = list(ssMax, ssSize),
+  distanceAbc = ssMeanRelDistance,
+  fitmodel = seitlStoch,
+  initState = initState,
+  data = FluTdC1971
+)
 ```
 
 Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.
@@ -228,41 +233,41 @@ Run your function `my_abcAlgorithm` with a large tolerance for `N=1000`. This is
 
 
 ```{r abclogpost_smc, eval=F}
-
 # use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm
 
-pop_1<-my_abcAlgorithm(N=1000, epsilon = 10000,
-                   sum.stats = list(ssMax, ssSize),
-                   distanceAbc = ssMeanRelDistance,
-                   fitmodel = seitlStoch,
-                   initState = initState,
-                    data = FluTdC1971)
+pop_1 <- my_abcAlgorithm(
+  N = 1000, epsilon = 10000,
+  sum.stats = list(ssMax, ssSize),
+  distanceAbc = ssMeanRelDistance,
+  fitmodel = seitlStoch,
+  initState = initState,
+  data = FluTdC1971
+)
 
-  # set up empty matrix to store results of population 2
+# set up empty matrix to store results of population 2
 
-  # initialise with i=0
-  
+# initialise with i=0
 
-  # while the length of the accepted values (result) is less than the desired length (N)
-  
-  # - draw a random number between 1 and 1000
 
-  # extract corresponding row from pop_1 using this number
+# while the length of the accepted values (result) is less than the desired length (N)
 
-  # perturb these parameters using multivariate Gaussian distribution
+# - draw a random number between 1 and 1000
 
-  # create a theta vector with the new d_lat and d_inf
-  
-  # use computeDistanceAbc to calculate a distance between the model
-  # and data
+# extract corresponding row from pop_1 using this number
 
-  # if the model distance is within the epsilon window
-  # store the accepted parameter values
+# perturb these parameters using multivariate Gaussian distribution
 
-  # update i (dimension of results store)
+# create a theta vector with the new d_lat and d_inf
 
-  # return the accepted values 
+# use computeDistanceAbc to calculate a distance between the model
+# and data
 
+# if the model distance is within the epsilon window
+# store the accepted parameter values
+
+# update i (dimension of results store)
+
+# return the accepted values
 ```
 
 Try running the ABC rejection algorithm with a small tolerance and compare the computation time to ABC-SMC with two populations.

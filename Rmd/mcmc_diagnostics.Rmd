@@ -1,7 +1,7 @@
 % Practical session: MCMC diagnostics
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc_diagnostics/', cache.path='cache/mcmc_diagnostics/' , fig.cap='', fig.align="center", tidy=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/mcmc_diagnostics/", cache.path = "cache/mcmc_diagnostics/", fig.cap = "", fig.align = "center", tidy = FALSE)
 source("our_posterior.r")
 source("epi3_wrapper.r")
 ```
@@ -73,7 +73,7 @@ This run was created using the commands shown [here](mcmc_commands.html). In the
 To use `coda`, we must first convert our trace to a format that `coda` understands. To this end, we use the `mcmc` function from that package:
 
 ```{r coda_trace}
-library('coda')
+library("coda")
 mcmcTrace <- mcmc(trace)
 ```
 
@@ -191,25 +191,27 @@ data(sirExp)
 You can, again, use a wrapper function and use MCMC to explore the parameters.
 
 ```{r source_stuff, include = FALSE, cache=FALSE}
-source('epi3_wrapper.r')
-source('our_posterior.r')
-source('our_mcmcMh.r')
+source("epi3_wrapper.r")
+source("our_posterior.r")
+source("our_mcmcMh.r")
 ```
 
 ```{r transform, message = FALSE}
 my_dLogPosteriorExpEpi3 <- function(theta) {
-
-	return(my_dLogPosterior(fitmodel = sirExp,
-		theta = theta,
-		initState = c(S = 999, I = 1, R = 0),
-		data = epi3))
-
+  return(my_dLogPosterior(
+    fitmodel = sirExp,
+    theta = theta,
+    initState = c(S = 999, I = 1, R = 0),
+    data = epi3
+  ))
 }
 
-trace <- my_mcmcMh(target = my_dLogPosteriorExpEpi3,
-	initTheta = c(R0 = log(1), D_inf = log(2)),
-	proposalSd = c(0.1, 0.01),
-	nIterations = 1000)
+trace <- my_mcmcMh(
+  target = my_dLogPosteriorExpEpi3,
+  initTheta = c(R0 = log(1), D_inf = log(2)),
+  proposalSd = c(0.1, 0.01),
+  nIterations = 1000
+)
 ```
 
 __Take 10 minutes to check whether this makes a difference to acceptance rates?__
@@ -222,21 +224,23 @@ The `mcmcMh` function implemented in the `fitR` package uses the truncated multi
 
 ```{r posteriorEpi3}
 my_dLogPosteriorEpi3 <- function(theta) {
-
-	return(my_dLogPosterior(fitmodel = SIR,
-		theta = theta,
-		initState = c(S = 999, I = 1, R = 0),
-		data = epi3))
-
+  return(my_dLogPosterior(
+    fitmodel = SIR,
+    theta = theta,
+    initState = c(S = 999, I = 1, R = 0),
+    data = epi3
+  ))
 }
 ```
 
 ```{r truncate, message = FALSE}
-trace <- mcmcMh(target = my_dLogPosteriorEpi3,
-	initTheta = c(R0 = 1, D_inf = 2),
-	proposalSd = c(0.1, 0.01),
-	nIterations = 1000,
-	limits = list(lower = c(R0 = 0, D_inf = 0)))
+trace <- mcmcMh(
+  target = my_dLogPosteriorEpi3,
+  initTheta = c(R0 = 1, D_inf = 2),
+  proposalSd = c(0.1, 0.01),
+  nIterations = 1000,
+  limits = list(lower = c(R0 = 0, D_inf = 0))
+)
 ```
 
 __Take 10 minutes to try a proposal distribution with a wide proposal distribution, and with or without limits. Do the limits make a difference to the acceptance rate?__
@@ -269,14 +273,16 @@ The idea is the following: we let the MCMC run for a while and monitor the accep
 Try a run of adaptive MCMC using
 
 ```{r adapt2, message = FALSE, warning = FALSE}
-trace <- mcmcMh(target = my_dLogPosteriorEpi3,
-	initTheta = c(R0 = 1, D_inf = 2),
-	proposalSd = c(1, 0.5),
-	nIterations = 5000,
-	adaptSizeStart = 100,
-	adaptShapeStart = 500,
-	adaptSizeCooling=0.999,
-	limits = list(lower = c(R0 = 0, D_inf = 0)))
+trace <- mcmcMh(
+  target = my_dLogPosteriorEpi3,
+  initTheta = c(R0 = 1, D_inf = 2),
+  proposalSd = c(1, 0.5),
+  nIterations = 5000,
+  adaptSizeStart = 100,
+  adaptShapeStart = 500,
+  adaptSizeCooling = 0.999,
+  limits = list(lower = c(R0 = 0, D_inf = 0))
+)
 ```
 
 Don't worry if you see warnings -- this could be due to numerical errors in the ODE solver of `deSolve`, which can lead to negative data points, which in turn produces `NaN`s ("Not a Number) when evaluating the likelihood.

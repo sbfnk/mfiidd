@@ -8,70 +8,64 @@ Below, you can find an example of how to code a particle filter. Some bits are l
 # - data: data frame. Observation times and observed data.
 # The function returns the value of the marginal log-likelihood
 my_particleFilter <- function(fitmodel, theta, initState, data, nParticles) {
+  ## Initialisation of the algorithm
 
-    ## Initialisation of the algorithm
+  # Marginal log-likelihood is set to 0 and will be updated during the filtering steps
+  margLogLike <- 0
 
-    # Marginal log-likelihood is set to 0 and will be updated during the filtering steps
-    margLogLike <- 0
+  # Particle states can be stored in a list
+  stateParticles <- # INSERT HERE
 
-    # Particle states can be stored in a list
-    stateParticles <- # INSERT HERE
+  # Weight: initially equal for all the particles
+  # particle weight can be stored in a vector
+  weightParticles <- # INSERT HERE
 
-    # Weight: initially equal for all the particles 
-    # particle weight can be stored in a vector
-    weightParticles <- # INSERT HERE
+  # Initialise time variable
+  currentTime <- 0
 
-    # Initialise time variable
-    currentTime <- 0
+  ## Loop over observation times: resample, propagate, weight
+  for (i in seq_len(nrow(data))) {
+    # Extract next data point (must be a vector)
+    dataPoint <- # INSERT HERE
+    nextTime <- dataPoint["time"]
 
-    ## Loop over observation times: resample, propagate, weight
-    for(i in seq_len(nrow(data))){
+    # Resample particles according to their weights.
+    # You can use the `sample` function of R (normalization of the weights is done in the function)
+    indexResampled <- # INSERT HERE
+    stateParticles <- stateParticles[indexResampled]
 
-        # Extract next data point (must be a vector)
-        dataPoint <- # INSERT HERE
-        nextTime <- dataPoint["time"]
+    ## Loop over particles: propagate and weight
+    for (p in 1:nParticles) {
+      # Extract current state of the particle
+      currentStateParticle <- stateParticles[[p]]
 
-        # Resample particles according to their weights. 
-        # You can use the `sample` function of R (normalization of the weights is done in the function)
-        indexResampled <- # INSERT HERE
-        stateParticles <- stateParticles[indexResampled]
+      # Propagate the particle from current observation time
+      # to the next one using the function `fitmodel$simulate`
+      traj <- # INSERT HERE
 
-        ## Loop over particles: propagate and weight
-        for(p in 1:nParticles){
+      # Extract state of the model at next observation time.
+      # Make sure that modelPoint is a vector
+      modelPoint <- # INSERT HERE
 
-            # Extract current state of the particle 
-            currentStateParticle <- stateParticles[[p]]
+      # Weight the particle with the likelihood of the observed
+      # data point using the function `fitmodel$dPointObs`
+      weightParticles[p] <- # INSERT HERE
 
-            # Propagate the particle from current observation time 
-            # to the next one using the function `fitmodel$simulate`
-            traj <- # INSERT HERE
-
-            # Extract state of the model at next observation time.
-            # Make sure that modelPoint is a vector
-            modelPoint <- # INSERT HERE
-
-            # Weight the particle with the likelihood of the observed 
-            # data point using the function `fitmodel$dPointObs`
-            weightParticles[p] <- # INSERT HERE
-
-            # Update state of the p particle
-            stateParticles[[p]] <- modelPoint
-
-        }
-
-        # Increment time
-        currentTime <- nextTime
-
-        ## Increment the marginal log-likelihood 
-        # Add the log of the mean of the particles weights
-        margLogLike <- margLogLike + # INSERT HERE
+      # Update state of the p particle
+      stateParticles[[p]] <- modelPoint
     }
 
-    ## Return marginal log-likelihood
-    return(margLogLike)
+    # Increment time
+    currentTime <- nextTime
 
+    ## Increment the marginal log-likelihood
+    # Add the log of the mean of the particles weights
+    margLogLike <- margLogLike + # INSERT HERE
+  }
+
+  ## Return marginal log-likelihood
+  return(margLogLike)
 }
-
 ```
 
 If you run into any problems, have a look at our [solution](smc_example_solution.html), otherwise [return](pmcmc.html#run-a-particle-filter) to the pMCMC practical.

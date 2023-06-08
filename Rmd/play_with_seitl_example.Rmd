@@ -1,7 +1,7 @@
 % Example: Tristan da Cunha outbreak & the SEITL model.
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, figPath='figure/play_with_seitl_example/', cachePath='cache/play_with_seitl_example/' , figCap='', figAlign="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, figPath = "figure/play_with_seitl_example/", cachePath = "cache/play_with_seitl_example/", figCap = "", figAlign = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, include=FALSE, cache=FALSE}
@@ -32,23 +32,23 @@ Now, you can now go back to the [practical](play_with_seitlHtml#deterministic-vs
 Let's simulate the SEITL model with our initial guess `theta`:
 
 ```{r guess-1, results="hide"}
-thetaGuess1 <- c("R_0"=4, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
-initStateGuess <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
-plotFit(seitlDeter,thetaGuess1,initStateGuess,data=FluTdC1971, nReplicates=100)
+thetaGuess1 <- c("R_0" = 4, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.7, "D_imm" = 13, "rho" = 0.7)
+initStateGuess <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0)
+plotFit(seitlDeter, thetaGuess1, initStateGuess, data = FluTdC1971, nReplicates = 100)
 ```
 
 This set of parameters provides a poor fit, in particular the first wave too small. Let's increase $R_0$:
 
 ```{r guess-2, results="hide"}
-thetaGuess2 <- c("R_0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
-plotFit(seitlDeter,thetaGuess2,initStateGuess,data=FluTdC1971, nReplicates=100)
+thetaGuess2 <- c("R_0" = 10, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.7, "D_imm" = 13, "rho" = 0.7)
+plotFit(seitlDeter, thetaGuess2, initStateGuess, data = FluTdC1971, nReplicates = 100)
 ```
 
 The size of the first wave is now ok but the second wave is too small. Let's decrease $\alpha$, thus allowing more islanders to be reinfected:
 
 ```{r guess-3, results="hide"}
-thetaGuess3 <- c("R_0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.4, "D_imm"=13, "rho"=0.7)
-plotFit(seitlDeter,thetaGuess3,initStateGuess,data=FluTdC1971, nReplicates=100)
+thetaGuess3 <- c("R_0" = 10, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.4, "D_imm" = 13, "rho" = 0.7)
+plotFit(seitlDeter, thetaGuess3, initStateGuess, data = FluTdC1971, nReplicates = 100)
 ```
 
 This is a decent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process. 
@@ -60,7 +60,7 @@ Now, you can now go back to the [practical](play_with_seitlHtml#stochastic-simul
 Let's try the stochastic SEITL model with our best guess from the previous section.
 
 ```{r guess-3-stoch, results="hide", figWidth=10}
-plotFit(seitlStoch,thetaGuess3,initStateGuess,data=FluTdC1971, nReplicates=100, nonExtinct=c("E", "I"))
+plotFit(seitlStoch, thetaGuess3, initStateGuess, data = FluTdC1971, nReplicates = 100, nonExtinct = c("E", "I"))
 ```
 
 The stochastic model better accounts for the variability in the data. In addition, demographic stochasticity can lead to stochastic extinctions at the beginning and at the end of the outbreak when the number of infectious individuals is low and the chain of transmission can break if by chance they recover before infecting a secondary case. By contrast, the cumulative extinction probability doesn't increase between the two waves, despite the low incidence observed in the data. Note however that the shape of the second wave is quite flat in comparison to the data.
@@ -72,8 +72,8 @@ Now, you can now go back to the [practical](play_with_seitlHtml#exponential-vs-e
 Let's simulate the stochastic SEIT4L model with our last guess estimates. Note that we need to change the vector of initial states.
 
 ```{r guess-3-stoch-SEIT4L, results="hide", figWidth=10}
-initStateGuessSEIT4L <- c("S"=279,"E"=0,"I"=2,"T1"=3, "T2"=0 , "T3"=0 ,"T4"=0 , "L"=0,"Inc"=0)
-plotFit(seit4lStoch,thetaGuess3,initStateGuessSEIT4L,data=FluTdC1971, nReplicates=100, nonExtinct=c("E", "I"))
+initStateGuessSEIT4L <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
+plotFit(seit4lStoch, thetaGuess3, initStateGuessSEIT4L, data = FluTdC1971, nReplicates = 100, nonExtinct = c("E", "I"))
 ```
 
 
