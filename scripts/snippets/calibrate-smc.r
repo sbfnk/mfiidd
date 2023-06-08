@@ -20,7 +20,7 @@ nReplicates <- 100
 
 ## vector and data frame of results
 sampleLogLike <- vector("numeric", length = nReplicates)
-calibrateSMC <- data.frame()
+calibrateSmc <- data.frame()
 
 for (nParticles in testNparticles) {
   cat("Testing ", nParticles, " particles\n")
@@ -29,7 +29,7 @@ for (nParticles in testNparticles) {
   for (i in seq_len(nReplicates)) {
     ## one Monte-Carlo estimate of the log-likelihood
     sampleLogLike[i] <- myParticleFilter(
-      SEIT4L_stoch, theta, initState, FluTdC1971, nParticles
+      seit4lStoch, theta, initState, FluTdC1971, nParticles
     )
   }
   ## end measuring time
@@ -47,5 +47,5 @@ for (nParticles in testNparticles) {
     time = endTime - startTime
   )
 
-  calibrateSMC <- rbind(calibrateSMC, t(ans))
+  calibrateSmc <- rbind(calibrateSmc, t(ans))
 }

@@ -48,15 +48,15 @@ library(readr)
 library(plyr)
 library(dplyr)
 
-dir_dataset <- path.expand("~/edu/Fit_course/mfiidd/website/data")
+dirDataset <- path.expand("~/edu/Fit_course/mfiidd/website/data")
 
-df_data <- ldply(1:4, function(i) {
-	read_csv(file.path(dir_dataset, sprintf("ebola_dataset_%s.csv",i))) %>% mutate(dataset = sprintf("Dataset %s",i))
+dfData <- ldply(1:4, function(i) {
+	read_csv(file.path(dirDataset, sprintf("ebola_dataset_%s.csv",i))) %>% mutate(dataset = sprintf("Dataset %s",i))
 })
 
-df_data %>% 
-chart(x="time",y="obs", type="line", group_by=c("dataset"), time_series=FALSE) %>% set_legend(position="right") %>% 
-add_zoom#  %>% 
+dfData %>%
+chart(x="time",y="obs", type="line", group_by=c("dataset"), time_series=FALSE) %>% set_legend(position="right") %>%
+add_zoom#  %>%
 # R2C3 
 
 

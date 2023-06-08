@@ -1,10 +1,10 @@
 Here is a possible solution for the Metropolis-Hastings sampler.
 
 ```{r echo=FALSE}
-knitr::read_chunk('our_mcmcMH.r')
+knitr::read_chunk('our_mcmcMh.r')
 ```
 
-```{r our_mcmcMH}
+```{r our_mcmcMh}
 ```
 
 You can copy and paste the function into your **R** session, and proceed from there.

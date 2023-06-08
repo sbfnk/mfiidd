@@ -3,22 +3,22 @@
 # - fitmodel, a fitmodel object that defines the model dynamics,
 #   prior and likelihoods.
 # - theta, a named vector of parameters
-# - init.state,  a named vector of initial state
+# - initState,  a named vector of initial state
 # - data, the data set we are fitting the model to
 # It returns the posterior for the given model, parameters, initial
 # state and data.
-my_dLogPosterior <- function(fitmodel, theta, init.state, data) {
+my_dLogPosterior <- function(fitmodel, theta, initState, data) {
   # calculate the fitmodel prior for parameter vector theta using
-  # fitmodel$dprior, and assign to variable log.prior
-  log.prior <- fitmodel$dprior(theta, log = TRUE)
+  # fitmodel$dPrior, and assign to variable logPrior
+  logPrior <- fitmodel$dPrior(theta, log = TRUE)
 
   # calculate the log-likelihood of `theta`
-  # and `init.state` with respect to the data using `dTrajObs`
-  # and assign to a variable `log.likelihood`
-  log.likelihood <- dTrajObs(fitmodel, theta, init.state, data, log = TRUE)
+  # and `initState` with respect to the data using `dTrajObs`
+  # and assign to a variable `logLikelihood`
+  logLikelihood <- dTrajObs(fitmodel, theta, initState, data, log = TRUE)
 
   # calulate the log-posterior using the log-prior and log-likelihood
-  log.posterior <- log.prior + log.likelihood
+  logPosterior <- logPrior + logLikelihood
 
-  return(log.posterior)
+  return(logPosterior)
 }

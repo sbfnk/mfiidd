@@ -18,7 +18,7 @@ The aim of this session is to introduce the *R* package *pomp*, which contains f
 
 The aim of this session is to see how the different methods we have encountered in the course can be applied to fit a model to data using *pomp*. It is meant to serve both as a recap of what you have done in the last few days as well as an introduction to one of the available packages for model fitting and inference.
 
-In the [previous session](pmcmc.html), you coded a particle filter to estimate the likelihood, and the function `mcmcMH` to sample from the posterior distribution with a Metropolis-Hastings algorithm.
+In the [previous session](pmcmc.html), you coded a particle filter to estimate the likelihood, and the function `mcmcMh` to sample from the posterior distribution with a Metropolis-Hastings algorithm.
 
 In this session you will:
 
@@ -49,7 +49,7 @@ example(SEITL_pomp)
 
 If this yields a compile error, have a look at the [important information for windows and mac users](http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.) or ask us for help. If you can't get it to work at all, you work with the *R* versions of the  code (see the note after the next paragraph).
 
-__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help. 
+__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
 
 __Note__: For the examples presented here, we are providing an alternative version that is coded entirely in *R*. To look at this, simply add "\_r" to the objects/examples. For example, to see the *R* version of the `SEITL` model in *pomp*, type 
 ```{r results = "hide"}
@@ -76,9 +76,9 @@ Let's, again, guess some parameters and initial values:
 ```{r}
 theta <-
     c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
-SEITL.init.state <-
+SEITL.initState <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
-SEIT4L.init.state <-
+SEIT4L.initState <-
     c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0, L.0 = 30, Inc.0 = 0)
 ```
 
@@ -88,7 +88,7 @@ Note the *pomp* syntax, whereby initial states are named as the named variable w
 
 ```{r fig.height = 6,fig.width = 10, results = "hide"}
 SEITL.traj <- trajectory(SEITL_pomp,
-                         params = c(theta, SEITL.init.state),
+                         params = c(theta, SEITL.initState),
                          as.data.frame = TRUE)
 plotTraj(SEITL.traj)
 ```
@@ -98,7 +98,7 @@ The `trajectory` function simulates the deterministic skeleton of the `pomp` obj
 ## Stochastic trajectories
 
 ```{r results  =  "hide",fig.height = 6,fig.width = 10}
-SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.init.state),
+SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.initState),
                       obs = TRUE, states = TRUE, 
                       as.data.frame = TRUE)
 
@@ -110,7 +110,7 @@ The `simulate` function simulates the (stochastic) model of the `pomp` object it
 # Particle filter
 
 ```{r}
-pf <- pfilter(SEITL_pomp, params = c(theta, SEITL.init.state), Np = 100)
+pf <- pfilter(SEITL_pomp, params = c(theta, SEITL.initState), Np = 100)
 logLik(pf)
 ```
 
@@ -123,7 +123,7 @@ Several methods are available in *pomp* for fitting a deterministic or stochasti
 ## Trajectory matching
 
 ```{r results = "hide"}
-SEITL.tm <- traj.match(SEITL_pomp, start = c(theta, SEITL.init.state),
+SEITL.tm <- traj.match(SEITL_pomp, start = c(theta, SEITL.initState),
                        est = names(theta))
 ```
 ```{r}
@@ -175,7 +175,7 @@ The following code runs pMCMC with adaptation of the proposal distribution using
 
 ```{r results = "hide"}
 # run pMCMC with adaptive MCMC
-SEITL.pm <- pmcmc(SEITL.tm, Nmcmc = 5000, Np = 200, proposal = mvn.rw.adaptive(rw.sd = prop.sd, scale.start = 100, shape.start = 200), max.fail = Inf)
+SEITL.pm <- pmcmc(SEITL.tm, Nmcmc = 5000, Np = 200, proposal = mvnRw.adaptive(rw.sd = prop.sd, scale.start = 100, shape.start = 200), max.fail = Inf)
 trace <- conv.rec(SEITL.pm, names(theta))
 ```
 

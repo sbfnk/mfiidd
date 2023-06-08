@@ -16,11 +16,11 @@ desc <- lapply(f, function(x) {
   c(s[[1]][1], paste(s[[1]][2:length(s[[1]])], collapse=" "))
 })
 
-empty_first <- which(vapply(desc, function(x) nchar(x[1]) == 0, TRUE))
-for (id in rev(empty_first))
+emptyFirst <- which(vapply(desc, function(x) nchar(x[1]) == 0, TRUE))
+for (id in rev(emptyFirst))
   desc[[id-1]][2] <- paste(desc[[id-1]][2], desc[[id]][2], collapse=" ")
 
-desc <- desc[-empty_first]
+desc <- desc[-emptyFirst]
 
 df <- data.frame(t(vapply(desc, function(x) x, c("a", "b")))) %>%
   dplyr::rename(name=X1, desc=X2) %>%
@@ -40,9 +40,6 @@ ms <- df %>%
   
 fs <- df %>%
   dplyr::filter(func)
-
-ds <- ds %>%
-  dplyr::filter(!(name %in% c("measles")))
 ```
 
 # Functions

@@ -1,10 +1,10 @@
-SEIT2L_sto_name <- # nolint
+seit2lStoName <-
   "stochastic SEIT2L model with daily incidence and constant population size"
-SEIT2L_stateNames <- c("S", "E", "I", "T1", "T2", "L", "Inc") # nolint
+seit2lStateNames <- c("S", "E", "I", "T1", "T2", "L", "Inc")
 
 # Simulate realisation of the stochastic version of the SEIT2L model.
-SEIT2L_simulateStochastic <- function(theta, initState, times) { # nolint
-  SEIT2L_transitions <- list( # nolint
+seit2lSimulateStochastic <- function(theta, initState, times) {
+  seit2lTransitions <- list(
     c(S = -1, E = 1), # infection
     c(E = -1, I = 1, Inc = 1), # infectiousness and incidence
     c(I = -1, T1 = 1), # recovery and temporary protection
@@ -13,7 +13,7 @@ SEIT2L_simulateStochastic <- function(theta, initState, times) { # nolint
     c(T2 = -1, S = 1) # deficient long term protection
   )
 
-  SEIT2L_rateFunc <- function(state, theta, t) { # nolint
+  seit2lRateFunc <- function(state, theta, t) {
     # param
     beta <- theta[["R_0"]] / theta[["D_inf"]]
     epsilon <- 1 / theta[["D_lat"]]
@@ -22,23 +22,23 @@ SEIT2L_simulateStochastic <- function(theta, initState, times) { # nolint
     tau <- 1 / theta[["D_imm"]]
 
     # states
-    S <- state[["S"]] # nolint
-    E <- state[["E"]] # nolint
-    I <- state[["I"]] # nolint
-    T1 <- state[["T1"]] # nolint
-    T2 <- state[["T2"]] # nolint
-    L <- state[["L"]] # nolint
-    Inc <- state[["Inc"]] # nolint
+    s <- state[["S"]]
+    e <- state[["E"]]
+    i <- state[["I"]]
+    t1 <- state[["T1"]]
+    t2 <- state[["T2"]]
+    l <- state[["L"]]
+    inc <- state[["Inc"]]
 
-    N <- S + E + I + T1 + T2 + L # nolint
+    n <- s + e + i + t1 + t2 + l
 
     return(c(
-      beta * S * I / N, # new infection (S -> E)
-      epsilon * E, # infectiousness and incidence (E -> I)
-      nu * I, # recovery + short term protection (I -> T1)
-      2 * tau * T1, # progression of temporary protection (T1 -> T2)
-      alpha * 2 * tau * T2, # efficient long term protection (T2 -> L)
-      (1 - alpha) * 2 * tau * T2 # deficient long term protection (T2 -> S)
+      beta * s * i / n, # new infection (S -> e)
+      epsilon * e, # infectiousness and incidence (E -> i)
+      nu * i, # recovery + short term protection (I -> t1)
+      2 * tau * t1, # progression of temporary protection (T1 -> t2)
+      alpha * 2 * tau * t2, # efficient long term protection (T2 -> l)
+      (1 - alpha) * 2 * tau * t2 # deficient long term protection (T2 -> s)
     ))
   }
 
@@ -46,7 +46,7 @@ SEIT2L_simulateStochastic <- function(theta, initState, times) { # nolint
   initState["Inc"] <- 0
 
   traj <- fitR::simulateModelStochastic(
-    theta, initState, times, SEIT2L_transitions, SEIT2L_rateFunc
+    theta, initState, times, seit2lTransitions, seit2lRateFunc
   )
 
   # compute incidence of each time interval
@@ -56,12 +56,12 @@ SEIT2L_simulateStochastic <- function(theta, initState, times) { # nolint
 }
 
 
-SEIT2L_stoch <- fitmodel( # nolint
-  name = SEIT2L_sto_name,
-  stateNames = SEIT2L_stateNames,
-  thetaNames = SEITL_thetaNames,
-  simulate = SEIT2L_simulateStochastic,
-  dprior = SEITL_prior,
-  rPointObs = SEITL_genObsPoint,
-  dPointObs = SEITL_pointLike
+seit2lStoch <- fitmodel(
+  name = seit2lStoName,
+  stateNames = seit2lStateNames,
+  thetaNames = seitlThetaNames,
+  simulate = seit2lSimulateStochastic,
+  dPrior = seitlPrior,
+  rPointObs = seitlGenObsPoint,
+  dPointObs = seitlPointLike
 )

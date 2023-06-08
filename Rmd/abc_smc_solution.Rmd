@@ -2,23 +2,23 @@
 
 Here is a possible solution for the ABC-SMC with two populations.
 
-```{r abc_smcsolutions, eval=F}
+```{r abcSmcsolutions, eval=F}
 
 library(fitR)
 library(MASS)
 source("sumstat_examples.r")
 source("distance_examples.r")
 
-init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+initState <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
 
 # use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm
 
-pop_1<-my_ABC_algorithm(N=1000, epsilon = 50,
-                   sum.stats = list(ssMax, ssSize),
-                   distanceABC = ssMeanRelDistance,
-                   fitmodel = SEITL_stoch,
-                   init.state = init.state,
+pop_1<-my_abcAlgorithm(N=1000, epsilon = 50,
+                   sumStats = list(ssMax, ssSize),
+                   distanceAbc = ssMeanRelDistance,
+                   fitmodel = seitlStoch,
+                   initState = initState,
                     data = FluTdC1971)
 
 
@@ -40,26 +40,26 @@ pop_1<-my_ABC_algorithm(N=1000, epsilon = 50,
   while(i < N){
     
     # - draw a random number between 1 and 1000
-    row_no <- sample(1000, 1)
+    rowNo <- sample(1000, 1)
     # extract corresponding row from pop_1 using this number
-    pars <- pop_1[row_no, c("D_lat", "D_inf")]
+    pars <- pop_1[rowNo, c("D_lat", "D_inf")]
 
     #perturb these parameters using multivariate Gaussian distribution
-    pars_perturb <- mvrnorm(n = 1, pars, Sigma)
+    parsPerturb <- mvrnorm(n = 1, pars, Sigma)
     
-    theta <- c(R0 = 2, D_lat = pars_perturb[["D_lat"]], D_inf = pars_perturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
+    theta <- c(R0 = 2, D_lat = parsPerturb[["D_lat"]], D_inf = parsPerturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
     
     # if any of the proposed parameters are less than 0, reject them (set distance to infinity)
     if(any(theta < 0)){
       dist <- Inf
     }else{
-          # use computeDistanceABC to calculate a distance between the model
+          # use computeDistanceAbc to calculate a distance between the model
     # and data
-    dist <- computeDistanceABC(sum.stats = list(ssMax, ssSize),
-                             distanceABC = ssMeanRelDistance,
-                             fitmodel = SEITL_stoch,
+    dist <- computeDistanceAbc(sumStats = list(ssMax, ssSize),
+                             distanceAbc = ssMeanRelDistance,
+                             fitmodel = seitlStoch,
                              theta = theta,
-                             init.state = init.state,
+                             initState = initState,
                              data = FluTdC1971)
     }
     

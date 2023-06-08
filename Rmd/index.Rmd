@@ -8,7 +8,7 @@ output:
 
 ![](external_fig/import/lshtm_cmmid.png)
 
-Lunch options: [Local map](http://goo.gl/XEPxch) 
+Lunch options: [Local map](http://goo.gl/XEPxch)
 
 # Required software
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.5.0.

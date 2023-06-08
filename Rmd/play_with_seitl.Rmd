@@ -89,16 +89,16 @@ $$
 $$
 * __The dataset is incomplete:__ only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate $\rho$. Since this reporting rate is unknown (we can only presume that it should be below 85% due to reporting errors) we will include it as an additional parameter.
 
-The deterministic and stochastic SEITL models are already implemented as two `fitmodel` objects called `SEITL_deter` and `SEITL_stoch` respectively. These can be loaded into your **R** session by typing:
+The deterministic and stochastic SEITL models are already implemented as two `fitmodel` objects called `seitlDeter` and `seitlStoch` respectively. These can be loaded into your **R** session by typing:
 
 ```{r load_models,results="hide"}
-data(SEITL_deter)
+data(seitlDeter)
 data(SEITL_stoch)
 ```
 
-A brief technical note: You might be confused that we use a function called `data` to load a `fitmodel`. However, this was the best way to provide you with models that preserved comments in the code of the function. Type `SEITL_deter$simulate`, for instance.
+A brief technical note: You might be confused that we use a function called `data` to load a `fitmodel`. However, this was the best way to provide you with models that preserved comments in the code of the function. Type `seitlDeter$simulate`, for instance.
 
-__Take 10 minutes to look at the different elements of both models.__ In particular, you might be interested in how the daily incidence is computed in the function `SEITL_deter$simulate` and how the likelihood function `SEITL_deter$dPointObs` accounts for under-reporting. 
+__Take 10 minutes to look at the different elements of both models.__ In particular, you might be interested in how the daily incidence is computed in the function `seitlDeter$simulate` and how the likelihood function `seitlDeter$dPointObs` accounts for under-reporting. 
 
 You should also notice that `SEITL_stoch` mainly differs from `SEITL_deter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm needs a list of transitions (`SEITL_transitions`) and a function to compute the transition rate (`SEITL_rateFunc`). Make sure you understand all the transitions and rates and see the analogy with the deterministic equations.
 
@@ -108,7 +108,7 @@ However, before doing any simulation, we need some parameter values and an initi
 
 ## Parameter values and initial state
 
-Based on the description of the outbreak above and the information below found in the literature, can you think of one or more set(s) of values for the parameters (`theta`) and initial state (`init.state`) of the model? 
+Based on the description of the outbreak above and the information below found in the literature, can you think of one or more set(s) of values for the parameters (`theta`) and initial state (`initState`) of the model?
 
 1. The $R_0$ of influenza is commonly estimated to be around 2. However, it can be significantly larger in close-knit communities with exceptional contact configurations.
 2. Both the average latent and infectious periods for influenza have been estimated around 2 days each.
@@ -127,27 +127,27 @@ You can use the `plotFit` function you encountered in the [first practical](intr
 
 ```{r oneTraj, results="hide"}
 theta.bad.guess <- c("R0"=2, "D_lat"=2 , "D_inf"=2, "alpha"=0.9, "D_imm"=13, "rho"=0.85)
-init.state.bad.guess <- c("S"=250,"E"=0,"I"=4,"T"=0,"L"=30,"Inc"=0)
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971)
+initState.bad.guess <- c("S"=250,"E"=0,"I"=4,"T"=0,"L"=30,"Inc"=0)
+plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971)
 ```
 
 You can display all states variables (not only the sampled observations) by passing `all.vars=TRUE` to the `plotFit` function:
 
 ```{r allVars, fig.height=6,fig.width=10, results="hide"}
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971,all.vars=TRUE)
+plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971,all.vars=TRUE)
 ```
 
 Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy `obs` time-series.
 You can appreciate the variability of the observation process by plotting several replicates (use the argument `n.replicates`):
 
 ```{r manyObs, results="hide"}
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100)
+plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971, n.replicates=100)
 ```
 
 By default, this function plots the mean and the median as well as the $95^\mathrm{th}$ and $50^\mathrm{th}$ percentiles of the replicated simulations. Alternatively, you can visualise all the simulated trajectories by passing `summary=FALSE` to the `plotFit` function:
 
 ```{r allTraj, results="hide"}
-plotFit(SEITL_deter,theta.bad.guess,init.state.bad.guess,data=FluTdC1971, n.replicates=100, summary=FALSE)
+plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971, n.replicates=100, summary=FALSE)
 ```
 
 __Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
@@ -160,7 +160,7 @@ You should find that it is hard to capture all the data-point with the determini
 
 __Take about 10 minutes to explore the dynamics of the stochastic SEITL model with the function `plotFit`.__ 
 
-Note that `SEITL_stoch` has the same `theta.names` and `state.names` as `SEITL_deter`, which means that you can use the same parameters and initial state vectors as in the previous section. 
+Note that `seitlStoch` has the same `theta.names` and `state.names` as `seitlDeter`, which means that you can use the same parameters and initial state vectors as in the previous section.
 
 In addition, you might find useful to plot the time-series of the extinction probability (i.e. the proportion of faded out simulations) by specifying the infectious states to `plotFit` as the epidemic will persist as long as there is at least one individual in one of these states. You can do so by using the `non.extinct` argument of `plotFit` (see the documentation for more details).
 
@@ -214,12 +214,12 @@ We propose to extend the SEITL as follows:
 The deterministic and stochastic SEIT4L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
 
 ```{r load_data, results="hide"}
-data(SEIT4L_deter)
-data(SEIT4L_stoch)
+data(seit4lDeter)
+data(seit4lStoch)
 ```
 __Take 5 minutes to have a look at the function `simulate` of these SEIT4L models and make sure you understand how the Erlang distribution for the $T$ compartment is coded.__
 
-Now, compare the dynamics of the SEITL and SEIT4L model using `plotFit`. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the `init.state` of SEIT4L accordingly.
+Now, compare the dynamics of the SEITL and SEIT4L model using `plotFit`. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the `initState` of SEIT4L accordingly.
 
 __Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution of the $T$ compartment?__
 

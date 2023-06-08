@@ -1,11 +1,11 @@
 # @knitr distance_examples
 # mean absolute distance
-ssMeanAbsDistance <- function(sum.stats, data.obs, model.obs) {
+ssMeanAbsDistance <- function(sumStats, dataObs, modelObs) {
 
     # calculate the absolute distance of each summary statistic,
     # and take the mean
-    res <- mean(sapply(sum.stats, function(x) {
-        abs(x(model.obs) - x(data.obs))
+    res <- mean(sapply(sumStats, function(x) {
+        abs(x(modelObs) - x(dataObs))
     }))
 
     # return mean distance
@@ -14,15 +14,15 @@ ssMeanAbsDistance <- function(sum.stats, data.obs, model.obs) {
 }
 
 # vector of absolute distances
-ssAbsDistances <- function(sum.stats, data.obs, model.obs) {
+ssAbsDistances <- function(sumStats, dataObs, modelObs) {
 
     # calculate the absolute distance of each summary statistic
-    res <- sapply(sum.stats, function(x) {
-        abs(x(model.obs) - x(data.obs))
+    res <- sapply(sumStats, function(x) {
+        abs(x(modelObs) - x(dataObs))
     })
 
     # set names of the vector of distances
-    names(res) <- names(sum.stats)
+    names(res) <- names(sumStats)
 
     # return vector of distance
     return(res)
@@ -30,12 +30,12 @@ ssAbsDistances <- function(sum.stats, data.obs, model.obs) {
 }
 
 # mean relative distance
-ssMeanRelDistance <- function(sum.stats, data.obs, model.obs) {
+ssMeanRelDistance <- function(sumStats, dataObs, modelObs) {
 
     # calculate the relative distance of each summary statistic,
     # and take the mean 
-    res <- mean(sapply(sum.stats, function(x) {
-        abs((x(model.obs) - x(data.obs)) / x(data.obs))
+    res <- mean(sapply(sumStats, function(x) {
+        abs((x(modelObs) - x(dataObs)) / x(dataObs))
     }))
 
     # return mean distance
@@ -44,15 +44,15 @@ ssMeanRelDistance <- function(sum.stats, data.obs, model.obs) {
 }
 
 # vector of relative distances
-ssRelDistances <- function(sum.stats, data.obs, model.obs) {
+ssRelDistances <- function(sumStats, dataObs, modelObs) {
 
     # calculate the relative distance of each summary statistic,
-    res <- sapply(sum.stats, function(x) {
-        abs((x(obs.traj) - x(data)) / x(data))
+    res <- sapply(sumStats, function(x) {
+        abs((x(obsTraj) - x(data)) / x(data))
     })
 
     # set names of the vector of distances
-    names(res) <- names(sum.stats)
+    names(res) <- names(sumStats)
 
     # return vector of distance
     return(res)
