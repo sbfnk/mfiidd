@@ -9,7 +9,7 @@ source("epi3_wrapper.r")
 ```{r load, include=FALSE,cache=FALSE}
 library(fitR)
 data(SIR)
-data(SIR_reporting)
+data(sirReporting)
 ```
 
 [Lecture slides](slides/mcmc_slides2.pdf)
@@ -24,9 +24,9 @@ The aim of this session is to learn how to interpret the results of MCMC samplin
 
 # Sampling more than one parameter
 
-If we are fitting more than one parameter, it can be beneficial to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMH`in the `fitR` package which is built on the Metropolis-Hastings sampler of the last session but extends it to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMH` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later.
+If we are fitting more than one parameter, it can be beneficial to use a multivariate proposal distribution such as the multivariate Gaussian. We have included a function called `mcmcMh`in the `fitR` package which is built on the Metropolis-Hastings sampler of the last session but extends it to a scenario of multiple parameters by replacing the univariate Gaussian proposal distribution of `my_mcmcMh` with a multivariate Gaussian, using the `rtmvtnorm` from the `tmvtnorm` package. In fact, the `rtmvtnorm` function calculates the probability density of a vector under a *truncated* multivariate Gaussian, that is one that can have boundaries. We will get back to this issue later.
 
-The `mcmcMH` takes the same parameters as the `my_mcmcMH` function you used in the previous practical session and can be used the same way, but it also allows to specify a covariance matrix (via the `covmat` parameter) instead of `proposal.sd`. For now, we will keep using `proposal.sd` but pass it a named vector of standard deviations, e.g. `proposal.sd=c(R0=1, D_inf=2)`, in which case the sampler will use independent normal draws for the proposal distribution with standard deviation 1 and 2, respectively.
+The `mcmcMh` takes the same parameters as the `my_mcmcMh` function you used in the previous practical session and can be used the same way, but it also allows to specify a covariance matrix (via the `covmat` parameter) instead of `proposal.sd`. For now, we will keep using `proposal.sd` but pass it a named vector of standard deviations, e.g. `proposal.sd=c(R0=1, D_inf=2)`, in which case the sampler will use independent normal draws for the proposal distribution with standard deviation 1 and 2, respectively.
 
 <!-- In the previous practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters so that our MCMC needs to sample from a multivariate posterior distribution. -->
 
@@ -38,31 +38,10 @@ You can visualise the `epi3` data set with
 plotTraj(data = epi3)
 ```
 
-The first step is to write a wrapper for the log-posterior similar to `my_dLogPosterior_R0_epi1` but for more than one parameter and using the data set `epi3`  -- if you have trouble with that, you can use our [solution](epi3_wrapper.html). 
+The first step is to write a wrapper for the log-posterior similar to `my_dLogPosteriorR0Epi1` but for more than one parameter and using the data set `epi3`  -- if you have trouble with that, you can use our [solution](epi3_wrapper.html).
 
 
-<!-- Note that you should take advantage of the fact that most **R** functions, like `rnorm`, are vectorized over their arguments: -->
-
-<!-- ```{r vectorization_1} -->
-
-<!-- set.seed(12345) -->
-<!-- rnorm(2, mean = c(1,2), sd = c(1, 0.5)) -->
-
-<!-- ``` -->
-<!-- is equivalent to  -->
-
-<!-- ```{r vectorization_2} -->
-
-<!-- set.seed(12345) -->
-<!-- c(rnorm(1, mean = 1, sd = 1), rnorm(1, mean = 2, sd = 0.5)) -->
-
-<!-- ``` -->
-
-<!-- _Note that `set.seed` allows us to initialise the random number generator with the same seed in both examples. This is a useful trick to know when you want to make fully reproducible stochastic examples._ -->
-
-<!-- If you have difficulties to generalise your MCMC sampler to a multivariate distribution or if you didn't get to write your own MCMC sampler, take a look or just use the one from our [solution](mcmc_example_solution.html). -->
-
-__Once you have your wrapper, use the `mcmcMH` function with parameters `target`, `init.theta`, `proposal.sd` and `n.iterations` to sample from the posterior distribution. Take 15 minutes to sample from the joint posterior of $R_0$ and $D_\mathrm{inf}$. In particular, try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.__
+__Once you have your wrapper, use the `mcmcMh` function with parameters `target`, `initTheta`, `proposalSd` and `nIterations` to sample from the posterior distribution. Take 15 minutes to sample from the joint posterior of $R_0$ and $D_\mathrm{inf}$. In particular, try a few values for the vector of standard deviations `proposal.sd` and see how this affects the acceptance rate.__
 
 You should notice that getting the acceptance rate to a desired value is harder when dealing with multiple parameters. Actually, there are a few strategies available for doing so, which we will learn about in this practical session.
 
@@ -80,7 +59,7 @@ We will use functions from the **R** package `coda` to diagnose MCMC runs. __We 
 
 ## Summary statistics
 
-Diagnosing MCMC usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics, and `coda` provides a rich suite of functions to this end. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters `init.theta` and step size `proposal.sd`. If you didn't get an MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the `mcmc.epi3` object, which you can load with `data(mcmc)`:
+Diagnosing MCMC usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics, and `coda` provides a rich suite of functions to this end. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters `initTheta` and step size `proposalSd`. If you didn't get an MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the `mcmc.epi3` object, which you can load with `data(mcmc)`:
 
 
 ```{r load_trace}
@@ -89,19 +68,19 @@ trace <- mcmc.epi3$trace
 head(trace)
 ```
 
-This run was created using the commands shown [here](mcmc_commands.html). In the following, we assume that you assigned the result of `my_mcmcMH` to a variable called `trace`, but of course you can call this anything you like.
+This run was created using the commands shown [here](mcmc_commands.html). In the following, we assume that you assigned the result of `my_mcmcMh` to a variable called `trace`, but of course you can call this anything you like.
 
 To use `coda`, we must first convert our trace to a format that `coda` understands. To this end, we use the `mcmc` function from that package:
 
 ```{r coda_trace}
 library('coda')
-mcmc.trace <- mcmc(trace)
+mcmcTrace <- mcmc(trace)
 ```
 
 We can get summary statics using `summary`
 
 ```{r summary_trace}
-summary(mcmc.trace)
+summary(mcmcTrace)
 ```
 
 This provides the following information:
@@ -115,14 +94,14 @@ This provides the following information:
 We can also compute the acceptance rate (that is 1 minus the rejection rate).
 
 ```{r rejection}
-acceptanceRate <- 1 - rejectionRate(mcmc.trace)
+acceptanceRate <- 1 - rejectionRate(mcmcTrace)
 acceptanceRate
 ```
 
 Lastly, we can compute the effective sample size, that is an estimate for the number of *independent* samples (taking into account autocorrelations) generated by the MCMC run.
 
 ```{r ESS}
-effectiveSize(mcmc.trace)
+effectiveSize(mcmcTrace)
 ```
 
 ## Mixing
@@ -134,7 +113,7 @@ We need to make sure that the MCMC sampler explores the parameter space *efficie
 Trace plots provide an important tool for assessing mixing of a chain. Density plots are smoothed histograms of the samples, that is they show the function that we are trying to explore. We can get trace and density plots for all variables in an MCMC trace using `plot`.
 
 ```{r trace, fig.width = 10, fig.height = 10}
-plot(mcmc.trace)
+plot(mcmcTrace)
 ```
 
 _NB: the "bandwidth" indicated is automatically selected by the function to smooth the density plots._
@@ -146,8 +125,8 @@ We also see that the sampler never moves beyond 2.2 for $R_0$, and never beyond 
 If we want to get a more detailed view of the posterior distribution (i.e., the density of the samples) around its maximum, we can cut the burn-in period out using the `burnAndThin` (this function is part of the `fitR` package but returns objects compatible with `coda` functions):
 
 ```{r trace_burned, fig.width = 10, fig.height = 10}
-mcmc.trace.burned <- burnAndThin(mcmc.trace, burn = 1000)
-plot(mcmc.trace.burned)
+mcmcTraceBurned <- burnAndThin(mcmcTrace, burn = 1000)
+plot(mcmcTraceBurned)
 ```
 
 It is sometimes said that we are aiming for the trace to look like a [hairy caterpillar](external_ref/hairy_caterpillar.jpg). Can you see the resemblance to the plots on the left?
@@ -163,8 +142,8 @@ autocorr.plot(mcmc.trace.burned)
 In this case, the autocorrelation drops with increasing $k$ (or "lag", the x-axis in the plot), which is a good sign. If autocorrelation persists, we can *thin* the MCMC chain, that is we discard $n$ samples for every sample that we keep. To do this, again we use `burnAndThin` and pass the number of samples $n$ to be discarded for each kept sample as `thin` argument:
 
 ```{r trace_burned_thinned, fig.width = 10, fig.height = 5}
-mcmc.trace.burned.thinned <- burnAndThin(mcmc.trace.burned, thin = 5)
-autocorr.plot(mcmc.trace.burned.thinned)
+mcmcTraceBurnedThinned <- burnAndThin(mcmcTraceBurned, thin = 5)
+autocorr.plot(mcmcTraceBurnedThinned)
 ```
 
 It has been argued that thinning is actually not very useful, unless one wants to reduce the amount of memory and storage space in long chains. Instead of thinning to, say, keep only 1 out every 10 samples, it is usually more efficient (in terms of the effective sample size) to just run a chain 10 times as long, but it will take 10 times more storage space.
@@ -178,7 +157,7 @@ A better estimate for burn-in cut-off is via the effective sample size (ESS), th
 We can plot ESS against burn-in:
 
 ```{r test_burn_in, fig.width = 8, fig.height = 5}
-plotESSBurn(mcmc.trace)
+plotEssBurn(mcmcTrace)
 ```
 
 A good optimal burn-in length would be when the ESS has hit its maximum for all parameters, that is at around 500 here.
@@ -205,8 +184,8 @@ A first way for dealing with parameters with limited support applies mostly to p
 
 You can load an SIR model where the parameters are defined on the log-scale using
 
-```{r load_SIR_exp, message = FALSE, results = "hide"}
-data(SIR_exp)
+```{r load_sirExp, message = FALSE, results = "hide"}
+data(sirExp)
 ```
 
 You can, again, use a wrapper function and use MCMC to explore the parameters.
@@ -214,23 +193,23 @@ You can, again, use a wrapper function and use MCMC to explore the parameters.
 ```{r source_stuff, include = FALSE, cache=FALSE}
 source('epi3_wrapper.r')
 source('our_posterior.r')
-source('our_mcmcMH.r')
+source('our_mcmcMh.r')
 ```
 
 ```{r transform, message = FALSE}
-my_dLogPosterior_exp_epi3 <- function(theta) {
+my_dLogPosteriorExpEpi3 <- function(theta) {
 
-	return(my_dLogPosterior(fitmodel = SIR_exp,
+	return(my_dLogPosterior(fitmodel = sirExp,
 		theta = theta,
-		init.state = c(S = 999, I = 1, R = 0),
+		initState = c(S = 999, I = 1, R = 0),
 		data = epi3))
 
 }
 
-trace <- my_mcmcMH(target = my_dLogPosterior_exp_epi3,
-	init.theta = c(R0 = log(1), D_inf = log(2)),
-	proposal.sd = c(0.1, 0.01),
-	n.iterations = 1000)
+trace <- my_mcmcMh(target = my_dLogPosteriorExpEpi3,
+	initTheta = c(R0 = log(1), D_inf = log(2)),
+	proposalSd = c(0.1, 0.01),
+	nIterations = 1000)
 ```
 
 __Take 10 minutes to check whether this makes a difference to acceptance rates?__
@@ -239,24 +218,24 @@ __Take 10 minutes to check whether this makes a difference to acceptance rates?_
 
 Another way for dealing with parameters with limited support is to use *truncated* proposal distributions. There are **R** packages for truncated normal and multivariate normal distributions -- these never draw proposals outside of specified limits. However, the use of such truncated distributions in the proposal kernel must be accounted for when computing the acceptance ratio. Otherwise your chain might not converge to the correct posterior distribution (look at this excellent [post](http://darrenjw.wordpress.com/tag/truncate/) by Darren Wilkinson for a detailed example).
 
-The `mcmcMH` function implemented in the `fitR` package uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this asymmetric proposal to calculate the acceptance ratio. The limits of the support of the proposal distribution can be specified with the `limits` argument to `mcmcMH`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
+The `mcmcMh` function implemented in the `fitR` package uses the truncated multivariate normal random generator from the `tmvtnorm` package to draw proposals. Of course the function accounts for this asymmetric proposal to calculate the acceptance ratio. The limits of the support of the proposal distribution can be specified with the `limits` argument to `mcmcMh`, in which you can specified `lower` and/or `upper` limits. For example, to get a lower bound of 0 for $R_0$ and $D_\mathrm{inf}$, we could write
 
-```{r posterior_epi3}
-my_dLogPosterior_epi3 <- function(theta) {
+```{r posteriorEpi3}
+my_dLogPosteriorEpi3 <- function(theta) {
 
 	return(my_dLogPosterior(fitmodel = SIR,
 		theta = theta,
-		init.state = c(S = 999, I = 1, R = 0),
+		initState = c(S = 999, I = 1, R = 0),
 		data = epi3))
 
 }
 ```
 
 ```{r truncate, message = FALSE}
-trace <- mcmcMH(target = my_dLogPosterior_epi3,
-	init.theta = c(R0 = 1, D_inf = 2),
-	proposal.sd = c(0.1, 0.01),
-	n.iterations = 1000,
+trace <- mcmcMh(target = my_dLogPosteriorEpi3,
+	initTheta = c(R0 = 1, D_inf = 2),
+	proposalSd = c(0.1, 0.01),
+	nIterations = 1000,
 	limits = list(lower = c(R0 = 0, D_inf = 0)))
 ```
 
@@ -266,37 +245,37 @@ __Take 10 minutes to try a proposal distribution with a wide proposal distributi
 
 The best proposal distribution is the one that best matches the target distribution. While we cannot know this in advance, we can use trial MCMC runs to learn about the target distribution, and use this information to come up with a better proposal distribution. This does mean, however, that we waste computational time in the discarded trial runs, and this method needs to be applied carefully.
 
-In addition to truncated proposal distributions, our function `mcmcMH` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
+In addition to truncated proposal distributions, our function `mcmcMh` also implements some adaptive features. In particular, it calculates the *empirical* covariance matrix, that is the covariance matrix as it appears from the distribution of accepted proposals. This is returned as `covmat.empirical`:
 
 
 <!-- ```{r adapt, eval=FALSE, message = FALSE, warn = FALSE} -->
-<!-- trace <- mcmcMH(target = my_dLogPosterior_epi3, -->
-<!-- 	init.theta = c(R0 = 1, D_inf = 2), -->
-<!-- 	proposal.sd = c(0.1, 0.01), -->
-<!-- 	n.iterations = 1000, -->
+<!-- trace <- mcmcMh(target = my_dLogPosteriorEpi3, -->
+<!-- 	initTheta = c(R0 = 1, D_inf = 2), -->
+<!-- 	proposalSd = c(0.1, 0.01), -->
+<!-- 	nIterations = 1000, -->
 <!-- 	limits = list(lower = c(R0 = 0, D_inf = 0))) -->
 <!-- ``` -->
 
-```{r print_covmat}
-trace$covmat.empirical
+```{r printCovmat}
+trace$covmatEmpirical
 ```
 
 The diagonal elements of this matrix tell you about the typical variance of accepted steps and thus gives you an indication of an appropriate step size. The off-diagonal elements tell you about *correlations* in the parameters. In this case, there is positive correlation between $R_0$ and $D_\mathrm{inf}$, that is greater values of $R_0$ in accepted proposals tend to coincide with greater values of $D_\mathrm{inf}$. __Can you think of why that is the case?__ We will come back to the issue of correlations and their impact on assessing model fits tomorrow.
 
-Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the `mcmcMH` function. This takes three parameters relating to adaptive MCMC: `adaptive.size.start`, `adaptive.shape.start` and `adapt.size.cooling`.
+Instead of manually adjusting the proposal distribution as we have done so far, we can automate this process. If this is done carefully, the samples generated by the MCMC converge to the correct distribution. We have implemented this in the `mcmcMh` function. This takes three parameters relating to adaptive MCMC: `adaptive.size.start`, `adaptive.shape.start` and `adapt.size.cooling`.
 
 The idea is the following: we let the MCMC run for a while and monitor the acceptance rate. After `adapt.size.start` iterations, we start adapting the *size* of the proposal distribution, that is we scale it to smaller/larger  steps depending if the acceptance is too small/large. This is done until `adapt.shape.start` proposals have been accepted, at which point we take the empirical covariance matrix and start adapting the *shape* of the proposal distribution to it. Over time, we must make fewer and fewer changes to the size, because if we kept adapting the size we would break the Metropolis-Hastings algorithm. This is regulated by `adapt.size.cooling`. The closer this is to 1, the slower we stop adapting the size (and, accordingly, the longer we have to run the chain).
 
 Try a run of adaptive MCMC using
 
 ```{r adapt2, message = FALSE, warning = FALSE}
-trace <- mcmcMH(target = my_dLogPosterior_epi3,
-	init.theta = c(R0 = 1, D_inf = 2),
-	proposal.sd = c(1, 0.5),
-	n.iterations = 5000,
-	adapt.size.start = 100,
-	adapt.shape.start = 500,
-	adapt.size.cooling=0.999,
+trace <- mcmcMh(target = my_dLogPosteriorEpi3,
+	initTheta = c(R0 = 1, D_inf = 2),
+	proposalSd = c(1, 0.5),
+	nIterations = 5000,
+	adaptSizeStart = 100,
+	adaptShapeStart = 500,
+	adaptSizeCooling=0.999,
 	limits = list(lower = c(R0 = 0, D_inf = 0)))
 ```
 
@@ -310,14 +289,14 @@ To read more about MCMC diagnostics, have a look at Cowles & Carlin's excellent 
 
 You can also try to fit a model with reporting to the `epi4` data set. This is a model with 3 parameters (the basic reproduction number $R_0$, the infectious period $D_\mathrm{inf}$ and the reporting rate $RR$) and it can loaded with
 
-```{r load_SIR_rep}
-data(SIR_reporting)
+```{r loadSirRep}
+data(sirReporting)
 ```
 
 Have a look at the point observation probability density function
 
-```{r look_loglike, eval = FALSE}
-SIR_reporting$dPointObs
+```{r lookLoglike, eval = FALSE}
+sirReporting$dPointObs
 ```
 
 Can you fit this to the `epi4` data set?

@@ -8,4 +8,4 @@ source(here::here("scripts", "snippets", "calibrate-smc.r"))
 
 dataDir <- here::here("data")
 dir.create(dataDir, showWarnings = FALSE)
-save(calibrateSMC, file = file.path(dataDir, "calibrateSMC.rdata"))
+save(calibrateSmc, file = file.path(dataDir, "calibrateSmc.rdata"))

@@ -1,10 +1,10 @@
 To generate the `mcmc.epi3` data set, we ran
 
 ```{r eval = FALSE}
-mcmc.epi3 <- my_mcmcMH(target = my_dLogPosterior_epi3,
-                     init.theta = c(R0 = 1, D_inf = 2),
-                     proposal.sd = c(0.01, 0.1),
-                     n.iterations = 1000)
+mcmc.epi3 <- my_mcmcMh(target = my_dLogPosteriorEpi3,
+                     initTheta = c(R0 = 1, D_inf = 2),
+                     proposalSd = c(0.01, 0.1),
+                     nIterations = 1000)
 ```
 
 [Return](mcmc_diagnostics.html#summary-statistics) to the MCMC diagnostics session.

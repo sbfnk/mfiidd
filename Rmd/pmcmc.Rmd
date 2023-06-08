@@ -17,7 +17,7 @@ The aim of this session is to learn how you can fit a stochastic model using the
 * To explore the parameter space efficiently
 * To evaluate the likelihood at a given parameter 
 
-In the [previous session](mcmc_and_model_comparison.html), you have used the function `mcmcMH` to explore the parameter space with the Metropolis-Hastings algorithm and the function `dTrajObs` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMH` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
+In the [previous session](mcmc_and_model_comparison.html), you have used the function `mcmcMh` to explore the parameter space with the Metropolis-Hastings algorithm and the function `dTrajObs` to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the `mcmcMh` function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter. 
 
 In this session you will:
 
@@ -35,10 +35,10 @@ Below you can find the skeleton of such a function. We have inserted comments at
 # This is a function that takes four parameters:
 # - fitmodel: a fitmodel object
 # - theta: named numeric vector. Values of the parameters for which the marginal log-likelihood is desired.
-# - init.state: named numeric vector. Initial values of the state variables.
+# - initState: named numeric vector. Initial values of the state variables.
 # - data: data frame. Observation times and observed data.
 # The function returns the value of the marginal log-likelihood
-my_particleFilter <- function(fitmodel, theta, init.state, data, n.particles) {
+my_particleFilter <- function(fitmodel, theta, initState, data, nParticles) {
 
     ## Initialisation of the algorithm
     # Initialise the state and the weight of your particles
@@ -77,8 +77,8 @@ If you have trouble filling any of the empty bits, have a look at our [more guid
 Try to run your particle filter with the following inputs:
 
 ```{r try-PF, collapse=TRUE}
-# load SEIT4L_stoch
-data(SEIT4L_stoch)
+# load seit4lStoch
+data(seit4lStoch)
 
 # load data
 data(FluTdC1971)
@@ -87,10 +87,10 @@ data(FluTdC1971)
 theta <- c("R0" = 7, "D_lat" = 1 , "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
 
 # init state as before
-init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0) 
+initState <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0)
 
 # run the particle filter with 20 particles 
-my_particleFilter(SEIT4L_stoch, theta, init.state,  data = FluTdC1971,  n.particles = 20)
+my_particleFilter(seit4lStoch, theta, initState,  data = FluTdC1971,  nParticles = 20)
 ```
 
 Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?
@@ -106,13 +106,13 @@ What can you notice when you:
 
 Can you think of and implement an algorithm to calibrate the number of particles? 
 
-Compare your approach with [ours](pmcmc_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles. 
+Compare your approach with [ours](pmcmc_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
 
 # Run pMCMC
 
-You can now write a new wrapper for the function `dLogPosterior` that will take `margLogLike = my_particleFilter` as argument. This wrapper will then be passed to `mcmcMH`.
+You can now write a new wrapper for the function `dLogPosterior` that will take `margLogLike = my_particleFilter` as argument. This wrapper will then be passed to `mcmcMh`.
 
-Note that the function `dLogPosterior` doesn't have a `n.particles` argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `dLogPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
+Note that the function `dLogPosterior` doesn't have a `nParticles` argument so you might wonder how to specify it to `my_particleFilter`? Have a look at the documentation of `dLogPosterior`. You should notice the `...` argument, which allows you to pass any extra argument to the function `margLogLike`.
 
 You have probably noticed that running `my_particleFilter` is time consuming. As we mentioned in the [previous session](mcmc_and_model_comparison.html#objectives) this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target. 
 
@@ -120,11 +120,11 @@ In order to efficiently initialise your pMCMC, you can make use the results of t
 
 ```{r load-SEIT4L, collapse=TRUE}
 data(mcmc_TdC_deter_longRun)
-# this should load 2 objects in your environment: mcmc_SEIT4L_infoPrior_theta1 and mcmc_SEIT4L_infoPrior_theta2. Each one is a list of 3 elements returned by mcmcMH
+# this should load 2 objects in your environment: mcmc_SEIT4L_infoPrior_theta1 and mcmc_SEIT4L_infoPrior_theta2. Each one is a list of 3 elements returned by mcmcMh
 names(mcmc_SEIT4L_infoPrior_theta1)
 ```
 
-In the previous session, you have initialised `mcmcMH` with a diagonal covariance matrix for the Gaussian proposal using the argument `proposal.sd`. Actually, you can also pass a non-diagonal covariance matrix, accounting for correlations, by using the argument `covmat` (type `?mcmcMH` for more details).
+In the previous session, you have initialised `mcmcMh` with a diagonal covariance matrix for the Gaussian proposal using the argument `proposalSd`. Actually, you can also pass a non-diagonal covariance matrix, accounting for correlations, by using the argument `covmat` (type `?mcmcMh` for more details).
 
 You can now set the pMCMC by filling the empty bits below:
 
@@ -134,20 +134,20 @@ You can now set the pMCMC by filling the empty bits below:
 my_posteriorSto <- function(theta){
 
     my_fitmodel <- # INSERT HERE
-    my_init.state <- # INSERT HERE
-    my_n.particles <- # INSERT HERE
+    my_initState <- # INSERT HERE
+    my_nParticles <- # INSERT HERE
 
     return(dLogPosterior(fitmodel = my_fitmodel,
                          theta = theta,
-                         init.state = my_init.state, 
+                         initState = my_initState,
                          data = FluTdC1971,
                          margLogLike = my_particleFilter,
-                         n.particles = my_n.particles))
+                         nParticles = my_nParticles))
     
 }
 
 # theta to initialise the pMCMC
-init.theta <- # INSERT HERE
+initTheta <- # INSERT HERE
 
 # covariance matrix for the Gaussian proposal
 covmat <- # INSERT HERE
@@ -157,41 +157,41 @@ lower <- # INSERT HERE
 upper <- # INSERT HERE
 
 # number of iterations for the pMCMC
-n.iterations <- # INSERT HERE
+nIterations <- # INSERT HERE
 
-# additional parameters for the adaptive pMCMC, see ?mcmcMH for more details
-adapt.size.start <- # INSERT HERE
-adapt.size.cooling <- # INSERT HERE
-adapt.shape.start <- # INSERT HERE
+# additional parameters for the adaptive pMCMC, see ?mcmcMh for more details
+adaptSizeStart <- # INSERT HERE
+adaptSizeCooling <- # INSERT HERE
+adaptShapeStart <- # INSERT HERE
 ```
 
 If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_solution.html#setting-the-pmcmc).
 
-Then you should be able to run `mcmcMH`:
+Then you should be able to run `mcmcMh`:
 
 ```{r run-pmcmc, eval=FALSE, tidy = FALSE}
 # run the pMCMC
-my_pMCMC <- mcmcMH(target = my_posteriorSto,
-                   init.theta = init.theta,
+my_pMCMC <- mcmcMh(target = my_posteriorSto,
+                   initTheta = initTheta,
                    covmat = covmat,
                    limits = list(lower = lower,upper = upper),
-                   n.iterations = n.iterations,
-                   adapt.size.start = adapt.size.start,
-                   adapt.size.cooling = adapt.size.cooling,
-                   adapt.shape.start = adapt.shape.start)
+                   nIterations = nIterations,
+                   adaptSizeStart = adaptSizeStart,
+                   adaptSizeCooling = adaptSizeCooling,
+                   adaptShapeStart = adaptShapeStart)
 ```
 
 # Analyse a pMCMC with 50 particles
 
 If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 50 particles.
 
-To save time, we have run 5 chains in parallel for you. Each chain was started from a different `init.theta` and ran for 3000 iterations. The `init.theta` were chosen close to the mean posterior estimates of the deterministic fit and it's empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
+To save time, we have run 5 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and it's empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
 data(pmcmc_SEIT4L_infoPrior_n50)
 # this should load a list with the same name, which contains the 5 chains.
 names(pmcmc_SEIT4L_infoPrior_n50)
-# each chain is a list of 3 elements returned by mcmcMH
+# each chain is a list of 3 elements returned by mcmcMh
 names(pmcmc_SEIT4L_infoPrior_n50[["chain1"]])
 # the trace contains 9 variables for 3000 iterations
 dim(pmcmc_SEIT4L_infoPrior_n50[["chain1"]]$trace)
@@ -203,7 +203,7 @@ library('coda')
 trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {mcmc(chain$trace)}))
 head(trace,1)
 ```
-You can check that the chains were started from different `init.state` and that we used informative priors.
+You can check that the chains were started from different `initState` and that we used informative priors.
 
 __Take 15 min__ to analyse these chains and conclude on the choice of using 50 particles to save computation time.
 
@@ -235,7 +235,7 @@ Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
 ## Filtered trajectories
 
 * Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that "survived" until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package called `particleFilter` that will do it for you (see `?particleFilter` for documentation). Have a look at its code.
-* If you run a particle filter with our function `particleFilter`, you can then plot the filtered trajectories using the function `plotSMC`.
+* If you run a particle filter with our function `particleFilter`, you can then plot the filtered trajectories using the function `plotSmc`.
 
 ## Optimization
 

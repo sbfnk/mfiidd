@@ -371,7 +371,7 @@ The ~deSolve~ package can be installed with ~install.packages("deSolve")~. Once 
 The command for running a model based on a system of differential equations (e.g., the ones of the SIR model), is ~ode~. It takes as parameters the initial state (as a named vector), parameters (again, a named vector), the times at which to produce model output, and a model function ~func~ -- for more details, see the [[http://cran.r-project.org/web/packages/deSolve/vignettes/deSolve.pdf][deSolve vignette]]. The ~func~ argument is for specifying the derivatives in the system of ordinary differential equations. It is passed a function that takes the current time, the current state of the system and the parameters and returns a list of transition rates. For the SIR model, for example, we could write
 
 #+BEGIN_SRC R
-  SIR_ode <- function(time, state, parameters) {
+  sirOde <- function(time, state, parameters) {
 
       ## parameters
       beta <- parameters["R0"] / parameters["infectious.period"]
@@ -399,7 +399,7 @@ We can plug this into the ~ode~ function
   trajectory <- ode(y = c(S = 999, I = 1, R = 0),
                     times = 1:10,
                     parms = c(R0 = 5, infectious.period = 1),
-                    func = SIR_ode)
+                    func = sirOde)
   trajectory
 #+END_SRC
 
@@ -416,12 +416,12 @@ The ~adaptivetau~ package uses a different syntax from the ~deSolve~ package. In
 For the SIR model, we could write
 
 #+BEGIN_SRC R
-  SIR_transitions <- list(
+  sirTransitions <- list(
       c(S = -1, I = 1), # infection
       c(I = -1, R = 1) # recovery
   )
 
-  SIR_rateFunc <- function(x, parameters, t) {
+  sirRateFunc <- function(x, parameters, t) {
 
       beta <- parameters["R0"]/parameters["infectious.period"]
       nu <- 1/parameters["infectious.period"]
@@ -443,8 +443,8 @@ To run the stochastic model, we then use the ~ssa.adaptivetau~ function, which t
 
 #+BEGIN_SRC R
   run <- ssa.adaptivetau(init.values = c(S = 999, I = 1, R = 0),
-                         transitions = SIR_transitions,
-                         rateFunc = SIR_rateFunc,
+                         transitions = sirTransitions,
+                         rateFunc = sirRateFunc,
                          params = c(R0 = 5, infectious.period = 1),
                          tf = 10)
   head(run)
@@ -453,18 +453,18 @@ To run the stochastic model, we then use the ~ssa.adaptivetau~ function, which t
 Unlike =ode= from the =deSolve= package, this does not produce output at specific times, but every time an event happens. To convert this to different times, we first convert the output of =ssa.adaptivetau= to a data frame (=ssa.adaptivetau= returns a /matrix/, a data type which we do not discuss here) using =data.frame=
 
 #+BEGIN_SRC R
-  run_df <- data.frame(run)
+  runDf <- data.frame(run)
 #+END_SRC
 
 To get the output at chosen times, we can use =approx=
 
 #+BEGIN_SRC R
    # get output at times 1, ..., 10
-  run.I.times <- approx(x = run_df$time,
-                        y = run_df$I,
-                        xout = 1:10,
-                        method = "constant")
-  run.I.times
+  runAtTimes <- approx(x = runDf$time,
+                       y = runDf$I,
+                       xout = 1:10,
+                       method = "constant")
+  runAtTimes
 #+END_SRC
 
 By applying this to all the variables returned by =ssa.adaptivetau=, we can construct a data frame with model output at the desired times.
@@ -473,13 +473,13 @@ By applying this to all the variables returned by =ssa.adaptivetau=, we can cons
 The simplest way to plot a function using =plot=. To plot the output of the deterministic SIR run above, we first convert it to a data frame (=ode= returns a /matrix/, a data type which we do not discuss here) using =data.frame=
 
 #+BEGIN_SRC R
-  trajectory_df <- data.frame(trajectory)
+  trajectoryDf <- data.frame(trajectory)
 #+END_SRC
 
 We can then plot the number of infected against time using
 
 #+BEGIN_SRC R :results output graphics :file trajectory_plot.pdf
-  plot(x = trajectory_df$time, y = trajectory_df$I)
+  plot(x = trajectoryDf$time, y = trajectoryDf$I)
 #+END_SRC
 
 A slightly more involved way with many options for different types of plot is using the =ggplot2= package. This can be installed with =install.packages("ggplot2")= and loaded with
@@ -491,7 +491,7 @@ A slightly more involved way with many options for different types of plot is us
 =ggplot2= uses a somewhat peculiar syntax. To create a similar plot to the one above using =ggplot=, we would write
 
 #+BEGIN_SRC R :results output graphics :file trajectory_ggplot.pdf
-  ggplot(trajectory_df, aes(x = time, y = I)) + geom_point()
+  ggplot(trajectoryDf, aes(x = time, y = I)) + geom_point()
 #+END_SRC
 
 A detailed introduction to =ggplot2= and its numerous options for plotting is beyond the scope of this introduction, but comprehensive documentation as well as many examples can be found on the [[http://ggplot2.org/][ggplot2 website]].

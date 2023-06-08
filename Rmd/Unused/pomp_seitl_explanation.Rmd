@@ -171,7 +171,7 @@ This, again, defines a character string with C code, to be used later with `Csni
 # Prior density
 
 ```{r tidy = FALSE}
-SEITL.dprior.c <- '
+SEITL.dPrior.c <- '
   lik = dunif(R0, 1, 50, 1) +
           dunif(D_lat, 0, 10, 1) +
           dunif(D_inf, 0, 15, 1) +

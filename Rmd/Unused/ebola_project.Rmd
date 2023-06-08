@@ -26,7 +26,7 @@ The dynamics in the 3 countries is somewhat different and you will compare your 
 
 The data were extracted from [WHO website](http://www.who.int/csr/disease/ebola/situation-reports/en/?m=20141126) and compiled the number of Confirmed and Probable cases up to 23 November 2014.
 
-* [Download the weekly incidence time series](data/Ebola_West_Africa_2014_WHO.csv) 
+* [Download the weekly incidence time series](data/Ebola_West_Africa_2014_WHO.csv)
 
 # Model
 

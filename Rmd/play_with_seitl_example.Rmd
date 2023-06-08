@@ -1,7 +1,7 @@
 % Example: Tristan da Cunha outbreak & the SEITL model.
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/play_with_seitl_example/', cache.path='cache/play_with_seitl_example/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache=TRUE, figPath='figure/play_with_seitl_example/', cachePath='cache/play_with_seitl_example/' , figCap='', figAlign="center", message=FALSE, tidy=TRUE, warning=FALSE)
 ```
 
 ```{r fitR, include=FALSE, cache=FALSE}
@@ -9,7 +9,7 @@ library(fitR)
 data(SEITL_deter)
 data(SEIT4L_stoch)
 data(FluTdC1971)
-set.seed(1234)
+setSeed(1234)
 ```
 
 Based on the description of the outbreak above and the information found in the literature we can make the following guess estimates:
@@ -23,7 +23,7 @@ Based on the description of the outbreak above and the information found in the 
 7. The 3 islanders who were ill during the 8-day journey are temporary protected at disembarkation: $T(t=0)=3$.
 8. No islander was immune at the beginning of the epidemic. 
 
-Now, you can now go back to the [practical](play_with_seitl.html#deterministic-vs-stochastic-simulations) and check whether these estimates provides a good fit to the data.
+Now, you can now go back to the [practical](play_with_seitlHtml#deterministic-vs-stochastic-simulations) and check whether these estimates provides a good fit to the data.
 
 # Deterministic vs Stochastic simulations
 
@@ -32,52 +32,52 @@ Now, you can now go back to the [practical](play_with_seitl.html#deterministic-v
 Let's simulate the SEITL model with our initial guess `theta`:
 
 ```{r guess-1, results="hide"}
-theta.guess1 <- c("R0"=4, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
-init.state.guess <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
-plotFit(SEITL_deter,theta.guess1,init.state.guess,data=FluTdC1971, n.replicates=100)
+thetaGuess1 <- c("R_0"=4, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
+initStateGuess <- c("S"=279,"E"=0,"I"=2,"T"=3,"L"=0,"Inc"=0)
+plotFit(seitlDeter,thetaGuess1,initStateGuess,data=FluTdC1971, nReplicates=100)
 ```
 
 This set of parameters provides a poor fit, in particular the first wave too small. Let's increase $R_0$:
 
 ```{r guess-2, results="hide"}
-theta.guess2 <- c("R0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
-plotFit(SEITL_deter,theta.guess2,init.state.guess,data=FluTdC1971, n.replicates=100)
+thetaGuess2 <- c("R_0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.7, "D_imm"=13, "rho"=0.7)
+plotFit(seitlDeter,thetaGuess2,initStateGuess,data=FluTdC1971, nReplicates=100)
 ```
 
 The size of the first wave is now ok but the second wave is too small. Let's decrease $\alpha$, thus allowing more islanders to be reinfected:
 
 ```{r guess-3, results="hide"}
-theta.guess3 <- c("R0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.4, "D_imm"=13, "rho"=0.7)
-plotFit(SEITL_deter,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100)
+thetaGuess3 <- c("R_0"=10, "D_lat"=2 , "D_inf"=2, "alpha"=0.4, "D_imm"=13, "rho"=0.7)
+plotFit(seitlDeter,thetaGuess3,initStateGuess,data=FluTdC1971, nReplicates=100)
 ```
 
 This is a decent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process. 
 
-Now, you can now go back to the [practical](play_with_seitl.html#stochastic-simulations) and check whether the stochastic model provides a better fit to the data.
+Now, you can now go back to the [practical](play_with_seitlHtml#stochastic-simulations) and check whether the stochastic model provides a better fit to the data.
 
 ## Stochastic simulations
 
 Let's try the stochastic SEITL model with our best guess from the previous section.
 
-```{r guess-3-stoch, results="hide", fig.width=10}
-plotFit(SEITL_stoch,theta.guess3,init.state.guess,data=FluTdC1971, n.replicates=100, non.extinct=c("E", "I"))
+```{r guess-3-stoch, results="hide", figWidth=10}
+plotFit(seitlStoch,thetaGuess3,initStateGuess,data=FluTdC1971, nReplicates=100, nonExtinct=c("E", "I"))
 ```
 
 The stochastic model better accounts for the variability in the data. In addition, demographic stochasticity can lead to stochastic extinctions at the beginning and at the end of the outbreak when the number of infectious individuals is low and the chain of transmission can break if by chance they recover before infecting a secondary case. By contrast, the cumulative extinction probability doesn't increase between the two waves, despite the low incidence observed in the data. Note however that the shape of the second wave is quite flat in comparison to the data.
 
-Now, you can now go back to the [practical](play_with_seitl.html#exponential-vs-erlang-distributions) and check how we can make this model a bit more realistic.
+Now, you can now go back to the [practical](play_with_seitlHtml#exponential-vs-erlang-distributions) and check how we can make this model a bit more realistic.
 
 # Exponential vs Erlang distributions
 
 Let's simulate the stochastic SEIT4L model with our last guess estimates. Note that we need to change the vector of initial states.
 
-```{r guess-3-stoch-SEIT4L, results="hide", fig.width=10}
-init.state.guess.SEIT4L <- c("S"=279,"E"=0,"I"=2,"T1"=3, "T2"=0 , "T3"=0 ,"T4"=0 , "L"=0,"Inc"=0)
-plotFit(SEIT4L_stoch,theta.guess3,init.state.guess.SEIT4L,data=FluTdC1971, n.replicates=100, non.extinct=c("E", "I"))
+```{r guess-3-stoch-SEIT4L, results="hide", figWidth=10}
+initStateGuessSEIT4L <- c("S"=279,"E"=0,"I"=2,"T1"=3, "T2"=0 , "T3"=0 ,"T4"=0 , "L"=0,"Inc"=0)
+plotFit(seit4lStoch,thetaGuess3,initStateGuessSEIT4L,data=FluTdC1971, nReplicates=100, nonExtinct=c("E", "I"))
 ```
 
 
 With the SEIT4L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape $k$ has a variance $k$ times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.
 
 
-You've already finished? Why not [go further](play_with_seitl.html#going-further)?
+You've already finished? Why not [go further](play_with_seitlHtml#going-further)?

@@ -1,9 +1,9 @@
-SEIT2L_deter_name <- # nolint
+seit2lDeterName <-
   "deterministic SEIT2L model with daily incidence and constant population size"
-SEIT2L_stateNames <- c("S", "E", "I", "T1", "T2", "L", "Inc") # nolint
+seit2lStateNames <- c("S", "E", "I", "T1", "T2", "L", "Inc")
 
-SEIT2L_simulateDeterministic <- function(theta, initState, times) { # nolint
-  SEIT2L_ode <- function(time, state, theta) { # nolint
+seit2lSimulateDeterministic <- function(theta, initState, times) {
+  seit2lOde <- function(time, state, theta) {
     # param
     beta <- theta[["R_0"]] / theta[["D_inf"]]
     epsilon <- 1 / theta[["D_lat"]]
@@ -12,23 +12,23 @@ SEIT2L_simulateDeterministic <- function(theta, initState, times) { # nolint
     tau <- 1 / theta[["D_imm"]]
 
     # states
-    S <- state[["S"]] # nolint
-    E <- state[["E"]] # nolint
-    I <- state[["I"]] # nolint
-    T1 <- state[["T1"]] # nolint
-    T2 <- state[["T2"]] # nolint
-    L <- state[["L"]] # nolint
-    Inc <- state[["Inc"]] # nolint
+    s <- state[["S"]]
+    e <- state[["E"]]
+    i <- state[["I"]]
+    t1 <- state[["T1"]]
+    t2 <- state[["T2"]]
+    l <- state[["L"]]
+    inc <- state[["Inc"]]
 
-    N <- S + E + I + T1 + T2 + L # nolint
+    n <- s + e + i + t1 + t2 + l
 
-    dS <- -beta * S * I / N + (1 - alpha) * 2 * tau * T2
-    dE <- beta * S * I / N - epsilon * E
-    dI <- epsilon * E - nu * I
-    dT1 <- nu * I - 2 * tau * T1
-    dT2 <- 2 * tau * T1 - 2 * tau * T2
-    dL <- alpha * 2 * tau * T2
-    dInc <- epsilon * E
+    dS <- -beta * s * i / n + (1 - alpha) * 2 * tau * t2
+    dE <- beta * s * i / n - epsilon * e
+    dI <- epsilon * e - nu * i
+    dT1 <- nu * i - 2 * tau * t1
+    dT2 <- 2 * tau * t1 - 2 * tau * t2
+    dL <- alpha * 2 * tau * t2
+    dInc <- epsilon * e
 
     return(list(c(dS, dE, dI, dT1, dT2, dL, dInc)))
   }
@@ -38,7 +38,7 @@ SEIT2L_simulateDeterministic <- function(theta, initState, times) { # nolint
   initState["Inc"] <- 0
 
   traj <- as.data.frame(deSolve::ode(
-    initState, times, SEIT2L_ode, theta,
+    initState, times, seit2lOde, theta,
     method = "ode45"
   ))
 
@@ -49,12 +49,12 @@ SEIT2L_simulateDeterministic <- function(theta, initState, times) { # nolint
 }
 
 
-SEIT2L_deter <- fitmodel( # nolint
-  name = SEIT2L_deter_name,
-  stateNames = SEIT2L_stateNames,
-  thetaNames = SEITL_thetaNames,
-  simulate = SEIT2L_simulateDeterministic,
-  dprior = SEITL_prior,
-  rPointObs = SEITL_genObsPoint,
-  dPointObs = SEITL_pointLike
+seit2lDeter <- fitmodel(
+  name = seit2lDeterName,
+  stateNames = seit2lStateNames,
+  thetaNames = seitlThetaNames,
+  simulate = seit2lSimulateDeterministic,
+  dPrior = seitlPrior,
+  rPointObs = seitlGenObsPoint,
+  dPointObs = seitlPointLike
 )

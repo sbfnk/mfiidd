@@ -5,40 +5,40 @@ Below, you can find an example of how to code a Metropolis-Hastings sampler. Som
 # - target: the target distribution, a function that takes one
 #   argument (a number) and returns the (logged) value of a
 #   distribution
-# - init.theta: the initial value of theta, a number
-# - proposal.sd: the standard deviation of (Gaussian) proposal
+# - initTheta: the initial value of theta, a number
+# - proposalSd: the standard deviation of (Gaussian) proposal
 #   distribution
-# - n.iterations: the number of iterations
+# - nIterations: the number of iterations
 # The function returns a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
+my_mcmcMh <- function(target, initTheta, proposalSd, nIterations) {
 
-    # evaluate the function "target" at "init.theta", and assign to
-    # a variable called target.theta.current.
-    target.theta.current <- target(init.theta)
+    # evaluate the function "target" at "initTheta", and assign to
+    # a variable called targetThetaCurrent.
+    targetThetaCurrent <- target(initTheta)
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted proposals
-    theta.current <- init.theta
-    samples <- init.theta
+    thetaCurrent <- initTheta
+    samples <- initTheta
     accepted <- 0
 
-    # run MCMC for n.iteration interations
-    for (i.iteration in seq_len(n.iterations)) {
+    # run MCMC for nIteration interations
+    for (i in seq_len(nIterations)) {
 
-        theta.proposed <- # INSERT HERE: draw a new theta from the
+        thetaProposed <- # INSERT HERE: draw a new theta from the
             # (Gaussian) proposal distribution and assign to a
-            # variable called "theta.proposed". See "?rnorm for help.
+            # variable called "thetaProposed". See "?rnorm for help.
 
-        target.theta.proposed <- # INSERT HERE: evaluate the function
+        targetThetaProposed <- # INSERT HERE: evaluate the function
             # target at the proposed theta and assign to a
-            # variable called "target.theta.proposed"
+            # variable called "targetThetaProposed"
 
-        log.acceptance <- # INSERT HERE: compute Metropolis-Hastings ratio
+        logAcceptance <- # INSERT HERE: compute Metropolis-Hastings ratio
             # (acceptance probability). This is easiest if you assume
             # the target function to return the logarithm of the
             # distribution value. Assign the result to a variable
-            # called "log.acceptance"
+            # called "logAcceptance"
 
         r <- # INSERT HERE: draw random number number between 0 and 1
             # using "runif" and assign to a variable called "r".
@@ -47,13 +47,13 @@ my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
         # Metropolis-Hastings ratio (acceptance probability) (using
         # "exp" because we calculated the logarithm of the
         # Metropolis-Hastings ratio before)
-        if (r < exp(log.acceptance)) {
+        if (r < exp(logAcceptance)) {
 
             # if accepted:
-            theta.current <- # INSERT HERE: change the current value
+            thetaCurrent <- # INSERT HERE: change the current value
                 # of theta to the proposed theta
 
-            target.theta.current <- # INSERT HERE: updated the current
+            targetThetaCurrent <- # INSERT HERE: updated the current
                 # value of the target
 
             # update number of accepted proposals
@@ -62,11 +62,11 @@ my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
         }
 
         # add the current theta to the vector of samples
-        samples <- c(samples, theta.current)
+        samples <- c(samples, thetaCurrent)
 
         # print current state of chain and acceptance rate
-        cat("chain:", theta.current,
-            "acceptance rate:", accepted / i.iteration, "\n")
+        cat("chain:", thetaCurrent,
+            "acceptance rate:", accepted / i, "\n")
 
     }
 

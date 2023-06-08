@@ -52,7 +52,7 @@ For an introduction to the functionalities of the `rbi` and `rbi.helpers` packag
 Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using
 
 ```{r}
-SEITL_det <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_det.bi"))
+seitlDet <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_det.bi"))
 ```
 
 Here, `readLines` simple reads in the text file from the web site, and `bi_model` prepares it to be used with the `rbi` package.
@@ -60,13 +60,13 @@ Here, `readLines` simple reads in the text file from the web site, and `bi_model
 Look at the contents of the model file by typing
 
 ```{r eval=FALSE}
-SEITL_det
+seitlDet
 ```
 
 This file has the following sections:
 
 ```c
-model SEITL_deter {
+model seitlDeter {
 ```
 
 ```c
@@ -191,13 +191,13 @@ This defines the observation model. We use a observations distributed according 
 Let’s load the stochastic model using
     
 ```{r}
-SEITL_sto <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
+seitlSto <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
 ```
 
 Again, you can look at the contents of the model file by typing
 
 ```{r eval=FALSE}
-SEITL_sto
+seitlSto
 ```
 
 This is very similar to the deterministic model, but the `transition` block (the process model) is different:
@@ -233,7 +233,7 @@ The `rbi` object expects data to be given as a named list, where each element co
 Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.
 
 ```{r eval=FALSE}
-  prep <- sample(SEITL_sto, nsamples=3000, proposal="prior", obs=tdc, 
+  prep <- sample(seitlSto, nsamples=3000, proposal="prior", obs=tdc, 
                  end_time=max(tdc$Cases$time), nparticles=400)
   prep <- adapt_proposal(prep, min=0.1, max=0.3)
 ```
@@ -274,7 +274,7 @@ Lastly, we compute the DIC for each of these pMCMC runs.
 ```{r}
 dic <- data.frame(compartments=integer(0), DIC=numeric(0))
 for (i in 1:max_erlang) {
-  dic <- rbind(dic, data.frame(compartments=i, DIC=DIC(bi[[i]])))
+  dic <- rbind(dic, data.frame(compartments=i, DIC=dic(bi[[i]])))
 }
 ```
 

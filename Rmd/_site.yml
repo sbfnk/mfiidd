@@ -20,10 +20,10 @@ navbar:
       href: mcmc_and_model_comparison.html
     - text: "Particle MCMC"
       # icon: fa-area-chart
-      href: pmcmc.html   
+      href: pmcmc.html
     - text: "ABC"
       # icon: fa-area-chart
-      href: ABC.html   
+      href: ABC.html
     - text: "LibBi"
       # icon: fa-area-chart
-      href: libbi.html   
+      href: libbi.html
