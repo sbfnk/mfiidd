@@ -1,48 +1,48 @@
 # Create a simple stochastic SIR model with constant population size
 #
 # This is based on the determinstic SIR model, contained in
-# example-SIR-deter.r
+# example-sir-deter.r
 
-SIR_stochastic_name <- "stochastic SIR with constant population size" # nolint
+sirStochasticName <- "stochastic SIR with constant population size"
 
-SIR_simulateStochastic <- function(theta, initState, times) { # nolint
+sirSimulateStochastic <- function(theta, initState, times) {
   ## transitions
-  SIR_transitions <- list( # nolint
+  sirTransitions <- list(
     c(S = -1, I = 1), # infection
     c(I = -1, R = 1) # recovery
   )
 
   ## rates
-  SIR_rateFunc <- function(x, parameters, t) { # nolint
+  sirRateFunc <- function(x, parameters, t) {
     beta <- parameters[["R_0"]] / parameters[["D_inf"]]
     nu <- 1 / parameters[["D_inf"]]
 
-    S <- x[["S"]] # nolint
-    I <- x[["I"]] # nolint
-    R <- x[["R"]] # nolint
+    s <- x[["S"]]
+    i <- x[["I"]]
+    r <- x[["R"]]
 
-    N <- S + I + R # nolint
+    n <- s + i + r
 
     return(c(
-      beta * S * I / N, # infection
-      nu * I # recovery
+      beta * s * i / n, # infection
+      nu * i # recovery
     ))
   }
 
   # make use of the function simulateModelStochastic that
   # returns trajectories in the correct format
   return(fitR::simulateModelStochastic(
-    theta, initState, times, SIR_transitions, SIR_rateFunc
+    theta, initState, times, sirTransitions, sirRateFunc
   ))
 }
 
 # create stochastic SIR fitmodel
-SIR_stoch <- fitmodel( # nolint
-  name = SIR_stochastic_name,
-  stateNames = SIR_stateNames,
-  thetaNames = SIR_thetaNames,
-  simulate = SIR_simulateStochastic,
-  dprior = SIR_prior,
-  rPointObs = SIR_genObsPoint,
-  dPointObs = SIR_pointLike
+sirStoch <- fitmodel( # nolint
+  name = sirStochasticName,
+  stateNames = sirStateNames,
+  thetaNames = sirThetaNames,
+  simulate = sirSimulateStochastic,
+  dPrior = sirPrior,
+  rPointObs = sirGenObsPoint,
+  dPointObs = sirPointLike
 )

@@ -3,10 +3,10 @@
 Here is a possible solution for the ABC rejection algorithm.
 
 ```{r abcsolution, eval=F}
-init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+initState <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
-my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
-                             fitmodel, init.state, data) {
+my_abcAlgorithm <- function(N, epsilon, sumStats, distanceAbc,
+                             fitmodel, initState, data) {
   
   
   #set up empty matrix to store results
@@ -25,13 +25,13 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
     
     theta <- c(R0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85)
 
-    # use computeDistanceABC to calculate a distance between the model
+    # use computeDistanceAbc to calculate a distance between the model
     # and data
-    dist <- computeDistanceABC(sum.stats = sum.stats,
-                             distanceABC =  distanceABC,
+    dist <- computeDistanceAbc(sum.stats = sumStats,
+                             distanceAbc =  distanceAbc,
                              fitmodel = fitmodel,
                              theta = theta,
-                             init.state = init.state,
+                             initState = initState,
                              data = data)
     
     ## if the model distance is within the epsilon window

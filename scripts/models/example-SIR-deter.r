@@ -1,25 +1,25 @@
 ## create a simple deterministic SIR model with constant population size
 
-SIR_name <- "SIR with constant population size" # nolint
-SIR_stateNames <- c("S", "I", "R") # nolint
-SIR_thetaNames <- c("R_0", "D_inf") # nolint
+sirName <- "SIR with constant population size"
+sirStateNames <- c("S", "I", "R")
+sirThetaNames <- c("R_0", "D_inf")
 
-SIR_simulateDeterministic <- function(theta, initState, times) { # nolint
-  SIR_ode <- function(time, state, parameters) { # nolint
+sirSimulateDeterministic <- function(theta, initState, times) {
+  sirOde <- function(time, state, parameters) {
     ## parameters
     beta <- parameters[["R_0"]] / parameters[["D_inf"]]
     nu <- 1 / parameters[["D_inf"]]
 
     ## states
-    S <- state[["S"]] # nolint
-    I <- state[["I"]] # nolint
-    R <- state[["R"]] # nolint
+    s <- state[["S"]]
+    i <- state[["I"]]
+    r <- state[["R"]]
 
-    N <- S + I + R # nolint
+    n <- s + i + r
 
-    dS <- -beta * S * I / N
-    dI <- beta * S * I / N - nu * I
-    dR <- nu * I
+    dS <- -beta * s * i / n
+    dI <- beta * s * i / n - nu * i
+    dR <- nu * i
 
     return(list(c(dS, dI, dR)))
   }
@@ -27,7 +27,7 @@ SIR_simulateDeterministic <- function(theta, initState, times) { # nolint
   trajectory <- data.frame(deSolve::ode(
     y = initState,
     times = times,
-    func = SIR_ode,
+    func = sirOde,
     parms = theta,
     method = "ode45"
   ))
@@ -36,19 +36,19 @@ SIR_simulateDeterministic <- function(theta, initState, times) { # nolint
 }
 
 ## function to compute log-prior
-SIR_prior <- function(theta, log = FALSE) { # nolint
+sirPrior <- function(theta, log = FALSE) {
   ## uniform prior on R_0: U[1,100]
-  logPrior_R_0 <- dunif(theta[["R_0"]], min = 1, max = 100, log = TRUE) # nolint
+  logPriorR0 <- dunif(theta[["R_0"]], min = 1, max = 100, log = TRUE)
   ## uniform prior on infectious period: U[0,30]
-  logPrior_D <- dunif(theta[["D_inf"]], min = 0, max = 30, log = TRUE) # nolint
+  logPriorDinf <- dunif(theta[["D_inf"]], min = 0, max = 30, log = TRUE)
 
-  logSum <- logPrior_R_0 + logPrior_D
+  logSum <- logPriorR0 + logPriorDinf
 
   return(ifelse(log, logSum, exp(logSum)))
 }
 
 ## function to compute the likelihood of one data point
-SIR_pointLike <- function(dataPoint, modelPoint, theta, log = FALSE) { # nolint
+sirPointLike <- function(dataPoint, modelPoint, theta, log = FALSE) {
   ## the prevalence is observed through a Poisson process
   return(dpois(
     x = dataPoint[["obs"]],
@@ -58,7 +58,7 @@ SIR_pointLike <- function(dataPoint, modelPoint, theta, log = FALSE) { # nolint
 }
 
 ## function to generate observation from a model simulation
-SIR_genObsPoint <- function(modelPoint, theta) { # nolint
+sirGenObsPoint <- function(modelPoint, theta) {
   ## the prevalence is observed through a Poisson process
   obsPoint <- rpois(n = 1, lambda = modelPoint[["I"]])
 
@@ -66,12 +66,12 @@ SIR_genObsPoint <- function(modelPoint, theta) { # nolint
 }
 
 ## create deterministic SIR fitmodel
-SIR_deter <- fitmodel( # nolint
-  name = SIR_name,
-  stateNames = SIR_stateNames,
-  thetaNames = SIR_thetaNames,
-  simulate = SIR_simulateDeterministic,
-  dprior = SIR_prior,
-  rPointObs = SIR_genObsPoint,
-  dPointObs = SIR_pointLike
+sirDeter <- fitmodel(
+  name = sirName,
+  stateNames = sirStateNames,
+  thetaNames = sirThetaNames,
+  simulate = sirSimulateDeterministic,
+  dPrior = sirPrior,
+  rPointObs = sirGenObsPoint,
+  dPointObs = sirPointLike
 )

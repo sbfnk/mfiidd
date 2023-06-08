@@ -2,35 +2,35 @@
 # and parameters on the exponential scale
 #
 # This is based on the determinstic SIR model, contained in
-# example-SIR-deter.r
+# example-sir-deter.r
 
-SIR_exp_name <- paste0( # nolint
+sirExpName <- paste0(
   "SIR with constant population size, parameters transformed to the ",
   "exponential scale"
 )
 
-SIR_exp_simulateDeterministic <- function(theta, initState, times) { # nolint
-  SIR_ode <- function(time, state, parameters) { # nolint
+sirExpSimulateDeterministic <- function(theta, initState, times) {
+  sirOde <- function(time, state, parameters) {
     ## parameters
     beta <- exp(parameters[["R_0"]]) / exp(parameters[["D_inf"]])
     nu <- 1 / exp(parameters[["D_inf"]])
 
     ## states
-    S <- state[["S"]] # nolint
-    I <- state[["I"]] # nolint
-    R <- state[["R"]] # nolint
+    s <- state[["S"]]
+    i <- state[["I"]]
+    r <- state[["R"]]
 
-    N <- S + I + R # nolint
+    n <- s + i + r # nolint
 
-    dS <- -beta * S * I / N
-    dI <- beta * S * I / N - nu * I
-    dR <- nu * I
+    dS <- -beta * s * i / n
+    dI <- beta * s * i / n - nu * i
+    dR <- nu * i
 
     return(list(c(dS, dI, dR)))
   }
 
   trajectory <- data.frame(deSolve::ode(
-    y = initState, times = times, func = SIR_ode, parms = theta,
+    y = initState, times = times, func = sirOde, parms = theta,
     method = "ode45"
   ))
 
@@ -38,24 +38,24 @@ SIR_exp_simulateDeterministic <- function(theta, initState, times) { # nolint
 }
 
 ## function to compute log-prior
-SIR_exp_logPrior <- function(theta, log = FALSE) { # nolint
+sirExpLogPrior <- function(theta, log = FALSE) { # nolint
   ## uniform prior on R_0: U[1,100]
-  logPrior_R_0 <- dunif(exp(theta[["R_0"]]), min = 1, max = 100, log = TRUE) # nolint
+  logPriorR0 <- dunif(exp(theta[["R_0"]]), min = 1, max = 100, log = TRUE)
   ## uniform prior on infectious period: U[0,30]
-  logPrior_D <- dunif(exp(theta[["D_inf"]]), min = 0, max = 30, log = TRUE) # nolint
+  logPriorDinf <- dunif(exp(theta[["D_inf"]]), min = 0, max = 30, log = TRUE)
 
-  logSum <- logPrior_R_0 + logPrior_D
+  logSum <- logPriorR0 + logPriorDinf
 
   return(ifelse(log, logSum, exp(logSum)))
 }
 
 ## create deterministic SIR fitmodel
-SIR_exp_deter <- fitmodel( # nolint
-  name = SIR_exp_name,
-  stateNames = SIR_deter$stateNames,
-  thetaNames = SIR_deter$thetaNames,
-  simulate = SIR_exp_simulateDeterministic,
-  dprior = SIR_exp_logPrior,
-  rPointObs = SIR_deter$rPointObs,
-  dPointObs = SIR_deter$dPointObs
+sirExpDeter <- fitmodel( # nolint
+  name = sirExpName,
+  stateNames = sirDeter$stateNames,
+  thetaNames = sirDeter$thetaNames,
+  simulate = sirExpSimulateDeterministic,
+  dPrior = sirExpLogPrior,
+  rPointObs = sirDeter$rPointObs,
+  dPointObs = sirDeter$dPointObs
 )

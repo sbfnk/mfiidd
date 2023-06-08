@@ -7,10 +7,10 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc/', cache.path='cache/mcm
 ```
 
 ```{r load, include=FALSE, cache=FALSE}
-library(fitR)
-data(SIR)
-data(SIR_reporting)
-source('our_posterior.r')
+library("fitR")
+library("here")
+data(models)
+source(here::here("scripts", "solutions", "our-posterior.r"))
 ```
 
 [Lecture slides](slides/mcmc_slides1.pdf)
@@ -29,21 +29,21 @@ The aim of this session is to learn how to sample from a posterior distribution 
 This code runs the SIR model with a sequence of different values for $R_0$, saving the values of $R_0$ and associated posterior probabilities along the way.
 
 ```{r grid_approx, results="hide"}
-theta <- c(R0 = 3, D_inf = 2) # parameter vector
-init.state <- c(S = 999, I = 1, R = 0) # initial conditions
+theta <- c(R_0 = 3, D_inf = 2) # parameter vector
+initState <- c(S = 999, I = 1, R = 0) # initial conditions
 grid <- NULL # set aside to hold the grid approximation
 
-# Loop through each value of R0 we want to test.
-for (my_R0 in seq(1.6, 1.9, length.out = 25))
+# Loop through each value of R_0 we want to test.
+for (testR0 in seq(1.6, 1.9, length.out = 25))
 {
-    # Set R0 in theta accordingly
-    theta[["R0"]] <- my_R0
+    # Set R_0 in theta accordingly
+    theta[["R_0"]] <- testR0
     
-    # Evaluate the log posterior associated with this R0
-    lp <- my_dLogPosterior(SIR, theta, init.state, epi1)
+    # Evaluate the log posterior associated with this R_0
+    lp <- my_dLogPosterior(SIR, theta, initState, epi1)
     
     # Save this iteration, using rbind to add another row to the grid data frame
-    grid <- rbind(grid, data.frame(R0 = my_R0, lp = lp))
+    grid <- rbind(grid, data.frame(R_0 = testR0, lp = lp))
 }
 ```
 
@@ -61,7 +61,7 @@ We can find the [maximum a posteriori probability estimate](https://en.wikipedia
 
 ```{r grid_max, results="hide"}
 max_row <- which.max(grid[["lp"]]) # row of MAP estimate
-grid[max_row, ] # log posterior probability and R0 at that row
+grid[max_row, ] # log posterior probability and R_0 at that row
 ```
 
 Which value of R0 has the highest posterior probability? Does this match what you found in the previous session?
@@ -69,7 +69,7 @@ Which value of R0 has the highest posterior probability? Does this match what yo
 We can also plot our grid approximation of the posterior distribution:
 
 ```{r grid_plot}
-plot(x = grid[["R0"]], y = exp(grid[["lp"]]), type = "p", xlab = "R0", ylab = "posterior")
+plot(x = grid[["R_0"]], y = exp(grid[["lp"]]), type = "p", xlab = "R_0", ylab = "posterior")
 ```
 
 Note the values on the Y axis. Why are they so small?
@@ -77,7 +77,7 @@ Note the values on the Y axis. Why are they so small?
 We can also estimate the mean posterior value of $R_0$ using a weighted mean, weighting each grid evaluation by its posterior probability.
 
 ```{r grid_mean, results="hide"}
-weighted.mean(grid[["R0"]], w = exp(grid[["lp"]]))
+weighted.mean(grid[["R_0"]], w = exp(grid[["lp"]]))
 ```
 
 __Improving the grid approximation__
@@ -91,9 +91,9 @@ In the code above, the expression `seq(1.6, 1.9, length.out = 25)` sets up a gri
 This code uses rejection sampling to sample from the posterior distribution of $R_0$.
 
 ```{r reject_samp}
-# max_lp should be greater than, but not too much greater than, 
+# max_lp should be greater than, but not too much greater than,
 # the maximum log posterior of the target distribution
-max_lp <- -123.8 
+max_lp <- -123.8
 
 # samp will hold the samples
 samp <- NULL
@@ -101,12 +101,12 @@ samp <- NULL
 # Make 1000 attempts to draw samples from the target distribution
 for (i in 1:1000)
 {
-    # Select a random value for R0
-    my_R0 <- runif(1, 1.7, 1.8)
-    theta[["R0"]] <- my_R0
+    # Select a random value for R_0
+    my_R_0 <- runif(1, 1.7, 1.8)
+    theta[["R_0"]] <- my_R_0
     
     # Run the simulation to evaluate the log posterior
-    lp <- my_dLogPosterior(SIR, theta, init.state, epi1)
+    lp <- my_dLogPosterior(SIR, theta, initState, epi1)
     
     # Warn if max_lp is too low
     if (lp > max_lp) {
@@ -115,7 +115,7 @@ for (i in 1:1000)
     
     # Keep this sample with probability proportional to the log posterior
     if (runif(1) < exp(lp - max_lp)) {
-        samp <- rbind(samp, data.frame(R0 = my_R0, lp = lp))
+        samp <- rbind(samp, data.frame(R_0 = my_R_0, lp = lp))
     }
 }
 ```
@@ -131,15 +131,15 @@ How can we use the samples in `samp` to characterise the posterior distribution 
 One way is to plot a histogram of the samples:
 
 ```{r reject_hist}
-hist(samp[["R0"]])
+hist(samp[["R_0"]])
 ```
 
 Your plot will probably look different, since the code above uses random sampling. We can also calculate some summary statistics, for example:
 
 ```{r reject_summary, results = "hide"}
-mean(samp[["R0"]])
-sd(samp[["R0"]])
-quantile(samp[["R0"]])
+mean(samp[["R_0"]])
+sd(samp[["R_0"]])
+quantile(samp[["R_0"]])
 ```
 
 Note that we are not using "weighted" versions of any of these standard statistical summaries, because each sample of $R_0$ in `samp` is *already* present with a probability proportional to its posterior probability.
@@ -149,7 +149,7 @@ For this reason, in many ways it can be easier to work with samples than with a 
 Since we have, nonetheless, kept track of the log posterior probability of each sample, we can still get an estimate of the MAP for $R_0$, similarly to how we did it before.
 
 ```{r greject_max, results="hide"}
-samp[which.max(samp[["lp"]]), "R0"]
+samp[which.max(samp[["lp"]]), "R_0"]
 ```
 
 __Questions for discussion:__
@@ -191,19 +191,19 @@ __A few useful tips:__
 # - target: the target distribution, a function that takes one argument
 #           (a number) and returns the (logged) value of the
 #           distribution of interest
-# - init.theta: the initial value of theta, the argument for `target`
-# - proposal.sd: the standard deviation of the (Gaussian) proposal distribution
-# - n.iterations: the number of iterations
+# - initTheta: the initial value of theta, the argument for `target`
+# - proposalSd: the standard deviation of the (Gaussian) proposal distribution
+# - nIterations: the number of iterations
 # The function should return a vector of samples of theta from the target
 # distribution
-my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
+my_mcmcMh <- function(target, initTheta, proposalSd, nIterations) {
 
-    # evaluate the function "target" at parameter value "init.theta"
+    # evaluate the function "target" at parameter value "initTheta"
 
     # initialise variables to store the current value of theta, the
     # vector of samples, and the number of accepted proposals
 
-    # repeat n.iterations times:
+    # repeat nIterations times:
 
     # - draw a new theta from the (Gaussian) proposal distribution
     #   with standard deviation sd.
@@ -227,7 +227,7 @@ my_mcmcMH <- function(target, init.theta, proposal.sd, n.iterations) {
 ```
 
 ```{r source_our_mcmc, include = FALSE, tidy = FALSE}
-source('our_mcmcMH.r')
+source('our_mcmcMh.r')
 ```
 
 If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.html).
@@ -247,19 +247,19 @@ We want to generate random numbers that follow the same distribution. There is o
 We can, however, instruct `dnorm` to return the logarithm of the probability density using the argument `log = TRUE`, and we use a *wrapper* function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution
 
 ```{r dnorm_log}
-dnorm.log <- function(theta) {
+dnormLog <- function(theta) {
    return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }
 ```
 
-We can now sample from `dnorm.log` using our MCMC sampler
+We can now sample from `dnormLog` using our MCMC sampler
 
 ```{r trace, message=FALSE}
-starting.value <- 1 # starting value for MCMC
+startingValue <- 1 # starting value for MCMC
 sigma <- 1 # standard deviation of MCMC
 iter <- 1000
-trace <- my_mcmcMH(target = dnorm.log, init.theta = starting.value,
-   proposal.sd = sigma, n.iterations = iter)
+trace <- my_mcmcMh(target = dnormLog, initTheta = startingValue,
+   proposalSd = sigma, nIterations = iter)
 ```
 
 We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
@@ -277,18 +277,16 @@ curve(dnorm, from = -4, to = 4, col="red", add=TRUE)
 
 This example looks reassuringly similar to the normal distribution centred around 0. Of course, since MCMC is based on sampling random numbers, your plot will look slightly different.
 
-__Take 10 minutes to try different values for `init.theta` and `proposal.sd`. How do these affect the plots of the trace and the histogram?__
+__Take 10 minutes to try different values for `initTheta` and `proposalSd`. How do these affect the plots of the trace and the histogram?__
 
 # Sampling from a posterior distribution
 
 We can now use our Metropolis-Hastings sampler to sample from the posterior distribution of the previous practical. You should have a `my_dLogPosterior` function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don't have this function, you can use the one from our [solution](posterior_example_solution.html)). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.
 
-Remember that we wrote `my_mcmcMH` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. So for now, we are going to keep the duration of infection fixed at 2 weeks and just explore the posterior distribution of $R_0$. 
+Remember that we wrote `my_mcmcMh` to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number $R_0$ and the duration of infection $D_\mathrm{inf}$. So for now, we are going to keep the duration of infection fixed at 2 weeks and just explore the posterior distribution of $R_0$. 
 
-Lastly, `my_dLogPosterior` takes four parameters, and to use it with the `my_mcmcMH` function we have to turn it into a function that just takes one parameter, here $R_0$. Again, we use a wrapper function for this, which returns the posterior density for a given value of $R_0$ for the `SIR` model with respect to the `epi1` data set, and for fixed `init.state` ($X_0$).
+Lastly, `my_dLogPosterior` takes four parameters, and to use it with the `my_mcmcMh` function we have to turn it into a function that just takes one parameter, here $R_0$. Again, we use a wrapper function for this, which returns the posterior density for a given value of $R_0$ for the `SIR` model with respect to the `epi1` data set, and for fixed `initState` ($X_0$).
 
-
-<!-- We can do this by setting `sd.proposal` to a vector of standard deviations, where the second element (if `D_inf` is the second parameter in `theta`) is 0. -->
 
 
 ```{r source_our_logpost, echo=FALSE}
@@ -296,11 +294,11 @@ source("our_posterior.r")
 ```
 
 ```{r write_logpost}
-my_dLogPosterior_R0_epi1 <- function(R0) {
+my_dLogPosteriorR0Epi1 <- function(R_0) {
 
   return(my_dLogPosterior(fitmodel = SIR,
-                          theta = c(R0 = R0, D_inf = 2),
-                          init.state = c(S = 999, I = 1, R = 0),
+                          theta = c(R_0 = R_0, D_inf = 2),
+                          initState = c(S = 999, I = 1, R = 0),
                           data = epi1))
 }
 ```
@@ -308,12 +306,12 @@ my_dLogPosterior_R0_epi1 <- function(R0) {
 We can test that this function returns the value of the posterior for a given value of $R_0$.
 
 ```{r eval_logpost}
-my_dLogPosterior_R0_epi1(R0 = 3)
+my_dLogPosterior_R0Epi1(R_0 = 3)
 ```
 
 You should get the same number unless you changed the `SIR$dPointObs` function.
 
-__Take 10 minutes to generate samples from `my_dLogPosterior_R0_epi1` using `my_mcmcMH`. Can you work out the command to do this?__ If you have any problems with this, have a look at our [solution](generate_samples.html).
+__Take 10 minutes to generate samples from `my_dLogPosterior_R0Epi1` using `my_mcmcMh`. Can you work out the command to do this?__ If you have any problems with this, have a look at our [solution](generate_samples.html).
 
 Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as:
 
@@ -321,7 +319,7 @@ Once you have generated the samples from the posterior distribution, you can cal
 * sample median using `median(trace)`
 * 95% credible intervals using `quantile(trace, probs=c(0.025, 0.975))`.
 
-Try to re-run your MCMC with different values for `init.theta` (the starting values for $R_0$), for `proposal.sd` (the standard deviation of the Gaussian proposal distribution $q(\theta'|\theta)$), and for `iter` (the number of iterations). Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate.
+Try to re-run your MCMC with different values for `initTheta` (the starting values for $R_0$), for `proposalSd` (the standard deviation of the Gaussian proposal distribution $q(\theta'|\theta)$), and for `iter` (the number of iterations). Look at plots generated using `plot` and `hist` (see above), summary statistics and the acceptance rate.
 
 __Take 15 minutes to check how the answers to the following questions depend on parameters:__
 
@@ -333,4 +331,4 @@ In the next session we will look at all of these issues in more detail.
 
 # Going further
 
-Try changing the `my_mcmcMH` function to use different proposal distributions from a normal distributions (e.g., using `runif` or `rlnorm` instead of `rnorm`). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?
+Try changing the `my_mcmcMh` function to use different proposal distributions from a normal distributions (e.g., using `runif` or `rlnorm` instead of `rnorm`). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?

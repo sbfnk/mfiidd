@@ -1,12 +1,12 @@
-SEITL_deter_name <- # nolint
+seitlDeterName <-
   "deterministic SEITL model with daily incidence and constant population size"
 # note the new state Inc for the daily incidence
-SEITL_stateNames <- c("S", "E", "I", "T", "L", "Inc") # nolint
-SEITL_thetaNames <- c("R_0", "D_lat", "D_inf", "alpha", "D_imm", "rho") # nolint
+seitlStateNames <- c("S", "E", "I", "T", "L", "Inc")
+seitlThetaNames <- c("R_0", "D_lat", "D_inf", "alpha", "D_imm", "rho")
 
 # Solves the system of ordinary differential equations for the SEITL model.
-SEITL_simulateDeterministic <- function(theta, initState, times) { # nolint
-  SEITL_ode <- function(time, state, theta) { # nolint
+seitlSimulateDeterministic <- function(theta, initState, times) {
+  seitlOde <- function(time, state, theta) {
     # param
     beta <- theta[["R_0"]] / theta[["D_inf"]]
     epsilon <- 1 / theta[["D_lat"]]
@@ -15,21 +15,21 @@ SEITL_simulateDeterministic <- function(theta, initState, times) { # nolint
     tau <- 1 / theta[["D_imm"]]
 
     # states
-    S <- state[["S"]] # nolint
-    E <- state[["E"]] # nolint
-    I <- state[["I"]] # nolint
-    Ti <- state[["T"]] # nolint
-    L <- state[["L"]] # nolint
-    Inc <- state[["Inc"]] # nolint
+    s <- state[["S"]]
+    e <- state[["E"]]
+    i <- state[["I"]]
+    t <- state[["T"]]
+    l <- state[["L"]]
+    inc <- state[["Inc"]]
 
-    N <- S + E + I + T + L # nolint
+    n <- s + e + i + t + l
 
-    dS <- -beta * S * I / N + (1 - alpha) * tau * Ti
-    dE <- beta * S * I / N - epsilon * E
-    dI <- epsilon * E - nu * I
-    dT <- nu * I - tau * Ti
-    dL <- alpha * tau * Ti
-    dInc <- epsilon * E
+    dS <- -beta * s * i / n + (1 - alpha) * tau * t
+    dE <- beta * s * i / n - epsilon * e
+    dI <- epsilon * e - nu * i
+    dT <- nu * i - tau * ti
+    dL <- alpha * tau * ti
+    dInc <- epsilon * e
 
     return(list(c(dS, dE, dI, dT, dL, dInc)))
   }
@@ -39,7 +39,7 @@ SEITL_simulateDeterministic <- function(theta, initState, times) { # nolint
   initState["Inc"] <- 0
 
   traj <- as.data.frame(deSolve::ode(
-    initState, times, SEITL_ode, theta,
+    initState, times, seitlOde, theta,
     method = "ode45"
   ))
 
@@ -51,43 +51,43 @@ SEITL_simulateDeterministic <- function(theta, initState, times) { # nolint
 
 
 # Generate an observed incidence under a Poisson observation process.
-SEITL_genObsPoint <- function(modelPoint, theta) { # nolint
+seitlGenObsPoint <- function(modelPoint, theta) {
   obsPoint <- rpois(n = 1, lambda = theta[["rho"]] * modelPoint[["Inc"]])
 
   return(c(obs = obsPoint))
 }
 
 # Evaluate the (log of the) prior density distribution of the parameter values.
-SEITL_prior <- function(theta, log = FALSE) { # nolint
-  logPrior_R_0 <- dunif( # nolint
+seitlPrior <- function(theta, log = FALSE) {
+  logPriorR0 <- dunif(
     theta[["R_0"]],
     min = 1, max = 50, log = TRUE
   )
-  logPrior_latentPeriod <- dunif( # nolint
+  logPriorLatentPeriod <- dunif(
     theta[["D_lat"]],
     min = 0, max = 10, log = TRUE
   )
-  logPrior_infectiousPeriod <- dunif( # nolint
+  logPriorInfectiousPeriod <- dunif(
     theta[["D_inf"]],
     min = 0, max = 15, log = TRUE
   )
-  logPrior_temporaryImmunePeriod <- dunif( # nolint
+  logPriorTemporaryImmunePeriod <- dunif(
     theta[["D_imm"]],
     min = 0, max = 50, log = TRUE
   )
-  logPrior_probabilityLongTermImmunity <- dunif( # nolint
+  logPriorProbabilityLongTermImmunity <- dunif(
     theta[["alpha"]],
     min = 0, max = 1, log = TRUE
   )
-  logPrior_reportingRate <- dunif( # nolint
+  logPriorReportingRate <- dunif(
     theta[["rho"]],
     min = 0, max = 1, log = TRUE
   )
 
   logSum <-
-    logPrior_R_0 + logPrior_latentPeriod + logPrior_infectiousPeriod +
-    logPrior_temporaryImmunePeriod + logPrior_probabilityLongTermImmunity +
-    logPrior_reportingRate
+    logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod +
+    logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity +
+    logPriorReportingRate
 
   return(ifelse(log, logSum, exp(logSum)))
 }
@@ -95,7 +95,7 @@ SEITL_prior <- function(theta, log = FALSE) { # nolint
 
 # Computes the (log)-likelihood of a data point given the state of the model and
 # under a poisson observation process.
-SEITL_pointLike <- function(dataPoint, modelPoint, theta, log = FALSE) { # nolint
+seitlPointLike <- function(dataPoint, modelPoint, theta, log = FALSE) {
   return(dpois(
     x = dataPoint[["obs"]], lambda = theta[["rho"]] * modelPoint[["Inc"]],
     log = log
@@ -104,12 +104,12 @@ SEITL_pointLike <- function(dataPoint, modelPoint, theta, log = FALSE) { # nolin
 
 
 # create fitmodel
-SEITL_deter <- fitmodel( # nolint
-  name = SEITL_deter_name,
-  stateNames = SEITL_stateNames,
-  thetaNames = SEITL_thetaNames,
-  simulate = SEITL_simulateDeterministic,
-  dprior = SEITL_prior,
-  rPointObs = SEITL_genObsPoint,
-  dPointObs = SEITL_pointLike
+seitlDeter <- fitmodel(
+  name = seitlDeterName,
+  stateNames = seitlStateNames,
+  thetaNames = seitlThetaNames,
+  simulate = seitlSimulateDeterministic,
+  dPrior = seitlPrior,
+  rPointObs = seitlGenObsPoint,
+  dPointObs = seitlPointLike
 )

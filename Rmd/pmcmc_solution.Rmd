@@ -28,64 +28,20 @@ Ideally we want enough particles to obtain a fairly stable estimate of the log-l
 
 A simple calibration approach consists in plotting the mean, standard deviation and computational time of the log-likelihood estimate as a function of the number of particles. Although several parameters can be tested, we will use a `theta` close to the mean posterior estimate of the deterministic fit since it is likely to be the region of the parameter space we want to explore with the pMCMC.
 
-```{r calibration-SMC, eval = FALSE, tidy = FALSE}
-# load fitmodel, data and define init.state
-data(SEIT4L_stoch)
-data(FluTdC1971)
-
-init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0) 
-
-# pick a theta close to the mean posterior estimate of the deterministic fit
-theta <- c("R0" = 7, "D_lat" = 1 , "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
-
-# vector of number of particles to test
-test.n.particles <- seq(50, 1000, 50)
-
-# number of replicates 
-n.replicates <- 100
-
-# vector and data frame of results
-sample.log.like <- vector("numeric", length = n.replicates)
-res <- data.frame()
-
-for(n.particles in test.n.particles){
-
-        cat("Testing ", n.particles, " particles\n")
-	# start measuring time
-	start.time  <- Sys.time()
-	for(i in 1:n.replicates){
-		# one Monte-Carlo estimate of the log-likelihood
-            sample.log.like[i] <- my_particleFilter(SEIT4L_stoch, theta,
-                                                    init.state, FluTdC1971,
-                                                    n.particles)
-	}
-	# end measuring time
-	end.time  <- Sys.time()
-
-	# keep only replicate with finite log-likelihood to be able to compute the mean and sd
-	# this give us the proportion of replicates with particle depletion.
-	sample.finite.log.like <- sample.log.like[is.finite(sample.log.like)]
-
-	ans <- c(mean = mean(sample.finite.log.like), 
-                 sd = sd(sample.finite.log.like), 
-                 prop.depletion = 1-length(sample.finite.log.like)/length(sample.log.like), 
-                 time = end.time - start.time)
-
-	res <- rbind(res, t(ans))
-}
+```{r calibration-SMC, file = "../R/calibrateSmc.r", eval = FALSE, tidy = FALSE}
 ```
 
 We ran this calibration algorithm and obtained the following results:
 
 ```{r plot-calibration, echo=FALSE, fig.height=6, fig.width=8}
 
-data(calibrateSMC)
+data(calibrateSmc)
 
-df_plot <- melt(calibrateSMC,id.vars="n_particles")
+dfPlot <- melt(calibrateSmc,id.vars="nParticles")
 
-df_plot <- mutate(df_plot, variable=revalue(variable,c(time_10000iter_day="time 10000 iter (in days)", prop_depleted="prop. of samples with particle depletion")))
+dfPlot <- mutate(dfPlot, variable=revalue(variable,c(time_10000iter_day="time 10000 iter (in days)", prop_depleted="prop. of samples with particle depletion")))
 
-p <- ggplot(df_plot, aes(x=n_particles,y=value))+facet_wrap(~variable,scales="free_y")
+p <- ggplot(dfPlot, aes(x=nParticles,y=value))+facet_wrap(~variable,scales="free_y")
 p <- p+geom_line()+geom_vline(xintercept=408,col="red",linetype="dashed")
 p <- p+theme_bw()+xlab("number of particles")
 print(p)
@@ -104,18 +60,18 @@ data(SEIT4L_stoch)
 # wrapper for posterior
 my_posteriorSto <- function(theta){
 
-	my_fitmodel <- SEIT4L_stoch
-	my_init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0) 
+	my_fitmodel <- seit4lStoch
+	my_initState <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0)
 
-	my_n.particles <- 400 
+	my_nParticles <- 400
 	# you can reduce the number of particles if your pMCMC is too slow
 
 	return(dLogPosterior(fitmodel = my_fitmodel,
                             theta = theta,
-                            init.state = my_init.state,
+                            initState = my_initState,
                             data = FluTdC1971,
                             margLogLike = my_particleFilter,
-                            n.particles = my_n.particles))
+                            nParticles = my_nParticles))
 
 }
 
@@ -127,23 +83,23 @@ trace <- mcmc_SEITL_infoPrior_theta1$trace
 
 # we will start the pMCMC at the mean posterior estimate
 # of the deterministic fit
-init.theta <- colMeans(trace[SEIT4L_stoch$theta.names])
+initTheta <- colMeans(trace[seit4lStoch$thetaNames])
 
 # and we take the empirical covariance matrix for the 
 # Gaussian kernel proposal
-covmat <- mcmc_SEITL_infoPrior_theta1$covmat.empirical
+covmat <- mcmc_SEITL_infoPrior_theta1$covmatEmpirical
 
 # lower and upper limits of each parameter
 lower <- c(R0 = 0, D_lat = 0 , D_inf = 0, alpha = 0, D_imm = 0, rho = 0)
 upper <- c(R0 = Inf, D_lat = Inf , D_inf = Inf, alpha = 1, D_imm = Inf, rho = 1)
 
 # number of iterations for the MCMC
-n.iterations <- 50 # just a few since it takes quite a lot of time
+nIterations <- 50 # just a few since it takes quite a lot of time
 
 # Here we don't adapt so that we can check the acceptance rate of the empirical covariance matrix
-adapt.size.start <- 100
-adapt.size.cooling <- 0.99
-adapt.shape.start <- 100
+adaptSizeStart <- 100
+adaptSizeCooling <- 0.99
+adaptShapeStart <- 100
 
 ```
 
@@ -172,11 +128,11 @@ library('lattice')
 xyplot(trace)
 ```
 
-The burn-in period looks relatively short, this is because we started the chains with a "good" `init.theta`. That said, since we have relatively short runs it might be useful to carefully choose the burn-in period with `plotESSBurn`.
+The burn-in period looks relatively short, this is because we started the chains with a "good" `initTheta`. That said, since we have relatively short runs it might be useful to carefully choose the burn-in period with `plotEssBurn`.
 
 ```{r analyse-n50-burn, collapse=TRUE, fig.height=7, fig.width=10}
 # this can take some time as we have 5 chains
-plotESSBurn(trace)
+plotEssBurn(trace)
 
 # Actually, it looks like no burn-in is needed
 # What about autocorrelation
@@ -184,10 +140,10 @@ acfplot(x = trace, lag.max = 50)
 
 # There is substantial autocorrelation but we can't thin too much since the chains are quite short.
 # So let's keep 1 iteration every 20
-trace.thin.n50 <- burnAndThin(trace, thin = 20)
+traceThinN50 <- burnAndThin(trace, thin = 20)
 
 # Finally we can plot the posterior density
-densityplot(x = trace.thin.n50)
+densityplot(x = traceThinN50)
 ```
 
 The 5 chains converged to somewhat different posterior distributions, with different shapes and modes. This is particularly evident for the posterior of $R_0$, which looks bimodal. In addition, the ESS is too small to have smooth posterior distributions.
@@ -220,34 +176,34 @@ library('lattice')
 xyplot(trace)
 ```
 
-As in the analysis with 50 particles, the burn-in period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burn-in period with `plotESSBurn`.
+As in the analysis with 50 particles, the burn-in period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burn-in period with `plotEssBurn`.
 
 ```{r analyse-n400-burn, collapse=TRUE, fig.height=6, fig.width=10}
 # Actually, it looks like no burn-in is needed:
-plotESSBurn(trace)
+plotEssBurn(trace)
 
 # What about autocorrelation?
 acfplot(x = trace, lag.max = 50)
 
 # Autocorrelation decreases much more quickly than with 50 particles
 # Let's keep 1 iteration every 20
-trace.thin.n400 <- burnAndThin(trace, thin = 20)
+traceThinN400 <- burnAndThin(trace, thin = 20)
 
 # Let's plot the posterior densities
-densityplot(x = trace.thin.n400)
+densityplot(x = traceThinN400)
 ```
 
 All 5 chains seems to have converged to the same posterior, which are smoother than with 50 particles. Let's compare the combined posterior densities with that obtained with 50 particles
 
 ```{r n400-n50, fig.height=7, fig.width=7}
-plotPosteriorDensity(list(n50 = trace.thin.n50, n400 = trace.thin.n400))
+plotPosteriorDensity(list(n50 = trace.thinN50, n400 = traceThinN400))
 ```
 
 __Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS.__ Note the different location of the mode of $R_0$, which is shifted to the left with 50 particles. This is because 1 of the 5 chains with 50 particles shows a posterior with much lower $R_0$ (see figure above), whereas the remaining 4 seems to have converged to the same distribution as the pMCMC with 400 particles.
 
 Finally, note that the log-likelihood is overestimated with 50 particles, which can be problematic for model selection as we would overestimate the fit of the model.
 
-__Overall, this analysis confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles.__ Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 400 particles. The chains start at different `init.theta` near the mode of the deterministic posterior, and are then combined to increase the overall ESS.
+__Overall, this analysis confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles.__ Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 400 particles. The chains start at different `initTheta` near the mode of the deterministic posterior, and are then combined to increase the overall ESS.
 
 You can now return to the [practical](pmcmc.html#stochastic-vs-deterministic-fit) and proceed to the last section of this session.
 
@@ -268,10 +224,10 @@ trace2 <- mcmc(mcmc_SEIT4L_infoPrior_theta2$trace)
 trace <- mcmc.list(trace1,trace2)
 
 # burn and thin as the chain with uniform prior (see above sections)
-trace.deter <-  burnAndThin(trace, burn=5000, thin=40)
+traceDeter <-  burnAndThin(trace, burn=5000, thin=40)
 
 # compare posterior density
-plotPosteriorDensity(list(deter=trace.deter, sto=trace.thin.n400))
+plotPosteriorDensity(list(deter=traceDeter, sto=traceThinN400))
 ```
 
 Overall, the posterior distributions are quite different. This is especially true for $R_0$ and $D_{imm}$.
@@ -281,32 +237,32 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
 library('plyr')
-trace.combined <- ldply(trace.thin.n400)
+traceCombined <- ldply(traceThinN400)
 
 # take the mean of theta
-theta.bar <- colMeans(trace.combined[SEIT4L_stoch$theta.names])
-print(theta.bar)
+thetaBar <- colMeans(traceCombined[seit4lStoch$thetaNames])
+print(thetaBar)
 
 # compute its log-likelihood
-init.state <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0) 
-log.like.theta.bar <- my_particleFilter(SEIT4L_stoch, theta.bar, init.state,
-                                        data = FluTdC1971, n.particles = 400)
-print(log.like.theta.bar)
+initState <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0)
+logLikeThetaBar <- my_particleFilter(seit4lStoch, thetaBar, initState,
+                                        data = FluTdC1971, nParticles = 400)
+print(logLikeThetaBar)
 
-log.like.theta.bar.deter <- dTrajObs(SEIT4L_deter, theta.bar, init.state,data = FluTdC1971, log=TRUE)
-print(log.like.theta.bar.deter)
+logLikeThetaBarDeter <- dTrajObs(seit4lDeter, thetaBar, initState, data = FluTdC1971, log = TRUE)
+print(logLikeThetaBarDeter)
 
 # and its deviance
-D.theta.bar <- -2 * log.like.theta.bar
-print(D.theta.bar)
+dThetaBar <- -2 * logLikeThetaBar
+print(dThetaBar)
 
 # the effective number of parameters
-p.D <- var(-2 * trace.combined$log.likelihood) / 2
+pD <- var(-2 * traceCombined$logLikelihood) / 2
 print(p.D)
 
 # and finally the DIC
-DIC <- D.theta.bar + 2 * p.D
-print(DIC)
+dic <- dThetaBar + 2 * pD
+print(dic)
 ```
 
 In the previous session, we found that the DIC of the deterministic SEIT4L model was equal to 265. The difference of 20 indicates that the stochastic model should strongly be preferred to the deterministic model.
@@ -316,12 +272,12 @@ We can visually check this result by plotting the posterior fit of each model:
 ```{r sto-deter-fit, results="hide", fig.height=4, fig.width=5}
 
 # take the mean posterior estimates of the deterministic model
-x <- summary(trace.deter)
-theta.bar.deter <- x$statistics[SEIT4L_deter$theta.names, "Mean"]
+x <- summary(traceDeter)
+thetaBarDeter <- x$statistics[seit4lDeter$thetaNames, "Mean"]
 
-plotFit(SEIT4L_stoch, theta.bar, init.state, data = FluTdC1971, n.replicates = 1000)
+plotFit(seit4lStoch, thetaBar, initState, data = FluTdC1971, nReplicates = 1000)
 
-plotFit(SEIT4L_deter, theta.bar.deter, init.state, data = FluTdC1971, n.replicates = 1000)
+plotFit(seit4lDeter, thetaBarDeter, initState, data = FluTdC1971, nReplicates = 1000)
 
 ```
 
@@ -329,21 +285,3 @@ Despite the fact that the deterministic model seems to better capture the first 
 
 
 You've already finished? Why not [go further](pmcmc.html#going-further)?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

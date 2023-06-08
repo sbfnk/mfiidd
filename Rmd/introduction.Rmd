@@ -7,8 +7,9 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/introduction/', cache.path='c
 ```
 
 ```{r fitR, cache=FALSE, echo=FALSE}
-library(fitR)
-library(deSolve)
+library("fitR")
+library("here")
+library("deSolve")
 set.seed(1234)
 ```
 
@@ -42,29 +43,29 @@ $$
 where $S$, $I$ and $R$ stand for the susceptible, infected and recovered compartments, respectively, $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **R** session, type
 
 ```{r load_SIR, results="hide"}
-data(SIR)
+data(models)
 ```
 
-This will load a `fitmodel` object called `SIR` into your **R** session. A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `SIR` model. If at any time something goes wrong, you can always go back to the original model by typing `data(SIR)`.
+This will load a few `fitmodel` objects into your **R** session, including one called `sirDeter` (for "SIR, deterministic"). A `fitmodel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `sirDeter` model. If at any time something goes wrong, you can always go back to the original model by typing `data(models)`.
 
-To see the objects that the `SIR` model contains, type
+To see the objects that the `sirDeter` model contains, type
 
-```{r look_SIR_names}
-names(SIR)
+```{r look_sirNames}
+names(sirDeter)
 ```
 
 A `fitmodel` object provides its description, as well as the names of its state variables and parameters. These can be accessed with
 
-```{r look_SIR}
-SIR$name
-SIR$state.names
-SIR$theta.names
+```{r look_sir}
+sirDeter$name
+sirDeter$stateNames
+sirDeter$thetaNames
 ```
 
 Moreover, each `fitmodel` contains four functions: 
 
 1. `simulate` to run the model,
-2. `dprior` to calculate the prior density,
+2. `dPrior` to calculate the prior density,
 3. `dPointObs` to calculate the log-likelihood of a given data point with respect to the model,
 4. `rPointObs` to generate observations from a model run.
 
@@ -79,10 +80,10 @@ We will now look at these one after the other. If at any time you would like mor
 To simulate a model run, we use the `simulate` command which comes with a `fitmodel` (see above). To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.
 
 ```{r simulate}
-theta <- c(R0 = 3, D_inf = 2)
-init.state <- c(S = 999, I = 1, R = 0)
+theta <- c(R_0 = 3, D_inf = 2)
+initState <- c(S = 999, I = 1, R = 0)
 times <- 1:100
-traj <- SIR$simulate(theta, init.state, times)
+traj <- sirDeter$simulate(theta, initState, times)
 ```
 
 We can now look at the output of the model run
@@ -101,51 +102,51 @@ plotTraj(traj)
 
 __Take 10 minutes to run the model with different values of the parameters and initial state, and output times.__
 
-Remember that if you want more detail on what the functions contained in a `fitmodel` do, type the function name after `SIR$` (or whichever `fitmodel` object you are looking at; for now, we consider `SIR`). For example, to look at the `simulate` function of `SIR`, type
+Remember that if you want more detail on what the functions contained in a `fitmodel` do, type the function name after `sirDeter$` (or whichever `fitmodel` object you are looking at; for now, we consider `sirDeter`). For example, to look at the `simulate` function of `sirDeter`, type
 
 ```{r look_simulate, eval=F}
-SIR$simulate
+sirDeter$simulate
 ```
 
 This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). __Take 10 minutes to look at that function and let us know if you have any questions.__ Tomorrow, we will give you a different `fitmodel` object for a different model that comes with its own simulate function.
 
 ## Prior
 
-To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `dprior` function
+To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `dPrior` function
 
 ```{r eval_prior}
-SIR$dprior(theta)
+sirDeter$dPrior(theta)
 ```
 
 ```{r eval_log_prior}
-SIR$dprior(theta, log = TRUE)
+sirDeter$dPrior(theta, log = TRUE)
 ```
 
-Have a look at the `dprior` function by typing
+Have a look at the `dPrior` function by typing
 
-```{r look_dprior, eval = FALSE}
-SIR$dprior
+```{r look_dPrior, eval = FALSE}
+sirDeter$dPrior
 ```
 
 You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D_\mathrm{inf}$ (between 0 and 30). __For the moment, just have a look at it and make sure you understand it.__ Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
 
 ## Likelihood
 
-The `dPointObs` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `SIR` model is
+The `dPointObs` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `sirDeter` model is
 
 ```{r eval_log_like}
-SIR$dPointObs(data.point = c(obs = 18), model.point = c(I = 31), theta, log = TRUE)
+sirDeter$dPointObs(dataPoint = c(obs = 18), modelPoint = c(I = 31), theta, log = TRUE)
 ```
 
 Have a look at the `dPointObs` function by typing
 
 ```{r look_log_like, eval = FALSE}
-SIR$dPointObs
+sirDeter$dPointObs
 ```
 
 You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections). 
 
-In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `SIR$dPointObs` answers the question: what is the probability of observing 18 cases when the prevalence is 31? __For the moment, just have a look at the function and make sure you understand it.__ Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `sirDeter$dPointObs` answers the question: what is the probability of observing 18 cases when the prevalence is 31? __For the moment, just have a look at the function and make sure you understand it.__ Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
 
 Let's load a test data set contained in the `fitR` package using
 
@@ -174,7 +175,7 @@ To calculate the log-likelihood of a set of parameters and initial state, we can
 The value returned is $\log(p(\mathrm{Data}|X_0, \theta))$: the log-likelihood of the chosen set of parameters and initial state.
 
 ```{r eval_traj_log_like}
-dTrajObs(SIR, theta, init.state, epi1, log = TRUE)
+dTrajObs(sirDeter, theta, initState, epi1, log = TRUE)
 ```
 
 Of course, you might get a different number here if you played with the parameters. You will later need the `dTrajObs` function to calculate the posterior density as a function of the parameters. Feel free to have a look at the `dTrajObs` function (by typing `dTrajObs` and hitting return), to see how it performs its task.
@@ -188,20 +189,20 @@ The function `rPointObs` generates a single random observation from a single poi
 Note also that `rPointObs` differs from `simulate`. While `simulate` simulates the (in this case, deterministic) model trajectory, `rPointObs` encodes the uncertainty involved in observations to produce a random observation point on the basis of a state of the model. To generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write
 
 ```{r gen_obs}
-SIR$rPointObs(model.point = c(I = 31), theta)
+sirDeter$rPointObs(modelPoint = c(I = 31), theta)
 ```
 
 Of course, you might see a different number, as the result of this command is the outcome of a random draw.
 
 To generate a whole trajectory with simulated observation, we have implemented a function called `rTrajObs`, which can be seen as the inverse of `dTrajObs`. The `rTrajObs` function takes a `fitmodel`, a parameter vector, an initial state and a vector of observation times as arguments and proceeds in 3 steps:
 
-1. simulate the model using the `simulate` function of the `fitmodel` (see above, where you looked at `SIR$simulate`).
+1. simulate the model using the `simulate` function of the `fitmodel` (see above, where you looked at `sirDeter$simulate`).
 2. apply the `rPointObs` function at every time point to generate the observations.
 3. return the simulated trajectory, with an added column for the observations.
 
 ```{r gen_obs_traj}
-obs.traj <- rTrajObs(SIR, theta, init.state, epi1$time)
-head(obs.traj)
+obsTraj <- rTrajObs(sirDeter, theta, initState, epi1$time)
+head(obsTraj)
 ```
 
 If you run this multiple times, you will find that the "obs" column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `rPointObs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `rTrajObs` would be the same every time. Again, feel free to have a look at the `rTrajObs` function (by simply typing `rTrajObs` and hitting return), to see how it performs its task. It will be a good idea to look at the functions that we have provided you throughout the course.
@@ -218,22 +219,22 @@ Below you will find the skeleton of such a function. We have inserted comments f
 # This is a function that takes 4 arguments:
 # - fitmodel, a fitmodel object that defines the model dynamics, prior and likelihoods.
 # - theta, a named vector of parameters
-# - init.state, a named vector of initial states
+# - initState, a named vector of initial states
 # - data, the data set we are fitting the model to 
 # It should return the posterior for the given model, parameters, initial state and data.
-my_dLogPosterior <- function(fitmodel, theta, init.state, data) {
+my_dLogPosterior <- function(fitmodel, theta, initState, data) {
 
     # calculate the `fitmodel` log-prior for parameter `theta`
 
     # calculate the `fitmodel` log-likelihood for parameter `theta` and
-    # initial state `init.state`, with respect to the data set `data`.
+    # initial state `initState`, with respect to the data set `data`.
 
     # return the logged posterior probability
 }
 ```
 
 ```{r echo = FALSE}
-source('our_posterior.r')
+source(here::here("scripts", "solutions", "our-posterior.r"))
 ```
 
 If you have trouble filling any of the empty bits in, have a look at our [more guided example](posterior_example.html).
@@ -241,7 +242,7 @@ If you have trouble filling any of the empty bits in, have a look at our [more g
 Once you are done with this, check that your function returns a sensible value.
 
 ```{r eval_log_posterior}
-my_dLogPosterior(SIR, theta, init.state, epi1)
+my_dLogPosterior(sirDeter, theta, initState, epi1)
 ```
 
 Would you expect to see the same value?
@@ -250,10 +251,10 @@ Would you expect to see the same value?
 
 You can visually assess a model run against data using the `plotFit` function, which generates an observation trajectory from a model, parameters and initial state using `rTrajObs` (see above) and plots it (lines) against the data (points).
 
-Note that you can also simulate multiple replicates (using the `n.replicates` argument) or plot the deterministic model trajectories (using `all.vars = TRUE`). See `?plotFit` for all available options.
+Note that you can also simulate multiple replicates (using the `nReplicates` argument) or plot the deterministic model trajectories (using `allVars = TRUE`). See `?plotFit` for all available options.
 
 ```{r plotfit_epi1, message = FALSE}
-plotFit(SIR, theta, init.state, epi1)
+plotFit(sirDeter, theta, initState, epi1)
 ```
 
 Clearly, not a very good fit on this occasion. In the next section, you will explore the posterior distribution to find a better one. __Before that, take 10 minutes to visually assess the fit of your model under different parameter sets and get familiar with the function `plotFit`.__
@@ -266,19 +267,19 @@ As stated above, the infectious period of the `epi1` data set was 2 weeks. You c
 
 __Take 10 minutes to figure out in which range of $R_0$ the posterior is maximised. Does the model fit the data (looking at `plotFit`)?__
 
-You can also change the prior and likelihood definitions of the `SIR` model. Remember that you can see the definition of `SIR$dprior` and `SIR$dPointObs` by typing
+You can also change the prior and likelihood definitions of the `sirDeter` model. Remember that you can see the definition of `sirDeter$dPrior` and `sirDeter$dPointObs` by typing
 
 ```{r look_definition,eval = FALSE}
-SIR$dprior
-SIR$dPointObs
+sirDeter$dPrior
+sirDeter$dPointObs
 ```
 
 To change the prior and likelihood functions, copy and paste the functions, change them, and reassign them to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type
 
 ```{r edit,eval = FALSE}
-SIR$dPointObs <- function(data.point, model.point, theta, log = FALSE) {
+sirDeter$dPointObs <- function(dataPoint, modelPoint, theta, log = FALSE) {
         # the prevalence is observed through a normally distributed process
-	return(dnorm(x = data.point[["obs"]], mean = model.point[["I"]], log = log))
+	return(dnorm(x = dataPoint[["obs"]], mean = modelPoint[["I"]], log = log))
 }
 ```
 
@@ -297,4 +298,4 @@ This was created with an infectious period 2 and a reporting rate of 10%. Can yo
 
 ## Including demographic processes and seasonal forcing
 
-Recurrent diseases like Influenza require additional mechanisms to explain their [long-term dynamics](https://websenti.u707.jussieu.fr/sentiweb/?lang=en&page=serie). To get a better feel for the code used to simulate the model, you could modify the `SIR` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).
+Recurrent diseases like Influenza require additional mechanisms to explain their [long-term dynamics](https://websenti.u707.jussieu.fr/sentiweb/?lang=en&page=serie). To get a better feel for the code used to simulate the model, you could modify the `sirDeter` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).

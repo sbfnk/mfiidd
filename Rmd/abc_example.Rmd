@@ -3,10 +3,10 @@
 Below, you can find an example of how to code a ABC rejection algorithm. Some bits are left out for you to fill in (marked "INSERT HERE"). Each "INSERT HERE" statement requires one line of code. If you struggle, you can find a link to a solution below the function.
 
 ```{r abcsolution, eval=F}
-init.state <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
+initState <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
-my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
-                             fitmodel, init.state, data) {
+my_ABCAlgorithm <- function(N, epsilon, sumStats, distanceAbc,
+                             fitmodel, initState, data) {
   
   
   #set up empty matrix to store results
@@ -25,13 +25,13 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
     
     theta <- c(R0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85)
 
-    # use computeDistanceABC to calculate a distance between the model
+    # use computeDistanceAbc to calculate a distance between the model
     # and data
-    dist <- computeDistanceABC(sum.stats = sum.stats,
-                             distanceABC =  distanceABC,
+    dist <- computeDistanceAbc(sumStats = sumStats,
+                             distanceAbc =  distanceAbc,
                              fitmodel = fitmodel,
                              theta = theta,
-                             init.state = init.state,
+                             initState = initState,
                              data = data)
     
     ## if the model distance is within the epsilon window
@@ -50,17 +50,17 @@ my_ABC_algorithm <- function(N, epsilon, sum.stats, distanceABC,
   return(results)
 }
 
-my_results <- my_ABC_algorithm(N=10, epsilon = 5,
-                   sum.stats = list(ssMax, ssSize),
-                   distanceABC = ssMeanRelDistance,
-                   fitmodel = SEITL_stoch,
-                   init.state = init.state,
+results <- my_ABCAlgorithm(N=10, epsilon = 5,
+                   sumStats = list(ssMax, ssSize),
+                   distanceAbc = ssMeanRelDistance,
+                   fitmodel = seitlStoch,
+                   initState = initState,
                     data = FluTdC1971)
 
-head(my_results)
+head(Results)
 
-hist(my_results[, 2])
-hist(my_results[, 3])
+hist(Results[, 2])
+hist(Results[, 3])
 
 ```
 
