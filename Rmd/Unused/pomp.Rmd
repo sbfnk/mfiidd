@@ -3,7 +3,7 @@ title: "Fitting models to data using *pomp*"
 --- 
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pomp/', cache.path='cache/pomp/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pomp/", cache.path = "cache/pomp/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
@@ -31,12 +31,12 @@ To do model fitting with *pomp*, you need to create a `pomp` object. This works 
 
 To load the `pomp` library, type
 ```{r}
-library('pomp')
+library("pomp")
 ```
 
 If this does not work, you need to install the `pomp` library first. You can do this using
 ```{r eval = FALSE}
-install.packages('pomp')
+install.packages("pomp")
 ```
 
 To specify a model that you want to fit to data in *pomp*, you can either write a function in *R*, or you can use so-called C snippets, that is model code written in C that is pre-compiled and can be called from an *R* function. The advantage of doing this is that you can benefit from the speed of compiled C code while not having to learn an awful lot about the details of C syntax.
@@ -75,11 +75,11 @@ Let's, again, guess some parameters and initial values:
 
 ```{r}
 theta <-
-    c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
+  c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 SEITL.initState <-
-    c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
+  c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
 SEIT4L.initState <-
-    c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0, L.0 = 30, Inc.0 = 0)
+  c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0, L.0 = 30, Inc.0 = 0)
 ```
 
 Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).
@@ -88,8 +88,9 @@ Note the *pomp* syntax, whereby initial states are named as the named variable w
 
 ```{r fig.height = 6,fig.width = 10, results = "hide"}
 SEITL.traj <- trajectory(SEITL_pomp,
-                         params = c(theta, SEITL.initState),
-                         as.data.frame = TRUE)
+  params = c(theta, SEITL.initState),
+  as.data.frame = TRUE
+)
 plotTraj(SEITL.traj)
 ```
 
@@ -98,12 +99,13 @@ The `trajectory` function simulates the deterministic skeleton of the `pomp` obj
 ## Stochastic trajectories
 
 ```{r results  =  "hide",fig.height = 6,fig.width = 10}
-SEITL.sim <- simulate(SEITL_pomp, params = c(theta, SEITL.initState),
-                      obs = TRUE, states = TRUE, 
-                      as.data.frame = TRUE)
+SEITL.sim <- simulate(SEITL_pomp,
+  params = c(theta, SEITL.initState),
+  obs = TRUE, states = TRUE,
+  as.data.frame = TRUE
+)
 
 plotTraj(SEITL.sim)
-
 ```
 The `simulate` function simulates the (stochastic) model of the `pomp` object it is given. By specifying `obs = TRUE` and `states = TRUE`, we indicate that we want to have both the model states and observations in the data frame that is returned.
 
@@ -123,8 +125,10 @@ Several methods are available in *pomp* for fitting a deterministic or stochasti
 ## Trajectory matching
 
 ```{r results = "hide"}
-SEITL.tm <- traj.match(SEITL_pomp, start = c(theta, SEITL.initState),
-                       est = names(theta))
+SEITL.tm <- traj.match(SEITL_pomp,
+  start = c(theta, SEITL.initState),
+  est = names(theta)
+)
 ```
 ```{r}
 logLik(SEITL.tm)

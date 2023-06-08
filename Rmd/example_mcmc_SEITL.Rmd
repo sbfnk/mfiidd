@@ -3,7 +3,7 @@ title: "Example: fitting the deterministic SEITL model"
 ---
 
 ```{r setup, echo = FALSE}
-knitr::opts_chunk$set(cache = TRUE, cache.path = "cache/example_mcmc_SEITL/", fig.retina = 2 , fig.path = "figure/example_mcmc_SEITL/", fig.cap = '', fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE, fig.width=7, fig.height=7)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "cache/example_mcmc_SEITL/", fig.retina = 2, fig.path = "figure/example_mcmc_SEITL/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE, fig.width = 7, fig.height = 7)
 ```
 
 ```{r fitR, cache = FALSE, echo = FALSE, results = "hide", warning = FALSE}
@@ -20,31 +20,28 @@ Although our example refers to the SEITL model, the same commands work for the S
 # Setting the MCMC
 
 ```{r set-mcmc, eval = FALSE}
-
 # the fitmodel
 data(seitlDeter)
 
 # wrapper for posterior
-my_posteriorTdC <- function(theta){
+my_posteriorTdC <- function(theta) {
+  my_fitmodel <- seitlDeter
+  my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0)
+  # note that for the SEIT4L model there are 4 state variables for the T compartment
+  # my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
 
-	my_fitmodel <- seitlDeter
-	my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0)
-	# note that for the SEIT4L model there are 4 state variables for the T compartment
-	# my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
-
-	return(dLogPosterior(fitmodel =  my_fitmodel, theta = theta, initState =  my_initState, data = FluTdC1971, margLogLike  =  dTrajObs, log = TRUE))
-
+  return(dLogPosterior(fitmodel = my_fitmodel, theta = theta, initState = my_initState, data = FluTdC1971, margLogLike = dTrajObs, log = TRUE))
 }
 
 # theta to initialise the MCMC
-initTheta <- c("R0" = 2, "D_lat" = 2 , "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
+initTheta <- c("R0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
 
 # diagonal elements of the covariance matrix for the Gaussian proposal
-proposalSd <- c("R0" = 1, "D_lat" = 0.5 , "D_inf" = 0.5, "alpha" = 0.1, "D_imm" = 2, "rho" = 0.1)
+proposalSd <- c("R0" = 1, "D_lat" = 0.5, "D_inf" = 0.5, "alpha" = 0.1, "D_imm" = 2, "rho" = 0.1)
 
 # lower and upper limits of each parameter
-lower <- c("R0" = 0, "D_lat" = 0 , "D_inf" = 0, "alpha" = 0, "D_imm" = 0, "rho" = 0)
-upper <- c("R0" = Inf, "D_lat" = Inf , "D_inf" = Inf, "alpha" = 1, "D_imm" = Inf, "rho" = 1)
+lower <- c("R0" = 0, "D_lat" = 0, "D_inf" = 0, "alpha" = 0, "D_imm" = 0, "rho" = 0)
+upper <- c("R0" = Inf, "D_lat" = Inf, "D_inf" = Inf, "alpha" = 1, "D_imm" = Inf, "rho" = 1)
 
 # number of iterations for the MCMC
 nIterations <- 5000
@@ -78,7 +75,7 @@ Here is an example of analysis for our preliminary run:
 
 ```{r short-run-analysis-trace, collapse = TRUE}
 # convert to a mcmc object for coda
-library('coda')
+library("coda")
 trace <- mcmc(mcmc_SEITL$trace)
 
 # compute the acceptance rate
@@ -86,7 +83,7 @@ trace <- mcmc(mcmc_SEITL$trace)
 # between 0.1 and 0.6: looks good!
 
 # let's have a look at the traces
-library('lattice') ## for the 'xyplot' command
+library("lattice") ## for the 'xyplot' command
 xyplot(x = trace)
 ```
 
@@ -158,7 +155,7 @@ Here is an example of an analysis for our long run ($10^5$ iterations)
 data(mcmc_TdC_deter_longRun)
 
 # create mcmc objects for both traces
-library('coda')
+library("coda")
 trace1 <- mcmc(mcmc_SEITL_theta1$trace)
 trace2 <- mcmc(mcmc_SEITL_theta2$trace)
 
@@ -169,14 +166,14 @@ trace <- mcmc.list(list(trace1, trace2))
 head(trace, 3)
 
 # acceptance rate
-1-rejectionRate(trace)
+1 - rejectionRate(trace)
 # close to the optimal value of 0.234
 
 # ESS
 effectiveSize(trace)
 
 # plot the traces
-library('lattice') ## for the 'xyplot' command
+library("lattice") ## for the 'xyplot' command
 xyplot(trace)
 ```
 Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain.
@@ -241,11 +238,10 @@ initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971)
 
 # alternatively,  one can plot the fit of the mean of the posterior (in this case the observation is replicated 100 times)
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971,  posteriorSummary = "mean")
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971, posteriorSummary = "mean")
 
 # or using the maximum a posteriori (MAP) estimate
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971,  posteriorSummary = "max")
-
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971, posteriorSummary = "max")
 ```
 
 Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.
@@ -257,7 +253,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#correlatio
 The correlation of the posterior distribution can be investigated using `levelplot`.
 
 ```{r correlation-levelplot, fig.height = 6, fig.width = 6}
-library('lattice') ## for the 'levelplot command
+library("lattice") ## for the 'levelplot command
 # levelplot doesn't accept `mcmc.list`, we pass the first `mcmc` only.
 levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))
 ```
@@ -265,7 +261,7 @@ levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))
 Note the strong positive correlations (~0.8) between $R_0$ and $D_{lat}$ and between $R_0$ and $D_{inf}$. In order to explain the wide 95% CIs of $R_0$ and $D_{inf}$, let's have a look at the contact rate $\beta = R_0/D_{inf}$.
 
 ```{r correlation-beta, collapse = TRUE, warning = FALSE}
-with(as.data.frame(traceBurnThin[[1]]), quantile(R0/D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
+with(as.data.frame(traceBurnThin[[1]]), quantile(R0 / D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
 ```
 The posterior value of $\beta$ varies somewhat less than the posterior values of $R_0$ and $D_\mathrm{inf}$. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of $R_0$ and $D_{inf}$ that lead to the same $\beta$, hence their wide 95% CIs.
 
@@ -276,26 +272,23 @@ We can also note that the posterior estimate of $D_{inf} = 11$ days (95% CI: $[6
 In order to include previous empirical information on $D_{lat}$ and $D_{inf}$, let's modify the `dPrior` function of `seitlDeter` as follows:
 
 ```{r correlation-info-prior, eval = FALSE}
-
 seitlDeter$dPrior <- function(theta, log = FALSE) {
+  # package with truncated normal distribution
+  library(truncnorm)
 
-	# package with truncated normal distribution
-	library(truncnorm)
+  logPriorR0 <- dunif(theta[["R0"]], min = 1, max = 50, log = TRUE)
+  # normal distribution with mean = 2 and sd = 1 and truncated at 0
+  logPriorLatentPeriod <- log(dtruncnorm(theta[["D_lat"]], a = 0, b = Inf, mean = 2, sd = 1))
+  # normal distribution with mean = 2 and sd = 1 and truncated at 0
+  logPriorInfectiousPeriod <- log(dtruncnorm(theta[["D_inf"]], a = 0, b = Inf, mean = 2, sd = 1))
+  logPriorTemporaryImmunePeriod <- dunif(theta[["D_imm"]], min = 0, max = 50, log = TRUE)
+  logPriorProbabilityLongTermImmunity <- dunif(theta[["alpha"]], min = 0, max = 1, log = TRUE)
+  logPriorReportingRate <- dunif(theta[["rho"]], min = 0, max = 1, log = TRUE)
 
-	logPriorR0 <- dunif(theta[["R0"]], min = 1, max = 50, log = TRUE)
-	# normal distribution with mean = 2 and sd = 1 and truncated at 0
-	logPriorLatentPeriod <- log(dtruncnorm(theta[["D_lat"]], a = 0, b = Inf, mean = 2, sd = 1))
-	# normal distribution with mean = 2 and sd = 1 and truncated at 0
-	logPriorInfectiousPeriod <- log(dtruncnorm(theta[["D_inf"]], a = 0, b = Inf, mean = 2, sd = 1))
-	logPriorTemporaryImmunePeriod <- dunif(theta[["D_imm"]], min = 0, max = 50, log = TRUE)
-	logPriorProbabilityLongTermImmunity <- dunif(theta[["alpha"]], min = 0, max = 1, log = TRUE)
-	logPriorReportingRate <- dunif(theta[["rho"]], min = 0, max = 1, log = TRUE)
+  logSum <- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod + logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity + logPriorReportingRate
 
-    logSum <- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod + logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity + logPriorReportingRate
-
-    return(ifelse(log, logSum, exp(logSum)))
+  return(ifelse(log, logSum, exp(logSum)))
 }
-
 ```
 
 Note the choice of a truncated normal distribution since $D_{lat}$ and $D_{inf}$ must be positive.
@@ -307,7 +300,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#informativ
 Here we combine both chains with informative priors and compare the posterior distribution with the one above.
 
 ```{r info-prior-analysis, results = "hyde"}
-library('coda')
+library("coda")
 # create mcmc object
 traceInfo1 <- mcmc(mcmc_SEITL_infoPrior_theta1$trace)
 traceInfo2 <- mcmc(mcmc_SEITL_infoPrior_theta2$trace)
@@ -316,7 +309,7 @@ traceInfo2 <- mcmc(mcmc_SEITL_infoPrior_theta2$trace)
 trace.info <- mcmc.list(traceInfo1, traceInfo2)
 
 # burn and thin as the chain with uniform prior (see above sections)
-traceInfoBurnThin <-  burnAndThin(traceInfo, burn = 5000, thin = 40)
+traceInfoBurnThin <- burnAndThin(traceInfo, burn = 5000, thin = 40)
 
 # check that both chains converged to the same posterior
 plotPosteriorDensity(traceInfoBurnThin)
@@ -333,7 +326,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#model-sele
 
 ```{r dic, collapse = TRUE}
 # combine the two chains in a data frame
-library('plyr') # needed for the 'ldply' function used in the next line
+library("plyr") # needed for the 'ldply' function used in the next line
 traceCombined <- ldply(traceInfoBurnThin)
 
 # take the mean of theta

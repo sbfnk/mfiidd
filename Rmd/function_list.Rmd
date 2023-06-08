@@ -5,39 +5,42 @@ output:
 ---
 
 ```{r setup, echo = FALSE, cache = FALSE}
-library('fitR')
-library('dplyr')
-library('xtable')
-f <- capture.output(tools::Rdindex(find.package('fitR')))
+library("fitR")
+library("dplyr")
+library("xtable")
+f <- capture.output(tools::Rdindex(find.package("fitR")))
 
 desc <- lapply(f, function(x) {
-  s <- strsplit(x, split=" +")
+  s <- strsplit(x, split = " +")
   if (length(s[[1]]) == 1) s[[1]][2] <- ""
-  c(s[[1]][1], paste(s[[1]][2:length(s[[1]])], collapse=" "))
+  c(s[[1]][1], paste(s[[1]][2:length(s[[1]])], collapse = " "))
 })
 
 emptyFirst <- which(vapply(desc, function(x) nchar(x[1]) == 0, TRUE))
-for (id in rev(emptyFirst))
-  desc[[id-1]][2] <- paste(desc[[id-1]][2], desc[[id]][2], collapse=" ")
+for (id in rev(emptyFirst)) {
+  desc[[id - 1]][2] <- paste(desc[[id - 1]][2], desc[[id]][2], collapse = " ")
+}
 
 desc <- desc[-emptyFirst]
 
 df <- data.frame(t(vapply(desc, function(x) x, c("a", "b")))) %>%
-  dplyr::rename(name=X1, desc=X2) %>%
-  mutate(desc=sub("^ ", "", desc)) %>%
+  dplyr::rename(name = X1, desc = X2) %>%
+  mutate(desc = sub("^ ", "", desc)) %>%
   dplyr::filter(!grepl("_pomp(_r)?$", name)) %>%
   dplyr::filter(!(name %in% c("distanceOscillation", "testFitModel")))
-  
-df$func <- apply(df, 1, function(x) {"function" %in% class(get(x[["name"]]))})  
 
-ds <- df %>% 
+df$func <- apply(df, 1, function(x) {
+  "function" %in% class(get(x[["name"]]))
+})
+
+ds <- df %>%
   dplyr::filter(!func) %>%
   dplyr::filter(name %in% c("FluTdC1971", "measles"))
-  
+
 ms <- df %>%
   dplyr::filter(!func) %>%
   dplyr::filter(!(name %in% ds$name))
-  
+
 fs <- df %>%
   dplyr::filter(func)
 ```
@@ -45,33 +48,42 @@ fs <- df %>%
 # Functions
 
 ```{r func_table, results='asis', echo = FALSE }
-print(xtable(fs[, 1:2],
-             align=c("l", "l", "p{0.7\\textwidth}")),
-      comment=FALSE,
-      include.rownames=FALSE,
-      include.colnames=FALSE,
-      hline.after=c())
+print(
+  xtable(fs[, 1:2],
+    align = c("l", "l", "p{0.7\\textwidth}")
+  ),
+  comment = FALSE,
+  include.rownames = FALSE,
+  include.colnames = FALSE,
+  hline.after = c()
+)
 ```
 
 # Data sets
 
 ```{r data_table, results='asis', echo = FALSE }
-print(xtable(ds[, 1:2],
-             align=c("l", "l", "p{0.7\\textwidth}")),
-      comment=FALSE,
-      include.rownames=FALSE,
-      include.colnames=FALSE,
-      hline.after=c())
+print(
+  xtable(ds[, 1:2],
+    align = c("l", "l", "p{0.7\\textwidth}")
+  ),
+  comment = FALSE,
+  include.rownames = FALSE,
+  include.colnames = FALSE,
+  hline.after = c()
+)
 ```
 
 # Models
 
 ```{r model_table, results='asis', echo = FALSE }
-print(xtable(ms[, 1:2],
-             align=c("l", "l", "p{0.7\\textwidth}")),
-      comment=FALSE,
-      include.rownames=FALSE,
-      include.colnames=FALSE,
-      hline.after=c())
+print(
+  xtable(ms[, 1:2],
+    align = c("l", "l", "p{0.7\\textwidth}")
+  ),
+  comment = FALSE,
+  include.rownames = FALSE,
+  include.colnames = FALSE,
+  hline.after = c()
+)
 ```
 

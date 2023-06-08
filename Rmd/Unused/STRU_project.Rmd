@@ -1,7 +1,7 @@
 % Modelling of interventions during Ebola outbreaks
 
 ```{r setup, echo=FALSE, cache=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/STRU_project/', cache.path='cache/STRU_project/' ,fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/STRU_project/", cache.path = "cache/STRU_project/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, cache=FALSE, echo=FALSE}
@@ -42,7 +42,6 @@ Download the dataset you have been assigned:
 Each dataset contains the __weekly__ observed incidence of new cases for a period of 64 weeks and is a unique combination of one intervention (linear or step) and one observation (random or expected).
 
 ```{r datasets, fig.width=10, echo=FALSE, cache=FALSE}
-
 # library(R2C3)
 library(readr)
 library(plyr)
@@ -51,15 +50,14 @@ library(dplyr)
 dirDataset <- path.expand("~/edu/Fit_course/mfiidd/website/data")
 
 dfData <- ldply(1:4, function(i) {
-	read_csv(file.path(dirDataset, sprintf("ebola_dataset_%s.csv",i))) %>% mutate(dataset = sprintf("Dataset %s",i))
+  read_csv(file.path(dirDataset, sprintf("ebola_dataset_%s.csv", i))) %>% mutate(dataset = sprintf("Dataset %s", i))
 })
 
 dfData %>%
-chart(x="time",y="obs", type="line", group_by=c("dataset"), time_series=FALSE) %>% set_legend(position="right") %>%
-add_zoom#  %>%
-# R2C3 
-
-
+  chart(x = "time", y = "obs", type = "line", group_by = c("dataset"), time_series = FALSE) %>%
+  set_legend(position = "right") %>%
+  add_zoom() #  %>%
+# R2C3
 ```
 
 # Model
