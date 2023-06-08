@@ -1,7 +1,7 @@
 % Particle MCMC
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc/', cache.path='cache/pmcmc/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc/", cache.path = "cache/pmcmc/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
@@ -84,13 +84,13 @@ data(seit4lStoch)
 data(FluTdC1971)
 
 # theta close to the mean posterior estimate of the deterministic SEIT4L model
-theta <- c("R0" = 7, "D_lat" = 1 , "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
+theta <- c("R0" = 7, "D_lat" = 1, "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
 
 # init state as before
-initState <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0)
+initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
 
-# run the particle filter with 20 particles 
-my_particleFilter(seit4lStoch, theta, initState,  data = FluTdC1971,  nParticles = 20)
+# run the particle filter with 20 particles
+my_particleFilter(seit4lStoch, theta, initState, data = FluTdC1971, nParticles = 20)
 ```
 
 Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?
@@ -199,9 +199,11 @@ dim(pmcmc_SEIT4L_infoPrior_n50[["chain1"]]$trace)
 We can combine the traces of the 5 chains into a `mcmc.list` object as follows:
 
 ```{r combine-trace, collapse=TRUE}
-library('coda')
-trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {mcmc(chain$trace)}))
-head(trace,1)
+library("coda")
+trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {
+  mcmc(chain$trace)
+}))
+head(trace, 1)
 ```
 You can check that the chains were started from different `initState` and that we used informative priors.
 
@@ -216,8 +218,10 @@ Let's increase the number of particles to 400, which is suggested by the calibra
 ```{r load-trace-400, collapse=TRUE}
 # load
 data(pmcmc_SEIT4L_infoPrior_n400)
-# create 
-trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {mcmc(chain$trace)}))
+# create
+trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {
+  mcmc(chain$trace)
+}))
 ``` 
 
 Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions with 50 and 400 particles using the function `plotPosteriorDensity`.

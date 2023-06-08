@@ -3,11 +3,11 @@ title: "MCMC and model comparison: the deterministic SEIT(4)L models"
 ---
 
 ```{r setup, echo=FALSE, cache=FALSE}
-knitr::opts_chunk$set(cache=TRUE,fig.path='figure/mcmc_and_model_comparison/', cache.path='cache/mcmc_and_model_comparison/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/mcmc_and_model_comparison/", cache.path = "cache/mcmc_and_model_comparison/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, cache=FALSE, include=FALSE}
-library('fitR')
+library("fitR")
 set.seed(1234)
 ```
 # Objectives
@@ -137,7 +137,7 @@ __Take 15 minutes to analyse the trace returned by `mcmcMh`.__ Remember that, wi
 # convert to a mcmc object for coda
 my_trace <- mcmc(my_mcmcTdC$trace)
 # plot the trace
-library('lattice') ## for xyplot
+library("lattice") ## for xyplot
 xyplot(my_trace)
 ```
 
@@ -154,8 +154,8 @@ You should have noticed that the effective sample size (ESS) is quite small (<10
 To save time, we have run 2 chains of 100,000 iterations starting from different initial `theta` values:
 
 ```{r theta-init, eval=FALSE}
-theta1 <- c("R0" = 2, "D_lat" = 2 , "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
-theta2 <- c("R0" = 20, "D_lat" = 2 , "D_inf" = 2, "alpha" = 0.1, "D_imm" = 8, "rho" = 0.3)
+theta1 <- c("R0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
+theta2 <- c("R0" = 20, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.1, "D_imm" = 8, "rho" = 0.3)
 ```
 
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
@@ -254,7 +254,7 @@ If the data come out as an extreme case of model output (that is, the chosen tes
 Let's look at the maximum in the data
 
 ```{r max_flu}
-  max(FluTdC1971$obs)
+max(FluTdC1971$obs)
 ```
 
 Now, write a function that takes as argument a data frame of parameter samples, the number of trajectories to evaluate, the model, initial conditions and a data set, and which returns the Bayesian p-value of the test statistic in the data with respect to the posterior samples.

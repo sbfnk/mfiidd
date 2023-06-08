@@ -3,7 +3,7 @@ Here is a (by no means exhaustive) list of examples for summary statistics.
 **Technical note**: we added put `na.rm = T` to all the summary statistics. This tells the function to ignore data points that have a non-existing value. Normally, this shouldn't happen, but unfortunately the deterministic ODE integrators in the `deSolve` package can run into numerical instabilities when a trajectory stays around 0 for too long and produce very small negative states. Normally this is not a problem, but it will be if we try to take a sample from the Poisson distribution.
 
 ```{r echo=FALSE}
-knitr::read_chunk('sumstat_examples.r')
+knitr::read_chunk("sumstat_examples.r")
 ```
 
 ```{r sumstat_examples}

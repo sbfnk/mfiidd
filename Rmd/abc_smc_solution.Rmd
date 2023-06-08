@@ -3,7 +3,6 @@
 Here is a possible solution for the ABC-SMC with two populations.
 
 ```{r abcSmcsolutions, eval=F}
-
 library(fitR)
 library(MASS)
 source("sumstat_examples.r")
@@ -14,69 +13,70 @@ initState <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
 # use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm
 
-pop_1<-my_abcAlgorithm(N=1000, epsilon = 50,
-                   sumStats = list(ssMax, ssSize),
-                   distanceAbc = ssMeanRelDistance,
-                   fitmodel = seitlStoch,
-                   initState = initState,
-                    data = FluTdC1971)
+pop_1 <- my_abcAlgorithm(
+  N = 1000, epsilon = 50,
+  sumStats = list(ssMax, ssSize),
+  distanceAbc = ssMeanRelDistance,
+  fitmodel = seitlStoch,
+  initState = initState,
+  data = FluTdC1971
+)
 
 
-  N <- dim(pop_1)[1]
+N <- dim(pop_1)[1]
 
-  #specify a smaller tolerance for the second population
-  epsilon_2 <- 5
+# specify a smaller tolerance for the second population
+epsilon_2 <- 5
 
-  #Sigma is the covariance matrix for the multivarite normal distribution pertubation
-  Sigma <- matrix(c(0.5, 0, 0, 0.5), 2, 2)
-  
-  #set up empty matrix to store results
-  results <- matrix(nrow=0, ncol=6)
-  
-  #initialise with i=0
-  i <- 0
-  
-  # while the length of the accepted values (result) is less than the desired length (N)
-  while(i < N){
-    
-    # - draw a random number between 1 and 1000
-    rowNo <- sample(1000, 1)
-    # extract corresponding row from pop_1 using this number
-    pars <- pop_1[rowNo, c("D_lat", "D_inf")]
+# Sigma is the covariance matrix for the multivarite normal distribution pertubation
+Sigma <- matrix(c(0.5, 0, 0, 0.5), 2, 2)
 
-    #perturb these parameters using multivariate Gaussian distribution
-    parsPerturb <- mvrnorm(n = 1, pars, Sigma)
-    
-    theta <- c(R0 = 2, D_lat = parsPerturb[["D_lat"]], D_inf = parsPerturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
-    
-    # if any of the proposed parameters are less than 0, reject them (set distance to infinity)
-    if(any(theta < 0)){
-      dist <- Inf
-    }else{
-          # use computeDistanceAbc to calculate a distance between the model
+# set up empty matrix to store results
+results <- matrix(nrow = 0, ncol = 6)
+
+# initialise with i=0
+i <- 0
+
+# while the length of the accepted values (result) is less than the desired length (N)
+while (i < N) {
+  # - draw a random number between 1 and 1000
+  rowNo <- sample(1000, 1)
+  # extract corresponding row from pop_1 using this number
+  pars <- pop_1[rowNo, c("D_lat", "D_inf")]
+
+  # perturb these parameters using multivariate Gaussian distribution
+  parsPerturb <- mvrnorm(n = 1, pars, Sigma)
+
+  theta <- c(R0 = 2, D_lat = parsPerturb[["D_lat"]], D_inf = parsPerturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
+
+  # if any of the proposed parameters are less than 0, reject them (set distance to infinity)
+  if (any(theta < 0)) {
+    dist <- Inf
+  } else {
+    # use computeDistanceAbc to calculate a distance between the model
     # and data
-    dist <- computeDistanceAbc(sumStats = list(ssMax, ssSize),
-                             distanceAbc = ssMeanRelDistance,
-                             fitmodel = seitlStoch,
-                             theta = theta,
-                             initState = initState,
-                             data = FluTdC1971)
-    }
-    
-    ## if the model distance is within the epsilon window
-    # store the accepeted parameter values
-    if(dist <= epsilon_2){
-      results <- rbind(results, theta)
-    }
-    
-    #update i (dimension of results store)
-    i <- dim(results)[1]
-    
+    dist <- computeDistanceAbc(
+      sumStats = list(ssMax, ssSize),
+      distanceAbc = ssMeanRelDistance,
+      fitmodel = seitlStoch,
+      theta = theta,
+      initState = initState,
+      data = FluTdC1971
+    )
   }
 
-  # return the accepted values 
-  head(results)
+  ## if the model distance is within the epsilon window
+  # store the accepeted parameter values
+  if (dist <= epsilon_2) {
+    results <- rbind(results, theta)
+  }
 
+  # update i (dimension of results store)
+  i <- dim(results)[1]
+}
+
+# return the accepted values
+head(results)
 ```
 
 

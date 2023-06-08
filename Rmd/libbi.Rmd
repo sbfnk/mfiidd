@@ -1,7 +1,7 @@
 % The SEITL model in *LibBi*
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/libbi/', cache.path='cache/libbi/' , fig.cap='', fig.align="center", tidy=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/libbi/", cache.path = "cache/libbi/", fig.cap = "", fig.align = "center", tidy = FALSE)
 ```
 
 ```{r fitR, include=FALSE, cache=FALSE}
@@ -28,19 +28,19 @@ brew install libbi
 You'll also need the `rbi` and `rbi.helpers` packages:
 
 ```{r eval=FALSE}
-install.packages('rbi')
-install.packages('rbi.helpers')
+install.packages("rbi")
+install.packages("rbi.helpers")
 ```
 
 ```{r}
-library('rbi')
-library('rbi.helpers')
+library("rbi")
+library("rbi.helpers")
 ```
 
 If you are running this on MacOS, it is probably a good idea to also run 
 
 ```{r}
-options(libbi_args=list(openmp=FALSE))
+options(libbi_args = list(openmp = FALSE))
 ```
 
 as OpenMP is not supported by the default C++ compiler that comes with MacOS.
@@ -52,7 +52,7 @@ For an introduction to the functionalities of the `rbi` and `rbi.helpers` packag
 Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using
 
 ```{r}
-seitlDet <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_det.bi"))
+seitlDet <- bi_model(lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_det.bi"))
 ```
 
 Here, `readLines` simple reads in the text file from the web site, and `bi_model` prepares it to be used with the `rbi` package.
@@ -191,7 +191,7 @@ This defines the observation model. We use a observations distributed according 
 Let’s load the stochastic model using
     
 ```{r}
-seitlSto <- bi_model(lines=readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
+seitlSto <- bi_model(lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
 ```
 
 Again, you can look at the contents of the model file by typing
@@ -224,8 +224,8 @@ Now, a number of random variables (defined earlier in the file as so-called `noi
 We want to determine the optimal number of T compartments in the stochastic SEITL model. To do this, we run pMCMC with 400 particles and 3000 iterations (i.e., same as in the [pMCMC pratical](pmcmc.html)). But first, we prepare the Tristan da Cunha data set to be used as observation data set with `rbi`:
 
 ```{r}
-library('dplyr')
-tdc <- list(Cases=FluTdC1971 %>% dplyr::select(time, value=obs))
+library("dplyr")
+tdc <- list(Cases = FluTdC1971 %>% dplyr::select(time, value = obs))
 ```
 
 The `rbi` object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns `time` and `value`. Here, the observations are called `Cases`, the same as in the line specifying the observation density in the LibBi file above.
@@ -233,15 +233,17 @@ The `rbi` object expects data to be given as a named list, where each element co
 Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.
 
 ```{r eval=FALSE}
-  prep <- sample(seitlSto, nsamples=3000, proposal="prior", obs=tdc, 
-                 end_time=max(tdc$Cases$time), nparticles=400)
-  prep <- adapt_proposal(prep, min=0.1, max=0.3)
+prep <- sample(seitlSto,
+  nsamples = 3000, proposal = "prior", obs = tdc,
+  end_time = max(tdc$Cases$time), nparticles = 400
+)
+prep <- adapt_proposal(prep, min = 0.1, max = 0.3)
 ```
 
 We can inspect the adapted model by typing
 
 ```{r eval=FALSE}
-  prep$model
+prep$model
 ```
 
 This now contains a `proposal_parameter` block at the bottom, which contains the proposal distributions.
@@ -254,8 +256,10 @@ max_erlang <- 10
 
 for (i in 1:max_erlang) {
   cat("Fitting with", i, "T compartment(s).\n")
-  bi[[i]] <- sample(prep, model=fix(prep$model, k_erlang=i),
-                    sample_obs=TRUE, nsamples=3000)
+  bi[[i]] <- sample(prep,
+    model = fix(prep$model, k_erlang = i),
+    sample_obs = TRUE, nsamples = 3000
+  )
 }
 ```
 
@@ -272,16 +276,16 @@ for (i in 1:max_erlang) {
 Lastly, we compute the DIC for each of these pMCMC runs.
 
 ```{r}
-dic <- data.frame(compartments=integer(0), DIC=numeric(0))
+dic <- data.frame(compartments = integer(0), DIC = numeric(0))
 for (i in 1:max_erlang) {
-  dic <- rbind(dic, data.frame(compartments=i, DIC=dic(bi[[i]])))
+  dic <- rbind(dic, data.frame(compartments = i, DIC = dic(bi[[i]])))
 }
 ```
 
 Let's plot the DIC as a function of the number of Erlang compartments.
 
 ```{r}
-ggplot(dic, aes(x=compartments, y=DIC)) +
+ggplot(dic, aes(x = compartments, y = DIC)) +
   geom_point() +
   geom_line()
 ```
@@ -289,14 +293,13 @@ ggplot(dic, aes(x=compartments, y=DIC)) +
 Which model fits best? You can visually inspect the fit of, for example, the SEIT2L model by plotting filtered trajectories as generated by the pMCMC algorithm
 
 ```{r}
-os <- summary(bi[[2]], type="obs")
+os <- summary(bi[[2]], type = "obs")
 
-ggplot(os, aes(x=time))+
-    geom_line(aes(y=Median)) +
-    geom_ribbon(aes(ymin=`1st Qu.`, ymax=`3rd Qu.`), alpha=0.5) +
-    geom_point(aes(y=obs), FluTdC1971, color="darkred") +
-    ylab("cases")
-    
+ggplot(os, aes(x = time)) +
+  geom_line(aes(y = Median)) +
+  geom_ribbon(aes(ymin = `1st Qu.`, ymax = `3rd Qu.`), alpha = 0.5) +
+  geom_point(aes(y = obs), FluTdC1971, color = "darkred") +
+  ylab("cases")
 ```
 
 # Going further

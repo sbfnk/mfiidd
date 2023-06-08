@@ -1,7 +1,7 @@
 % Modelling interlude: Tristan da Cunha outbreak & the SEITL model.
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/play_with_SEITL/', cache.path='cache/play_with_SEITL/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/play_with_SEITL/", cache.path = "cache/play_with_SEITL/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r load, include=FALSE, cache=FALSE}
@@ -45,7 +45,7 @@ data(FluTdC1971)
 head(FluTdC1971)
 
 # plot daily observed incidence
-plotTraj(data=FluTdC1971)
+plotTraj(data = FluTdC1971)
 ```
 
 # SEITL model
@@ -126,28 +126,28 @@ Now, try to assess whether the SEITL model can reproduce the two-wave outbreak o
 You can use the `plotFit` function you encountered in the [first practical](introduction.html#assess-the-model-fit) to generate an observation trajectory and display it against the data:
 
 ```{r oneTraj, results="hide"}
-theta.bad.guess <- c("R0"=2, "D_lat"=2 , "D_inf"=2, "alpha"=0.9, "D_imm"=13, "rho"=0.85)
-initState.bad.guess <- c("S"=250,"E"=0,"I"=4,"T"=0,"L"=30,"Inc"=0)
-plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971)
+theta.bad.guess <- c("R0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.9, "D_imm" = 13, "rho" = 0.85)
+initState.bad.guess <- c("S" = 250, "E" = 0, "I" = 4, "T" = 0, "L" = 30, "Inc" = 0)
+plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971)
 ```
 
 You can display all states variables (not only the sampled observations) by passing `all.vars=TRUE` to the `plotFit` function:
 
 ```{r allVars, fig.height=6,fig.width=10, results="hide"}
-plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971,all.vars=TRUE)
+plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971, all.vars = TRUE)
 ```
 
 Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy `obs` time-series.
 You can appreciate the variability of the observation process by plotting several replicates (use the argument `n.replicates`):
 
 ```{r manyObs, results="hide"}
-plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971, n.replicates=100)
+plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971, n.replicates = 100)
 ```
 
 By default, this function plots the mean and the median as well as the $95^\mathrm{th}$ and $50^\mathrm{th}$ percentiles of the replicated simulations. Alternatively, you can visualise all the simulated trajectories by passing `summary=FALSE` to the `plotFit` function:
 
 ```{r allTraj, results="hide"}
-plotFit(seitlDeter,theta.bad.guess,initState.bad.guess,data=FluTdC1971, n.replicates=100, summary=FALSE)
+plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971, n.replicates = 100, summary = FALSE)
 ```
 
 __Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
@@ -177,33 +177,32 @@ In order to include a memory effect, it is common practice to replace the expone
 As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
 
 ```{r erlang, echo=FALSE, fig.width=10, fig.height=5}
-
 library(ggplot2)
 library(plyr)
 
 m <- 2
-x <- seq(0,4*m,0.01)
-all_k <- c(1,2,5,20)
+x <- seq(0, 4 * m, 0.01)
+all_k <- c(1, 2, 5, 20)
 names(all_k) <- all_k
 
-df_dist <- ldply(all_k,function(k){
-	return(data.frame(x=x,"dens"=dgamma(x,shape=k,scale=m/k),"cum"=pgamma(x,shape=k,scale=m/k)))
-}, .id="k")
+df_dist <- ldply(all_k, function(k) {
+  return(data.frame(x = x, "dens" = dgamma(x, shape = k, scale = m / k), "cum" = pgamma(x, shape = k, scale = m / k)))
+}, .id = "k")
 
-lab <- paste("k==",all_k,sep="")
+lab <- paste("k==", all_k, sep = "")
 
-df_plot <- melt(df_dist,measure.vars=c("dens","cum"))
+df_plot <- melt(df_dist, measure.vars = c("dens", "cum"))
 
-df_plot <- mutate(df_plot,variable=factor(variable,levels=c("dens","cum"),labels=c("probability density","cumulative distribution")))
+df_plot <- mutate(df_plot, variable = factor(variable, levels = c("dens", "cum"), labels = c("probability density", "cumulative distribution")))
 
-p <- ggplot(data=df_plot,aes(x=x,y=value,group=k)) + facet_wrap(~variable,scale="free_y")
-p <- p + geom_line(aes(colour=k, linetype=k),position="identity",alpha=1)
-p <- p + scale_colour_brewer("Shape",palette="Dark2")
+p <- ggplot(data = df_plot, aes(x = x, y = value, group = k)) +
+  facet_wrap(~variable, scale = "free_y")
+p <- p + geom_line(aes(colour = k, linetype = k), position = "identity", alpha = 1)
+p <- p + scale_colour_brewer("Shape", palette = "Dark2")
 p <- p + scale_linetype("Shape")
 p <- p + scale_x_continuous("time spent in the compartment")
-p <- p + theme_bw() + theme(legend.position="top")
+p <- p + theme_bw() + theme(legend.position = "top")
 print(p)
-
 ```
 
 We propose to extend the SEITL as follows:

@@ -21,14 +21,14 @@ If you are not familiar with `R`, check our [list of useful commands](slides/rin
 The simplest way to install the `fitR` is to use the `devtools` package:
 
 ```{r install, eval=FALSE}
-install.packages('remotes')
-remotes::install_github('sbfnk/fitR')
+install.packages("remotes")
+remotes::install_github("sbfnk/fitR")
 ```
 
 Then you can check that the installation completed successfully by loading the package into your `R` session:
 
 ```{r load, eval=FALSE}
-library('fitR')
+library("fitR")
 ```
 
 To see all the commands available in fitR, have a look at the [fitR documentation](fitR.pdf).
