@@ -67,7 +67,7 @@ my_particleFilter <- function(fitmodel, theta, initState, data, nParticles) {
 ```
 
 ```{r load-PF, echo=FALSE}
-source("our_smc.r")
+source(here::here("scripts", "snippets", "our-smc.r"))
 ```
 
 If you have trouble filling any of the empty bits, have a look at our [more guided example](smc_example.html).
@@ -78,19 +78,19 @@ Try to run your particle filter with the following inputs:
 
 ```{r try-PF, collapse=TRUE}
 # load seit4lStoch
-data(seit4lStoch)
+data(models)
 
 # load data
-data(FluTdC1971)
+data(fluTdc1971)
 
 # theta close to the mean posterior estimate of the deterministic SEIT4L model
-theta <- c("R0" = 7, "D_lat" = 1, "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
+theta <- c("R_0" = 7, "D_lat" = 1, "D_inf" = 4, "alpha" = 0.5, "D_imm" = 10, "rho" = 0.65)
 
 # init state as before
 initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
 
 # run the particle filter with 20 particles
-my_particleFilter(seit4lStoch, theta, initState, data = FluTdC1971, nParticles = 20)
+my_particleFilter(seit4lStoch, theta, initState, data = fluTdc1971, nParticles = 20)
 ```
 
 Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?
@@ -140,7 +140,7 @@ my_posteriorSto <- function(theta){
     return(dLogPosterior(fitmodel = my_fitmodel,
                          theta = theta,
                          initState = my_initState,
-                         data = FluTdC1971,
+                         data = fluTdc1971,
                          margLogLike = my_particleFilter,
                          nParticles = my_nParticles))
     

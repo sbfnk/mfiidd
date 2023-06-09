@@ -27,8 +27,8 @@ seitlSimulateDeterministic <- function(theta, initState, times) {
     dS <- -beta * s * i / n + (1 - alpha) * tau * t
     dE <- beta * s * i / n - epsilon * e
     dI <- epsilon * e - nu * i
-    dT <- nu * i - tau * ti
-    dL <- alpha * tau * ti
+    dT <- nu * i - tau * t
+    dL <- alpha * tau * t
     dInc <- epsilon * e
 
     return(list(c(dS, dE, dI, dT, dL, dInc)))

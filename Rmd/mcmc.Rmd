@@ -3,14 +3,14 @@ title: "Practical session: Sampling from an univariate distribution using MCMC"
 ---
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/mcmc/", cache.path = "cache/mcmc/", fig.cap = "", fig.align = "center")
+knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc/', cache.path='cache/mcmc/' , fig.cap='', fig.align="center")
 ```
 
 ```{r load, include=FALSE, cache=FALSE}
 library("fitR")
 library("here")
 data(models)
-source(here::here("scripts", "solutions", "our-posterior.r"))
+source(here::here("scripts", "snippets", "our-posterior.r"))
 ```
 
 [Lecture slides](slides/mcmc_slides1.pdf)
@@ -36,14 +36,14 @@ grid <- NULL # set aside to hold the grid approximation
 # Loop through each value of R_0 we want to test.
 for (testR0 in seq(1.6, 1.9, length.out = 25))
 {
-  # Set R_0 in theta accordingly
-  theta[["R_0"]] <- testR0
-
-  # Evaluate the log posterior associated with this R_0
-  lp <- my_dLogPosterior(SIR, theta, initState, epi1)
-
-  # Save this iteration, using rbind to add another row to the grid data frame
-  grid <- rbind(grid, data.frame(R_0 = testR0, lp = lp))
+    # Set R_0 in theta accordingly
+    theta[["R_0"]] <- testR0
+    
+    # Evaluate the log posterior associated with this R_0
+    lp <- my_dLogPosterior(SIR, theta, initState, epi1)
+    
+    # Save this iteration, using rbind to add another row to the grid data frame
+    grid <- rbind(grid, data.frame(R_0 = testR0, lp = lp))
 }
 ```
 
@@ -101,22 +101,22 @@ samp <- NULL
 # Make 1000 attempts to draw samples from the target distribution
 for (i in 1:1000)
 {
-  # Select a random value for R_0
-  my_R_0 <- runif(1, 1.7, 1.8)
-  theta[["R_0"]] <- my_R_0
-
-  # Run the simulation to evaluate the log posterior
-  lp <- my_dLogPosterior(SIR, theta, initState, epi1)
-
-  # Warn if max_lp is too low
-  if (lp > max_lp) {
-    message("max_lp has been set too low: max_lp is ", max_lp, ", while lp is ", lp)
-  }
-
-  # Keep this sample with probability proportional to the log posterior
-  if (runif(1) < exp(lp - max_lp)) {
-    samp <- rbind(samp, data.frame(R_0 = my_R_0, lp = lp))
-  }
+    # Select a random value for R_0
+    my_R_0 <- runif(1, 1.7, 1.8)
+    theta[["R_0"]] <- my_R_0
+    
+    # Run the simulation to evaluate the log posterior
+    lp <- my_dLogPosterior(SIR, theta, initState, epi1)
+    
+    # Warn if max_lp is too low
+    if (lp > max_lp) {
+      message("max_lp has been set too low: max_lp is ", max_lp, ", while lp is ", lp);
+    }
+    
+    # Keep this sample with probability proportional to the log posterior
+    if (runif(1) < exp(lp - max_lp)) {
+        samp <- rbind(samp, data.frame(R_0 = my_R_0, lp = lp))
+    }
 }
 ```
 
@@ -227,7 +227,7 @@ my_mcmcMh <- function(target, initTheta, proposalSd, nIterations) {
 ```
 
 ```{r source_our_mcmc, include = FALSE, tidy = FALSE}
-source('our_mcmcMh.r')
+source(here::here("scripts", "snippets", "our-mcmcMh.r")))
 ```
 
 If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.html).
@@ -238,9 +238,8 @@ In principle, we can use the Metropolis-Hastings sampler you just coded to sampl
 
 ```{r dnorm_plot}
 plot(dnorm,
-  xlim = c(-5, 5),
-  ylab = "probability density"
-)
+     xlim = c(-5, 5),
+     ylab = "probability density")
 ```
 
 We want to generate random numbers that follow the same distribution. There is one small extra step we have to do before we can sample from `dnorm`. Remember that we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas `dnorm`, by default, returns the (un-logged) probability density.
@@ -249,7 +248,7 @@ We can, however, instruct `dnorm` to return the logarithm of the probability den
 
 ```{r dnorm_log}
 dnormLog <- function(theta) {
-  return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
+   return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }
 ```
 
@@ -259,10 +258,8 @@ We can now sample from `dnormLog` using our MCMC sampler
 startingValue <- 1 # starting value for MCMC
 sigma <- 1 # standard deviation of MCMC
 iter <- 1000
-trace <- my_mcmcMh(
-  target = dnormLog, initTheta = startingValue,
-  proposalSd = sigma, nIterations = iter
-)
+trace <- my_mcmcMh(target = dnormLog, initTheta = startingValue,
+   proposalSd = sigma, nIterations = iter)
 ```
 
 We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using
@@ -275,7 +272,7 @@ You can plot a histogram of the samples generated using the function `hist`. Her
 
 ```{r hist_trace}
 hist(trace, freq = FALSE)
-curve(dnorm, from = -4, to = 4, col = "red", add = TRUE)
+curve(dnorm, from = -4, to = 4, col="red", add=TRUE)
 ```
 
 This example looks reassuringly similar to the normal distribution centred around 0. Of course, since MCMC is based on sampling random numbers, your plot will look slightly different.
@@ -293,17 +290,16 @@ Lastly, `my_dLogPosterior` takes four parameters, and to use it with the `my_mcm
 
 
 ```{r source_our_logpost, echo=FALSE}
-source("our_posterior.r")
+source(here::here("scripts", "snippets", "our_posterior.r"))
 ```
 
 ```{r write_logpost}
 my_dLogPosteriorR0Epi1 <- function(R_0) {
-  return(my_dLogPosterior(
-    fitmodel = SIR,
-    theta = c(R_0 = R_0, D_inf = 2),
-    initState = c(S = 999, I = 1, R = 0),
-    data = epi1
-  ))
+
+  return(my_dLogPosterior(fitmodel = SIR,
+                          theta = c(R_0 = R_0, D_inf = 2),
+                          initState = c(S = 999, I = 1, R = 0),
+                          data = epi1))
 }
 ```
 

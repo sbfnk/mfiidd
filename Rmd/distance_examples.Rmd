@@ -1,7 +1,7 @@
 Here is a (by no means exhaustive) list of examples for distance functions.
 
 ```{r echo=FALSE}
-knitr::read_chunk("distance_examples.r")
+knitr::read_chunk(here::here("scripts", "snippets", "distance-examples.r"))
 ```
 
 ```{r distanceExamples}

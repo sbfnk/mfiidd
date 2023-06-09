@@ -20,7 +20,7 @@ my_abcAlgorithm <- function(N, epsilon, sumStats, distanceAbc,
     d_lat <- rgamma(1, shape = 16, rate = 8)
     d_inf <- rgamma(1, shape = 16, rate = 8)
 
-    theta <- c(R0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85)
+    theta <- c(R_0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85)
 
     # use computeDistanceAbc to calculate a distance between the model
     # and data

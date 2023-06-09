@@ -64,7 +64,7 @@ my_posteriorTdC <- function(theta){
         return(dLogPosterior(fitmodel = my_fitmodel,
                             theta = theta,
                             initState =  my_initState,
-                            data = FluTdC1971,
+                            data = fluTdc1971,
                             margLogLike  =  dTrajObs,
                             log = TRUE))
 
@@ -95,16 +95,8 @@ If you have trouble filling some of the empty bits, have a look at our [example]
 
 Then you should be able to run `mcmcMh`:
 
-```{r run-mcmc, eval=FALSE,tidy = FALSE}
-# run the MCMC
-my_mcmcTdC <- mcmcMh(target = my_posteriorTdC,
-                      initTheta = initTheta,
-                      proposalSd = proposalSd,
-                      limits = list(lower = lower,upper = upper),
-                      nIterations = nIterations,
-                      adaptSizeStart = adaptSizeStart,
-                      adaptSizeCooling = adaptSizeCooling,
-                      adaptShapeStart = adaptShapeStart)
+```{r run-mcmc, eval=FALSE}
+knitr::read_chunk(here::here("scripts", "snippets", "run-mcmc.r")
 ```
 
 You should see some information printed as the chain runs: acceptance rate, state of the chain, log-likelihood etc. __In particular, what can you say about the evolution of the acceptance rate?__
@@ -154,8 +146,7 @@ You should have noticed that the effective sample size (ESS) is quite small (<10
 To save time, we have run 2 chains of 100,000 iterations starting from different initial `theta` values:
 
 ```{r theta-init, eval=FALSE}
-theta1 <- c("R0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
-theta2 <- c("R0" = 20, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.1, "D_imm" = 8, "rho" = 0.3)
+knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r")
 ```
 
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
@@ -254,7 +245,7 @@ If the data come out as an extreme case of model output (that is, the chosen tes
 Let's look at the maximum in the data
 
 ```{r max_flu}
-max(FluTdC1971$obs)
+max(fluTdc1971$obs)
 ```
 
 Now, write a function that takes as argument a data frame of parameter samples, the number of trajectories to evaluate, the model, initial conditions and a data set, and which returns the Bayesian p-value of the test statistic in the data with respect to the posterior samples.
@@ -301,7 +292,7 @@ my_postPredCheck <- function(trace, nSamples, fitmodel, initState, data) {
 If you have trouble filling any of the empty bits, have a look at our [more guided example](our_ppc_insert.html).
 
 ```{r source-ppc, cache=FALSE, echo = FALSE}
-source("our_ppc.r")
+source(here::here("scripts", "snippets", "our_ppc.r"))
 ```
 
 Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,
@@ -312,7 +303,7 @@ my_postPredCheck(trace = mcmc_SEITL_theta1$trace[seitlDeter$thetaNames],
                  nSamples = 100,
                  fitmodel = seitlDeter,
                  initState = initState,
-                 data = FluTdC1971)
+                 data = fluTdc1971)
 ```
 
 Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.

@@ -1,4 +1,4 @@
-seitlStoName <-
+seitlStochName <-
   "stochastic SEITL model with daily incidence and constant population size"
 
 # Simulate realisation of the stochastic version of the SEITL model.
@@ -30,11 +30,11 @@ seitlSimulateStochastic <- function(theta, initState, times) {
     n <- s + e + i +t + l
 
     return(c(
-      beta * S * I / N, # infection
-      epsilon * E, # infectiousness and incidence
-      nu * I, # recovery + short term protection
-      alpha * tau * Ti, # efficient long term protection
-      (1 - alpha) * tau * Ti # deficient long term protection
+      beta * s * i / n, # infection
+      epsilon * e, # infectiousness and incidence
+      nu * i, # recovery + short term protection
+      alpha * tau * t, # efficient long term protection
+      (1 - alpha) * tau * t # deficient long term protection
     ))
   }
 
@@ -52,7 +52,7 @@ seitlSimulateStochastic <- function(theta, initState, times) {
 }
 
 seitlStoch <- fitmodel(
-  name = seitlStoName,
+  name = seitlStochName,
   stateNames = seitlStateNames,
   thetaNames = seitlThetaNames,
   simulate = seitlSimulateStochastic,

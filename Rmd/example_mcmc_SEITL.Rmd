@@ -15,41 +15,12 @@ Here is an example of possible answers to the practical on fitting the determini
 
 Each section below correspond to a section of the practical. Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections. 
 
-Although our example refers to the SEITL model, the same commands work for the SEIT4L model (i.e. `data(seit4lDeter)` instead of `data(seitlDeter)`).
+Although our example refers to the SEITL model, the same commands work for the SEIT4L model (i.e. `seit4lDeter` instead of `seitlDeter`).
 
 # Setting the MCMC
 
 ```{r set-mcmc, eval = FALSE}
-# the fitmodel
-data(seitlDeter)
-
-# wrapper for posterior
-my_posteriorTdC <- function(theta) {
-  my_fitmodel <- seitlDeter
-  my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0)
-  # note that for the SEIT4L model there are 4 state variables for the T compartment
-  # my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
-
-  return(dLogPosterior(fitmodel = my_fitmodel, theta = theta, initState = my_initState, data = FluTdC1971, margLogLike = dTrajObs, log = TRUE))
-}
-
-# theta to initialise the MCMC
-initTheta <- c("R0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85)
-
-# diagonal elements of the covariance matrix for the Gaussian proposal
-proposalSd <- c("R0" = 1, "D_lat" = 0.5, "D_inf" = 0.5, "alpha" = 0.1, "D_imm" = 2, "rho" = 0.1)
-
-# lower and upper limits of each parameter
-lower <- c("R0" = 0, "D_lat" = 0, "D_inf" = 0, "alpha" = 0, "D_imm" = 0, "rho" = 0)
-upper <- c("R0" = Inf, "D_lat" = Inf, "D_inf" = Inf, "alpha" = 1, "D_imm" = Inf, "rho" = 1)
-
-# number of iterations for the MCMC
-nIterations <- 5000
-
-# additional parameters for the adaptive MCMC, see ?mcmcMh for more details
-adaptSizeStart <- 100
-adaptSizeCooling <- 0.999
-adaptShapeStart <- 200
+knitr::read_chunk(here::here("scripts", "snippets", "set-mcmc.r"))
 ```
 
 You can now go back to the [practical](mcmc_and_model_comparison.html#run-a-mcmc) and try to run MCMC with those settings.
@@ -229,19 +200,20 @@ Finally, let's assess the fit of the deterministic SEITL model.
 
 ```{r long-run-fit, collapse = TRUE, results = "hide", fig.height = 5, fig.width = 6}
 # load data
-data(FluTdC1971)
+data(fluTdc1971)
 
 # the same initState as for the fit
 initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 
-# by default plotPosteriorFit summarize the fit of 100 thetas sampled from the posterior
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971)
+# by default plotPosteriorFit summarize the fit of 100 thetas sampled from the
+# posterior
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971)
 
 # alternatively,  one can plot the fit of the mean of the posterior (in this case the observation is replicated 100 times)
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971, posteriorSummary = "mean")
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971, posteriorSummary = "mean")
 
 # or using the maximum a posteriori (MAP) estimate
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = FluTdC1971, posteriorSummary = "max")
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971, posteriorSummary = "max")
 ```
 
 Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.
@@ -261,7 +233,7 @@ levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))
 Note the strong positive correlations (~0.8) between $R_0$ and $D_{lat}$ and between $R_0$ and $D_{inf}$. In order to explain the wide 95% CIs of $R_0$ and $D_{inf}$, let's have a look at the contact rate $\beta = R_0/D_{inf}$.
 
 ```{r correlation-beta, collapse = TRUE, warning = FALSE}
-with(as.data.frame(traceBurnThin[[1]]), quantile(R0 / D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
+with(as.data.frame(traceBurnThin[[1]]), quantile(R_0 / D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
 ```
 The posterior value of $\beta$ varies somewhat less than the posterior values of $R_0$ and $D_\mathrm{inf}$. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of $R_0$ and $D_{inf}$ that lead to the same $\beta$, hence their wide 95% CIs.
 
@@ -276,7 +248,7 @@ seitlDeter$dPrior <- function(theta, log = FALSE) {
   # package with truncated normal distribution
   library(truncnorm)
 
-  logPriorR0 <- dunif(theta[["R0"]], min = 1, max = 50, log = TRUE)
+  logPriorR0 <- dunif(theta[["R_0"]], min = 1, max = 50, log = TRUE)
   # normal distribution with mean = 2 and sd = 1 and truncated at 0
   logPriorLatentPeriod <- log(dtruncnorm(theta[["D_lat"]], a = 0, b = Inf, mean = 2, sd = 1))
   # normal distribution with mean = 2 and sd = 1 and truncated at 0
@@ -335,7 +307,7 @@ print(thetaBar)
 
 # compute its log-likelihood
 initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-logLikeThetaBar <- dTrajObs(seitlDeter, thetaBar, initState, data = FluTdC1971, log = TRUE)
+logLikeThetaBar <- dTrajObs(seitlDeter, thetaBar, initState, data = fluTdc1971, log = TRUE)
 print(logLikeThetaBar)
 
 # and its deviance
@@ -351,7 +323,3 @@ dic <- dThetaBar + 2 * pD
 print(dic)
 ```
 Follow this [link](mcmc_and_model_comparison.html#posterior-predictive-checks) to go back to the practical.
-
-
-
-

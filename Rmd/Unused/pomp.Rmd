@@ -75,7 +75,7 @@ Let's, again, guess some parameters and initial values:
 
 ```{r}
 theta <-
-  c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
+  c(R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 SEITL.initState <-
   c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
 SEIT4L.initState <-
@@ -146,7 +146,7 @@ For example, we can use the best-fit parameters from trajectory matching to simu
 
 ```{r results = "hide"}
 SEITL.tm.sim <- simulate(SEITL.tm, nsim = 10, as.data.frame = TRUE)
-plotTraj(SEITL.tm.sim, data = FluTdC1971, state.names = "obs")
+plotTraj(SEITL.tm.sim, data = fluTdc1971, state.names = "obs")
 ```
 
 ## Maximum likelihood by iterated filtering (MIF)
@@ -157,7 +157,7 @@ names(prop.sd) <- names(theta)
 
 SEITL.mf <- mif(SEITL.tm, Nmif = 50, Np = 1000, cooling.fraction.50 = 0.01, rw.sd = prop.sd)
 SEITL.mf.sim <- simulate(SEITL.mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
-plotTraj(SEITL.mf.sim, data = FluTdC1971, state.names = "obs")
+plotTraj(SEITL.mf.sim, data = fluTdc1971, state.names = "obs")
 ```
 ```{r}
 logLik(SEITL.mf)

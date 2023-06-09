@@ -10,7 +10,7 @@ knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pomp/", cache.path = "cac
 ## load pomp package
 library("pomp")
 ## load Tristan da Cunha data
-data(FluTdC1971)
+data(fluTdc1971)
 ```
 
 This loads the `pomp` package, and the Tristan da Cunha data from the `fitR` package.
@@ -22,7 +22,7 @@ This loads the `pomp` package, and the Tristan da Cunha data from the `fitR` pac
 SEITL.skel.c <- "
     double trans[5];
 
-    double beta = R0 / D_inf;
+    double beta = R_0 / D_inf;
     double epsilon = 1 / D_lat;
     double nu = 1 / D_inf;
     double tau = 1 / D_imm;
@@ -57,7 +57,7 @@ defines an array trans (of `double`s, or floating point numbers), which will hol
 
 The following section
 ```{c eval = FALSE}
-    double beta = R0 / D_inf;
+    double beta = R_0 / D_inf;
     double epsilon = 1 / D_lat;
     double nu = 1 / D_inf;
     double tau = 1 / D_imm;
@@ -93,7 +93,7 @@ SEITL.sim.c <- "
     double rate[5];
     double dN[5];
 
-    double beta = R0 / D_inf;
+    double beta = R_0 / D_inf;
     double epsilon = 1 / D_lat;
     double nu = 1 / D_inf;
     double tau = 1 / D_imm;
@@ -172,7 +172,7 @@ This, again, defines a character string with C code, to be used later with `Csni
 
 ```{r tidy = FALSE}
 SEITL.dPrior.c <- "
-  lik = dunif(R0, 1, 50, 1) +
+  lik = dunif(R_0, 1, 50, 1) +
           dunif(D_lat, 0, 10, 1) +
           dunif(D_inf, 0, 15, 1) +
           dunif(D_imm, 0, 50, 1) +
@@ -184,14 +184,14 @@ SEITL.dPrior.c <- "
 ```
 This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to evaluate the prior probability density of a set of parameters. The first segment of code,
 ```{r engine = 'c', eval = FALSE}
-lik <- dunif(R0, 1, 50, 1) +
+lik <- dunif(R_0, 1, 50, 1) +
   dunif(D_lat, 0, 10, 1) +
   dunif(D_inf, 0, 15, 1) +
   dunif(D_imm, 0, 50, 1) +
   dunif(alpha, 0, 1, 1) +
   dunif(rho, 0, 1, 1)
 ```
-calculates the logged probability density according to uniform distributions with different bounds (e.g., 1 and 50 for `R0`), and takes the sum. The last arguments of 1 in `dunif` indicate that we want the logarithms of the probability densities. The last line,
+calculates the logged probability density according to uniform distributions with different bounds (e.g., 1 and 50 for `R_0`), and takes the sum. The last arguments of 1 in `dunif` indicate that we want the logarithms of the probability densities. The last line,
 ```{r engine = 'c', eval = FALSE}
 lik <- give_log ? lik:exp(lik)
 ```
@@ -200,8 +200,8 @@ returns the calculated log-likelihood if `give_log` is 1, and the exponential of
 # Constructing the `pomp` object
 
 ```{r tidy = FALSE}
-seitlPomp <- pomp(
-  data = FluTdC1971[, c("time", "obs")],
+SEITL_pomp <- pomp(
+  data = fluTdc1971[, c("time", "obs")],
   rprocess = euler.sim(
     step.fun = Csnippet(SEITL.sim.c),
     delta.t = 0.1
@@ -212,7 +212,7 @@ seitlPomp <- pomp(
   times = "time",
   t0 = 1,
   zeronames = "Inc",
-  paramnames = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
+  paramnames = c("R_0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
   statenames = c("S", "E", "I", "T", "L", "Inc"),
   obsnames = c("obs")
 )
@@ -221,7 +221,7 @@ seitlPomp <- pomp(
 This constructs the pomp object `seitlPomp` from the C functions defined above. The individual options are:
 
 ```{r tidy = FALSE, eval = FALSE}
-data <- FluTdC1971[, c("time", "obs")]
+data <- fluTdc1971[, c("time", "obs")]
 ```
 
 This specifies the data set. We select the two relevant columns, `time` and `obs`.
@@ -251,10 +251,10 @@ times <- "time"
 t0 <- 1
 ```
 
-These indicate that times in the data set (`FluTdC1971`) are given by the "time" column, and that the simulations are to start with the initial state at time 1.
+These indicate that times in the data set (`fluTdc1971`) are given by the "time" column, and that the simulations are to start with the initial state at time 1.
 
 ```{r tidy = FALSE, eval = FALSE}
-paramnames <- c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
+paramnames <- c("R_0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
 statenames <- c("S", "E", "I", "T", "L", "Inc")
 obsnames <- c("obs")
 ```

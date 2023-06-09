@@ -5,8 +5,8 @@ Here is a possible solution for the ABC-SMC with two populations.
 ```{r abcSmcsolutions, eval=F}
 library(fitR)
 library(MASS)
-source("sumstat_examples.r")
-source("distance_examples.r")
+source(here::here("scripts", "snippets", "sumstat-examples.r"))
+source(here::here("scripts", "snippets", "distance-examples.r"))
 
 initState <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 
@@ -19,7 +19,7 @@ pop_1 <- my_abcAlgorithm(
   distanceAbc = ssMeanRelDistance,
   fitmodel = seitlStoch,
   initState = initState,
-  data = FluTdC1971
+  data = fluTdc1971
 )
 
 
@@ -47,7 +47,7 @@ while (i < N) {
   # perturb these parameters using multivariate Gaussian distribution
   parsPerturb <- mvrnorm(n = 1, pars, Sigma)
 
-  theta <- c(R0 = 2, D_lat = parsPerturb[["D_lat"]], D_inf = parsPerturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
+  theta <- c(R_0 = 2, D_lat = parsPerturb[["D_lat"]], D_inf = parsPerturb[["D_inf"]], alpha = 0.9, D_imm = 13, rho = 0.85)
 
   # if any of the proposed parameters are less than 0, reject them (set distance to infinity)
   if (any(theta < 0)) {
@@ -61,7 +61,7 @@ while (i < N) {
       fitmodel = seitlStoch,
       theta = theta,
       initState = initState,
-      data = FluTdC1971
+      data = fluTdc1971
     )
   }
 
