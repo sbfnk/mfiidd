@@ -35,7 +35,7 @@ df$func <- apply(df, 1, function(x) {
 
 ds <- df %>%
   dplyr::filter(!func) %>%
-  dplyr::filter(name %in% c("FluTdC1971", "measles"))
+  dplyr::filter(name %in% c("fluTdc1971", "measles"))
 
 ms <- df %>%
   dplyr::filter(!func) %>%

@@ -41,11 +41,11 @@ Among the 284 islanders, 273 (96%) experienced at least one episode of illness a
 The dataset of daily incidence can be loaded and plotted as follows:
 
 ```{r data, collapse=TRUE}
-data(FluTdC1971)
-head(FluTdC1971)
+data(fluTdc1971)
+head(fluTdc1971)
 
 # plot daily observed incidence
-plotTraj(data = FluTdC1971)
+plotTraj(data = fluTdc1971)
 ```
 
 # SEITL model
@@ -92,15 +92,14 @@ $$
 The deterministic and stochastic SEITL models are already implemented as two `fitmodel` objects called `seitlDeter` and `seitlStoch` respectively. These can be loaded into your **R** session by typing:
 
 ```{r load_models,results="hide"}
-data(seitlDeter)
-data(SEITL_stoch)
+data(models)
 ```
 
 A brief technical note: You might be confused that we use a function called `data` to load a `fitmodel`. However, this was the best way to provide you with models that preserved comments in the code of the function. Type `seitlDeter$simulate`, for instance.
 
 __Take 10 minutes to look at the different elements of both models.__ In particular, you might be interested in how the daily incidence is computed in the function `seitlDeter$simulate` and how the likelihood function `seitlDeter$dPointObs` accounts for under-reporting. 
 
-You should also notice that `SEITL_stoch` mainly differs from `SEITL_deter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm needs a list of transitions (`SEITL_transitions`) and a function to compute the transition rate (`SEITL_rateFunc`). Make sure you understand all the transitions and rates and see the analogy with the deterministic equations.
+You should also notice that `seitlStoch` mainly differs from `seitlDeter` through the `simulate` function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm needs a list of transitions (`seitlTransitions`) and a function to compute the transition rate (`seitlRateFunc`). Make sure you understand all the transitions and rates and see the analogy with the deterministic equations.
 
 If you are curious about how the stochastic model is simulated, you can have a look at the code of the function `simulateModelStochastic`. You will note that it calls the function `ssa.adaptivetau` of the **R** package `adaptivetau`, and then processes the returned data frame in order to extract the state of the model at the desired observation times given by `times`.
 
@@ -126,28 +125,28 @@ Now, try to assess whether the SEITL model can reproduce the two-wave outbreak o
 You can use the `plotFit` function you encountered in the [first practical](introduction.html#assess-the-model-fit) to generate an observation trajectory and display it against the data:
 
 ```{r oneTraj, results="hide"}
-theta.bad.guess <- c("R0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.9, "D_imm" = 13, "rho" = 0.85)
-initState.bad.guess <- c("S" = 250, "E" = 0, "I" = 4, "T" = 0, "L" = 30, "Inc" = 0)
-plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971)
+thetaBadGuess <- c("R_0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.9, "D_imm" = 13, "rho" = 0.85)
+initStateBadGuess <- c("S" = 250, "E" = 0, "I" = 4, "T" = 0, "L" = 30, "Inc" = 0)
+plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971)
 ```
 
 You can display all states variables (not only the sampled observations) by passing `all.vars=TRUE` to the `plotFit` function:
 
 ```{r allVars, fig.height=6,fig.width=10, results="hide"}
-plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971, all.vars = TRUE)
+plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, all.vars = TRUE)
 ```
 
 Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy `obs` time-series.
 You can appreciate the variability of the observation process by plotting several replicates (use the argument `n.replicates`):
 
 ```{r manyObs, results="hide"}
-plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971, n.replicates = 100)
+plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, n.replicates = 100)
 ```
 
 By default, this function plots the mean and the median as well as the $95^\mathrm{th}$ and $50^\mathrm{th}$ percentiles of the replicated simulations. Alternatively, you can visualise all the simulated trajectories by passing `summary=FALSE` to the `plotFit` function:
 
 ```{r allTraj, results="hide"}
-plotFit(seitlDeter, theta.bad.guess, initState.bad.guess, data = FluTdC1971, n.replicates = 100, summary = FALSE)
+plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, n.replicates = 100, summary = FALSE)
 ```
 
 __Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
@@ -210,12 +209,8 @@ We propose to extend the SEITL as follows:
 ![The SEIT4L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the $T$ compartment (temporary protection) follows an Erlang distribution with mean $D_\mathrm{imm}=1/\tau$ and shape equal to 4 and is modelled by 4 sub-stages $T_{1,2,3,4}$, each being exponentially distributed with mean equal to $\frac{D_\mathrm{imm}}{4}$.
 ](external_fig/import/SEIT4L.jpg)
 
-The deterministic and stochastic SEIT4L models are already implemented as `fitmodel` objects, which can be loaded into your **R** session by typing:
+The deterministic and stochastic SEIT4L models are already implemented as `fitmodel` objects called `seit4lDeter` and `seit4lStoch` that were also loaded into your **R** session with `data(models)`.
 
-```{r load_data, results="hide"}
-data(seit4lDeter)
-data(seit4lStoch)
-```
 __Take 5 minutes to have a look at the function `simulate` of these SEIT4L models and make sure you understand how the Erlang distribution for the $T$ compartment is coded.__
 
 Now, compare the dynamics of the SEITL and SEIT4L model using `plotFit`. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the `initState` of SEIT4L accordingly.
