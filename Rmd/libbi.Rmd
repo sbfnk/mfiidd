@@ -89,7 +89,7 @@ This defines a _dimension_ (i.e., the number of elements in a vector), that weâ€
 This defines the model states, that is variables that change over time. Note the `[k]` after `T`, specifying that `T` has dimension `k` (that is, `k_erlang` compartments).
 
 ```c
-  param R0, D_lat, D_inf, alpha, D_imm, rho
+  param R_0, D_lat, D_inf, alpha, D_imm, rho
 ```
 
 This defines the parameter, that is variables that donâ€™t change over time.
@@ -115,7 +115,7 @@ This specifies the initial states of the system. Here they are fixed, but they c
 
 ```c
   sub parameter { 
-    R0 ~ uniform(1, 50)
+    R_0 ~ uniform(1, 50)
     D_lat ~ uniform(0, 10)
     D_inf ~ uniform(0, 15)
     D_imm ~ uniform(0, 50)
@@ -134,7 +134,7 @@ This specifies the prior distributions. Here, they are all uniform, just in the 
 This starts the _transition_ block, that is the process model.
 
 ```c
-    inline beta = R0/D_inf
+    inline beta = R_0/D_inf
     inline epsilon = 1/D_lat
     inline nu = 1/D_inf
     inline tau = 1/D_imm
@@ -174,7 +174,7 @@ This defines the observation model. We use a observations distributed according 
 
 <!-- ```c -->
 <!--   sub proposal_parameter { -->
-<!--     R0 ~ truncated_gaussian(mean = R0, std = 3, lower = 1, upper = 50) -->
+<!--     R_0 ~ truncated_gaussian(mean = R_0, std = 3, lower = 1, upper = 50) -->
 <!--     D_lat ~ truncated_gaussian(mean = D_lat, std = 0.2, lower = 0, upper = 10) -->
 <!--     D_inf ~ truncated_gaussian(mean = D_inf, std = 0.9, lower = 0, upper = 15) -->
 <!--     alpha ~ truncated_gaussian(mean = alpha, std = 0.02, lower = 0, upper = 1) -->
@@ -225,7 +225,7 @@ We want to determine the optimal number of T compartments in the stochastic SEIT
 
 ```{r}
 library("dplyr")
-tdc <- list(Cases = FluTdC1971 %>% dplyr::select(time, value = obs))
+tdc <- list(Cases = fluTdc1971 %>% dplyr::select(time, value = obs))
 ```
 
 The `rbi` object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns `time` and `value`. Here, the observations are called `Cases`, the same as in the line specifying the observation density in the LibBi file above.
@@ -298,7 +298,7 @@ os <- summary(bi[[2]], type = "obs")
 ggplot(os, aes(x = time)) +
   geom_line(aes(y = Median)) +
   geom_ribbon(aes(ymin = `1st Qu.`, ymax = `3rd Qu.`), alpha = 0.5) +
-  geom_point(aes(y = obs), FluTdC1971, color = "darkred") +
+  geom_point(aes(y = obs), fluTdc1971, color = "darkred") +
   ylab("cases")
 ```
 

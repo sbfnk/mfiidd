@@ -1,7 +1,7 @@
 Here is how you can wrap a log-posterior function for the `SIR` model fitted to the `epi3` data set, with fixed initial conditions of 999 susceptibles, 1 infected, and 0 recovered.
 
 ```{r echo=FALSE}
-knitr::read_chunk("epi3_wrapper.r")
+knitr::read_chunk(here::here("scripts", "snippets", "epi3-wrapper.r"))
 ```
 
 ```{r epi3_wrapper}

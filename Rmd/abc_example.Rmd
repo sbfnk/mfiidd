@@ -22,7 +22,7 @@ my_ABCAlgorithm <- function(N, epsilon, sumStats, distanceAbc,
     d_inf <- # INSERT HERE:
 
     theta <- c(
-      R0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85
+      R_0 = 2, D_lat = d_lat, D_inf = d_inf, alpha = 0.9, D_imm = 13, rho = 0.85
     )
 
     # use computeDistanceAbc to calculate a distance between the model
@@ -56,7 +56,7 @@ results <- my_ABCAlgorithm(
   distanceAbc = ssMeanRelDistance,
   fitmodel = seitlStoch,
   initState = initState,
-  data = FluTdC1971
+  data = fluTdc1971
 )
 
 head(results)

@@ -1,5 +1,5 @@
 # load fitmodel, data and define initState
-data(FluTdC1971)
+data(fluTdc1971)
 
 initState <- c(
   "S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0,
@@ -29,7 +29,7 @@ for (nParticles in testNparticles) {
   for (i in seq_len(nReplicates)) {
     ## one Monte-Carlo estimate of the log-likelihood
     sampleLogLike[i] <- myParticleFilter(
-      seit4lStoch, theta, initState, FluTdC1971, nParticles
+      seit4lStoch, theta, initState, fluTdc1971, nParticles
     )
   }
   ## end measuring time
