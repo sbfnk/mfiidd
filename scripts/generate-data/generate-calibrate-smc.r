@@ -1,9 +1,10 @@
 library("here")
 library("fitR")
+library("future")
 
 data(models)
 
-source(here::here("scripts", "snippets", "our-smc.r"))
+my_particleFilter <- function(...) particleFilter(...)$margLogLike
 source(here::here("scripts", "snippets", "calibrate-smc.r"))
 
 dataDir <- here::here("data")
