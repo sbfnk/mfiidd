@@ -1,11 +1,12 @@
 # run the MCMC
-my_mcmcTdc <- mcmcMh(
-  target = my_posteriorTdc,
+my_pMcmc <- mcmcMh(
+  target = my_posteriorSto,
   initTheta = initTheta,
-  proposalSd = proposalSd,
-  limits = list(lower = lower,upper = upper),
+  covmat = covmat,
+  limits = list(lower = lower, upper = upper),
   nIterations = nIterations,
   adaptSizeStart = adaptSizeStart,
   adaptSizeCooling = adaptSizeCooling,
   adaptShapeStart = adaptShapeStart
 )
+

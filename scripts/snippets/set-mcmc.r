@@ -2,7 +2,7 @@
 data(models)
 
 # wrapper for posterior
-my_posteriorTdC <- function(theta) {
+my_posteriorTdc <- function(theta) {
   my_fitmodel <- seitlDeter
   my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0)
   # note that for the SEIT4L model there are 4 state variables for the T
@@ -17,21 +17,21 @@ my_posteriorTdC <- function(theta) {
 }
 
 # theta to initialise the MCMC
-initTheta <- c(
-  "R_0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.8, "D_imm" = 16, "rho" = 0.85
+thetaInit <- c(
+  R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.8, D_imm = 16, rho = 0.85
 )
 
 # diagonal elements of the covariance matrix for the Gaussian proposal
 proposalSd <- c(
-  "R_0" = 1, "D_lat" = 0.5, "D_inf" = 0.5, "alpha" = 0.1, "D_imm" = 2, "rho" = 0.1
+  R_0 = 1, D_lat = 0.5, D_inf = 0.5, alpha = 0.1, D_imm = 2, rho = 0.1
 )
 
 # lower and upper limits of each parameter
 lower <- c(
-  "R_0" = 0, "D_lat" = 0, "D_inf" = 0, "alpha" = 0, "D_imm" = 0, "rho" = 0
+  R_0 = 0, D_lat = 0, D_inf = 0, alpha = 0, D_imm = 0, rho = 0
 )
 upper <- c(
-  "R_0" = Inf, "D_lat" = Inf, "D_inf" = Inf, "alpha" = 1, "D_imm" = Inf, "rho" = 1
+  R_0 = Inf, D_lat = Inf, D_inf = Inf, alpha = 1, D_imm = Inf, rho = 1
 )
 
 # number of iterations for the MCMC
