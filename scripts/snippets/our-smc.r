@@ -6,7 +6,7 @@
 # - initState: named numeric vector. Initial values of the state variables.
 # - data: data frame. Observation times and observed data.
 # The function returns the value of the marginal log-likelihood
-myParticleFilter <- function(fitmodel, theta, initState, data, nParticles) {
+my_particleFilter <- function(fitmodel, theta, initState, data, nParticles) {
   ## Initialisation of the algorithm
 
   # Marginal log-likelihood is set to 0 and will be updated during the filtering
