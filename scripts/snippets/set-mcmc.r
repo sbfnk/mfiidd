@@ -17,7 +17,7 @@ my_posteriorTdc <- function(theta) {
 }
 
 # theta to initialise the MCMC
-thetaInit <- c(
+initTheta <- c(
   R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.8, D_imm = 16, rho = 0.85
 )
 
