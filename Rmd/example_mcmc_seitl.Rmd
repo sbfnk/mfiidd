@@ -20,7 +20,9 @@ knitr::opts_chunk$set(
 
 ```{r fitR, cache = FALSE, echo = FALSE, results = "hide", warning = FALSE}
 library(fitR)
+data(models)
 set.seed(1234)
+
 ```
 
 Here is an example of possible answers to the practical on fitting the deterministic SEITL model to the Tristan da Cunha outbreak. 
@@ -133,7 +135,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#long-run-a
 
 # Long run analysis
 
-Here is an example of an analysis for our long run ($10^5$ iterations)
+Here is an example of an analysis for our long run (50k iterations)
 
 ```{r long-run-combine-traces, collapse = TRUE}
 # load mcmc output
