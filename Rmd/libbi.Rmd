@@ -54,7 +54,9 @@ For an introduction to the functionalities of the `rbi` and `rbi.helpers` packag
 Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using
 
 ```{r}
-seitlDet <- bi_model(lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_det.bi"))
+seitlDeter <- bi_model(
+  lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_deter.bi")
+)
 ```
 
 Here, `readLines` simple reads in the text file from the web site, and `bi_model` prepares it to be used with the `rbi` package.
@@ -62,7 +64,7 @@ Here, `readLines` simple reads in the text file from the web site, and `bi_model
 Look at the contents of the model file by typing
 
 ```{r eval=FALSE}
-seitlDet
+seitlDeter
 ```
 
 This file has the following sections:
@@ -179,13 +181,15 @@ This defines the observation model. We use a observations distributed according 
 Let’s load the stochastic model using
     
 ```{r}
-seitlSto <- bi_model(lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_sto.bi"))
+seitlStoch <- bi_model(
+  lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_stoch.bi")
+)
 ```
 
 Again, you can look at the contents of the model file by typing
 
 ```{r eval=FALSE}
-seitlSto
+seitlStoch
 ```
 
 This is very similar to the deterministic model, but the `transition` block (the process model) is different:
@@ -222,7 +226,7 @@ The `rbi` object expects data to be given as a named list, where each element co
 Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.
 
 ```{r eval=FALSE}
-prep <- sample(seitlSto,
+prep <- sample(seitlStoch,
   nsamples = 3000, proposal = "prior", obs = tdc,
   end_time = max(tdc$Cases$time), nparticles = 400
 )
@@ -297,4 +301,5 @@ ggplot(os, aes(x = time)) +
 
 * More information on all the methods and options and available can be found in the [LibBi manual](http://libbi.org/docs/LibBi-Manual.pdf) and the accompanying [paper](https://arxiv.org/abs/1306.3277).
 * More information on the R packages can be found in the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html) and [RBi.helpers vignette](rbi_helpers.html).
-* LibBi is being superseded by a new library called [Birch](https://birch-lang.org/). This allows to specify more general models than is possible in LibBi.
+* LibBi has been superseded by a new library called [Birch](https://birch-lang.org/). This allows to specify more general models than is possible in LibBi.
+a

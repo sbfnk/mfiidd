@@ -34,13 +34,6 @@ To load the `pomp` library, type
 library("pomp")
 ```
 
-```{r load-seit-pomp, include = FALSE}
-source(here::here("scripts", "snippets", "seitl-pomp.r"))
-source(here::here("scripts", "snippets", "seitl-pomp-r.r"))
-```
-
-
-
 If this does not work, you need to install the `pomp` library first. You can do this using
 ```{r eval = FALSE}
 install.packages("pomp")
@@ -51,22 +44,22 @@ To specify a model that you want to fit to data in *pomp*, you can either write 
 We have coded up the models of the previous practical sessions in *pomp* for you. To look at, for example, the `SEITL` model, use
 
 ```{r results = "hide"}
-SEITL_pomp
+source("https://sbfnk.github.io/mfiidd/pomp/SEITL_pomp.r", echo = TRUE)
 ```
 
 If this yields a compile error, have a look at the [important information for windows and mac users](http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.) or ask us for help. If you can't get it to work at all, you work with the *R* versions of the  code (see the note after the next paragraph).
 
 __Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help.
 
-__Note__: For the examples presented here, we are providing an alternative version that is coded entirely in *R*. To look at this, simply add "\_r" to the objects/examples. For example, to see the *R* version of the `SEITL` model in *pomp*, type 
+__Note__: For the examples presented here, we are providing an alternative version that is coded entirely in *R*. To look at this, simply add "\_r" to the file names (before the `.r` extension). For example, to see the *R* version of the `SEITL` model in *pomp*, type 
 ```{r results = "hide"}
-example(SEITL_pomp_r)
+source("https://sbfnk.github.io/mfiidd/pomp/SEITL_pomp.r", echo = TRUE)
 ```
 which creates an object called `SEITL_pomp_r`.
 
 How would you change the (C or *R* code) to get the `SEIT4L` model? You can have a go at it yourself, or load our version using
 ```{r results = "hide"}
-example(SEIT4L_pomp)
+source("https://sbfnk.github.io/mfiidd/pomp/SEIT4L_pomp.r", echo = TRUE)
 ```
 (again, simply add "_r" to get the *R* version).
 
@@ -81,12 +74,12 @@ We suggest that you try the methods described below with both of the models.
 Let's, again, guess some parameters and initial values:
 
 ```{r}
-theta <-
-  c(R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
-SEITL.initState <-
-  c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
-SEIT4L.initState <-
-  c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0, L.0 = 30, Inc.0 = 0)
+theta <- c(R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
+SEITL.initState <- c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
+SEIT4L.initState <- c(
+  S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0, L.0 = 30, 
+  Inc.0 = 0
+)
 ```
 
 Note the *pomp* syntax, whereby initial states are named as the named variable with `.0` appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).
@@ -162,8 +155,12 @@ plotTraj(SEITL.tm.sim, data = fluTdc1971, state.names = "obs")
 prop.sd <- rep(0.01, length(theta))
 names(prop.sd) <- names(theta)
 
-SEITL.mf <- mif(SEITL.tm, Nmif = 50, Np = 1000, cooling.fraction.50 = 0.01, rw.sd = prop.sd)
-SEITL.mf.sim <- simulate(SEITL.mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE)
+SEITL.mf <- mif(
+  SEITL.tm, Nmif = 50, Np = 1000, cooling.fraction.50 = 0.01, rw.sd = prop.sd
+)
+SEITL.mf.sim <- simulate(
+  SEITL.mf, nsim = 10, as.data.frame = TRUE, include.data = TRUE
+  )
 plotTraj(SEITL.mf.sim, data = fluTdc1971, state.names = "obs")
 ```
 ```{r}
@@ -186,7 +183,12 @@ The following code runs pMCMC with adaptation of the proposal distribution using
 
 ```{r results = "hide"}
 # run pMCMC with adaptive MCMC
-SEITL.pm <- pmcmc(SEITL.tm, Nmcmc = 5000, Np = 200, proposal = mvnRw.adaptive(rw.sd = prop.sd, scale.start = 100, shape.start = 200), max.fail = Inf)
+SEITL.pm <- pmcmc(
+  SEITL.tm, Nmcmc = 5000, Np = 200, 
+  proposal = mvnRw.adaptive(
+    rw.sd = prop.sd, scale.start = 100, shape.start = 200
+  ), max.fail = Inf
+)
 trace <- conv.rec(SEITL.pm, names(theta))
 ```
 
