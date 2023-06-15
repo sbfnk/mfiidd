@@ -122,8 +122,8 @@ In order to efficiently initialise your pMCMC, you can make use the results of t
 
 ```{r load-SEIT4L, collapse=TRUE}
 
-# this should load 2 objects in your environment: mcmc_SEIT4L_infoPrior_theta1 and mcmc_SEIT4L_infoPrior_theta2. Each one is a list of 3 elements returned by mcmcMh
-names(mcmc_SEIT4L_infoPrior_theta1)
+# this should load 2 objects in your environment: mcmcSeit4lInfoPriorTheta1 and mcmcSeit4lInfoPriorTheta2. Each one is a list of 3 elements returned by mcmcMh
+names(mcmcSeit4lInfoPriorTheta1)
 ```
 
 In the previous session, you have initialised `mcmcMh` with a diagonal covariance matrix for the Gaussian proposal using the argument `proposalSd`. Actually, you can also pass a non-diagonal covariance matrix, accounting for correlations, by using the argument `covmat` (type `?mcmcMh` for more details).
@@ -189,19 +189,19 @@ If you have run a pMCMC you should have noticed that it takes quite a lot of tim
 To save time, we have run 5 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
-data(pmcmc_SEIT4L_infoPrior_n50)
+data(pmcmcSeit4lInfoPrior8)
 # this should load a list with the same name, which contains the 5 chains.
-names(pmcmc_SEIT4L_infoPrior_n50)
+names(pmcmcSeit4lInfoPrior8)
 # each chain is a list of 3 elements returned by mcmcMh
-names(pmcmc_SEIT4L_infoPrior_n50[["chain1"]])
+names(pmcmcSeit4lInfoPrior8[["chain1"]])
 # the trace contains 9 variables for 3000 iterations
-dim(pmcmc_SEIT4L_infoPrior_n50[["chain1"]]$trace)
+dim(pmcmcSeit4lInfoPrior8[["chain1"]]$trace)
 ``` 
 We can combine the traces of the 5 chains into a `mcmc.list` object as follows:
 
 ```{r combine-trace, collapse=TRUE}
 library("coda")
-trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
   mcmc(chain$trace)
 }))
 head(trace, 1)
@@ -218,9 +218,9 @@ Let's increase the number of particles to 400, which is suggested by the calibra
 
 ```{r load-trace-400, collapse=TRUE}
 # load
-data(pmcmc_SEIT4L_infoPrior_n400)
+data(pmcmcSeit4lInfoPrior64)
 # create
-trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
   mcmc(chain$trace)
 }))
 ``` 
