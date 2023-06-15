@@ -1,7 +1,7 @@
 Here is an example of how to code the posterior.
 
 ```{r echo = FALSE, tidy = FALSE}
-knitr::read_chunk(here::here("scripts", "solutions", "our-posterior.r"))
+knitr::read_chunk(here::here("scripts", "snippets", "our-posterior.r"))
 ```
 
 ```{r posterior}

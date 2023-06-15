@@ -125,28 +125,39 @@ Now, try to assess whether the SEITL model can reproduce the two-wave outbreak o
 You can use the `plotFit` function you encountered in the [first practical](introduction.html#assess-the-model-fit) to generate an observation trajectory and display it against the data:
 
 ```{r oneTraj, results="hide"}
-thetaBadGuess <- c("R_0" = 2, "D_lat" = 2, "D_inf" = 2, "alpha" = 0.9, "D_imm" = 13, "rho" = 0.85)
-initStateBadGuess <- c("S" = 250, "E" = 0, "I" = 4, "T" = 0, "L" = 30, "Inc" = 0)
+thetaBadGuess <- c(
+  R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85
+)
+initStateBadGuess <- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971)
 ```
 
-You can display all states variables (not only the sampled observations) by passing `all.vars=TRUE` to the `plotFit` function:
+You can display all states variables (not only the sampled observations) by passing `allvars=TRUE` to the `plotFit` function:
 
 ```{r allVars, fig.height=6,fig.width=10, results="hide"}
-plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, all.vars = TRUE)
+plotFit(
+  seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971,
+  allVars = TRUE
+)
 ```
 
 Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy `obs` time-series.
 You can appreciate the variability of the observation process by plotting several replicates (use the argument `n.replicates`):
 
 ```{r manyObs, results="hide"}
-plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, n.replicates = 100)
+plotFit(
+  seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971,
+  nReplicates = 100
+)
 ```
 
 By default, this function plots the mean and the median as well as the $95^\mathrm{th}$ and $50^\mathrm{th}$ percentiles of the replicated simulations. Alternatively, you can visualise all the simulated trajectories by passing `summary=FALSE` to the `plotFit` function:
 
 ```{r allTraj, results="hide"}
-plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, n.replicates = 100, summary = FALSE)
+plotFit(
+  seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971,
+  nReplicates = 100, summary = FALSE
+)
 ```
 
 __Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
@@ -176,31 +187,40 @@ In order to include a memory effect, it is common practice to replace the expone
 As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
 
 ```{r erlang, echo=FALSE, fig.width=10, fig.height=5}
-library(ggplot2)
-library(plyr)
+library("ggplot2")
+library("plyr")
 
 m <- 2
 x <- seq(0, 4 * m, 0.01)
-all_k <- c(1, 2, 5, 20)
-names(all_k) <- all_k
+allK <- c(1, 2, 5, 20)
+names(allK) <- allK
 
-df_dist <- ldply(all_k, function(k) {
-  return(data.frame(x = x, "dens" = dgamma(x, shape = k, scale = m / k), "cum" = pgamma(x, shape = k, scale = m / k)))
+df_dist <- ldply(allK, function(k) {
+  return(data.frame(
+    x = x,
+    dens = dgamma(x, shape = k, scale = m / k),
+    cum = pgamma(x, shape = k, scale = m / k)
+  ))
 }, .id = "k")
 
 lab <- paste("k==", all_k, sep = "")
 
-df_plot <- melt(df_dist, measure.vars = c("dens", "cum"))
+dfPlot <- melt(df_dist, measure.vars = c("dens", "cum"))
 
-df_plot <- mutate(df_plot, variable = factor(variable, levels = c("dens", "cum"), labels = c("probability density", "cumulative distribution")))
+dfPlot <- mutate(
+  df_plot, variable = factor(
+    variable, levels = c("dens", "cum"),
+    labels = c("probability density", "cumulative distribution")
+  )
+)
 
 p <- ggplot(data = df_plot, aes(x = x, y = value, group = k)) +
-  facet_wrap(~variable, scale = "free_y")
-p <- p + geom_line(aes(colour = k, linetype = k), position = "identity", alpha = 1)
-p <- p + scale_colour_brewer("Shape", palette = "Dark2")
-p <- p + scale_linetype("Shape")
-p <- p + scale_x_continuous("time spent in the compartment")
-p <- p + theme_bw() + theme(legend.position = "top")
+  facet_wrap(~variable, scale = "free_y") +
+  geom_line(aes(colour = k, linetype = k), position = "identity", alpha = 1) +
+  scale_colour_brewer("Shape", palette = "Dark2") +
+  scale_linetype("Shape") +
+  scale_x_continuous("time spent in the compartment") +
+  theme_bw() + theme(legend.position = "top")
 print(p)
 ```
 

@@ -12,7 +12,7 @@ mcmcSeitl <- my_mcmcTdc
 save(mcmcSeitl, file = here::here("data", "mcmcTdcDeterShortRun.rdata"))
 
 source(here::here("scripts", "snippets", "theta-init.r"))
-nIterations <- 100000
+nIterations <- 50000
 
 initTheta <- theta1
 source(here::here("scripts", "snippets", "run-mcmc.r"))

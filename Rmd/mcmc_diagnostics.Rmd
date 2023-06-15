@@ -27,8 +27,6 @@ If we are fitting more than one parameter, it can be beneficial to use a multiva
 
 The `mcmcMh` takes the same parameters as the `my_mcmcMh` function you used in the previous practical session and can be used the same way, but it also allows to specify a covariance matrix (via the `covmat` parameter) instead of `proposalSd`. For now, we will keep using `proposalSd` but pass it a named vector of standard deviations, e.g. `proposalSd = c(R_0 = 1, D_inf = 2)`, in which case the sampler will use independent normal draws for the proposal distribution with standard deviation 1 and 2, respectively.
 
-<!-- In the previous practical session, we worked through some simple examples where we sampled from a distribution that depends on just one parameter. When fitting dynamic models, however, we are often faced with the need to fit models with a multitude of parameters so that our MCMC needs to sample from a multivariate posterior distribution. -->
-
 As a running example, we are going to analyse the data set `epi3`, which was generated from an SIR model with unknown basic reproduction number $R_0$ and infectious period $D_\mathrm{inf}$. 
 
 You can visualise the `epi3` data set with
@@ -51,20 +49,17 @@ For instance, if you experience a very low or a very high acceptance rate, it is
 Whenever one runs MCMC, it is important to assess its performance. It is very difficult (arguably, impossible) to be fully sure that a particular set of  MCMC runs provides reliable analysis, but, fortunately, there are ways to spot when things go wrong. We will look at assessing three aspects of MCMC: mixing, burn-in and run length
 
 
-We will use functions from the **R** package `coda` to diagnose MCMC runs. __We suggest that, once you've read this section, you spend a good half hour experimenting with the Metropolis-Hastings sampler and the `coda` package. Take your time to fully understand the behaviour of the Metropolis-Hastings sampler -- this is what we will use throughout this course.__ Don't only try to get the best fit -- it is also worth experimenting with what you need to do to break the sampler, i.e. get results inconsistent with what you found before.
-
-<!-- That is, you should try running MCMC on the `epi3` data set from different starting points, with different values for the step size (`proposalSd`), and assess the impact on the summary statistics and plots introduced below. Experiment with burning and thinning (which we will introduce below), and see what impact they have. -->
+We will use functions from the **R** package `coda` to diagnose MCMC runs. __We suggest that, once you've read this section, you spend a good half hour experimenting with the Metropolis-Hastings sampler and the `coda` package. Take your time to fully understand the behaviour of the Metropolis-Hastings sampler -- this is what we will use throughout this course.__ Don't only try to get the best fit -- it is also worth experimenting with what you need to do to break the sampler, i.e. get results inconsistent with what you found before. You could try to see if this happens when starting set from different initial values, with different values for the step size (`proposalSd`), and assess the impact on the summary statistics and plots introduced below. Similarly, you could experiment with the burn-in and thinning (which we will introduce below), and see what impact they have.
 
 
 ## Summary statistics
 
-Diagnosing MCMC usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics, and `coda` provides a rich suite of functions to this end. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters `initTheta` and step size `proposalSd`. If you didn't get an MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the `mcmcEpi3` object, which you can load with `data(mcmc)`:
+Diagnosing MCMC usually implies a graphical assessment of the behaviour of the sampler with respect to each fitted parameter, as well as of some summary statistics, and `coda` provides a rich suite of functions to this end. We suggest that you use the commands below to assess MCMC runs with different values of the initial parameters `initTheta` and step size `proposalSd`. If you didn't get an MCMC run to work, you can look at the output of an MCMC run that we did for you and saved in the `mcmcEpi3` object, which you can load with `data(mcmcEpi)`:
 
 
 ```{r load_trace}
-data(mcmc)
-trace <- mcmcEpi3$trace
-head(trace)
+data(mcmcEpi)
+head(mcmcEpi3)
 ```
 
 This run was created using the commands shown [here](mcmc_commands.html). In the following, we assume that you assigned the result of `my_mcmcMh` to a variable called `trace`, but of course you can call this anything you like.
@@ -73,7 +68,7 @@ To use `coda`, we must first convert our trace to a format that `coda` understan
 
 ```{r coda_trace}
 library("coda")
-mcmcTrace <- mcmc(trace)
+mcmcTrace <- mcmc(mcmcEpi3)
 ```
 
 We can get summary statics using `summary`
@@ -135,7 +130,7 @@ It is sometimes said that we are aiming for the trace to look like a [hairy cate
 Another way to check for convergence is to look at the autocorrelations between the samples returned by our MCMC. The lag-$k$ autocorrelation is the correlation between every sample and the sample $k$ steps before. This autocorrelation should become smaller as $k$ increases, i.e. samples can be considered as independent. If, on the other hand, autocorrelation remains high for higher values of $k$, this indicates a high degree of correlation between our samples and slow mixing.
 
 ```{r autocorrelations, fig.width = 10, fig.height = 5}
-autocorr.plot(mcmc.trace.burned)
+autocorr.plot(mcmcTraceBurned)
 ```
 
 In this case, the autocorrelation drops with increasing $k$ (or "lag", the x-axis in the plot), which is a good sign. If autocorrelation persists, we can *thin* the MCMC chain, that is we discard $n$ samples for every sample that we keep. To do this, again we use `burnAndThin` and pass the number of samples $n$ to be discarded for each kept sample as `thin` argument:
@@ -194,7 +189,7 @@ source(here::here("scripts", "snippets", "our-mcmcMh.r"))
 ```{r transform, message = FALSE}
 my_dLogPosteriorExpEpi3 <- function(theta) {
   return(my_dLogPosterior(
-    fitmodel = sirExp,
+    fitmodel = sirExpDeter,
     theta = theta,
     initState = c(S = 999, I = 1, R = 0),
     data = epi3
@@ -220,7 +215,7 @@ The `mcmcMh` function implemented in the `fitR` package uses the truncated multi
 ```{r posteriorEpi3}
 my_dLogPosteriorEpi3 <- function(theta) {
   return(my_dLogPosterior(
-    fitmodel = SIR,
+    fitmodel = sirDeter,
     theta = theta,
     initState = c(S = 999, I = 1, R = 0),
     data = epi3
@@ -233,7 +228,7 @@ trace <- mcmcMh(
   target = my_dLogPosteriorEpi3,
   initTheta = c(R_0 = 1, D_inf = 2),
   proposalSd = c(0.1, 0.01),
-  nIterations = 1000,
+  nIterations = 10000,
   limits = list(lower = c(R_0 = 0, D_inf = 0))
 )
 ```

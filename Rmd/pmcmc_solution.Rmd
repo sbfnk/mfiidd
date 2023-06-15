@@ -1,12 +1,12 @@
 % Solution: the particle MCMC
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache=TRUE, fig.path='figure/pmcmc_solution/', cache.path='cache/pmcmc_solution/' , fig.cap='', fig.align="center", message=FALSE, tidy=TRUE, warning=FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc_solution/", cache.path = "cache/pmcmc_solution/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
-library(fitR)
-source(here::here("scripts", "solutions", "our-smc.r"))
+library("fitR")
+source(here::here("scripts", "snippets", "our-smc.r"))
 set.seed(1234)
 ```
 
@@ -28,79 +28,47 @@ Ideally we want enough particles to obtain a fairly stable estimate of the log-l
 
 A simple calibration approach consists in plotting the mean, standard deviation and computational time of the log-likelihood estimate as a function of the number of particles. Although several parameters can be tested, we will use a `theta` close to the mean posterior estimate of the deterministic fit since it is likely to be the region of the parameter space we want to explore with the pMCMC.
 
-```{r calibration-SMC, file = "../R/calibrateSmc.r", eval = FALSE, tidy = FALSE}
+```{r calibration-SMC, eval = FALSE, tidy = FALSE}
+knitr::read_chunk(here::here("scripts", "snippets", "calibrate-smc.r"))
 ```
 
 We ran this calibration algorithm and obtained the following results:
 
 ```{r plot-calibration, echo=FALSE, fig.height=6, fig.width=8}
-
 data(calibrateSmc)
 
-dfPlot <- melt(calibrateSmc,id.vars="nParticles")
+## estimate time for 10,000 iterations from time for 100 iterations
+calibrateSmc <- mutate(calibrateSmc,
+  days10000 = days * 100
+)
+calibrateSmc <- select(calibrateSmc, -days)
 
-dfPlot <- mutate(dfPlot, variable=revalue(variable,c(time_10000iter_day="time 10000 iter (in days)", prop_depleted="prop. of samples with particle depletion")))
+dfPlot <- pivot_longer(calibrateSmc, c(-nParticles), names_to = "variable")
 
-p <- ggplot(dfPlot, aes(x=nParticles,y=value))+facet_wrap(~variable,scales="free_y")
-p <- p+geom_line()+geom_vline(xintercept=408,col="red",linetype="dashed")
-p <- p+theme_bw()+xlab("number of particles")
+dfPlot <- mutate(dfPlot,
+  variable = recode(variable,
+    days10000 = "time 10000 iter (in days)",
+    propDepleted = "prop. of samples with particle depletion"
+  )
+)
+
+p <- ggplot(dfPlot, aes(x = nParticles, y = value)) +
+  facet_wrap(~variable, scales = "free_y") +
+  geom_line() +
+  geom_vline(xintercept = 408, col = "red", linetype = "dashed") +
+  theme_bw() +
+  xlab("number of particles")
 print(p)
 ```
 
-The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC. 
+We can see how, with increasing number of particles, the standard deviation of the log-likelihood estimate decreases whilst the run time increases. Ideally we want to balance between a stable enough estimate of the log-likelihood to ensure good mixing and computation time. Various studies have shown that this is broadly the case at values of the standard deviation between 1 and 3. TODO INSERT REF The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC. 
 
 You can now return to the [practical](pmcmc.html#run-pmcmc) and set your pMCMC with 400 particles.
 
 # Setting the pMCMC
 
-```{r set-mcmc, eval=FALSE, tidy = FALSE}
-# load the fitmodels
-data(models)
-
-# wrapper for posterior
-my_posteriorSto <- function(theta){
-
-	my_fitmodel <- seit4lStoch
-	my_initState <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0)
-
-	my_nParticles <- 400
-	# you can reduce the number of particles if your pMCMC is too slow
-
-	return(dLogPosterior(fitmodel = my_fitmodel,
-                            theta = theta,
-                            initState = my_initState,
-                            data = fluTdc1971,
-                            margLogLike = my_particleFilter,
-                            nParticles = my_nParticles))
-
-}
-
-# load results of deterministic fit
-data(mcmc_TdC_deter_longRun)
-
-# Let's use the first trace only, no need to burn or thin
-trace <- mcmc_SEITL_infoPrior_theta1$trace
-
-# we will start the pMCMC at the mean posterior estimate
-# of the deterministic fit
-initTheta <- colMeans(trace[seit4lStoch$thetaNames])
-
-# and we take the empirical covariance matrix for the 
-# Gaussian kernel proposal
-covmat <- mcmc_SEITL_infoPrior_theta1$covmatEmpirical
-
-# lower and upper limits of each parameter
-lower <- c(R_0 = 0, D_lat = 0 , D_inf = 0, alpha = 0, D_imm = 0, rho = 0)
-upper <- c(R_0 = Inf, D_lat = Inf , D_inf = Inf, alpha = 1, D_imm = Inf, rho = 1)
-
-# number of iterations for the MCMC
-nIterations <- 50 # just a few since it takes quite a lot of time
-
-# Here we don't adapt so that we can check the acceptance rate of the empirical covariance matrix
-adaptSizeStart <- 100
-adaptSizeCooling <- 0.99
-adaptShapeStart <- 100
-
+```{r set-pmcmc, eval=FALSE, tidy = FALSE}
+knitr::read_chunk(here::here("scripts", "snippets", "set-pmcmc.r"))
 ```
 
 You can now go back to the [practical](pmcmc.html#run-a-pmcmc) and try to run 	pMCMC with those settings.
@@ -109,22 +77,24 @@ You can now go back to the [practical](pmcmc.html#run-a-pmcmc) and try to run 	p
 
 Here is an example of analysis of our 5 chains of 3000 iterations with 50 particles.
 
-```{r analyse-n50, collapse=TRUE, fig.height=7, fig.width=10}
+```{r analyse-n8, collapse=TRUE, fig.height=7, fig.width=10}
 # load traces
-data(pmcmc_SEIT4L_infoPrior_n50)
+data(pmcmcSeit4lInfoPrior)
 
 # combine into a `mcmc.list` object
-library('coda')
-trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) { mcmc(chain$trace) }))
+library("coda")
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
+  mcmc(chain$trace)
+}))
 
-# acceptance rate is below the optimal 23%
-1-rejectionRate(trace)
+# acceptance rate is way below the optimal 23%
+1 - rejectionRate(trace)
 
 # accordingly, the combined ESS is a bit low
 effectiveSize(trace)
 
 # Let's have a look at the traces
-library('lattice')
+library("lattice")
 xyplot(trace)
 ```
 
@@ -157,22 +127,22 @@ You can now return to the [practical](pmcmc.html#analyse-a-pmcmc-with-400-partic
 
 Here is an example of analysis of our 5 chains of 3000 iterations with 400 particles.
 
-```{r analyse-n400, collapse=TRUE, fig.height=7, fig.width=10}
-# load traces
-data(pmcmc_SEIT4L_infoPrior_n400)
+```{r analyse-n64, collapse=TRUE, fig.height=7, fig.width=10}
 
 # combine into a `mcmc.list` object
-library('coda')
-trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n400, function(chain) { mcmc(chain$trace) }))
+library("coda")
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior64, function(chain) {
+  mcmc(chain$trace)
+}))
 
 # acceptance rate is near optimal
-1-rejectionRate(trace)
+1 - rejectionRate(trace)
 
 # Note that the combined ESS is 2 times higher than with 50 particles
 effectiveSize(trace)
 
 # Let's have a look at the traces
-library('lattice')
+library("lattice")
 xyplot(trace)
 ```
 
@@ -212,22 +182,21 @@ You can now return to the [practical](pmcmc.html#stochastic-vs-deterministic-fit
 Here we compare the combined traces of the deterministic SEIT4L model (2 chains of $10^5$ iterations) with those obtained with the stochastic version (5 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
 
 ```{r sto-deter, collapse=TRUE, fig.height=7, fig.width=7}
-
 # load, burn and thin the deterministic fit
 
 # create mcmc object
-library('coda')
+library("coda")
 trace1 <- mcmc(mcmc_SEIT4L_infoPrior_theta1$trace)
 trace2 <- mcmc(mcmc_SEIT4L_infoPrior_theta2$trace)
 
 # combine in a mcmc.list
-trace <- mcmc.list(trace1,trace2)
+trace <- mcmc.list(trace1, trace2)
 
 # burn and thin as the chain with uniform prior (see above sections)
-traceDeter <-  burnAndThin(trace, burn=5000, thin=40)
+traceDeter <- burnAndThin(trace, burn = 5000, thin = 40)
 
 # compare posterior density
-plotPosteriorDensity(list(deter=traceDeter, sto=traceThinN400))
+plotPosteriorDensity(list(deter = traceDeter, sto = traceThinN400))
 ```
 
 Overall, the posterior distributions are quite different. This is especially true for $R_0$ and $D_{imm}$.
@@ -236,7 +205,7 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
-library('plyr')
+library("plyr")
 traceCombined <- ldply(traceThinN400)
 
 # take the mean of theta
@@ -244,9 +213,10 @@ thetaBar <- colMeans(traceCombined[seit4lStoch$thetaNames])
 print(thetaBar)
 
 # compute its log-likelihood
-initState <- c("S" = 279,"E" = 0,"I" = 2,"T1" = 3,"T2" = 0, "T3" = 0, "T4" = 0,"L" = 0,"Inc" = 0)
+initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0, "T4" = 0, "L" = 0, "Inc" = 0)
 logLikeThetaBar <- my_particleFilter(seit4lStoch, thetaBar, initState,
-                                        data = fluTdc1971, nParticles = 400)
+  data = fluTdc1971, nParticles = 400
+)
 print(logLikeThetaBar)
 
 logLikeThetaBarDeter <- dTrajObs(seit4lDeter, thetaBar, initState, data = fluTdc1971, log = TRUE)
@@ -270,7 +240,6 @@ In the previous session, we found that the DIC of the deterministic SEIT4L model
 We can visually check this result by plotting the posterior fit of each model:
 
 ```{r sto-deter-fit, results="hide", fig.height=4, fig.width=5}
-
 # take the mean posterior estimates of the deterministic model
 x <- summary(traceDeter)
 thetaBarDeter <- x$statistics[seit4lDeter$thetaNames, "Mean"]
@@ -278,7 +247,6 @@ thetaBarDeter <- x$statistics[seit4lDeter$thetaNames, "Mean"]
 plotFit(seit4lStoch, thetaBar, initState, data = fluTdc1971, nReplicates = 1000)
 
 plotFit(seit4lDeter, thetaBarDeter, initState, data = fluTdc1971, nReplicates = 1000)
-
 ```
 
 Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.

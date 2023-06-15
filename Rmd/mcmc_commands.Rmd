@@ -1,12 +1,7 @@
 To generate the `mcmcEpi3` data set, we ran
 
 ```{r eval = FALSE}
-mcmcEpi3 <- my_mcmcMh(
-  target = my_dLogPosteriorEpi3,
-  initTheta = c(R_0 = 1, D_inf = 2),
-  proposalSd = c(0.01, 0.1),
-  nIterations = 1000
-)
+knitr::read_chunk(here::here("scripts", "snippets", "epi3-mcmc.r"))
 ```
 
 [Return](mcmc_diagnostics.html#summary-statistics) to the MCMC diagnostics session.

@@ -40,14 +40,14 @@ for (testR0 in seq(1.6, 1.9, length.out = 25))
     theta[["R_0"]] <- testR0
     
     # Evaluate the log posterior associated with this R_0
-    lp <- my_dLogPosterior(SIR, theta, initState, epi1)
+    lp <- my_dLogPosterior(sirDeter, theta, initState, epi1)
     
     # Save this iteration, using rbind to add another row to the grid data frame
     grid <- rbind(grid, data.frame(R_0 = testR0, lp = lp))
 }
 ```
 
-Run the code above, first making sure that `my_dLogPosterior`, `SIR`, and `epi1` are still available from the previous session.
+Run the code above, first making sure that `my_dLogPosterior`, `sirDeter`, and `epi1` are still available from the previous session.
 
 The grid approximation is now in the data frame `grid`. Have a look at it:
 
@@ -106,7 +106,7 @@ for (i in 1:1000)
     theta[["R_0"]] <- my_R_0
     
     # Run the simulation to evaluate the log posterior
-    lp <- my_dLogPosterior(SIR, theta, initState, epi1)
+    lp <- my_dLogPosterior(sirDeter, theta, initState, epi1)
     
     # Warn if max_lp is too low
     if (lp > max_lp) {
@@ -227,7 +227,7 @@ my_mcmcMh <- function(target, initTheta, proposalSd, nIterations) {
 ```
 
 ```{r source_our_mcmc, include = FALSE, tidy = FALSE}
-source(here::here("scripts", "snippets", "our-mcmcMh.r")))
+source(here::here("scripts", "snippets", "our-mcmcMh.r"))
 ```
 
 If you have trouble filling any of the empty bits in, have a look at our [more guided example](mcmc_example.html).
@@ -290,28 +290,29 @@ Lastly, `my_dLogPosterior` takes four parameters, and to use it with the `my_mcm
 
 
 ```{r source_our_logpost, echo=FALSE}
-source(here::here("scripts", "snippets", "our_posterior.r"))
+source(here::here("scripts", "snippets", "our-posterior.r"))
 ```
 
 ```{r write_logpost}
-my_dLogPosteriorR0Epi1 <- function(R_0) {
-
-  return(my_dLogPosterior(fitmodel = SIR,
-                          theta = c(R_0 = R_0, D_inf = 2),
-                          initState = c(S = 999, I = 1, R = 0),
-                          data = epi1))
+my_dLogPosteriorR0Epi1 <- function(r0) {
+  return(my_dLogPosterior(
+    fitmodel = sirDeter,
+    theta = c(R_0 = r0, D_inf = 2),
+    initState = c(S = 999, I = 1, R = 0),
+    data = epi1)
+  )
 }
 ```
 
 We can test that this function returns the value of the posterior for a given value of $R_0$.
 
 ```{r eval_logpost}
-my_dLogPosterior_R0Epi1(R_0 = 3)
+my_dLogPosteriorR0Epi1(r0 = 3)
 ```
 
 You should get the same number unless you changed the `SIR$dPointObs` function.
 
-__Take 10 minutes to generate samples from `my_dLogPosterior_R0Epi1` using `my_mcmcMh`. Can you work out the command to do this?__ If you have any problems with this, have a look at our [solution](generate_samples.html).
+__Take 10 minutes to generate samples from `my_dLogPosteriorR0Epi1` using `my_mcmcMh`. Can you work out the command to do this?__ If you have any problems with this, have a look at our [solution](generate_samples.html).
 
 Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as:
 

@@ -30,17 +30,19 @@ dLogPosteriorEpi4 <- function(theta) {
   ))
 }
 
-mcmcEpi1 <- mcmcMh(
+source(here::here("scripts", "snippets", "our-mcmcMh.r"))
+
+mcmcEpi1 <- my_mcmcMh(
   target = dLogPosteriorEpi1, initTheta = c(R_0 = 3, D_inf = 2),
   proposalSd = c(0.05, 0), nIterations = 10000
 )
-mcmcEpi3 <- mcmcMh(
-  target = dLogPosteriorEpi3, initTheta = c(R_0 = 1, D_inf = 2),
-  proposalSd = c(0.01, 0.1), nIterations = 1000
-)
-mcmcEpi4 <- mcmcMh(
+
+my_dLogPosteriorEpi3 <- dLogPosteriorEpi3
+source(here::here("scripts", "snippets", "epi3-mcmc.r"))
+
+mcmcEpi4 <- my_mcmcMh(
   target = dLogPosteriorEpi4, initTheta = c(R_0 = 1, D_inf = 2, RR = 1),
   proposalSd = c(0.01, 0.1, 0.01), nIterations = 10000
 )
 
-save(mcmcEpi1, mcmcEpi3, mcmcEpi4, file = here::here("data", "mcmc-epi.rdata"))
+save(mcmcEpi1, mcmcEpi3, mcmcEpi4, file = here::here("data", "mcmcEpi.rdata"))
