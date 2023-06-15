@@ -1,3 +1,7 @@
+---
+title: "Full example: posterior"
+---
+
 Here is an example of how to code the posterior.
 
 ```{r echo = FALSE, tidy = FALSE}

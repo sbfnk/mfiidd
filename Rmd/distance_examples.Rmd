@@ -1,3 +1,7 @@
+---
+title: "Examples: Distance functions"
+---
+
 Here is a (by no means exhaustive) list of examples for distance functions.
 
 ```{r echo=FALSE}

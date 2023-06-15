@@ -1,4 +1,6 @@
-% The SEITL model in *LibBi*
+---
+title: "The SEITL model in *LibBi*"
+---
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/libbi/", cache.path = "cache/libbi/", fig.cap = "", fig.align = "center", tidy = FALSE)
@@ -212,7 +214,7 @@ We want to determine the optimal number of T compartments in the stochastic SEIT
 ```{r}
 library("dplyr")
 data(fluTdc1971)
-tdc <- list(Cases = fluTdc1971 %>% dplyr::select(time, value = obs))
+tdc <- list(Cases = fluTdc1971 |> dplyr::select(time, value = obs))
 ```
 
 The `rbi` object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns `time` and `value`. Here, the observations are called `Cases`, the same as in the line specifying the observation density in the LibBi file above.

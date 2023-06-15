@@ -1,4 +1,6 @@
-% Modelling interlude: Tristan da Cunha outbreak & the SEITL model.
+---
+title: "Modelling interlude: Tristan da Cunha outbreak & the SEITL model"
+---
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/play_with_SEITL/", cache.path = "cache/play_with_SEITL/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
@@ -188,33 +190,35 @@ As illustrated below the flexibility of the Erlang distribution ranges from the 
 
 ```{r erlang, echo=FALSE, fig.width=10, fig.height=5}
 library("ggplot2")
-library("plyr")
+library("tidyr")
+library("purrr")
 
 m <- 2
 x <- seq(0, 4 * m, 0.01)
 allK <- c(1, 2, 5, 20)
 names(allK) <- allK
 
-df_dist <- ldply(allK, function(k) {
+df_dist <- map(allK, \(k) {
   return(data.frame(
     x = x,
     dens = dgamma(x, shape = k, scale = m / k),
     cum = pgamma(x, shape = k, scale = m / k)
   ))
-}, .id = "k")
+})
+df_dist <- bind_rows(df_dist, .id = "k")
 
-lab <- paste("k==", all_k, sep = "")
+lab <- paste("k==", allK, sep = "")
 
-dfPlot <- melt(df_dist, measure.vars = c("dens", "cum"))
+dfPlot <- pivot_longer(df_dist, c(dens, cum))
 
 dfPlot <- mutate(
-  df_plot, variable = factor(
-    variable, levels = c("dens", "cum"),
+  dfPlot, variable = factor(
+    name, levels = c("dens", "cum"),
     labels = c("probability density", "cumulative distribution")
   )
 )
 
-p <- ggplot(data = df_plot, aes(x = x, y = value, group = k)) +
+p <- ggplot(data = dfPlot, aes(x = x, y = value, group = k)) +
   facet_wrap(~variable, scale = "free_y") +
   geom_line(aes(colour = k, linetype = k), position = "identity", alpha = 1) +
   scale_colour_brewer("Shape", palette = "Dark2") +
@@ -245,4 +249,3 @@ In the next session, you will verify your intuition by using a statistical crite
 
 * Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](external_ref/poisson_obs.pdf) from Germán Rodríguez' [lecture notes on generalized linear models](http://data.princeton.edu/wws509/notes).
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?
-

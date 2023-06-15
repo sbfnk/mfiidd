@@ -1,4 +1,6 @@
-% Particle MCMC
+---
+title: "Particle MCMC"
+---
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc/", cache.path = "cache/pmcmc/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
@@ -106,7 +108,7 @@ What can you notice when you:
 
 Can you think of and implement an algorithm to calibrate the number of particles? 
 
-Compare your approach with [ours](pmcmc_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
+Compare your approach with [ours](pmcmc_example_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
 
 # Run pMCMC
 
@@ -119,7 +121,7 @@ You have probably noticed that running `my_particleFilter` is time consuming. As
 In order to efficiently initialise your pMCMC, you can make use the results of the fit of the deterministic SEIT4L model of the previous session. Remember that you can load these results as follows:
 
 ```{r load-SEIT4L, collapse=TRUE}
-data(mcmc_TdC_deter_longRun)
+
 # this should load 2 objects in your environment: mcmc_SEIT4L_infoPrior_theta1 and mcmc_SEIT4L_infoPrior_theta2. Each one is a list of 3 elements returned by mcmcMh
 names(mcmc_SEIT4L_infoPrior_theta1)
 ```
@@ -164,7 +166,7 @@ adaptSizeCooling <- # INSERT HERE
 adaptShapeStart <- # INSERT HERE
 ```
 
-If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_solution.html#setting-the-pmcmc).
+If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_example_solution.html#setting-the-pmcmc).
 
 Then you should be able to run `mcmcMh`:
 
@@ -208,7 +210,7 @@ You can check that the chains were started from different `initState` and that w
 
 __Take 15 min__ to analyse these chains and conclude on the choice of using 50 particles to save computation time.
 
-You can compare your conclusions with [ours](pmcmc_solution.html#analyse-a-pmcmc-with-50-particles).
+You can compare your conclusions with [ours](pmcmc_example_solution.html#analyse-a-pmcmc-with-50-particles).
 
 # Analyse a pMCMC with 400 particles
 
@@ -225,13 +227,13 @@ trace <- mcmc.list(lapply(pmcmc_SEIT4L_infoPrior_n50, function(chain) {
 
 Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions with 50 and 400 particles using the function `plotPosteriorDensity`.
 
-You can also have a look at our [solution](pmcmc_solution.html#analyse-a-pmcmc-with-400-particles) if that helps.
+You can also have a look at our [solution](pmcmc_example_solution.html#analyse-a-pmcmc-with-400-particles) if that helps.
 
 # Stochastic vs deterministic fit
 
 Compare the posterior of the deterministic and stochastic SEIT4L models. Which model provides the best fit? Can you explain why?
 
-Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
+Check your answer [here](pmcmc_example_solution.html#stochastic-vs-deterministic-fit).
 
 # Going further
 
@@ -249,3 +251,4 @@ You might have noted that the `for()` loop over particles could be parallelized,
 - A [recent review](https://arxiv.org/abs/1703.02419) by Schön et al.
 - A [comprehensive textbook](https://www.springer.com/gb/book/9780387951461) by Doucet et al.
 - Another [review](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.117.1144) by Arulampalam et al.
+data(mcmcTdcDeterLongRun)

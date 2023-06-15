@@ -1,4 +1,6 @@
-# ABC-SMC algorithm with two populations
+---
+title: "ABC-SMC algorithm with two populations"
+---
 
 Here is a possible solution for the ABC-SMC with two populations.
 

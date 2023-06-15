@@ -5,9 +5,9 @@ title: "Example: fitting the deterministic SEITL model"
 ```{r setup, echo = FALSE}
 knitr::opts_chunk$set(
   cache = TRUE,
-  cache.path = "cache/example_mcmc_SEITL/",
+  cache.path = "cache/mcmc_and_model_comparison_example/",
   fig.retina = 2,
-  fig.path = "figure/example_mcmc_SEITL/",
+  fig.path = "figure/mcmc_and_model_comparison_example/",
   fig.cap = "",
   fig.align = "center",
   message = FALSE,
@@ -21,6 +21,7 @@ knitr::opts_chunk$set(
 ```{r fitR, cache = FALSE, echo = FALSE, results = "hide", warning = FALSE}
 library(fitR)
 data(models)
+data(fluTdc1971)
 set.seed(1234)
 
 ```
@@ -326,7 +327,7 @@ plotPosteriorDensity(traceInfoBurnThin)
 plotPosteriorDensity(list(unif = traceBurnThin, info = traceInfoBurnThin))
 ```
 
-$R_0$ and $D_{inf}$ have very different posterior. This is expected since there is an informative prior on $D_{inf}$ and $R_0$ is strongly correlated to $D_{inf}$. Note also that the mode of all other parameters have changed, though less than $D_{inf}$ and $R_0$. This illustrate the influence that one prior can have on the full posterior distribution.
+$R_0$ and $D_{inf}$ have very different posterior distributions. This is expected as there is an informative prior on $D_{inf}$, and $R_0$ is strongly correlated to $D_{inf}$. Note also that the mode of all other parameters have changed, though less than $D_{inf}$ and $R_0$. This illustrate the influence that one prior can have on the full posterior distribution.
 
 You can now go back to the [practical](mcmc_and_model_comparison.html#model-selection).
 
@@ -360,4 +361,4 @@ print(pD)
 dic <- dThetaBar + 2 * pD
 print(dic)
 ```
-Follow this [link](mcmc_and_model_comparison.html#posterior-predictive-checks) to go back to the practical.
+Follow this [link](mcmc_and_model_comparison.html#posterior-predictive-checks) to go back to the practical. 
