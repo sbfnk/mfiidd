@@ -1,7 +1,11 @@
+---
+title: "Full example: The particle filter"
+---
+
 Here is a possible solution for the particle filter.
 
 ```{r echo=FALSE}
-knitr::read_chunk("our_smc.r")
+knitr::read_chunk(here::here("scripts", "snippets", "our_smc.r"))
 ```
 ```{r our_smc}
 ```
