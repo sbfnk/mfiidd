@@ -4,11 +4,11 @@ data(models)
 # wrapper for posterior
 my_posteriorTdc <- function(theta) {
   my_fitmodel <- seitlDeter
-  my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T" = 3, "L" = 0, "Inc" = 0)
+  my_initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
   # note that for the SEIT4L model there are 4 state variables for the T
   # compartment
-  # my_initState <- c("S" = 279, "E" = 0, "I" = 2, "T1" = 3, "T2" = 0, "T3" = 0,
-  # "T4" = 0, "L" = 0, "Inc" = 0)
+  # my_initState <- c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0,
+  # T4 = 0, L = 0, Inc = 0)
 
   return(dLogPosterior(
     fitmodel = my_fitmodel, theta = theta, initState = my_initState,
