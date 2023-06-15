@@ -77,7 +77,7 @@ You can now go back to the [practical](pmcmc.html#run-a-pmcmc) and try to run 	p
 
 # Analyse a pMCMC with 50 particles
 
-Here is an example of analysis of our 5 chains of 3000 iterations with 50 particles.
+Here is an example of analysis of our 8 chains of 3000 iterations with 50 particles.
 
 ```{r analyse-n8, collapse=TRUE, fig.height=7, fig.width=10}
 # load traces
@@ -127,7 +127,7 @@ You can now return to the [practical](pmcmc.html#analyse-a-pmcmc-with-400-partic
 
 # Analyse a pMCMC with 400 particles
 
-Here is an example of analysis of our 5 chains of 3000 iterations with 400 particles.
+Here is an example of analysis of our 8 chains of 3000 iterations with 400 particles.
 
 ```{r analyse-n64, collapse=TRUE, fig.height=7, fig.width=10}
 
@@ -181,7 +181,7 @@ You can now return to the [practical](pmcmc.html#stochastic-vs-deterministic-fit
 
 # Stochastic vs deterministic fit
 
-Here we compare the combined traces of the deterministic SEIT4L model (2 chains of $10^5$ iterations) with those obtained with the stochastic version (5 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
+Here we compare the combined traces of the deterministic SEIT4L model (2 chains of 50000  iterations) with those obtained with the stochastic version (8 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
 
 ```{r sto-deter, collapse=TRUE, fig.height=7, fig.width=7}
 # load, burn and thin the deterministic fit
@@ -235,7 +235,7 @@ print(dThetaBar)
 
 # the effective number of parameters
 pD <- var(-2 * traceCombined$logLikelihood) / 2
-print(p.D)
+print(pD)
 
 # and finally the DIC
 dic <- dThetaBar + 2 * pD
@@ -251,7 +251,9 @@ We can visually check this result by plotting the posterior fit of each model:
 x <- summary(traceDeter)
 thetaBarDeter <- x$statistics[seit4lDeter$thetaNames, "Mean"]
 
-plotFit(seit4lStoch, thetaBar, initState, data = fluTdc1971, nReplicates = 1000)
+plotFit(
+  seit4lStoch, thetaBar, initState, data = fluTdc1971, nReplicates = 1000
+)
 
 plotFit(
   seit4lDeter, thetaBarDeter, initState, data = fluTdc1971, nReplicates = 1000
@@ -259,6 +261,5 @@ plotFit(
 ```
 
 Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.
-
 
 You've already finished? Why not [go further](pmcmc.html#going-further)?
