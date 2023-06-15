@@ -30,13 +30,13 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#run-a-mcmc
 If you didn't manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:
 
 ```{r load-trace, collapse = TRUE}
-data(mcmc_TdC_deter_shortRun)
-# this should load 2 objects in your environment: mcmc_SEITL and mcmc_SEIT4L. Each one is a list of 3 elements returned by mcmcMh
-names(mcmc_SEITL)
+data(mcmcTdcDeterShortRun)
+# this should load 2 objects in your environment: mcmcSeitl and mcmcSeitl4. Each one is a list of 3 elements returned by mcmcMh
+names(mcmcSeitl)
 # the trace contains 9 variables for 5000 iterations
-dim(mcmc_SEITL$trace)
+dim(mcmcSeitl$trace)
 # let's have a look at it
-head(mcmc_SEITL$trace)
+head(mcmcSeitl$trace)
 ```
 You can now go back to the [practical](mcmc_and_model_comparison.html#short-run-analysis) and analyse this trace.
 
@@ -47,7 +47,7 @@ Here is an example of analysis for our preliminary run:
 ```{r short-run-analysis-trace, collapse = TRUE}
 # convert to a mcmc object for coda
 library("coda")
-trace <- mcmc(mcmc_SEITL$trace)
+trace <- mcmc(mcmcSeitl$trace)
 
 # compute the acceptance rate
 1 - rejectionRate(trace)
@@ -123,12 +123,12 @@ Here is an example of an analysis for our long run ($10^5$ iterations)
 
 ```{r long-run-combine-traces, collapse = TRUE}
 # load mcmc output
-data(mcmc_TdC_deter_longRun)
+data(mcmcTdcDeterLongRun)
 
 # create mcmc objects for both traces
 library("coda")
-trace1 <- mcmc(mcmc_SEITL_theta1$trace)
-trace2 <- mcmc(mcmc_SEITL_theta2$trace)
+trace1 <- mcmc(mcmcSeitlTheta1$trace)
+trace2 <- mcmc(mcmcSeitlTheta2$trace)
 
 # combine traces as mcmc.list object
 trace <- mcmc.list(list(trace1, trace2))
@@ -274,8 +274,8 @@ Here we combine both chains with informative priors and compare the posterior di
 ```{r info-prior-analysis, results = "hyde"}
 library("coda")
 # create mcmc object
-traceInfo1 <- mcmc(mcmc_SEITL_infoPrior_theta1$trace)
-traceInfo2 <- mcmc(mcmc_SEITL_infoPrior_theta2$trace)
+traceInfo1 <- mcmc(mcmcSeitlInfoPriorTheta1$trace)
+traceInfo2 <- mcmc(mcmcSeitlInfoPriorTheta2$trace)
 
 # combine in a mcmc.list
 trace.info <- mcmc.list(traceInfo1, traceInfo2)
