@@ -374,7 +374,7 @@ The command for running a model based on a system of differential equations (e.g
   sirOde <- function(time, state, parameters) {
 
       ## parameters
-      beta <- parameters["R0"] / parameters["infectious.period"]
+      beta <- parameters["R_0"] / parameters["infectious.period"]
       gamma <- 1 / parameters["infectious.period"]
 
       ## states
@@ -398,7 +398,7 @@ We can plug this into the ~ode~ function
 #+BEGIN_SRC R
   trajectory <- ode(y = c(S = 999, I = 1, R = 0),
                     times = 1:10,
-                    parms = c(R0 = 5, infectious.period = 1),
+                    parms = c(R_0 = 5, infectious.period = 1),
                     func = sirOde)
   trajectory
 #+END_SRC
@@ -423,7 +423,7 @@ For the SIR model, we could write
 
   sirRateFunc <- function(x, parameters, t) {
 
-      beta <- parameters["R0"]/parameters["infectious.period"]
+      beta <- parameters["R_0"]/parameters["infectious.period"]
       nu <- 1/parameters["infectious.period"]
 
       S <- x["S"]
@@ -445,7 +445,7 @@ To run the stochastic model, we then use the ~ssa.adaptivetau~ function, which t
   run <- ssa.adaptivetau(init.values = c(S = 999, I = 1, R = 0),
                          transitions = sirTransitions,
                          rateFunc = sirRateFunc,
-                         params = c(R0 = 5, infectious.period = 1),
+                         params = c(R_0 = 5, infectious.period = 1),
                          tf = 10)
   head(run)
 #+END_SRC

@@ -26,7 +26,7 @@ So in this session you will:
 2. Learn on issues that arise when fitting a lot of parameters and how you can try to solve them.
 3. Compare both models and assess whether the best one actually provides a good fit of the data.
 
-To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT4L model. In the rest of the session, although most of the examples will refer to the SEITL model, the same commands work for the SEIT4L model, e.g. `data(SEIT4L_deter)` instead of `data(SEITL_deter)`.
+To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT4L model. In the rest of the session, although most of the examples will refer to the SEITL model, the same commands work for the SEIT4L model, i.e. using `data(seit4lDeter)` instead of `data(seitlDeter)`.
 
 
 # Run a MCMC
@@ -56,17 +56,17 @@ __Now, take 15 minutes to prepare all the inputs to be able to run `mcmcMh` and 
 ```{r set-mcmc, eval=FALSE, tidy=FALSE}
 
 # wrapper for posterior
-my_posteriorTdC <- function(theta){
+my_posteriorTdc <- function(theta){
 
 	my_fitmodel <- # INSERT HERE
 	my_initState <- # INSERT HERE
 
         return(dLogPosterior(fitmodel = my_fitmodel,
-                            theta = theta,
-                            initState =  my_initState,
-                            data = fluTdc1971,
-                            margLogLike  =  dTrajObs,
-                            log = TRUE))
+                             theta = theta,
+                             initState =  my_initState,
+                             data = fluTdc1971,
+                             margLogLike  =  dTrajObs,
+                             log = TRUE))
 
 }
 
@@ -96,7 +96,7 @@ If you have trouble filling some of the empty bits, have a look at our [example]
 Then you should be able to run `mcmcMh`:
 
 ```{r run-mcmc, eval=FALSE}
-knitr::read_chunk(here::here("scripts", "snippets", "run-mcmc.r")
+knitr::read_chunk(here::here("scripts", "snippets", "run-mcmc.r"))
 ```
 
 You should see some information printed as the chain runs: acceptance rate, state of the chain, log-likelihood etc. __In particular, what can you say about the evolution of the acceptance rate?__
@@ -110,7 +110,7 @@ __Take 10 minutes to change the parameters controlling the adaptive part of the 
 __Now it's time to use what you've learned in the previous session to analyse your MCMC outputs using the `coda` package.__
 
 ```{r load_coda, eval=FALSE,tidy = FALSE}
-library('coda')
+library("coda")
 ```
 
 Didn't manage to run `mcmcMh`? Just use the results from our [example](example_mcmc_SEITL.html#run-mcmc).
@@ -123,11 +123,11 @@ Note that because there are more than 6 parameters to look at, the `coda` functi
 
 You can find a grouped documentation for these three functions by typing `?acfplot`.
 
-__Take 15 minutes to analyse the trace returned by `mcmcMh`.__ Remember that, with the notation above, the trace can be accessed by `my_mcmcTdC$trace` and then converted to a `mcmc` object so that the `coda` functions recognize it:
+__Take 15 minutes to analyse the trace returned by `mcmcMh`.__ Remember that, with the notation above, the trace can be accessed by `my_mcmcTdc$trace` and then converted to a `mcmc` object so that the `coda` functions recognize it:
 
 ```{r coda-trace, eval=FALSE}
 # convert to a mcmc object for coda
-my_trace <- mcmc(my_mcmcTdC$trace)
+my_trace <- mcmc(my_mcmcTdc$trace)
 # plot the trace
 library("lattice") ## for xyplot
 xyplot(my_trace)
@@ -146,19 +146,20 @@ You should have noticed that the effective sample size (ESS) is quite small (<10
 To save time, we have run 2 chains of 100,000 iterations starting from different initial `theta` values:
 
 ```{r theta-init, eval=FALSE}
-knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r")
+knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r"))
 ```
 
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
 data(mcmc_TdC_deter_longRun)
-# this should load 2 objects in your environment: mcmc_SEITL_theta1 and mcmc_SEITL_theta2. Each one is a list of 3 elements returned by mcmcMh
-names(mcmc_SEITL_theta1)
+# this should load 2 objects in your environment: mcmcSeitlTheta1 and
+# mcmcSeitlTheta2. Each one is a list of 3 elements returned by mcmcMh
+names(mcmcSeitlTheta1)
 # the trace contains 9 variables for 100000 iterations
-dim(mcmc_SEITL_theta1$trace)
+dim(mcmcSeitlTheta1$trace)
 # let's have a look at it
-head(mcmc_SEITL_theta1$trace)
+head(mcmcSeitlTheta1$trace)
 ```
 
 __Take 15 minutes to analyse both chains together.__
@@ -199,8 +200,8 @@ In order to take into account the results of previous empirical studies, we have
 The corresponding outputs of `mcmcMh` were loaded with `data(mcmc_TdC_deter_longRun)` and should already be in your **R** environment:
 
 ```{r load-mcmc-info, collapse=TRUE}
-names(mcmc_SEITL_infoPrior_theta1)
-names(mcmc_SEITL_infoPrior_theta2)
+names(mcmcSeitlInfoPriorTheta1)
+names(mcmcSeitlInfoPriorTheta2)
 ``` 
 __Take 15 minutes to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?__
 
@@ -292,18 +293,20 @@ my_postPredCheck <- function(trace, nSamples, fitmodel, initState, data) {
 If you have trouble filling any of the empty bits, have a look at our [more guided example](our_ppc_insert.html).
 
 ```{r source-ppc, cache=FALSE, echo = FALSE}
-source(here::here("scripts", "snippets", "our_ppc.r"))
+source(here::here("scripts", "snippets", "our-ppc.r"))
 ```
 
 Now, do a posterior predictive check using one of the mcmc runs analysed above. For example,
 
 ```{r ppc, tidy = FALSE}
 initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-my_postPredCheck(trace = mcmc_SEITL_theta1$trace[seitlDeter$thetaNames],
-                 nSamples = 100,
-                 fitmodel = seitlDeter,
-                 initState = initState,
-                 data = fluTdc1971)
+my_postPredCheck(
+  trace = mcmcSeitlTheta1$trace[, seitlDeter$thetaNames],
+  nSamples = 100,
+  fitmodel = seitlDeter,
+  initState = initState,
+  data = fluTdc1971
+)
 ```
 
 Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.
