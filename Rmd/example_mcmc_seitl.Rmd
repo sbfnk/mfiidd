@@ -3,7 +3,19 @@ title: "Example: fitting the deterministic SEITL model"
 ---
 
 ```{r setup, echo = FALSE}
-knitr::opts_chunk$set(cache = TRUE, cache.path = "cache/example_mcmc_SEITL/", fig.retina = 2, fig.path = "figure/example_mcmc_SEITL/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE, fig.width = 7, fig.height = 7)
+knitr::opts_chunk$set(
+  cache = TRUE,
+  cache.path = "cache/example_mcmc_SEITL/",
+  fig.retina = 2,
+  fig.path = "figure/example_mcmc_SEITL/",
+  fig.cap = "",
+  fig.align = "center",
+  message = FALSE,
+  tidy = TRUE,
+  warning = FALSE,
+  fig.width = 7,
+  fig.height = 7
+)
 ```
 
 ```{r fitR, cache = FALSE, echo = FALSE, results = "hide", warning = FALSE}
@@ -30,8 +42,10 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#run-a-mcmc
 If you didn't manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:
 
 ```{r load-trace, collapse = TRUE}
+data(models)
 data(mcmcTdcDeterShortRun)
-# this should load 2 objects in your environment: mcmcSeitl and mcmcSeitl4. Each one is a list of 3 elements returned by mcmcMh
+# this should load 2 objects in your environment: mcmcSeitl and mcmcSeitl4.
+# Each one is a list of 3 elements returned by mcmcMh
 names(mcmcSeitl)
 # the trace contains 9 variables for 5000 iterations
 dim(mcmcSeitl$trace)
@@ -207,13 +221,21 @@ initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 
 # by default plotPosteriorFit summarize the fit of 100 thetas sampled from the
 # posterior
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971)
+plotPosteriorFit(
+  trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971
+)
 
-# alternatively,  one can plot the fit of the mean of the posterior (in this case the observation is replicated 100 times)
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971, posteriorSummary = "mean")
+# alternatively,  one can plot the fit of the mean of the posterior (in this
+# case the observation is replicated 100 times)
+plotPosteriorFit(
+  trace = trace, fitmodel = seitlDeter, initState = initState,
+  data = fluTdc1971, posteriorSummary = "mean"
+)
 
 # or using the maximum a posteriori (MAP) estimate
-plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971, posteriorSummary = "max")
+plotPosteriorFit(
+  trace = trace, fitmodel = seitlDeter, initState = initState,
+  data = fluTdc1971, posteriorSummary = "max")
 ```
 
 Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.
@@ -250,14 +272,26 @@ seitlDeter$dPrior <- function(theta, log = FALSE) {
 
   logPriorR0 <- dunif(theta[["R_0"]], min = 1, max = 50, log = TRUE)
   # normal distribution with mean = 2 and sd = 1 and truncated at 0
-  logPriorLatentPeriod <- log(dtruncnorm(theta[["D_lat"]], a = 0, b = Inf, mean = 2, sd = 1))
+  logPriorLatentPeriod <- log(
+    dtruncnorm(theta[["D_lat"]], a = 0, b = Inf, mean = 2, sd = 1)
+  )
   # normal distribution with mean = 2 and sd = 1 and truncated at 0
-  logPriorInfectiousPeriod <- log(dtruncnorm(theta[["D_inf"]], a = 0, b = Inf, mean = 2, sd = 1))
-  logPriorTemporaryImmunePeriod <- dunif(theta[["D_imm"]], min = 0, max = 50, log = TRUE)
-  logPriorProbabilityLongTermImmunity <- dunif(theta[["alpha"]], min = 0, max = 1, log = TRUE)
-  logPriorReportingRate <- dunif(theta[["rho"]], min = 0, max = 1, log = TRUE)
+  logPriorInfectiousPeriod <- log(
+    dtruncnorm(theta[["D_inf"]], a = 0, b = Inf, mean = 2, sd = 1)
+  )
+  logPriorTemporaryImmunePeriod <- dunif(
+    theta[["D_imm"]], min = 0, max = 50, log = TRUE
+  )
+  logPriorProbabilityLongTermImmunity <- dunif(
+    theta[["alpha"]], min = 0, max = 1, log = TRUE
+  )
+  logPriorReportingRate <- dunif(
+    theta[["rho"]], min = 0, max = 1, log = TRUE
+  )
 
-  logSum <- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod + logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity + logPriorReportingRate
+  logSum <- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod +
+    logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity +
+    logPriorReportingRate
 
   return(ifelse(log, logSum, exp(logSum)))
 }
@@ -278,7 +312,7 @@ traceInfo1 <- mcmc(mcmcSeitlInfoPriorTheta1$trace)
 traceInfo2 <- mcmc(mcmcSeitlInfoPriorTheta2$trace)
 
 # combine in a mcmc.list
-trace.info <- mcmc.list(traceInfo1, traceInfo2)
+traceInfo <- mcmc.list(traceInfo1, traceInfo2)
 
 # burn and thin as the chain with uniform prior (see above sections)
 traceInfoBurnThin <- burnAndThin(traceInfo, burn = 5000, thin = 40)
@@ -307,7 +341,9 @@ print(thetaBar)
 
 # compute its log-likelihood
 initState <- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-logLikeThetaBar <- dTrajObs(seitlDeter, thetaBar, initState, data = fluTdc1971, log = TRUE)
+logLikeThetaBar <- dTrajObs(
+  seitlDeter, thetaBar, initState, data = fluTdc1971, log = TRUE
+)
 print(logLikeThetaBar)
 
 # and its deviance

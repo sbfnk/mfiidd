@@ -97,7 +97,7 @@ Does your particle filter return the same value for the marginal log-likelihood?
 
 What can you notice when you:
 
-* Run several replicates with the same number of particles  
+* Run several replicates with the same number of particles
 * Increase the number of particles
 * Decrease the number of particles (try with one particle)
 * Change `theta`
@@ -135,14 +135,13 @@ my_posteriorSto <- function(theta){
 
     my_fitmodel <- # INSERT HERE
     my_initState <- # INSERT HERE
-    my_nParticles <- # INSERT HERE
 
     return(dLogPosterior(fitmodel = my_fitmodel,
                          theta = theta,
                          initState = my_initState,
                          data = fluTdc1971,
                          margLogLike = my_particleFilter,
-                         nParticles = my_nParticles))
+                         nParticles = nParticles))
     
 }
 
@@ -171,7 +170,7 @@ Then you should be able to run `mcmcMh`:
 
 ```{r run-pmcmc, eval=FALSE, tidy = FALSE}
 # run the pMCMC
-my_pMCMC <- mcmcMh(target = my_posteriorSto,
+my_pMCMC <- mcmcMh(target = my_posteriorSto(400),
                    initTheta = initTheta,
                    covmat = covmat,
                    limits = list(lower = lower,upper = upper),
@@ -185,7 +184,7 @@ my_pMCMC <- mcmcMh(target = my_posteriorSto,
 
 If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 50 particles.
 
-To save time, we have run 5 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and it's empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
+To save time, we have run 5 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
 data(pmcmc_SEIT4L_infoPrior_n50)

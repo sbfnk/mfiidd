@@ -1,7 +1,7 @@
 Here is a possible solution for the Metropolis-Hastings sampler.
 
 ```{r echo=FALSE}
-knitr::read_chunk("our_mcmcMh.r")
+knitr::read_chunk(here::here("scripts", "snippets", "our-mcmcMh.r"))
 ```
 
 ```{r our_mcmcMh}

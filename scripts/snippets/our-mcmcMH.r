@@ -72,7 +72,7 @@ my_mcmcMh <- function(target, initTheta, proposalSd, nIterations) {
     # add the current theta to the vector of samples
     # Note that we use `rbind` in order to deal with multivariate
     # target. So if `theta` is a vector then `samples` is a matrix.
-    samples <- rbind(samples, thetaCurrent, deparseLevel = 0)
+    samples <- rbind(samples, thetaCurrent, deparse.level = 0)
 
     # print current state of chain and acceptance rate
     # use paste() to deal with the case where `theta` is a vector
