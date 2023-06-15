@@ -1,4 +1,6 @@
-% Inference with ABC
+---
+title: "Inference with ABC"
+---
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/ABC/", cache.path = "cache/ABC/", fig.cap = "", fig.align = "center", tidy = FALSE)

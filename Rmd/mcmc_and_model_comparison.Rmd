@@ -91,7 +91,7 @@ adaptSizeCooling <- # INSERT HERE
 adaptShapeStart <- # INSERT HERE
 ```
 
-If you have trouble filling some of the empty bits, have a look at our [example](example_mcmc_SEITL.html#setting-the-mcmc).
+If you have trouble filling some of the empty bits, have a look at our [example](mcmc_and_model_comparison_example.html#setting-the-mcmc).
 
 Then you should be able to run `mcmcMh`:
 
@@ -103,7 +103,7 @@ You should see some information printed as the chain runs: acceptance rate, stat
 
 Note that we have set the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform fewer iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.
 
-__Take 10 minutes to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate.__ Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](example_mcmc_SEITL.html#setting-the-mcmc).
+__Take 10 minutes to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate.__ Try to find a "good" combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can't find one, look at our [example](mcmc_and_model_comparison_example.html#setting-the-mcmc).
 
 # Short run analysis
 
@@ -113,7 +113,7 @@ __Now it's time to use what you've learned in the previous session to analyse yo
 library("coda")
 ```
 
-Didn't manage to run `mcmcMh`? Just use the results from our [example](example_mcmc_SEITL.html#run-mcmc).
+Didn't manage to run `mcmcMh`? Just use the results from our [example](mcmc_and_model_comparison_example.html#run-mcmc).
 
 Note that because there are more than 6 parameters to look at, the `coda` functions used previously to plot the traces, densities and autocorrelations might not be optimal for laptop screens (the axis labels take too much space). Fortunately, `coda` has another set of functions to make the plots more compact:
 
@@ -137,7 +137,7 @@ xyplot(my_trace)
 * Determine what burning and thinning would be appropriate for your trace.
 * Compare the thinned and unthinned traces (e.g. posterior estimates, density). Do you think it is important to thin?
 
-If you are not sure about how to analyse your trace, have a look at our [example](example_mcmc_SEITL.html#short-run-analysis).
+If you are not sure about how to analyse your trace, have a look at our [example](mcmc_and_model_comparison_example.html#short-run-analysis).
 
 # Long run analysis
 
@@ -152,7 +152,7 @@ knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r"))
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
-data(mcmc_TdC_deter_longRun)
+data(mcmcTdcDeterLongRun)
 # this should load 2 objects in your environment: mcmcSeitlTheta1 and
 # mcmcSeitlTheta2. Each one is a list of 3 elements returned by mcmcMh
 names(mcmcSeitlTheta1)
@@ -172,7 +172,7 @@ __Hint__: the function `mcmc.list` of `coda` can be used to combine several `mcm
 
 Finally, you should also assess the fit of your model by using the function `plotPosteriorFit`. This function takes a sample of `theta` from the trace, simulates some observations and plot them against the data, thus allowing you to assess the fit. __Take 10 minutes to look at the documentation of this function and assess your fit, in particular try the different options for the argument `posterior.summary`.__ 
 
-Once again, if you are not sure how to complete these steps, have a look at our [example](example_mcmc_SEITL.html#long-run-analysis).
+Once again, if you are not sure how to complete these steps, have a look at our [example](mcmc_and_model_comparison_example.html#long-run-analysis).
 
 # Correlations
 
@@ -188,7 +188,7 @@ __Are your estimates in agreement with these previous studies? If not, did your 
 
 Modify `seitlDeter` to account this prior information and re-run a short MCMC for 5000 iterations. __Can you notice a difference in the posterior?__
 
-A solution can be found [here](example_mcmc_SEITL.html#correlations).
+A solution can be found [here](mcmc_and_model_comparison_example.html#correlations).
 
 # Informative priors
 
@@ -197,7 +197,7 @@ In order to take into account the results of previous empirical studies, we have
 * $D_{lat}\sim\mathcal{N}(\mu=2,\sigma=1)$
 * $D_{inf}\sim\mathcal{N}(\mu=2,\sigma=1)$
 
-The corresponding outputs of `mcmcMh` were loaded with `data(mcmc_TdC_deter_longRun)` and should already be in your **R** environment:
+
 
 ```{r load-mcmc-info, collapse=TRUE}
 names(mcmcSeitlInfoPriorTheta1)
@@ -205,7 +205,7 @@ names(mcmcSeitlInfoPriorTheta2)
 ``` 
 __Take 15 minutes to perform the same analysis as before and compare the posteriors with and without informative priors. Which parameters have significantly different posteriors? Does that make sense to you?__
 
-A solution can be found [here](example_mcmc_SEITL.html#informative-priors).
+A solution can be found [here](mcmc_and_model_comparison_example.html#informative-priors).
 
 # Model comparison
 
@@ -227,7 +227,7 @@ that is half of the variance of the deviance with respect to the posterior distr
 
 __The idea is that models with smaller DIC should be preferred to models with larger DIC.__ Models are penalized both by the value of $D(\bar\theta)$, which favors a good fit, but also by the effective number of parameters $p_D$. Since $D(\bar\theta)$ will decrease as the number of parameters in a model increases, the $p_D$ term compensates for this effect by favouring models with a smaller number of effective parameters.
 
-Compute the DIC for your model. A solution is provided [here](example_mcmc_SEITL.html#model-selection).
+Compute the DIC for your model. A solution is provided [here](mcmc_and_model_comparison_example.html#model-selection).
 
 __Now, it's time to compare the DIC of the SEITL and SEIT4L model. Which model should be preferred? Is the difference substantial?__
 
@@ -313,3 +313,4 @@ Of course, this is the outcome of a random draw (100 samples in this case), so i
 
 Does the best model yield to a "better" (higher) p-value?
 
+The corresponding outputs of `mcmcMh` were loaded with `data(mcmcTdcDeterLongRun)` and should already be in your **R** environment:data(mcmcTdcDeterLongRun)

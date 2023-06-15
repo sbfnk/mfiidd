@@ -1,3 +1,7 @@
+---
+title: "Example: generate samples"
+---
+
 An example command to generate samples from `my_rLogPosteriorEpi1` using `my_mcmcMh` is:
 
 ```{r echo = FALSE, tidy = FALSE}
@@ -6,15 +10,6 @@ knitr::read_chunk(here::here("scripts", "snippets", "generate-samples.r"))
 
 ```{r generate_samples,eval = FALSE}
 ```
-
-<!-- 
-
-This returns a vector -- to convert this into a matrix with two rows, type
-
-```{r eval = FALSE}
-trace <- matrix(trace, ncol = 2, byrow = TRUE)
-```
- -->
 
 You can copy and paste this command into your **R** session, and proceed from there.
 
