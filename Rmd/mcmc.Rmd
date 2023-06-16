@@ -10,6 +10,7 @@ knitr::opts_chunk$set(cache=TRUE, fig.path='figure/mcmc/', cache.path='cache/mcm
 library("fitR")
 library("here")
 data(models)
+data(epi)
 source(here::here("scripts", "snippets", "our-posterior.r"))
 ```
 
@@ -93,7 +94,7 @@ This code uses rejection sampling to sample from the posterior distribution of $
 ```{r reject_samp}
 # max_lp should be greater than, but not too much greater than,
 # the maximum log posterior of the target distribution
-max_lp <- -123.8
+max_lp <- -122.7
 
 # samp will hold the samples
 samp <- NULL
