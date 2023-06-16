@@ -27,7 +27,7 @@ jobs:
       - name: Install R dependencies
         run: |
           install.packages(c("remotes", "rmarkdown"))
-          remotes::install_deps(dependencies = TRUE)
+          remotes::install_github("sbfnk/fitR", dependencies = TRUE)
         shell: Rscript {0}
 
       - name: Render Site
