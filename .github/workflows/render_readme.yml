@@ -28,10 +28,11 @@ jobs:
       - name: Setup pandoc
         uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Install dependencies
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::rmarkdown, local::.
+      - name: Install R dependencies
+        run: |
+          install.packages(c("remotes", "rmarkdown"))
+          remotes::install_github("sbfnk/fitR", dependencies = TRUE)
+        shell: Rscript {0}
 
       - name: Compile the readme
         run: |
