@@ -5,36 +5,41 @@ data(fluTdc1971)
 dataDir <- here::here("data")
 dir.create(dataDir, showWarnings = FALSE)
 
-source(here::here("scripts", "snippets", "set-mcmc.r"))
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+setMcmcScript <- here::here("scripts", "snippets", "set-mcmc.r")
+runMcmcScript <- here::here("scripts", "snippets", "run-mcmc.r")
+thetaInitScript <- here::here("scripts", "snippets", "theta-init.r")
+infoPriorScript <- here::here("scripts", "snippets", "seitl-info-prior.r")
+
+source(setMcmcScript)
+source(runMcmcScript)
 
 mcmcSeitl <- my_mcmcTdc
 
-source(here::here("scripts", "snippets", "theta-init.r"))
+source(thetaInitScript)
 nIterations <- 50000
 
 initTheta <- theta1
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeitlTheta1 <- my_mcmcTdc
 
 initTheta <- theta2
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeitlTheta2 <- my_mcmcTdc
 
 ## informative priors
-source(here::here("scripts", "snippets", "seitl-info-prior.r"))
+source(infoPriorScript)
 seitlDeter$dPrior <- seitlInfoPrior
 
 initTheta <- theta1
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeitlInfoPriorTheta1 <- my_mcmcTdc
 
 initTheta <- theta2
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeitlInfoPriorTheta2 <- my_mcmcTdc
 
 ## SEIT4L model
-tmp <- readLines(setPmcmcScript)
+tmp <- readLines(setMcmcScript)
 tmp <- sub("my_fitmodel <- .*$", "my_fitmodel <- seit4lDeter", tmp)
 tmp <- sub(
   "my_initState <- .*$",
@@ -44,32 +49,32 @@ tmp <- sub(
   ), tmp)
 source(textConnection(tmp))
 
-source(here::here("scripts", "snippets", "set-mcmc.r"))
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+nIterations <- 5000
 
+source(runMcmcScript)
 mcmcSeit4l <- my_mcmcTdc
 
-source(here::here("scripts", "snippets", "theta-init.r"))
+source(thetaInitScript)
 nIterations <- 50000
 
 initTheta <- theta1
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeit4lTheta1 <- my_mcmcTdc
 
 initTheta <- theta2
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeit4lTheta2 <- my_mcmcTdc
 
 ## informative priors
-source(here::here("scripts", "snippets", "seitl-info-prior.r"))
+source(infoPriorScript)
 seitlDeter$dPrior <- seitlInfoPrior
 
 initTheta <- theta1
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeit4lInfoPriorTheta1 <- my_mcmcTdc
 
 initTheta <- theta2
-source(here::here("scripts", "snippets", "run-mcmc.r"))
+source(runMcmcScript)
 mcmcSeit4lInfoPriorTheta2 <- my_mcmcTdc
 
 save(
