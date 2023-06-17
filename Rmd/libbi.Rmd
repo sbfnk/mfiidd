@@ -59,7 +59,7 @@ seitlDeter <- bi_model(lines = readLines(
 ))
 ```
 ```{r include = FALSE}
-seitlDeter <- bi_model(lines = readLines("Rmd/bi/SEITL_deter.bi"))
+seitlDeter <- bi_model(lines = readLines("bi/SEITL_deter.bi"))
 ```
 
 
@@ -190,7 +190,7 @@ seitlStoch <- bi_model(lines = readLines(
 ))
 ```
 ```{r include = FALSE}
-seitlStoch <- bi_model(lines = readLines("Rmd/bi/SEITL_stoch.bi"))
+seitlStoch <- bi_model(lines = readLines("bi/SEITL_stoch.bi"))
 ```
 
 
