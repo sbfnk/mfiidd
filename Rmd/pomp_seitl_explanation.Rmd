@@ -90,7 +90,7 @@ Lastly, it is defined how the transitions change the compartments:
 
 # The stochastic model
 ```{r tidy = FALSE}
-## define stochastic model, for use with euler.sim, see ?euler.sim
+## define stochastic model, for use with euler, see ?euler
 SEITL.sim.c <- "
     double rate[5];
     double dN[5];
@@ -122,14 +122,14 @@ SEITL.sim.c <- "
 "
 ```
 
-This defines the stochastic model. This, again, is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`. It defines transitions which are then used by the *pomp* function `euler.sim`, which in turn uses the [Euler-Maruyama approximation](http://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to the full stochastic system. This calculates the number of events happening in a given fixed time step by sampling from a multinomial distribution with the probabilities of each event given by the product of its rate and the time step. This happens in the following four lines of code:
+This defines the stochastic model. This, again, is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`. It defines transitions which are then used by the *pomp* function `euler`, which in turn uses the [Euler-Maruyama approximation](http://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to the full stochastic system. This calculates the number of events happening in a given fixed time step by sampling from a multinomial distribution with the probabilities of each event given by the product of its rate and the time step. This happens in the following four lines of code:
 
 ```{c eval = FALSE}
     reulermultinom(1, S, &rate[0], dt, &dN[0]);
     reulermultinom(1, E, &rate[1], dt, &dN[1]);
     reulermultinom(1, I, &rate[2], dt, &dN[2]);
     reulermultinom(2, T, &rate[3], dt, &dN[3]);
- ```
+```
 
 Instead of calculating the rates of transition as in the deterministic skeleton above, `reulermultinom` draws random numbers from the compartment specified in the second argument to get the number of individuals who transition from that compartment to another one. These numbers are stored in the array `N`, and the numbers in each compartment adjusted in the following segment of code:
 
@@ -204,7 +204,7 @@ returns the calculated log-likelihood if `give_log` is 1, and the exponential of
 ```{r tidy = FALSE}
 SEITL_pomp <- pomp(
   data = fluTdc1971[, c("time", "obs")],
-  rprocess = euler.sim(
+  rprocess = euler(
     step.fun = Csnippet(SEITL.sim.c),
     delta.t = 0.1
   ),
@@ -234,7 +234,7 @@ skeleton <- vectorfield(Csnippet(SEITL.skel.c))
 These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `vectorfield`, see `?pomp`.
 
 ```{r tidy = FALSE, eval = FALSE}
-rprocess <- euler.sim(
+rprocess <- euler(
   step.fun = Csnippet(SEITL.sim.c),
   delta.t = 0.1
 )
