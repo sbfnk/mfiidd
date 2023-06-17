@@ -53,11 +53,15 @@ For an introduction to the functionalities of the `rbi` and `rbi.helpers` packag
 
 Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using
 
-```{r}
-seitlDeter <- bi_model(
-  lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_deter.bi")
-)
+```{r eval = FALSE}
+seitlDeter <- bi_model(lines = readLines(
+  "https://sbfnk.github.io/mfiidd/bi/SEITL_deter.bi"
+))
 ```
+```{r include = FALSE}
+seitlDeter <- bi_model(lines = readLines("Rmd/bi/SEITL_deter.bi"))
+```
+
 
 Here, `readLines` simple reads in the text file from the web site, and `bi_model` prepares it to be used with the `rbi` package.
 
@@ -180,11 +184,15 @@ This defines the observation model. We use a observations distributed according 
 
 Let’s load the stochastic model using
     
-```{r}
-seitlStoch <- bi_model(
-  lines = readLines("https://sbfnk.github.io/mfiidd/bi/SEITL_stoch.bi")
-)
+```{r eval = FALSE}
+seitlStoch <- bi_model(lines = readLines(
+  "https://sbfnk.github.io/mfiidd/bi/SEITL_stoch.bi"
+))
 ```
+```{r include = FALSE}
+seitlStoch <- bi_model(lines = readLines("Rmd/bi/SEITL_stoch.bi"))
+```
+
 
 Again, you can look at the contents of the model file by typing
 
