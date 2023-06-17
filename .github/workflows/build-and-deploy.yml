@@ -36,7 +36,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Render Site
-        run: Rscript -e "rmarkdown::render_site(input = "Rmd", encoding = 'UTF-8')"
+        run: Rscript -e "rmarkdown::render_site(input = 'Rmd', encoding = 'UTF-8')"
 
       - name: Deploy 🚀
         id: deployment
