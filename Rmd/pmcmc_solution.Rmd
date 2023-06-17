@@ -10,6 +10,8 @@ knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc_solution/", cache.p
 library("fitR")
 source(here::here("scripts", "snippets", "our-smc.r"))
 set.seed(1234)
+data(models)
+data(fluTdc1971)
 ```
 
 # Run a particle filter
@@ -37,6 +39,10 @@ knitr::read_chunk(here::here("scripts", "snippets", "calibrate-smc.r"))
 We ran this calibration algorithm and obtained the following results:
 
 ```{r plot-calibration, echo=FALSE, fig.height=6, fig.width=8}
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+
 data(calibrateSmc)
 
 ## estimate time for 10,000 iterations from time for 100 iterations
