@@ -9,6 +9,7 @@ knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/play_with_SEITL/", cache.
 ```{r load, include=FALSE, cache=FALSE}
 library(fitR)
 set.seed(1234)
+data(models)
 ```
 [Lecture slides](slides/sto_2019.pdf)
 
