@@ -29,6 +29,8 @@ jobs:
         uses: r-lib/actions/setup-pandoc@v2
 
       - name: Install R dependencies
+        env:
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           install.packages(c("remotes", "rmarkdown"))
           remotes::install_github("sbfnk/fitR", dependencies = TRUE)
