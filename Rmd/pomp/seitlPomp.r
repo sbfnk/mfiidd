@@ -1,8 +1,5 @@
-## load Tristan da Cunha data
-data(fluTdc1971)
-
 ## define deterministic skeleton
-SEITL.skel.c <- '
+seitlDeterSkel <- Csnippet("
     double trans[5];
 
     double beta = R0 / D_inf;
@@ -24,10 +21,10 @@ SEITL.skel.c <- '
     DT = trans[2] - trans[3] - trans[4];
     DL = trans[3];
     DInc = trans[1];
-'
+")
 
-## define stochastic model, for use with euler.sim, see ?euler.sim
-SEITL.sim.c <- '
+## define stochastic model, for use with euler, see ?euler
+seitlStochSim <- Csnippet("
     double rate[5];
     double dN[5];
 
@@ -55,20 +52,22 @@ SEITL.sim.c <- '
     T += dN[2] - dN[3] - dN[4];
     L += dN[3];
     Inc += dN[1];
-'
+")
+
+
 
 ## define sampling random point observations
-SEITL.rmeas.c <- '
+seitlGenObsPoint <- Csnippet("
     obs = rpois(rho * Inc > 0 ? rho * Inc : 0);
-'
+")
 
 ## define point observation probability density
-SEITL.dmeas.c <- '
+seitlPointLike <- Csnippet("
     lik = dpois(obs, rho * Inc > 0 ? rho * Inc : 0, give_log);
-'
+")
 
 ## define prior density
-SEITL.dprior.c <- '
+seitlPrior <- Csnippet("
   lik = dunif(R0, 1, 50, 1) +
           dunif(D_lat, 0, 10, 1) +
           dunif(D_inf, 0, 15, 1) +
@@ -77,39 +76,23 @@ SEITL.dprior.c <- '
           dunif(rho, 0, 1, 1);
 
   lik = give_log ? lik : exp(lik);
-'
-
-SEITL.logtrans.c <- '
-    TR0 = log(R0);
-    TD_inf = log(D_inf);
-    TD_lat = log(D_lat);
-    TD_imm = log(D_imm);
-    Talpha = log(alpha);
-    Trho = log(rho);
-'
-
-SEITL.exptrans.c <- '
-    TR0 = exp(R0);
-    TD_inf = exp(D_inf);
-    TD_lat = exp(D_lat);
-    TD_imm = exp(D_imm);
-    Talpha = exp(alpha);
-    Trho = exp(rho);
-'
+")
 
 ## construct pomp object
-SEITL_pomp <- pomp(data = fluTdc1971[, c("time", "obs")],
-                   skeleton = vectorfield(Csnippet(SEITL.skel.c)),
-                   rprocess = euler.sim(step.fun = Csnippet(SEITL.sim.c),
-                                        delta.t = 0.1),
-                   rmeasure = Csnippet(SEITL.rmeas.c),
-                   dmeasure = Csnippet(SEITL.dmeas.c),
-                   dprior = Csnippet(SEITL.dprior.c), 
-                   toEstimationScale = Csnippet(SEITL.logtrans.c),
-                   fromEstimationScale = Csnippet(SEITL.exptrans.c), 
-                   times = "time",
-                   t0 = 1,
-                   zeronames = "Inc", 
-                   paramnames = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
-                   statenames = c("S", "E", "I", "T", "L", "Inc"),
-                   obsnames = c("obs"))
+seitlPomp <- pomp(
+  data = fluTdc1971[, c("time", "obs")],
+  skeleton = vectorfield(seitlDeterSkel),
+  rprocess = euler(step.fun = seitlStochSim, delta.t = 0.1),
+  rmeasure = seitlGenObsPoint,
+  dmeasure = seitlPointLike,
+  dprior = seitlPrior,
+  partrans = parameter_trans(
+    log = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
+  ),
+  times = "time",
+  t0 = 1,
+  accumvars = "Inc",
+  paramnames = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
+  statenames = c("S", "E", "I", "T", "L", "Inc"),
+  obsnames = c("obs")
+)
