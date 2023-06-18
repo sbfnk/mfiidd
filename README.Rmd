@@ -1,3 +1,7 @@
+---
+output: github_document
+---
+
 # Model fitting and inference for infectious disease dynamics
 
 This repository contains the material to create the mfiidd webpage with the practicals.
