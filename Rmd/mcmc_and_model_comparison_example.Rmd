@@ -335,8 +335,9 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#model-sele
 
 ```{r dic, collapse = TRUE}
 # combine the two chains in a data frame
-library("dplyr") # needed for the 'bind_rows' function used in the next line
-traceCombined <- bind_rows(traceInfoBurnThin)
+library("dplyr") # needed for the 'bind_rows' function
+library("purrr") # needed for the 'map' function
+traceCombined <- bind_rows(map(traceInfoBurnThin, as.data.frame))
 
 # take the mean of theta
 thetaBar <- colMeans(traceCombined[seitlDeter$thetaNames])
