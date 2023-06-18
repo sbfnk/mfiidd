@@ -27,25 +27,27 @@ nIterations <- 3000
 start_time <- Sys.time()
 source(here::here("scripts", "snippets", "run-parallel-pmcmc.r"))
 end_time <- Sys.time()
-pmcmcSeit4lInfoPrior64 <- my_Pmcmc
+pmcmcSeit4lInfoPrior128 <- my_Pmcmc
 duration <- difftime(end_time, start_time, unit = "hours")
 duration
 
 ## fewer particles
 tmp <- readLines(setPmcmcScript)
-tmp <- sub("my_nParticles <- .*$", "my_nParticles <- 8", tmp)
+tmp <- sub("my_nParticles <- .*$", "my_nParticles <- 16", tmp)
 source(textConnection(tmp))
+
+nIterations <- 3000
 
 ## re-run
 start_time <- Sys.time()
 source(here::here("scripts", "snippets", "run-parallel-pmcmc.r"))
 end_time <- Sys.time()
 duration <- difftime(end_time, start_time, unit = "hours")
-pmcmcSeit4lInfoPrior8 <- my_Pmcmc
+pmcmcSeit4lInfoPrior16 <- my_Pmcmc
 duration
 
 save(
-  pmcmcSeit4lInfoPrior8, pmcmcSeit4lInfoPrior64,
+  pmcmcSeit4lInfoPrior16, pmcmcSeit4lInfoPrior128,
   file = here::here("data", "pmcmcSeit4lInfoPrior.rdata")
 )
 
