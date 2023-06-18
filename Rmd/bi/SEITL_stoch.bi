@@ -4,7 +4,7 @@ model seitlDeter {
   const timestep = 1
   dim k(k_erlang)
   state S, E, I, T[k], L, Inc
-  param R0, D_lat, D_inf, alpha, D_imm, rho
+  param R_0, D_lat, D_inf, alpha, D_imm, rho
   noise infection
   noise incubation
   noise loss_infectiousness
@@ -20,7 +20,7 @@ model seitlDeter {
     S <- N - I - T[0]
   }
   sub parameter {
-    R0 ~ uniform(1, 50)
+    R_0 ~ uniform(1, 50)
     D_lat ~ uniform(0, 10)
     D_inf ~ uniform(0, 15)
     D_imm ~ uniform(0, 50)
@@ -28,7 +28,7 @@ model seitlDeter {
     rho ~ uniform(0, 1)
   }
   sub transition (delta=timestep) {
-    inline beta = R0/D_inf
+    inline beta = R_0/D_inf
     inline epsilon = 1/D_lat
     inline nu = 1/D_inf
     inline tau = 1/D_imm
