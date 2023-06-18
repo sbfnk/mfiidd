@@ -4,8 +4,9 @@ title: "Further methods for model fitting and inference"
 
 The *fitR* package introduced in this course was deveoped as a teaching tool, and the implementation of inference algorithms in this package is not particularly efficient of stable. For vastly superior alternative options for fitting models to data there are much better options. Here we provide some additional short tutorials that show how these could be used to fit the SEITL and related models to the Tristan da Cunha data set.
 
-- [Fitting models to data using pomp][pomp.html]
-- [The SEITL model in *LibBi*][libbi.html]
+- [Fitting models to data using *pomp*][pomp.html]. For more information, see also the tutorials at the [pomp web site](https://kingaa.github.io/pomp/).
+- [The SEITL model in *LibBi*][libbi.html]. For more information see also the [LibBi web site](https://libbi.org).
+- We also recommend looking at [*stan*](https://mc-stan.org/) a general probabilistic programming language for Bayesian inference, as well as the great tutorials for using them with infectious disease published by [Chatzilena et al. (2019)](https://doi.org/10.1016/j.epidem.2019.100367) and [Grinsztajn et al. (2021)](https://doi.org/10.1002/sim.9164).
 
  
 
