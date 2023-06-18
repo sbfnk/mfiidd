@@ -10,7 +10,7 @@ knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc/", cache.path = "ca
 library(fitR)
 set.seed(1234)
 ```
-[Lecture slides](slides/smc_2019.pdf)
+[Lecture slides](slides/smc.pdf)
 
 # Objectives
 
@@ -186,18 +186,18 @@ my_pMCMC <- mcmcMh(target = my_posteriorSto(400),
 
 If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 50 particles.
 
-To save time, we have run 5 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
+To save time, we have run 8 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
 data(pmcmcSeit4lInfoPrior8)
-# this should load a list with the same name, which contains the 5 chains.
+# this should load a list with the same name, which contains the 8 chains.
 names(pmcmcSeit4lInfoPrior8)
 # each chain is a list of 3 elements returned by mcmcMh
 names(pmcmcSeit4lInfoPrior8[["chain1"]])
 # the trace contains 9 variables for 3000 iterations
 dim(pmcmcSeit4lInfoPrior8[["chain1"]]$trace)
 ``` 
-We can combine the traces of the 5 chains into a `mcmc.list` object as follows:
+We can combine the traces of the 8 chains into a `mcmc.list` object as follows:
 
 ```{r combine-trace, collapse=TRUE}
 library("coda")
@@ -214,7 +214,7 @@ You can compare your conclusions with [ours](pmcmc_example_solution.html#analyse
 
 # Analyse a pMCMC with 400 particles
 
-Let's increase the number of particles to 400, which is suggested by the calibration analysis. Again, to save time we have run 5 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a `mcmc.list` object as follows:
+Let's increase the number of particles to 400, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a `mcmc.list` object as follows:
 
 ```{r load-trace-400, collapse=TRUE}
 # load

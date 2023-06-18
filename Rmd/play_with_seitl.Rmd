@@ -11,7 +11,7 @@ library(fitR)
 set.seed(1234)
 data(models)
 ```
-[Lecture slides](slides/sto_2019.pdf)
+[Lecture slides](slides/sto.pdf)
 
 # Objectives
 
