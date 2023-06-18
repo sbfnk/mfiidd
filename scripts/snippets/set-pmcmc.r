@@ -4,7 +4,7 @@ my_posteriorSto <- function(theta) {
   my_initState <- c(
     S = 279, E = 0, I = 2, T1 = 3, T2 = 0,  T3 = 0,  T4 = 0, L = 0, Inc = 0
   )
-  my_nParticles <- 64
+  my_nParticles <- 128
 
   return(dLogPosterior(
     fitmodel = my_fitmodel,
