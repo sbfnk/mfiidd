@@ -91,16 +91,16 @@ data(pmcmcSeit4lInfoPrior)
 
 # combine into a `mcmc.list` object
 library("coda")
-trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
+trace16 <- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
   mcmc(chain$trace)
 }))
 
 # acceptance rate is way below the optimal 23%
-1 - rejectionRate(trace)
+1 - rejectionRate(trace16)
 
 # Let's have a look at the traces
 library("lattice")
-xyplot(trace)
+xyplot(trace16)
 ```
 
 We can see that in several chains the sampler gets "stuck", rendering our inference and any resulting calculations (e.g. of ESS) highly unreliable.
@@ -143,16 +143,16 @@ plotEssBurn(trace)
 acfplot(x = trace, lag.max = 50)
 
 # Let's keep 1 iteration every 20
-traceThinN128 <- burnAndThin(trace, thin = 20)
+traceThin128 <- burnAndThin(trace, thin = 20)
 
 # Let's plot the posterior densities
-densityplot(x = traceThinN128)
+densityplot(x = traceThin128)
 ```
 
 All 8 chains seems to have converged to the same posterior, which are smoother than with 16 particles. Let's compare the combined posterior densities with that obtained with 16 particles
 
 ```{r n128-n16, fig.height=7, fig.width=7}
-plotPosteriorDensity(list(n16 = traceThinN16, n128 = traceThinN128))
+plotPosteriorDensity(list(n16 = trace16, n128 = traceThin128))
 ```
 
 __Although the posterior distributions are similar, those with 128 particles are smoother and more representative thanks to higher ESS.__ Note the different location of the mode of $R_0$, which is shifted to the left with 16 particles. This is because 1 of the 8 chains with 16 particles shows a posterior with much lower $R_0$ (see figure above), whereas the remaining 4 seems to have converged to the same distribution as the pMCMC with 128 particles.
@@ -183,7 +183,7 @@ trace <- mcmc.list(trace1, trace2)
 traceDeter <- burnAndThin(trace, burn = 5000, thin = 40)
 
 # compare posterior density
-plotPosteriorDensity(list(deter = traceDeter, sto = traceThinN128))
+plotPosteriorDensity(list(deter = traceDeter, sto = traceThin128))
 ```
 
 Overall, the posterior distributions are quite different. This is especially true for $R_0$ and $D_{imm}$.
@@ -192,8 +192,8 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
-library("plyr")
-traceCombined <- ldply(traceThinN128)
+library("dplyr")
+traceCombined <- bind_rows(traceThin128)
 
 # take the mean of theta
 thetaBar <- colMeans(traceCombined[seit4lStoch$thetaNames])
