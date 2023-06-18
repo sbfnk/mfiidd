@@ -63,15 +63,15 @@ dfPlot <- mutate(dfPlot,
 p <- ggplot(dfPlot, aes(x = nParticles, y = value)) +
   facet_wrap(~variable, scales = "free_y") +
   geom_line() +
-  geom_vline(xintercept = 408, col = "red", linetype = "dashed") +
+  geom_vline(xintercept = 100, col = "red", linetype = "dashed") +
   theme_bw() +
   xlab("number of particles")
 print(p)
 ```
 
-We can see how, with increasing number of particles, the standard deviation of the log-likelihood estimate decreases whilst the run time increases. Ideally we want to balance between a stable enough estimate of the log-likelihood to ensure good mixing and computation time. Various studies have shown that this is broadly the case at values of the standard deviation between 1 and 3. TODO INSERT REF The mean and standard error of the log-likelihood estimate seem to stabilize around 400 particles (red line). By contrast, the computational time increases linearly with the number of particles. Using 400 particles looks optimal if we want a stable estimator while minimizing the computational time. Note however that it will take around 6 days to run 10000 times the particle filter with 400 particles. Since every step of the pMCMC requires to run a particle filter, that means that it will take 6 days to run 10000 iterations of the pMCMC. This is why you generally need a scientific computing cluster to run a pMCMC. 
+We can see how, with increasing number of particles, the standard deviation of the log-likelihood estimate decreases whilst the run time increases. Ideally we want to balance between a stable enough estimate of the log-likelihood to ensure good mixing and computation time. Various studies have shown that this is broadly the case at values of the standard deviation between 1 and 3 (see, e.g. [Farnhead and Küsch, section 7.2.1](https://doi.org/10.48550/arXiv.1709.04196)). We can see that this happens somewhere around 100 particles in our example (indicated by a dashed red line). We can also see that the computational time increases linearly with the number of particles. Using 128 particles may be optimal if we want a stable estimator while minimising the computational time, but would take `r round(filter(calibrateSmc, nParticles == 128)$days10000, 1)` days on the computer where this experiment was run to run the particle filter 10,000 times. Since every step of the pMCMC requires to run a particle filter, that means that it will take the same amount of time to generate 10,000 samples of the pMCMC. This is why you will often need a scientific computing cluster to run a pMCMC and make extensive use of parallelisation. 
 
-You can now return to the [practical](pmcmc.html#run-pmcmc) and set your pMCMC with 400 particles.
+You can now return to the [practical](pmcmc.html#run-pmcmc) and set your pMCMC with 128 particles.
 
 # Setting the pMCMC
 
@@ -81,9 +81,9 @@ knitr::read_chunk(here::here("scripts", "snippets", "set-pmcmc.r"))
 
 You can now go back to the [practical](pmcmc.html#run-a-pmcmc) and try to run 	pMCMC with those settings.
 
-# Analyse a pMCMC with 50 particles
+# Analyse a pMCMC with 16 particles
 
-Here is an example of analysis of our 8 chains of 3000 iterations with 50 particles.
+Here is an example of analysis of our 8 chains of 3000 iterations with 16 particles.
 
 ```{r analyse-n8, collapse=TRUE, fig.height=7, fig.width=10}
 # load traces
@@ -91,62 +91,41 @@ data(pmcmcSeit4lInfoPrior)
 
 # combine into a `mcmc.list` object
 library("coda")
-trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
   mcmc(chain$trace)
 }))
 
 # acceptance rate is way below the optimal 23%
 1 - rejectionRate(trace)
 
-# accordingly, the combined ESS is a bit low
-effectiveSize(trace)
-
 # Let's have a look at the traces
 library("lattice")
 xyplot(trace)
 ```
 
-The burn-in period looks relatively short, this is because we started the chains with a "good" `initTheta`. That said, since we have relatively short runs it might be useful to carefully choose the burn-in period with `plotEssBurn`.
+We can see that in several chains the sampler gets "stuck", rendering our inference and any resulting calculations (e.g. of ESS) highly unreliable.
 
-```{r analyse-n50-burn, collapse=TRUE, fig.height=7, fig.width=10}
-# this can take some time as we have 5 chains
-plotEssBurn(trace)
+With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. That said, the theoretical properties of the pMCMC guarantee that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to reduce the number of iterations.
 
-# Actually, it looks like no burn-in is needed
-# What about autocorrelation
-acfplot(x = trace, lag.max = 50)
-
-# There is substantial autocorrelation but we can't thin too much since the chains are quite short.
-# So let's keep 1 iteration every 20
-traceThinN50 <- burnAndThin(trace, thin = 20)
-
-# Finally we can plot the posterior density
-densityplot(x = traceThinN50)
-```
-
-The 5 chains converged to somewhat different posterior distributions, with different shapes and modes. This is particularly evident for the posterior of $R_0$, which looks bimodal. In addition, the ESS is too small to have smooth posterior distributions.
-
-With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. This is why we have a lot of autocorrelation and small ESSs. That said, the theoretical properties of the pMCMC guaranty that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to reduce the number of iterations.
-
-You can now return to the [practical](pmcmc.html#analyse-a-pmcmc-with-400-particles) and analyse a pMCMC with much more particles that we ran for you.
+You can now return to the [practical](pmcmc.html#analyse-a-pmcmc-with-128-particles) and analyse a pMCMC with much more particles that we ran for you.
 
 
-# Analyse a pMCMC with 400 particles
+# Analyse a pMCMC with 128 particles
 
-Here is an example of analysis of our 8 chains of 3000 iterations with 400 particles.
+Here is an example of analysis of our 8 chains of 3000 iterations with 128 particles.
 
 ```{r analyse-n64, collapse=TRUE, fig.height=7, fig.width=10}
 
 # combine into a `mcmc.list` object
 library("coda")
-trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior64, function(chain) {
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
   mcmc(chain$trace)
 }))
 
 # acceptance rate is near optimal
 1 - rejectionRate(trace)
 
-# Note that the combined ESS is 2 times higher than with 50 particles
+# Note that the combined ESS is 2 times higher than with 16 particles
 effectiveSize(trace)
 
 # Let's have a look at the traces
@@ -154,40 +133,39 @@ library("lattice")
 xyplot(trace)
 ```
 
-As in the analysis with 50 particles, the burn-in period is relatively short. However, with 400 particles the chains mix much better. Here again we decide to carefully choose the burn-in period with `plotEssBurn`.
+As in the analysis with 16 particles, the burn-in period is relatively short. However, with 128 particles the chains mix much better. We can carefully choose the burn-in period with `plotEssBurn`.
 
-```{r analyse-n400-burn, collapse=TRUE, fig.height=6, fig.width=10}
+```{r analyse-n128-burn, collapse=TRUE, fig.height=6, fig.width=10}
 # Actually, it looks like no burn-in is needed:
 plotEssBurn(trace)
 
 # What about autocorrelation?
 acfplot(x = trace, lag.max = 50)
 
-# Autocorrelation decreases much more quickly than with 50 particles
 # Let's keep 1 iteration every 20
-traceThinN400 <- burnAndThin(trace, thin = 20)
+traceThinN128 <- burnAndThin(trace, thin = 20)
 
 # Let's plot the posterior densities
-densityplot(x = traceThinN400)
+densityplot(x = traceThinN128)
 ```
 
-All 5 chains seems to have converged to the same posterior, which are smoother than with 50 particles. Let's compare the combined posterior densities with that obtained with 50 particles
+All 8 chains seems to have converged to the same posterior, which are smoother than with 16 particles. Let's compare the combined posterior densities with that obtained with 16 particles
 
-```{r n400-n50, fig.height=7, fig.width=7}
-plotPosteriorDensity(list(n50 = traceThinN50, n400 = traceThinN400))
+```{r n128-n16, fig.height=7, fig.width=7}
+plotPosteriorDensity(list(n16 = traceThinN16, n128 = traceThinN128))
 ```
 
-__Although the posterior distributions are similar, those with 400 particles are smoother and more representative thanks to higher ESS.__ Note the different location of the mode of $R_0$, which is shifted to the left with 50 particles. This is because 1 of the 5 chains with 50 particles shows a posterior with much lower $R_0$ (see figure above), whereas the remaining 4 seems to have converged to the same distribution as the pMCMC with 400 particles.
+__Although the posterior distributions are similar, those with 128 particles are smoother and more representative thanks to higher ESS.__ Note the different location of the mode of $R_0$, which is shifted to the left with 16 particles. This is because 1 of the 8 chains with 16 particles shows a posterior with much lower $R_0$ (see figure above), whereas the remaining 4 seems to have converged to the same distribution as the pMCMC with 128 particles.
 
-Finally, note that the log-likelihood is overestimated with 50 particles, which can be problematic for model selection as we would overestimate the fit of the model.
+Finally, note that the log-likelihood is overestimated with 16 particles, which can be problematic for model selection as we would overestimate the fit of the model.
 
-__Overall, this analysis confirms that the pMCMC works even with 50 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 400 particles.__ Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 400 particles. The chains start at different `initTheta` near the mode of the deterministic posterior, and are then combined to increase the overall ESS.
+__Overall, this analysis confirms that the pMCMC works even with 16 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 128 particles.__ Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 128 particles. The chains start at different `initTheta` near the mode of the deterministic posterior, and are then combined to increase the overall ESS.
 
 You can now return to the [practical](pmcmc.html#stochastic-vs-deterministic-fit) and proceed to the last section of this session.
 
 # Stochastic vs deterministic fit
 
-Here we compare the combined traces of the deterministic SEIT4L model (2 chains of 50000  iterations) with those obtained with the stochastic version (8 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
+Here we compare the combined traces of the deterministic SEIT4L model (2 chains of 50000 iterations) with those obtained with the stochastic version (8 chains of $3000$ iterations). Both analysis have assumed informative priors for $D_\mathrm{lat}$ and $D_\mathrm{inf}$ .
 
 ```{r sto-deter, collapse=TRUE, fig.height=7, fig.width=7}
 # load, burn and thin the deterministic fit
@@ -205,7 +183,7 @@ trace <- mcmc.list(trace1, trace2)
 traceDeter <- burnAndThin(trace, burn = 5000, thin = 40)
 
 # compare posterior density
-plotPosteriorDensity(list(deter = traceDeter, sto = traceThinN400))
+plotPosteriorDensity(list(deter = traceDeter, sto = traceThinN128))
 ```
 
 Overall, the posterior distributions are quite different. This is especially true for $R_0$ and $D_{imm}$.
@@ -215,7 +193,7 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
 library("plyr")
-traceCombined <- ldply(traceThinN400)
+traceCombined <- ldply(traceThinN128)
 
 # take the mean of theta
 thetaBar <- colMeans(traceCombined[seit4lStoch$thetaNames])
@@ -226,7 +204,7 @@ initState <- c(
   S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0
 )
 logLikeThetaBar <- my_particleFilter(seit4lStoch, thetaBar, initState,
-  data = fluTdc1971, nParticles = 400
+  data = fluTdc1971, nParticles = 128
 )
 print(logLikeThetaBar)
 

@@ -75,7 +75,7 @@ seitlPrior <- function(theta, log = FALSE) {
     theta[["D_imm"]],
     min = 0, max = 50, log = TRUE
   )
-  logPriorProbabilityLongTermImmunity <- dunif(
+  logPriorProbLongTermImmunity <- dunif(
     theta[["alpha"]],
     min = 0, max = 1, log = TRUE
   )
@@ -86,7 +86,7 @@ seitlPrior <- function(theta, log = FALSE) {
 
   logSum <-
     logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod +
-    logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity +
+    logPriorTemporaryImmunePeriod + logPriorProbLongTermImmunity +
     logPriorReportingRate
 
   return(ifelse(log, logSum, exp(logSum)))
