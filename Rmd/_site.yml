@@ -24,6 +24,6 @@ navbar:
     - text: "ABC"
       # icon: fa-area-chart
       href: ABC.html
-    - text: "LibBi"
+    - text: "Further methods"
       # icon: fa-area-chart
-      href: libbi.html
+      href: further_methods.html
