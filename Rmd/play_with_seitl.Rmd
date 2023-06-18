@@ -191,6 +191,7 @@ As illustrated below the flexibility of the Erlang distribution ranges from the 
 
 ```{r erlang, echo=FALSE, fig.width=10, fig.height=5}
 library("ggplot2")
+library("dplyr")
 library("tidyr")
 library("purrr")
 
