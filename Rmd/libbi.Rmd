@@ -310,3 +310,5 @@ ggplot(os, aes(x = time)) +
 * More information on all the methods and options and available can be found in the [LibBi manual](http://libbi.org/docs/LibBi-Manual.pdf) and the accompanying [paper](https://arxiv.org/abs/1306.3277).
 * More information on the R packages can be found in the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html) and [RBi.helpers vignette](rbi_helpers.html).
 * LibBi has been superseded by a new library called [Birch](https://birch-lang.org/). This allows to specify more general models than is possible in LibBi.
+* As another example of a library for model fitting and inference you could have a go at *pomp*. The deterministic and stochastic SEITL models can be found [here](pomp.html). Can you fit them to the Tristan da Cunha data set?
+
