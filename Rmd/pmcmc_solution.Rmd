@@ -193,7 +193,8 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 ```{r sto-deter-DIC, collapse=TRUE}
 # combine all traces in a data frame
 library("dplyr")
-traceCombined <- bind_rows(traceThin128)
+library("purrr")
+traceCombined <- bind_rows(map(traceThin128, as.data.frame))
 
 # take the mean of theta
 thetaBar <- colMeans(traceCombined[seit4lStoch$thetaNames])
