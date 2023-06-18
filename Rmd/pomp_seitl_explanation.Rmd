@@ -21,10 +21,10 @@ This loads the `pomp` package, and the Tristan da Cunha data from the `fitR` pac
 
 ```{r tidy = FALSE}
 ## define deterministic skeleton
-SEITL.skel.c <- "
+seitlDeterSkel <- Csnippet("
     double trans[5];
 
-    double beta = R_0 / D_inf;
+    double beta = R0 / D_inf;
     double epsilon = 1 / D_lat;
     double nu = 1 / D_inf;
     double tau = 1 / D_imm;
@@ -43,12 +43,12 @@ SEITL.skel.c <- "
     DT = trans[2] - trans[3] - trans[4];
     DL = trans[3];
     DInc = trans[1];
-"
+")
 ```
 
 This defines the so-called deterministic skeleton. In *pomp*, the stochastic and deterministic versions of the same model can be specified in the same `pomp` object, and then used by different fitting methods. For example, one can get a first approximate fit using a fast method and the deterministic model before performing more computationally extensive methods on the stochastic models around those solutions. The deterministic skeleton defines how the model would behave if there were no noise in the system.
 
-The model code is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`.
+The model code is implemented as C code which is saved as a character string and converted into R code using `Csnippet`.
 
 The first line
 ```{c eval = FALSE}
@@ -59,7 +59,7 @@ defines an array trans (of `double`s, or floating point numbers), which will hol
 
 The following section
 ```{c eval = FALSE}
-    double beta = R_0 / D_inf;
+    double beta = R0 / D_inf;
     double epsilon = 1 / D_lat;
     double nu = 1 / D_inf;
     double tau = 1 / D_imm;
@@ -91,11 +91,11 @@ Lastly, it is defined how the transitions change the compartments:
 # The stochastic model
 ```{r tidy = FALSE}
 ## define stochastic model, for use with euler, see ?euler
-SEITL.sim.c <- "
+seitlStochSim <- Csnippet("
     double rate[5];
     double dN[5];
 
-    double beta = R_0 / D_inf;
+    double beta = R0 / D_inf;
     double epsilon = 1 / D_lat;
     double nu = 1 / D_inf;
     double tau = 1 / D_imm;
@@ -119,7 +119,7 @@ SEITL.sim.c <- "
     T += dN[2] - dN[3] - dN[4];
     L += dN[3];
     Inc += dN[1];
-"
+")
 ```
 
 This defines the stochastic model. This, again, is implemented as C code which is saved as a character string and later converted into R code using `Csnippet`. It defines transitions which are then used by the *pomp* function `euler`, which in turn uses the [Euler-Maruyama approximation](http://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to the full stochastic system. This calculates the number of events happening in a given fixed time step by sampling from a multinomial distribution with the probabilities of each event given by the product of its rate and the time step. This happens in the following four lines of code:
@@ -148,33 +148,33 @@ The number of susceptibles decreases by the number of individuals randomly drawn
 
 ```{r tidy = FALSE}
 ## define sampling random point observations
-SEITL.rmeas.c <- "
+seitlGenObsPoint <- Csnippet("
     obs = rpois(rho * Inc);
-"
+")
 ```
 
 (you may notice that the function in the example looks slightly different, to prevent numerical problems later)
 
-This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to randomly generate point observations from model incidence, like our function `rPointObs` earlier. In this case, it uses a random draw from a Poisson distribution with mean `rho*Inc`, and stores it in the variable `obs`.
+This, again, defines a character string with C code, to be used with `Csnippet`. It defines a function to randomly generate point observations from model incidence, like our function `rPointObs` earlier. In this case, it uses a random draw from a Poisson distribution with mean `rho*Inc`, and stores it in the variable `obs`.
 
 # Point observation probability density
 
 ```{r tidy = FALSE}
 ## define point observation probability density
-SEITL.dmeas.c <- "
+seitlPointLike <- Csnippet("
     lik = dpois(obs, rho * Inc, give_log);
-"
+")
 ```
 
 (you may notice that the function in the example looks slightly different, to prevent numerical problems later)
 
-This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to evaluate the probability density of point observations of the model incidence, like our function `dPointObs` earlier. In this case, it evaluates the probability following a Poisson probability distribution with mean `rho * Inc` and stores it in the variable `lik`. It can do both the logged and natural likelihood; which of the two is used will be given by `give_log`.
+This, again, defines a character string with C code converted ot R using `Csnippet`. It defines a function to evaluate the probability density of point observations of the model incidence, like our function `dPointObs` earlier. In this case, it evaluates the probability following a Poisson probability distribution with mean `rho * Inc` and stores it in the variable `lik`. It can do both the logged and natural likelihood; which of the two is used will be given by `give_log`.
 
 # Prior density
 
 ```{r tidy = FALSE}
-SEITL.dPrior.c <- "
-  lik = dunif(R_0, 1, 50, 1) +
+seitlPrior <- Csnippet("
+  lik = dunif(R0, 1, 50, 1) +
           dunif(D_lat, 0, 10, 1) +
           dunif(D_inf, 0, 15, 1) +
           dunif(D_imm, 0, 50, 1) +
@@ -182,18 +182,18 @@ SEITL.dPrior.c <- "
           dunif(rho, 0, 1, 1);
 
   lik = give_log ? lik : exp(lik);
-"
+")
 ```
-This, again, defines a character string with C code, to be used later with `Csnippet`. It defines a function to evaluate the prior probability density of a set of parameters. The first segment of code,
+This, again, defines a character string with C code converted to R using `Csnippet`. It defines a function to evaluate the prior probability density of a set of parameters. The first segment of code,
 ```{r engine = 'c', eval = FALSE}
-lik <- dunif(R_0, 1, 50, 1) +
+lik <- dunif(R0, 1, 50, 1) +
   dunif(D_lat, 0, 10, 1) +
   dunif(D_inf, 0, 15, 1) +
   dunif(D_imm, 0, 50, 1) +
   dunif(alpha, 0, 1, 1) +
   dunif(rho, 0, 1, 1)
 ```
-calculates the logged probability density according to uniform distributions with different bounds (e.g., 1 and 50 for `R_0`), and takes the sum. The last arguments of 1 in `dunif` indicate that we want the logarithms of the probability densities. The last line,
+calculates the logged probability density according to uniform distributions with different bounds (e.g., 1 and 50 for `R0`), and takes the sum. The last arguments of 1 in `dunif` indicate that we want the logarithms of the probability densities. The last line,
 ```{r engine = 'c', eval = FALSE}
 lik <- give_log ? lik:exp(lik)
 ```
@@ -202,19 +202,20 @@ returns the calculated log-likelihood if `give_log` is 1, and the exponential of
 # Constructing the `pomp` object
 
 ```{r tidy = FALSE}
-SEITL_pomp <- pomp(
+seitlPomp <- pomp(
   data = fluTdc1971[, c("time", "obs")],
-  rprocess = euler(
-    step.fun = Csnippet(SEITL.sim.c),
-    delta.t = 0.1
+  skeleton = vectorfield(seitlDeterSkel),
+  rprocess = euler(step.fun = seitlStochSim, delta.t = 0.1),
+  rmeasure = seitlGenObsPoint,
+  dmeasure = seitlPointLike,
+  dprior = seitlPrior,
+  partrans = parameter_trans(
+    log = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
   ),
-  rmeasure = Csnippet(SEITL.rmeas.c),
-  dmeasure = Csnippet(SEITL.dmeas.c),
-  skeleton = vectorfield(Csnippet(SEITL.skel.c)),
   times = "time",
   t0 = 1,
-  zeronames = "Inc",
-  paramnames = c("R_0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
+  accumvars = "Inc",
+  paramnames = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
   statenames = c("S", "E", "I", "T", "L", "Inc"),
   obsnames = c("obs")
 )
@@ -229,22 +230,20 @@ data <- fluTdc1971[, c("time", "obs")]
 This specifies the data set. We select the two relevant columns, `time` and `obs`.
 
 ```{r tidy = FALSE, eval = FALSE}
-skeleton <- vectorfield(Csnippet(SEITL.skel.c))
+skeleton <- vectorfield(seitlDeterSkel)
 ```
 These define the deterministic skeleton, as given by the C code above. If you are interested in an explanation of the `vectorfield`, see `?pomp`.
 
 ```{r tidy = FALSE, eval = FALSE}
-rprocess <- euler(
-  step.fun = Csnippet(SEITL.sim.c),
-  delta.t = 0.1
+rprocess <- euler(step.fun = seitlStochSim, delta.t = 0.1
 )
 ```
 
 This defines the stochastic (random) process, or the function that is used to sample trajectories. In this case, we use the [Euler-Maruyama method](http://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) (see above), with the step function given by our C code above, and a time step of `delta.t = 0.1`.
 
 ```{r tidy = FALSE, eval = FALSE}
-rmeasure <- Csnippet(SEITL.rmeas.c)
-dmeasure <- Csnippet(SEITL.dmeas.c)
+rmeasure <- Csnippet(seitlGenObsPoint)
+dmeasure <- Csnippet(seitlPointLike)
 ```
 These define the functions to randomly sample form the measurement process (equivalent to `rPointObs` earlier in the course) or evaluate the probability density at a measurement point (equivalent to `dPointObs` earlier in the course).
 
@@ -256,7 +255,7 @@ t0 <- 1
 These indicate that times in the data set (`fluTdc1971`) are given by the "time" column, and that the simulations are to start with the initial state at time 1.
 
 ```{r tidy = FALSE, eval = FALSE}
-paramnames <- c("R_0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
+paramnames <- c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
 statenames <- c("S", "E", "I", "T", "L", "Inc")
 obsnames <- c("obs")
 ```

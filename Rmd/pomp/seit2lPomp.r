@@ -1,5 +1,5 @@
 ## define deterministic skeleton
-SEIT2L.skel.c <- '
+seit2lDeterSkel <- '
     double trans[6];
 
     double beta = R0 / D_inf;
@@ -25,8 +25,8 @@ SEIT2L.skel.c <- '
     DInc = trans[1];
 '
 
-## define stochastic model, for use with euler.sim, see ?euler.sim
-SEIT2L.sim.c <- '
+## define stochastic model, for use with euler, see ?euler
+seit2lStochSim <- '
     double rate[6];
     double dN[6];
 
@@ -61,17 +61,20 @@ SEIT2L.sim.c <- '
 
 
 ## construct pomp object
-SEIT2L_pomp <- pomp(data = fluTdc1971[, c("time", "obs")],
-                      skeleton = vectorfield(Csnippet(SEIT2L.skel.c)),
-                      rprocess = euler.sim(step.fun = Csnippet(SEIT2L.sim.c),
-                                           delta.t = 0.1),
-                      rmeasure = Csnippet(SEITL.rmeas.c),
-                      dmeasure = Csnippet(SEITL.dmeas.c),
-                      toEstimationScale = Csnippet(SEITL.logtrans.c),
-                      fromEstimationScale = Csnippet(SEITL.exptrans.c), 
-                      times = "time",
-                      t0 = 1,
-                      zeronames = "Inc",
-                      paramnames = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
-                      statenames = c("S", "E", "I", "T1", "T2", "L", "Inc"),
-                      obsnames = c("obs"))
+seit2lPomp <- pomp(
+  data = fluTdc1971[, c("time", "obs")],
+  skeleton = vectorfield(seit2lDeterSkel),
+  rprocess = euler(step.fun = seit2lStochSim, delta.t = 0.1),
+  rmeasure = seitlGenObsPoint,
+  dmeasure = seitlPointLike,
+  dprior = seitlPrior,
+  partrans = parameter_trans(
+    log = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho")
+  ),
+  times = "time",
+  t0 = 1,
+  accumvars = "Inc",
+  paramnames = c("R0", "D_inf", "D_lat", "D_imm", "alpha", "rho"),
+  statenames = c("S", "E", "I", "T1", "T2", "L", "Inc"),
+  obsnames = c("obs")
+)

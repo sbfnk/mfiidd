@@ -30,7 +30,7 @@ SEITL.skel.c <- '
   DInc = trans[1];
 '
 
-## define stochastic model, for use with euler.sim, see ?euler.sim
+## define stochastic model, for use with euler, see ?euler
 SEITL.sim.c <- '
   double rate[5];
   double dN[5];
