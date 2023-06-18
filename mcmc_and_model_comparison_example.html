@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Example: fitting the deterministic SEITL model</title>
+
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MFIIDD 2023</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="introduction.html">Introduction</a>
+</li>
+<li>
+  <a href="mcmc.html">MCMC</a>
+</li>
+<li>
+  <a href="mcmc_diagnostics.html">Diagnostics</a>
+</li>
+<li>
+  <a href="play_with_seitl.html">Modelling interlude</a>
+</li>
+<li>
+  <a href="mcmc_and_model_comparison.html">Model comparison</a>
+</li>
+<li>
+  <a href="pmcmc.html">Particle MCMC</a>
+</li>
+<li>
+  <a href="ABC.html">ABC</a>
+</li>
+<li>
+  <a href="further_methods.html">Further methods</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Example: fitting the deterministic SEITL model</h1>
+
+</div>
+
+
+<p>Here is an example of possible answers to the practical on fitting the deterministic SEITL model to the Tristan da Cunha outbreak.</p>
+<p>Each section below correspond to a section of the practical. Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections.</p>
+<p>Although our example refers to the SEITL model, the same commands work for the SEIT4L model (i.e. <code>seit4lDeter</code> instead of <code>seitlDeter</code>).</p>
+<div id="setting-the-mcmc" class="section level1">
+<h1>Setting the MCMC</h1>
+<pre class="r"><code>knitr::read_chunk(here::here(&quot;scripts&quot;, &quot;snippets&quot;, &quot;set-mcmc.r&quot;))</code></pre>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#run-a-mcmc">practical</a> and try to run MCMC with those settings.</p>
+</div>
+<div id="run-mcmc" class="section level1">
+<h1>Run MCMC</h1>
+<p>If you didn’t manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:</p>
+<pre class="r"><code>data(models)
+data(mcmcTdcDeterShortRun)
+# this should load 2 objects in your environment: mcmcSeitl and mcmcSeitl4.
+# Each one is a list of 3 elements returned by mcmcMh
+names(mcmcSeitl)
+## [1] &quot;trace&quot;           &quot;acceptanceRate&quot;  &quot;covmatEmpirical&quot;
+# the trace contains 9 variables for 5000 iterations
+dim(mcmcSeitl$trace)
+## [1] 5000    7
+# let&#39;s have a look at it
+head(mcmcSeitl$trace)
+##           R_0    D_lat    D_inf     alpha     D_imm       rho logDensity
+## [1,] 2.591177 2.726712 1.813324 0.7595621 15.075070 0.7079867  -456.7989
+## [2,] 3.143116 2.682451 2.353010 0.7582560 15.143099 0.7827185  -441.5930
+## [3,] 3.143116 2.682451 2.353010 0.7582560 15.143099 0.7827185  -441.5930
+## [4,] 3.399966 2.280465 2.206831 0.6652347 13.328085 0.9198005  -379.7273
+## [5,] 3.399966 2.280465 2.206831 0.6652347 13.328085 0.9198005  -379.7273
+## [6,] 3.703400 1.905630 1.630102 0.5868385  9.611974 0.9993358  -266.9979</code></pre>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#short-run-analysis">practical</a> and analyse this trace.</p>
+</div>
+<div id="short-run-analysis" class="section level1">
+<h1>Short run analysis</h1>
+<p>Here is an example of analysis for our preliminary run:</p>
+<pre class="r"><code># convert to a mcmc object for coda
+library(&quot;coda&quot;)
+trace &lt;- mcmc(mcmcSeitl$trace)
+
+# compute the acceptance rate
+1 - rejectionRate(trace)
+##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
+##  0.1388278  0.1388278  0.1388278  0.1388278  0.1388278  0.1388278  0.1388278
+# between 0.1 and 0.6: looks good!
+
+# let&#39;s have a look at the traces
+library(&quot;lattice&quot;) ## for the &#39;xyplot&#39; command
+xyplot(x = trace)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-trace-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Although the chain was started at a <code>initTheta</code> with a low posterior density, it quickly finds the region of the parameter space with high posterior density. Note also the constant trace of the log-prior since we have assumed a uniform prior.</p>
+<p>Overall, it looks like the chain reached its target distribution after 1000 steps.</p>
+<pre class="r"><code># Let&#39;s find a suitable burning:
+plotEssBurn(trace)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-burn-test-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>As anticipated from the trace, burning the first 1000 iterations maximizes the effective sample size (ESS).</p>
+<pre class="r"><code># Let&#39;s create a new trace without the burning
+traceBurn &lt;- burnAndThin(trace, burn = 1000)
+xyplot(x = traceBurn)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-burn-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Let&#39;s check the ESS
+effectiveSize(traceBurn)
+##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
+##   62.59696   49.16026   71.24308  166.70277   69.90393   95.60518   49.71716</code></pre>
+<p>Although we have 4000 samples remaining after burning, the ESS is much smaller. This is due to autocorrelation of the chain.</p>
+<pre class="r"><code># autocorrelation plot
+acfplot(x = traceBurn, lag.max = 60)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-acf-1.png" width="672" style="display: block; margin: auto;" /> The autocorrelation between samples drops substantially for a lag of 20 iterations. We can thin the trace to reduce the autocorrelation.</p>
+<pre class="r"><code># Let&#39;s create a thinned trace
+traceBurnThin &lt;- burnAndThin(traceBurn, thin = 20)
+xyplot(x = traceBurnThin)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-thin-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Let&#39;s check the ESS
+effectiveSize(traceBurnThin)
+##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
+##   40.04096   26.93074   24.86523  145.52785   59.12567  136.75236   52.85844</code></pre>
+<p>Although the thinned trace has 20 times less fewer than the unthinned trace, it has a similar ESS. This is because the autocorrelation has been reduced.</p>
+<pre class="r"><code># new autocorrelation plot
+acfplot(x = traceBurnThin, lag.max = 60)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-acf-thin-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Let’s compare the posterior estimates of the thinned and unthinned traces.</p>
+<pre class="r"><code># The unthinned trace
+summary(traceBurn)
+## 
+## Iterations = 1:4000
+## Thinning interval = 1 
+## Number of chains = 1 
+## Sample size per chain = 4000 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                 Mean      SD  Naive SE Time-series SE
+## R_0          18.4706 4.93696 0.0780602       0.623998
+## D_lat         1.4689 0.32911 0.0052037       0.046939
+## D_inf         9.7855 2.22299 0.0351486       0.263370
+## alpha         0.5436 0.04110 0.0006499       0.003183
+## D_imm         8.3694 2.53266 0.0400449       0.302919
+## rho           0.6968 0.05573 0.0008812       0.005700
+## logDensity -154.9519 2.05592 0.0325070       0.291577
+## 
+## 2. Quantiles for each variable:
+## 
+##                 2.5%       25%       50%       75%     97.5%
+## R_0           9.8139   14.8175   17.9962   21.5077   29.6555
+## D_lat         0.7941    1.2323    1.4876    1.6856    2.0494
+## D_inf         5.0221    8.5133    9.8385   11.2120   14.3078
+## alpha         0.4516    0.5176    0.5464    0.5726    0.6163
+## D_imm         4.6215    6.8814    8.0095    9.2734   15.2303
+## rho           0.5950    0.6559    0.6942    0.7382    0.8082
+## logDensity -159.9574 -155.8906 -154.4861 -153.4873 -151.6696
+
+# The thinned trace
+summary(traceBurnThin)
+## 
+## Iterations = 1:191
+## Thinning interval = 1 
+## Number of chains = 1 
+## Sample size per chain = 191 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                Mean      SD Naive SE Time-series SE
+## R_0          18.352 4.79745 0.347132       0.758156
+## D_lat         1.470 0.31581 0.022851       0.060856
+## D_inf         9.725 2.16257 0.156478       0.433685
+## alpha         0.543 0.03941 0.002851       0.003267
+## D_imm         8.353 2.57143 0.186062       0.334416
+## rho           0.696 0.05495 0.003976       0.004699
+## logDensity -154.906 2.09209 0.151378       0.287755
+## 
+## 2. Quantiles for each variable:
+## 
+##                 2.5%       25%       50%       75%     97.5%
+## R_0           9.7741   14.7952   17.7711   21.3580   29.3237
+## D_lat         0.8971    1.2326    1.4858    1.6775    2.0222
+## D_inf         5.1490    8.6264    9.6471   11.1119   13.5456
+## alpha         0.4575    0.5172    0.5464    0.5704    0.6056
+## D_imm         4.4201    6.8946    7.9502    9.2183   14.0982
+## rho           0.5957    0.6583    0.6942    0.7384    0.7905
+## logDensity -159.8568 -155.9577 -154.5387 -153.4179 -151.6696</code></pre>
+<p>They are very similar. So why thin? Because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function <code>plotPosteriorDensity</code> of the <code>fitR</code> package:</p>
+<pre class="r"><code>plotPosteriorDensity(list(unthinned = traceBurn, thinned = traceBurnThin))</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-compare-density-1.png" width="960" style="display: block; margin: auto;" /> The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local “bumps” of the unthinned distribution are caused by autocorrelated samples.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#long-run-analysis">practical</a> and perform a similar analysis for a long-run MCMC.</p>
+</div>
+<div id="long-run-analysis" class="section level1">
+<h1>Long run analysis</h1>
+<p>Here is an example of an analysis for our long run (50k iterations)</p>
+<pre class="r"><code># load mcmc output
+data(mcmcTdcDeterLongRun)
+
+# create mcmc objects for both traces
+library(&quot;coda&quot;)
+trace1 &lt;- mcmc(mcmcSeitlTheta1$trace)
+trace2 &lt;- mcmc(mcmcSeitlTheta2$trace)
+
+# combine traces as mcmc.list object
+trace &lt;- mcmc.list(list(trace1, trace2))
+
+# let&#39;s have a look
+head(trace, 3)
+## [[1]]
+## Markov Chain Monte Carlo (MCMC) output:
+## Start = 1 
+## End = 4 
+## Thinning interval = 1 
+##           R_0   D_lat    D_inf     alpha    D_imm       rho logDensity
+## [1,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
+## [2,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
+## [3,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
+## [4,] 3.931247 3.13481 2.371641 0.7379751 13.91705 0.9243739  -399.2131
+## 
+## [[2]]
+## Markov Chain Monte Carlo (MCMC) output:
+## Start = 1 
+## End = 4 
+## Thinning interval = 1 
+##          R_0   D_lat    D_inf     alpha    D_imm       rho logDensity
+## [1,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
+## [2,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
+## [3,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
+## [4,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;mcmc.list&quot;
+
+# acceptance rate
+1 - rejectionRate(trace)
+##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
+##  0.1884138  0.1884138  0.1884138  0.1884138  0.1884138  0.1884138  0.1884138
+# close to the optimal value of 0.234
+
+# ESS
+effectiveSize(trace)
+##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
+##   2446.319   2946.625   2247.957   3317.350   2467.056   3498.944   2447.695
+
+# plot the traces
+library(&quot;lattice&quot;) ## for the &#39;xyplot&#39; command
+xyplot(trace)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-combine-traces-1.png" width="672" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain. Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.</p>
+<pre class="r"><code>traceBurn &lt;- burnAndThin(trace, burn = 5000)
+
+# removing the burning increases the ESS
+effectiveSize(traceBurn)
+##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
+##   3000.622   2903.728   3458.645   3370.314   2985.987   3397.424   2620.894
+
+# autocorrelation
+acfplot(traceBurn, lag.max = 60)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-burn-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Again, given the very high ESS, we can be quite generous in our choice of the thinning.</p>
+<pre class="r"><code># Thinning: let&#39;s keep 1 iteration every 40
+traceBurnThin &lt;- burnAndThin(traceBurn, thin = 40)
+xyplot(traceBurnThin)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-thin-1.png" width="672" style="display: block; margin: auto;" /> However, let’s compare the thinned and unthinnned distributions.</p>
+<pre class="r"><code># Note that plotPosteriorDensity can take a list of mcmc.list
+# It will plot the different mcmc.list by combining their elements
+# Let&#39;s plot the combined unthinned trace vs the combined thinned trace.
+plotPosteriorDensity(list(unthinned = traceBurn, thinned = traceBurnThin))</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-compare-thin-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. <strong>Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!</strong></p>
+<p>In fact, there are several references that show that the longer (unthinned) chain usually yields better estimates of the true posterior than the shorter thinned chain, even for percentiles in the tail of the distribution. <strong>That said, thinning can be useful for other reasons, such as memory or time constraints in post-chain processing.</strong></p>
+<p>Now, we can compare whether the two independent chains, started at <code>theta1</code> and <code>theta2</code>, have converged to the same posterior distribution</p>
+<pre class="r"><code>densityplot(traceBurnThin)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-compare-chains-1.png" width="672" style="display: block; margin: auto;" /> Since the chains have converged to the same posterior, we can use the combined estimates</p>
+<pre class="r"><code># the function summary combines the chains of a mcmc.list
+summary(traceBurnThin)
+## 
+## Iterations = 1:1098
+## Thinning interval = 1 
+## Number of chains = 2 
+## Sample size per chain = 1098 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##                 Mean      SD  Naive SE Time-series SE
+## R_0          16.8937 4.09201 0.0873214      0.0892240
+## D_lat         1.1403 0.34467 0.0073550      0.0084983
+## D_inf        10.6500 2.14764 0.0458296      0.0464923
+## alpha         0.5378 0.03787 0.0008082      0.0009582
+## D_imm         7.7982 2.10656 0.0449529      0.0500267
+## rho           0.6951 0.05004 0.0010679      0.0011713
+## logDensity -153.9616 1.71985 0.0367006      0.0425327
+## 
+## 2. Quantiles for each variable:
+## 
+##                 2.5%       25%       50%       75%     97.5%
+## R_0           9.8339   13.9572   16.4742   19.4977   25.6458
+## D_lat         0.4865    0.9052    1.1336    1.3619    1.8462
+## D_inf         6.5572    9.1025   10.6274   12.2738   14.5412
+## alpha         0.4613    0.5133    0.5386    0.5629    0.6068
+## D_imm         4.0723    6.4037    7.5822    8.9900   12.4891
+## rho           0.6017    0.6619    0.6924    0.7279    0.7991
+## logDensity -158.1133 -154.8481 -153.6276 -152.7118 -151.6312</code></pre>
+<p>Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with <code>summary</code> won’t be meaningful for a parameter with a multi-modal posterior.</p>
+<p><strong>By contrast, for a unimodal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates.</strong> Furthermore, running several “shorter” chains in parallel is faster than running one “long” chain.</p>
+<p>Finally, let’s assess the fit of the deterministic SEITL model.</p>
+<pre class="r"><code># load data
+data(fluTdc1971)
+
+# the same initState as for the fit
+initState &lt;- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
+
+# by default plotPosteriorFit summarize the fit of 100 thetas sampled from the
+# posterior
+plotPosteriorFit(
+  trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971
+)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-1.png" width="576" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>
+# alternatively,  one can plot the fit of the mean of the posterior (in this
+# case the observation is replicated 100 times)
+plotPosteriorFit(
+  trace = trace, fitmodel = seitlDeter, initState = initState,
+  data = fluTdc1971, posteriorSummary = &quot;mean&quot;
+)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-2.png" width="576" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>
+# or using the maximum a posteriori (MAP) estimate
+plotPosteriorFit(
+  trace = trace, fitmodel = seitlDeter, initState = initState,
+  data = fluTdc1971, posteriorSummary = &quot;max&quot;)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-3.png" width="576" style="display: block; margin: auto;" /></p>
+<p>Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#correlations">practical</a> and look at the posterior correlations between the parameters.</p>
+</div>
+<div id="correlations" class="section level1">
+<h1>Correlations</h1>
+<p>The correlation of the posterior distribution can be investigated using <code>levelplot</code>.</p>
+<pre class="r"><code>library(&quot;lattice&quot;) ## for the &#39;levelplot command
+# levelplot doesn&#39;t accept `mcmc.list`, we pass the first `mcmc` only.
+levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/correlation-levelplot-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>Note the strong positive correlations (~0.8) between <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{lat}\)</span> and between <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span>. In order to explain the wide 95% CIs of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span>, let’s have a look at the contact rate <span class="math inline">\(\beta = R_0/D_{inf}\)</span>.</p>
+<pre class="r"><code>with(as.data.frame(traceBurnThin[[1]]), quantile(R_0 / D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
+##     2.5%      25%      50%      75%    97.5% 
+## 1.089121 1.402433 1.566948 1.764797 2.172346</code></pre>
+<p>The posterior value of <span class="math inline">\(\beta\)</span> varies somewhat less than the posterior values of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_\mathrm{inf}\)</span>. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span> that lead to the same <span class="math inline">\(\beta\)</span>, hence their wide 95% CIs.</p>
+<p>A second effect that could explain the wide posterior density in <span class="math inline">\(R_0\)</span> is the very high attack rate. Indeed, once <span class="math inline">\(R_0&gt;5\)</span> it doesn’t make much difference whether <span class="math inline">\(R_0\)</span> is equal to, say, 10 or 20.</p>
+<p>We can also note that the posterior estimate of <span class="math inline">\(D_{inf} = 11\)</span> days (95% CI: <span class="math inline">\([6-15]\)</span>) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as the default <code>seitlDeter</code> fitmodel comes with uniform priors for all parameters.</p>
+<p>In order to include previous empirical information on <span class="math inline">\(D_{lat}\)</span> and <span class="math inline">\(D_{inf}\)</span>, let’s modify the <code>dPrior</code> function of <code>seitlDeter</code> as follows:</p>
+<pre class="r"><code>seitlDeter$dPrior &lt;- function(theta, log = FALSE) {
+  # package with truncated normal distribution
+  library(truncnorm)
+
+  logPriorR0 &lt;- dunif(theta[[&quot;R_0&quot;]], min = 1, max = 50, log = TRUE)
+  # normal distribution with mean = 2 and sd = 1 and truncated at 0
+  logPriorLatentPeriod &lt;- log(
+    dtruncnorm(theta[[&quot;D_lat&quot;]], a = 0, b = Inf, mean = 2, sd = 1)
+  )
+  # normal distribution with mean = 2 and sd = 1 and truncated at 0
+  logPriorInfectiousPeriod &lt;- log(
+    dtruncnorm(theta[[&quot;D_inf&quot;]], a = 0, b = Inf, mean = 2, sd = 1)
+  )
+  logPriorTemporaryImmunePeriod &lt;- dunif(
+    theta[[&quot;D_imm&quot;]], min = 0, max = 50, log = TRUE
+  )
+  logPriorProbabilityLongTermImmunity &lt;- dunif(
+    theta[[&quot;alpha&quot;]], min = 0, max = 1, log = TRUE
+  )
+  logPriorReportingRate &lt;- dunif(
+    theta[[&quot;rho&quot;]], min = 0, max = 1, log = TRUE
+  )
+
+  logSum &lt;- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod +
+    logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity +
+    logPriorReportingRate
+
+  return(ifelse(log, logSum, exp(logSum)))
+}</code></pre>
+<p>Note the choice of a truncated normal distribution since <span class="math inline">\(D_{lat}\)</span> and <span class="math inline">\(D_{inf}\)</span> must be positive.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#informative-priors">practical</a> and run a MCMC with this informative prior.</p>
+</div>
+<div id="informative-priors" class="section level1">
+<h1>Informative priors</h1>
+<p>Here we combine both chains with informative priors and compare the posterior distribution with the one above.</p>
+<pre class="r"><code>library(&quot;coda&quot;)
+# create mcmc object
+traceInfo1 &lt;- mcmc(mcmcSeitlInfoPriorTheta1$trace)
+traceInfo2 &lt;- mcmc(mcmcSeitlInfoPriorTheta2$trace)
+
+# combine in a mcmc.list
+traceInfo &lt;- mcmc.list(traceInfo1, traceInfo2)
+
+# burn and thin as the chain with uniform prior (see above sections)
+traceInfoBurnThin &lt;- burnAndThin(traceInfo, burn = 5000, thin = 40)
+
+# check that both chains converged to the same posterior
+plotPosteriorDensity(traceInfoBurnThin)</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/info-prior-analysis-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># compare the effect of informative priors on the posterior distribution
+plotPosteriorDensity(list(unif = traceBurnThin, info = traceInfoBurnThin))</code></pre>
+<p><img src="figure/mcmc_and_model_comparison_example/info-prior-analysis-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span> have very different posterior distributions. This is expected as there is an informative prior on <span class="math inline">\(D_{inf}\)</span>, and <span class="math inline">\(R_0\)</span> is strongly correlated to <span class="math inline">\(D_{inf}\)</span>. Note also that the mode of all other parameters have changed, though less than <span class="math inline">\(D_{inf}\)</span> and <span class="math inline">\(R_0\)</span>. This illustrate the influence that one prior can have on the full posterior distribution.</p>
+<p>You can now go back to the <a href="mcmc_and_model_comparison.html#model-selection">practical</a>.</p>
+</div>
+<div id="model-selection" class="section level1">
+<h1>Model selection</h1>
+<pre class="r"><code># combine the two chains in a data frame
+library(&quot;dplyr&quot;) # needed for the &#39;bind_rows&#39; function
+library(&quot;purrr&quot;) # needed for the &#39;map&#39; function
+traceCombined &lt;- bind_rows(map(traceInfoBurnThin, as.data.frame))
+
+# take the mean of theta
+thetaBar &lt;- colMeans(traceCombined[seitlDeter$thetaNames])
+print(thetaBar)
+##       R_0     D_lat     D_inf     alpha     D_imm       rho 
+## 7.6512894 1.2825907 3.7076156 0.4744901 9.2406864 0.6476411
+
+# compute its log-likelihood
+initState &lt;- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
+logLikeThetaBar &lt;- dTrajObs(
+  seitlDeter, thetaBar, initState, data = fluTdc1971, log = TRUE
+)
+print(logLikeThetaBar)
+## [1] -142.7891
+
+# and its deviance
+dThetaBar &lt;- -2 * logLikeThetaBar
+print(dThetaBar)
+## [1] 285.5783
+
+# the effective number of parameters
+pD &lt;- var(-2 * traceCombined$log.likelihood) / 2
+print(pD)
+## [1] NA
+
+# and finally the DIC
+dic &lt;- dThetaBar + 2 * pD
+print(dic)
+## [1] NA</code></pre>
+<p>Follow this <a href="mcmc_and_model_comparison.html#posterior-predictive-checks">link</a> to go back to the practical.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
