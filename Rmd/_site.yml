@@ -4,26 +4,31 @@ navbar:
   type: inverse
   left:
     - text: "Introduction"
-      # icon: fa-area-chart
       href: introduction.html
     - text: "MCMC"
-      # icon: fa-area-chart
       href: mcmc.html
     - text: "Diagnostics"
-      # icon: fa-area-chart
       href: mcmc_diagnostics.html
     - text: "Modelling interlude"
-      # icon: fa-area-chart
       href: play_with_seitl.html
     - text: "Model comparison"
-      # icon: fa-area-chart
       href: mcmc_and_model_comparison.html
     - text: "Particle MCMC"
-      # icon: fa-area-chart
       href: pmcmc.html
     - text: "ABC"
-      # icon: fa-area-chart
       href: ABC.html
     - text: "Further methods"
-      # icon: fa-area-chart
       href: further_methods.html
+  right:
+    - icon: fa-envelope-o
+      href: contact.html
+    - icon: fa-github
+      href: https://github.com/sbfnk/mfiidd
+
+output:
+  html_document:
+    theme: cosmo
+    highlight: textmate
+    include:
+      after_body: footer.html
+    css: styles.css
