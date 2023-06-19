@@ -1,14 +1,14 @@
-pre{
+pre {
     background-color:#f8f8f8;
     border:1px solid #ccc;
     padding:6px 10px;
     border-radius:6px
 }
 
-code{
+code {
     background-color:transparent !important;
 }
 
-th,td{
+th,td {
     padding:10px 10px 10px 10px;
 }
