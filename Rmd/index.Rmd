@@ -11,7 +11,7 @@ output:
 Lunch options: [Local map](http://goo.gl/XEPxch)
 
 # Required software
-* [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-3.5.0.
+* [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-4.2.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
 
 If you are not familiar with `R`, check our [list of useful commands](slides/rintro.pdf).
@@ -32,8 +32,4 @@ library("fitR")
 ```
 
 To see all the commands available in fitR, have a look at the [fitR documentation](fitR.pdf).
-
-[So what did happen on Tristan da Cunha?](slides/anton_talk.pdf)
-
-<!-- [Modelling process uncertainty](process_uncertainty.html) -->
 
