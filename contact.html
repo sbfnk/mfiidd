@@ -11,7 +11,7 @@
 
 
 
-<title>Examples: Tristan da Cunha outbreak &amp; the SEITL model</title>
+<title>Contact</title>
 
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -291,83 +291,12 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Examples: Tristan da Cunha outbreak &amp; the SEITL model</h1>
+<h1 class="title toc-ignore">Contact</h1>
 
 </div>
 
 
-<p>Based on the description of the outbreak above and the information found in the literature we can make the following guess estimates:</p>
-<ol style="list-style-type: decimal">
-<li>Since the Tristan population is a close knit community, <span class="math inline">\(R_0\)</span> was probably above 2 during the outbreak. Let’s assume <span class="math inline">\(R_0=4\)</span>.</li>
-<li>Both the latent (<span class="math inline">\(D_\mathrm{lat}\)</span>) and infectious (<span class="math inline">\(D_\mathrm{inf}\)</span>) periods are equal to 2 days.</li>
-<li>The average duration of immunity (<span class="math inline">\(D_\mathrm{imm}\)</span>) is equal to 15 - 2 = 13 days.</li>
-<li>Since not all seroconverted individuals acquire a long-term protective against reinfection, let’s assume <span class="math inline">\(\alpha=0.70\)</span></li>
-<li>Assuming 80% of symptomatic and 85% of the cases reported in the data, we obtain an overall reporting rate <span class="math inline">\(\rho=0.8\times0.85 \sim 0.7\)</span>.</li>
-<li>The 2 islanders with symptoms at disembarkation are infectious: <span class="math inline">\(I(t=0)=2\)</span>.</li>
-<li>The 3 islanders who were ill during the 8-day journey are temporary protected at disembarkation: <span class="math inline">\(T(t=0)=3\)</span>.</li>
-<li>No islander was immune at the beginning of the epidemic.</li>
-</ol>
-<p>Now, you can now go back to the <a href="play_with_seitlHtml#deterministic-vs-stochastic-simulations">practical</a> and check whether these estimates provides a good fit to the data.</p>
-<div id="deterministic-vs-stochastic-simulations" class="section level1">
-<h1>Deterministic vs Stochastic simulations</h1>
-<div id="deterministic-simulations" class="section level2">
-<h2>Deterministic simulations</h2>
-<p>Let’s simulate the SEITL model with our initial guess <code>theta</code>:</p>
-<pre class="r"><code>thetaGuess1 &lt;- c(
-  R_0 = 4, D_lat = 2, D_inf = 2, alpha = 0.7, D_imm = 13, rho = 0.7
-)
-initStateGuess &lt;- c(
-  S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0
-)
-plotFit(
-  seitlDeter, thetaGuess1, initStateGuess, data = fluTdc1971, nReplicates = 100
-)</code></pre>
-<p><img src="play_with_seitl_example_files/figure-html/guess-1-1.png" width="672" /></p>
-<p>This set of parameters provides a poor fit, in particular the first wave too small. Let’s increase <span class="math inline">\(R_0\)</span>:</p>
-<pre class="r"><code>thetaGuess2 &lt;- c(
-  R_0 = 10, D_lat = 2, D_inf = 2, alpha = 0.7, D_imm = 13, rho = 0.7
-)
-plotFit(
-  seitlDeter, thetaGuess2, initStateGuess, data = fluTdc1971, nReplicates = 100
-)</code></pre>
-<p><img src="play_with_seitl_example_files/figure-html/guess-2-1.png" width="672" /></p>
-<p>The size of the first wave is now ok but the second wave is too small. Let’s decrease <span class="math inline">\(\alpha\)</span>, thus allowing more islanders to be reinfected:</p>
-<pre class="r"><code>thetaGuess3 &lt;- c(
-  R_0 = 10, D_lat = 2, D_inf = 2, alpha = 0.4, D_imm = 13, rho = 0.7
-)
-plotFit(
-  seitlDeter, thetaGuess3, initStateGuess, data = fluTdc1971, nReplicates = 100
-)</code></pre>
-<p><img src="play_with_seitl_example_files/figure-html/guess-3-1.png" width="672" /></p>
-<p>This is a decent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process.</p>
-<p>Now, you can now go back to the <a href="play_with_seitlHtml#stochastic-simulations">practical</a> and check whether the stochastic model provides a better fit to the data.</p>
-</div>
-<div id="stochastic-simulations" class="section level2">
-<h2>Stochastic simulations</h2>
-<p>Let’s try the stochastic SEITL model with our best guess from the previous section.</p>
-<pre class="r"><code>plotFit(
-  seitlStoch, thetaGuess3, initStateGuess, data = fluTdc1971,
-  nReplicates = 100, nonExtinct = c(&quot;E&quot;, &quot;I&quot;)
-)</code></pre>
-<p><img src="play_with_seitl_example_files/figure-html/guess-3-stoch-1.png" width="672" /></p>
-<p>The stochastic model better accounts for the variability in the data. In addition, demographic stochasticity can lead to stochastic extinctions at the beginning and at the end of the outbreak when the number of infectious individuals is low and the chain of transmission can break if by chance they recover before infecting a secondary case. By contrast, the cumulative extinction probability doesn’t increase between the two waves, despite the low incidence observed in the data. Note however that the shape of the second wave is quite flat in comparison to the data.</p>
-<p>Now, you can now go back to the <a href="play_with_seitlHtml#exponential-vs-erlang-distributions">practical</a> and check how we can make this model a bit more realistic.</p>
-</div>
-</div>
-<div id="exponential-vs-erlang-distributions" class="section level1">
-<h1>Exponential vs Erlang distributions</h1>
-<p>Let’s simulate the stochastic SEIT4L model with our last guess estimates. Note that we need to change the vector of initial states.</p>
-<pre class="r"><code>initStateGuessSEIT4L &lt;- c(
-  S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0
-)
-plotFit(
-  seit4lStoch, thetaGuess3, initStateGuessSEIT4L, data = fluTdc1971,
-  nReplicates = 100, nonExtinct = c(&quot;E&quot;, &quot;I&quot;)
-)</code></pre>
-<p><img src="play_with_seitl_example_files/figure-html/guess-3-stoch-SEIT4L-1.png" width="672" /></p>
-<p>With the SEIT4L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape <span class="math inline">\(k\)</span> has a variance <span class="math inline">\(k\)</span> times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.</p>
-<p>You’ve already finished? Why not <a href="play_with_seitlHtml#going-further">go further</a>?</p>
-</div>
+<p>For any questions about the course or its content, feel free to contact <a href="https://www.lshtm.ac.uk/aboutus/people/funk.sebastian">Sebastian Funk</a>.</p>
 
 <script data-goatcounter="https://mfiidd.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
