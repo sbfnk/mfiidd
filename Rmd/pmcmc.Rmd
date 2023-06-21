@@ -108,7 +108,7 @@ What can you notice when you:
 
 Can you think of and implement an algorithm to calibrate the number of particles? 
 
-Compare your approach with [ours](pmcmc_example_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
+Compare your approach with [ours](pmcmc_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
 
 # Run pMCMC
 
@@ -166,7 +166,7 @@ adaptSizeCooling <- # INSERT HERE
 adaptShapeStart <- # INSERT HERE
 ```
 
-If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_example_solution.html#setting-the-pmcmc).
+If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_solution.html#setting-the-pmcmc).
 
 Then you should be able to run `mcmcMh`:
 
@@ -210,7 +210,7 @@ You can check that the chains were started from different `initState` and that w
 
 __Take 15 min__ to analyse these chains and conclude on the choice of using 50 particles to save computation time.
 
-You can compare your conclusions with [ours](pmcmc_example_solution.html#analyse-a-pmcmc-with-50-particles).
+You can compare your conclusions with [ours](pmcmc_solution.html#analyse-a-pmcmc-with-16-particles).
 
 # Analyse a pMCMC with 400 particles
 
@@ -227,13 +227,13 @@ trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
 
 Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions with 50 and 400 particles using the function `plotPosteriorDensity`.
 
-You can also have a look at our [solution](pmcmc_example_solution.html#analyse-a-pmcmc-with-400-particles) if that helps.
+You can also have a look at our [solution](pmcmc_solution.html#analyse-a-pmcmc-with-128-particles) if that helps.
 
 # Stochastic vs deterministic fit
 
 Compare the posterior of the deterministic and stochastic SEIT4L models. Which model provides the best fit? Can you explain why?
 
-Check your answer [here](pmcmc_example_solution.html#stochastic-vs-deterministic-fit).
+Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
 
 # Going further
 
