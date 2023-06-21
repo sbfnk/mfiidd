@@ -53,7 +53,7 @@ source("pomp/seitlPomp.r", echo = TRUE)
 
 If this yields a compile error, have a look at the [important information for windows and mac users](http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.) or ask us for help. If you can't get it to work at all, you work with the *R* versions of the  code (see the note after the next paragraph).
 
-__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help. If your R client truncates the output, you can look at the full code in a browser at https://sbfnk.github.io/mfiidd/pomp/seitlPomp.r
+__Take 15 minutes__ to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our [more detailed explanation](pomp_seitl_explanation.html) for further help. If your R client truncates the output, you can look at the full code in a browser by looking at https://github.com/sbfnk/mfiidd/blob/main/Rmd/pomp/seitlPomp.r or the files at https://github.com/sbfnk/mfiidd/tree/main/Rmd/pomp for the other files in the practical to which we refer below.
 
 __Note__: For the examples presented here, we are providing an alternative version that is coded entirely in *R*. To look at this, simply add "\R" to the file names (before the `.r` extension). For example, to see the *R* version of the `SEITL` model in *pomp*, type 
 ```{r eval = FALSE}
