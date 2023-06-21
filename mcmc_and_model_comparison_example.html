@@ -315,16 +315,23 @@ names(mcmcSeitl)
 ## [1] &quot;trace&quot;           &quot;acceptanceRate&quot;  &quot;covmatEmpirical&quot;
 # the trace contains 9 variables for 5000 iterations
 dim(mcmcSeitl$trace)
-## [1] 5000    7
+## [1] 5000    9
 # let&#39;s have a look at it
 head(mcmcSeitl$trace)
-##           R_0    D_lat    D_inf     alpha     D_imm       rho logDensity
-## [1,] 2.591177 2.726712 1.813324 0.7595621 15.075070 0.7079867  -456.7989
-## [2,] 3.143116 2.682451 2.353010 0.7582560 15.143099 0.7827185  -441.5930
-## [3,] 3.143116 2.682451 2.353010 0.7582560 15.143099 0.7827185  -441.5930
-## [4,] 3.399966 2.280465 2.206831 0.6652347 13.328085 0.9198005  -379.7273
-## [5,] 3.399966 2.280465 2.206831 0.6652347 13.328085 0.9198005  -379.7273
-## [6,] 3.703400 1.905630 1.630102 0.5868385  9.611974 0.9993358  -266.9979</code></pre>
+##           R_0    D_lat    D_inf     alpha     D_imm       rho  logPrior
+## [1,] 2.392456 2.242859 1.929790 0.7964407 11.960271 0.8082664 -12.81448
+## [2,] 2.392456 2.242859 1.929790 0.7964407 11.960271 0.8082664 -12.81448
+## [3,] 3.946687 1.910482 2.452853 0.6569316  8.528870 0.6593658 -12.81448
+## [4,] 3.946687 1.910482 2.452853 0.6569316  8.528870 0.6593658 -12.81448
+## [5,] 5.107992 1.511080 2.425485 0.5822499  6.555264 0.5456772 -12.81448
+## [6,] 5.107992 1.511080 2.425485 0.5822499  6.555264 0.5456772 -12.81448
+##      logLikelihood logDensity
+## [1,]     -434.5553  -447.3698
+## [2,]     -434.5553  -447.3698
+## [3,]     -320.2052  -333.0197
+## [4,]     -320.2052  -333.0197
+## [5,]     -195.9429  -208.7574
+## [6,]     -195.9429  -208.7574</code></pre>
 <p>You can now go back to the <a href="mcmc_and_model_comparison.html#short-run-analysis">practical</a> and analyse this trace.</p>
 </div>
 <div id="short-run-analysis" class="section level1">
@@ -336,12 +343,14 @@ trace &lt;- mcmc(mcmcSeitl$trace)
 
 # compute the acceptance rate
 1 - rejectionRate(trace)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##  0.1388278  0.1388278  0.1388278  0.1388278  0.1388278  0.1388278  0.1388278
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##     0.1726345     0.1726345     0.1726345     0.1726345     0.1726345 
+##           rho      logPrior logLikelihood    logDensity 
+##     0.1726345     0.0000000     0.1726345     0.1726345
 # between 0.1 and 0.6: looks good!
 
 # let&#39;s have a look at the traces
-library(&quot;lattice&quot;) ## for the &#39;xyplot&#39; command
+library(&quot;lattice&quot;)  ## for the &#39;xyplot&#39; command
 xyplot(x = trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-trace-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Although the chain was started at a <code>initTheta</code> with a low posterior density, it quickly finds the region of the parameter space with high posterior density. Note also the constant trace of the log-prior since we have assumed a uniform prior.</p>
@@ -356,8 +365,10 @@ xyplot(x = traceBurn)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-burn-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Let&#39;s check the ESS
 effectiveSize(traceBurn)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##   62.59696   49.16026   71.24308  166.70277   69.90393   95.60518   49.71716</code></pre>
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##      70.38059      66.62130      74.02227      84.33808      69.38730 
+##           rho      logPrior logLikelihood    logDensity 
+##     134.97679       0.00000     100.89045     100.89045</code></pre>
 <p>Although we have 4000 samples remaining after burning, the ESS is much smaller. This is due to autocorrelation of the chain.</p>
 <pre class="r"><code># autocorrelation plot
 acfplot(x = traceBurn, lag.max = 60)</code></pre>
@@ -368,8 +379,10 @@ xyplot(x = traceBurnThin)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-thin-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Let&#39;s check the ESS
 effectiveSize(traceBurnThin)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##   40.04096   26.93074   24.86523  145.52785   59.12567  136.75236   52.85844</code></pre>
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##      60.32844      56.31209      56.32156      77.34331      62.12285 
+##           rho      logPrior logLikelihood    logDensity 
+##      96.18594       0.00000      69.92988      69.92988</code></pre>
 <p>Although the thinned trace has 20 times less fewer than the unthinned trace, it has a similar ESS. This is because the autocorrelation has been reduced.</p>
 <pre class="r"><code># new autocorrelation plot
 acfplot(x = traceBurnThin, lag.max = 60)</code></pre>
@@ -386,25 +399,29 @@ summary(traceBurn)
 ## 1. Empirical mean and standard deviation for each variable,
 ##    plus standard error of the mean:
 ## 
-##                 Mean      SD  Naive SE Time-series SE
-## R_0          18.4706 4.93696 0.0780602       0.623998
-## D_lat         1.4689 0.32911 0.0052037       0.046939
-## D_inf         9.7855 2.22299 0.0351486       0.263370
-## alpha         0.5436 0.04110 0.0006499       0.003183
-## D_imm         8.3694 2.53266 0.0400449       0.302919
-## rho           0.6968 0.05573 0.0008812       0.005700
-## logDensity -154.9519 2.05592 0.0325070       0.291577
+##                    Mean      SD  Naive SE Time-series SE
+## R_0             15.0775 3.80639 0.0601843       0.453719
+## D_lat            1.0115 0.25554 0.0040405       0.031308
+## D_inf           10.0611 2.49282 0.0394149       0.289740
+## alpha            0.5270 0.04049 0.0006403       0.004409
+## D_imm            7.9653 2.13142 0.0337008       0.255876
+## rho              0.6866 0.04882 0.0007719       0.004202
+## logPrior       -12.8145 0.00000 0.0000000       0.000000
+## logLikelihood -141.0424 1.71260 0.0270786       0.170503
+## logDensity    -153.8569 1.71260 0.0270786       0.170503
 ## 
 ## 2. Quantiles for each variable:
 ## 
-##                 2.5%       25%       50%       75%     97.5%
-## R_0           9.8139   14.8175   17.9962   21.5077   29.6555
-## D_lat         0.7941    1.2323    1.4876    1.6856    2.0494
-## D_inf         5.0221    8.5133    9.8385   11.2120   14.3078
-## alpha         0.4516    0.5176    0.5464    0.5726    0.6163
-## D_imm         4.6215    6.8814    8.0095    9.2734   15.2303
-## rho           0.5950    0.6559    0.6942    0.7382    0.8082
-## logDensity -159.9574 -155.8906 -154.4861 -153.4873 -151.6696
+##                    2.5%       25%       50%       75%     97.5%
+## R_0              7.6677   12.6097   14.9351   17.6100   22.5097
+## D_lat            0.5823    0.8433    0.9635    1.1635    1.5593
+## D_inf            4.3501    8.4322   10.1352   11.7960   14.3086
+## alpha            0.4339    0.5037    0.5300    0.5541    0.5971
+## D_imm            4.3538    6.4310    7.9303    9.0796   12.6237
+## rho              0.5886    0.6548    0.6878    0.7179    0.7845
+## logPrior       -12.8145  -12.8145  -12.8145  -12.8145  -12.8145
+## logLikelihood -145.6333 -141.8981 -140.5947 -139.8680 -138.8092
+## logDensity    -158.4478 -154.7126 -153.4091 -152.6825 -151.6237
 
 # The thinned trace
 summary(traceBurnThin)
@@ -417,25 +434,29 @@ summary(traceBurnThin)
 ## 1. Empirical mean and standard deviation for each variable,
 ##    plus standard error of the mean:
 ## 
-##                Mean      SD Naive SE Time-series SE
-## R_0          18.352 4.79745 0.347132       0.758156
-## D_lat         1.470 0.31581 0.022851       0.060856
-## D_inf         9.725 2.16257 0.156478       0.433685
-## alpha         0.543 0.03941 0.002851       0.003267
-## D_imm         8.353 2.57143 0.186062       0.334416
-## rho           0.696 0.05495 0.003976       0.004699
-## logDensity -154.906 2.09209 0.151378       0.287755
+##                    Mean      SD Naive SE Time-series SE
+## R_0             15.0340 3.67915 0.266214       0.473681
+## D_lat            0.9966 0.24756 0.017913       0.032989
+## D_inf           10.1004 2.42825 0.175702       0.323560
+## alpha            0.5284 0.04102 0.002968       0.004664
+## D_imm            7.9954 2.11939 0.153354       0.268897
+## rho              0.6882 0.04950 0.003582       0.005048
+## logPrior       -12.8145 0.00000 0.000000       0.000000
+## logLikelihood -141.0482 1.72186 0.124589       0.205904
+## logDensity    -153.8627 1.72186 0.124589       0.205904
 ## 
 ## 2. Quantiles for each variable:
 ## 
-##                 2.5%       25%       50%       75%     97.5%
-## R_0           9.7741   14.7952   17.7711   21.3580   29.3237
-## D_lat         0.8971    1.2326    1.4858    1.6775    2.0222
-## D_inf         5.1490    8.6264    9.6471   11.1119   13.5456
-## alpha         0.4575    0.5172    0.5464    0.5704    0.6056
-## D_imm         4.4201    6.8946    7.9502    9.2183   14.0982
-## rho           0.5957    0.6583    0.6942    0.7384    0.7905
-## logDensity -159.8568 -155.9577 -154.5387 -153.4179 -151.6696</code></pre>
+##                    2.5%       25%       50%       75%     97.5%
+## R_0              7.7944   12.7957   14.8305   17.7131   21.5255
+## D_lat            0.5934    0.8350    0.9447    1.1455    1.5276
+## D_inf            5.0674    8.5244   10.3264   11.7014   14.2780
+## alpha            0.4369    0.5046    0.5279    0.5543    0.6035
+## D_imm            4.3360    6.7251    7.9066    9.0377   12.6548
+## rho              0.5932    0.6553    0.6877    0.7234    0.7848
+## logPrior       -12.8145  -12.8145  -12.8145  -12.8145  -12.8145
+## logLikelihood -145.4018 -142.0507 -140.5424 -139.8670 -138.8033
+## logDensity    -158.2162 -154.8651 -153.3569 -152.6815 -151.6178</code></pre>
 <p>They are very similar. So why thin? Because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function <code>plotPosteriorDensity</code> of the <code>fitR</code> package:</p>
 <pre class="r"><code>plotPosteriorDensity(list(unthinned = traceBurn, thinned = traceBurnThin))</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-compare-density-1.png" width="960" style="display: block; margin: auto;" /> The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local “bumps” of the unthinned distribution are caused by autocorrelated samples.</p>
@@ -462,47 +483,63 @@ head(trace, 3)
 ## Start = 1 
 ## End = 4 
 ## Thinning interval = 1 
-##           R_0   D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
-## [2,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
-## [3,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
-## [4,] 3.931247 3.13481 2.371641 0.7379751 13.91705 0.9243739  -399.2131
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 2.000000 2.000000 2.000000 0.8000000 16.00000 0.8500000 -12.81448
+## [2,] 2.000000 2.000000 2.000000 0.8000000 16.00000 0.8500000 -12.81448
+## [3,] 1.722749 1.481383 1.186734 0.8390849 11.34142 0.8183184 -12.81448
+## [4,] 1.722749 1.481383 1.186734 0.8390849 11.34142 0.8183184 -12.81448
+##      logLikelihood logDensity
+## [1,]     -445.7795  -458.5939
+## [2,]     -445.7795  -458.5939
+## [3,]     -421.8376  -434.6520
+## [4,]     -421.8376  -434.6520
 ## 
 ## [[2]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 4 
 ## Thinning interval = 1 
-##          R_0   D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
-## [2,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
-## [3,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
-## [4,] 20.4376 2.40712 1.602208 0.1375442 5.599364 0.2454567   -312.382
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 19.33034 2.075211 1.831636 0.1982534 7.921349 0.3198710 -12.81448
+## [2,] 19.33034 2.075211 1.831636 0.1982534 7.921349 0.3198710 -12.81448
+## [3,] 19.33034 2.075211 1.831636 0.1982534 7.921349 0.3198710 -12.81448
+## [4,] 19.57792 2.405110 3.105701 0.1539486 8.018864 0.3203776 -12.81448
+##      logLikelihood logDensity
+## [1,]     -295.8436  -308.6581
+## [2,]     -295.8436  -308.6581
+## [3,]     -295.8436  -308.6581
+## [4,]     -261.3233  -274.1378
 ## 
 ## attr(,&quot;class&quot;)
 ## [1] &quot;mcmc.list&quot;
 
 # acceptance rate
 1 - rejectionRate(trace)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##  0.1884138  0.1884138  0.1884138  0.1884138  0.1884138  0.1884138  0.1884138
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##     0.1954239     0.1954239     0.1954239     0.1954239     0.1954239 
+##           rho      logPrior logLikelihood    logDensity 
+##     0.1954239     0.0000000     0.1954239     0.1954239
 # close to the optimal value of 0.234
 
 # ESS
 effectiveSize(trace)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##   2446.319   2946.625   2247.957   3317.350   2467.056   3498.944   2447.695
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##      2556.169      3062.908      2647.090      3281.971      3172.580 
+##           rho      logPrior logLikelihood    logDensity 
+##      3539.099         0.000      3044.446      3044.446
 
 # plot the traces
-library(&quot;lattice&quot;) ## for the &#39;xyplot&#39; command
+library(&quot;lattice&quot;)  ## for the &#39;xyplot&#39; command
 xyplot(trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-combine-traces-1.png" width="672" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain. Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.</p>
 <pre class="r"><code>traceBurn &lt;- burnAndThin(trace, burn = 5000)
 
 # removing the burning increases the ESS
 effectiveSize(traceBurn)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##   3000.622   2903.728   3458.645   3370.314   2985.987   3397.424   2620.894
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##      2495.223      3024.481      3132.444      3201.725      3188.532 
+##           rho      logPrior logLikelihood    logDensity 
+##      3350.921         0.000      2681.293      2681.293
 
 # autocorrelation
 acfplot(traceBurn, lag.max = 60)</code></pre>
@@ -512,9 +549,9 @@ acfplot(traceBurn, lag.max = 60)</code></pre>
 traceBurnThin &lt;- burnAndThin(traceBurn, thin = 40)
 xyplot(traceBurnThin)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-thin-1.png" width="672" style="display: block; margin: auto;" /> However, let’s compare the thinned and unthinnned distributions.</p>
-<pre class="r"><code># Note that plotPosteriorDensity can take a list of mcmc.list
-# It will plot the different mcmc.list by combining their elements
-# Let&#39;s plot the combined unthinned trace vs the combined thinned trace.
+<pre class="r"><code># Note that plotPosteriorDensity can take a list of mcmc.list It will plot the
+# different mcmc.list by combining their elements Let&#39;s plot the combined
+# unthinned trace vs the combined thinned trace.
 plotPosteriorDensity(list(unthinned = traceBurn, thinned = traceBurnThin))</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-compare-thin-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. <strong>Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!</strong></p>
@@ -533,25 +570,29 @@ summary(traceBurnThin)
 ## 1. Empirical mean and standard deviation for each variable,
 ##    plus standard error of the mean:
 ## 
-##                 Mean      SD  Naive SE Time-series SE
-## R_0          16.8937 4.09201 0.0873214      0.0892240
-## D_lat         1.1403 0.34467 0.0073550      0.0084983
-## D_inf        10.6500 2.14764 0.0458296      0.0464923
-## alpha         0.5378 0.03787 0.0008082      0.0009582
-## D_imm         7.7982 2.10656 0.0449529      0.0500267
-## rho           0.6951 0.05004 0.0010679      0.0011713
-## logDensity -153.9616 1.71985 0.0367006      0.0425327
+##                    Mean      SD Naive SE Time-series SE
+## R_0             17.1056 4.18077 0.089216      0.1006106
+## D_lat            1.1431 0.34989 0.007467      0.0083788
+## D_inf           10.8010 2.23188 0.047627      0.0501479
+## alpha            0.5364 0.03814 0.000814      0.0008609
+## D_imm            7.7305 2.20336 0.047019      0.0505641
+## rho              0.6958 0.05228 0.001116      0.0011299
+## logPrior       -12.8145 0.00000 0.000000      0.0000000
+## logLikelihood -141.3144 1.76904 0.037750      0.0428708
+## logDensity    -154.1289 1.76904 0.037750      0.0428708
 ## 
 ## 2. Quantiles for each variable:
 ## 
-##                 2.5%       25%       50%       75%     97.5%
-## R_0           9.8339   13.9572   16.4742   19.4977   25.6458
-## D_lat         0.4865    0.9052    1.1336    1.3619    1.8462
-## D_inf         6.5572    9.1025   10.6274   12.2738   14.5412
-## alpha         0.4613    0.5133    0.5386    0.5629    0.6068
-## D_imm         4.0723    6.4037    7.5822    8.9900   12.4891
-## rho           0.6017    0.6619    0.6924    0.7279    0.7991
-## logDensity -158.1133 -154.8481 -153.6276 -152.7118 -151.6312</code></pre>
+##                    2.5%       25%       50%       75%     97.5%
+## R_0             10.1186   14.1379   16.7421   19.7520   26.1080
+## D_lat            0.4979    0.8885    1.1353    1.3700    1.8940
+## D_inf            6.4580    9.2290   10.8903   12.5063   14.6617
+## alpha            0.4595    0.5110    0.5373    0.5622    0.6075
+## D_imm            3.8619    6.2249    7.5466    8.9910   12.7175
+## rho              0.6002    0.6592    0.6937    0.7321    0.8025
+## logPrior       -12.8145  -12.8145  -12.8145  -12.8145  -12.8145
+## logLikelihood -145.6336 -142.1916 -140.9629 -140.0194 -138.8614
+## logDensity    -158.4481 -155.0061 -153.7774 -152.8339 -151.6759</code></pre>
 <p>Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with <code>summary</code> won’t be meaningful for a parameter with a multi-modal posterior.</p>
 <p><strong>By contrast, for a unimodal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates.</strong> Furthermore, running several “shorter” chains in parallel is faster than running one “long” chain.</p>
 <p>Finally, let’s assess the fit of the deterministic SEITL model.</p>
@@ -563,23 +604,18 @@ initState &lt;- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
 
 # by default plotPosteriorFit summarize the fit of 100 thetas sampled from the
 # posterior
-plotPosteriorFit(
-  trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971
-)</code></pre>
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-1.png" width="576" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>
-# alternatively,  one can plot the fit of the mean of the posterior (in this
+# alternatively, one can plot the fit of the mean of the posterior (in this
 # case the observation is replicated 100 times)
-plotPosteriorFit(
-  trace = trace, fitmodel = seitlDeter, initState = initState,
-  data = fluTdc1971, posteriorSummary = &quot;mean&quot;
-)</code></pre>
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971,
+    posteriorSummary = &quot;mean&quot;)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-2.png" width="576" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>
 # or using the maximum a posteriori (MAP) estimate
-plotPosteriorFit(
-  trace = trace, fitmodel = seitlDeter, initState = initState,
-  data = fluTdc1971, posteriorSummary = &quot;max&quot;)</code></pre>
+plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971,
+    posteriorSummary = &quot;max&quot;)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-3.png" width="576" style="display: block; margin: auto;" /></p>
 <p>Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.</p>
 <p>You can now go back to the <a href="mcmc_and_model_comparison.html#correlations">practical</a> and look at the posterior correlations between the parameters.</p>
@@ -587,46 +623,39 @@ plotPosteriorFit(
 <div id="correlations" class="section level1">
 <h1>Correlations</h1>
 <p>The correlation of the posterior distribution can be investigated using <code>levelplot</code>.</p>
-<pre class="r"><code>library(&quot;lattice&quot;) ## for the &#39;levelplot command
+<pre class="r"><code>library(&quot;lattice&quot;)  ## for the &#39;levelplot command
 # levelplot doesn&#39;t accept `mcmc.list`, we pass the first `mcmc` only.
 levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/correlation-levelplot-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>Note the strong positive correlations (~0.8) between <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{lat}\)</span> and between <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span>. In order to explain the wide 95% CIs of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span>, let’s have a look at the contact rate <span class="math inline">\(\beta = R_0/D_{inf}\)</span>.</p>
-<pre class="r"><code>with(as.data.frame(traceBurnThin[[1]]), quantile(R_0 / D_inf, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))
+<pre class="r"><code>with(as.data.frame(traceBurnThin[[1]]), quantile(R_0/D_inf, probs = c(0.025, 0.25,
+    0.5, 0.75, 0.975)))
 ##     2.5%      25%      50%      75%    97.5% 
-## 1.089121 1.402433 1.566948 1.764797 2.172346</code></pre>
+## 1.112567 1.394826 1.584295 1.783682 2.192854</code></pre>
 <p>The posterior value of <span class="math inline">\(\beta\)</span> varies somewhat less than the posterior values of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_\mathrm{inf}\)</span>. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span> that lead to the same <span class="math inline">\(\beta\)</span>, hence their wide 95% CIs.</p>
 <p>A second effect that could explain the wide posterior density in <span class="math inline">\(R_0\)</span> is the very high attack rate. Indeed, once <span class="math inline">\(R_0&gt;5\)</span> it doesn’t make much difference whether <span class="math inline">\(R_0\)</span> is equal to, say, 10 or 20.</p>
 <p>We can also note that the posterior estimate of <span class="math inline">\(D_{inf} = 11\)</span> days (95% CI: <span class="math inline">\([6-15]\)</span>) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as the default <code>seitlDeter</code> fitmodel comes with uniform priors for all parameters.</p>
 <p>In order to include previous empirical information on <span class="math inline">\(D_{lat}\)</span> and <span class="math inline">\(D_{inf}\)</span>, let’s modify the <code>dPrior</code> function of <code>seitlDeter</code> as follows:</p>
 <pre class="r"><code>seitlDeter$dPrior &lt;- function(theta, log = FALSE) {
-  # package with truncated normal distribution
-  library(truncnorm)
+    # package with truncated normal distribution
+    library(truncnorm)
 
-  logPriorR0 &lt;- dunif(theta[[&quot;R_0&quot;]], min = 1, max = 50, log = TRUE)
-  # normal distribution with mean = 2 and sd = 1 and truncated at 0
-  logPriorLatentPeriod &lt;- log(
-    dtruncnorm(theta[[&quot;D_lat&quot;]], a = 0, b = Inf, mean = 2, sd = 1)
-  )
-  # normal distribution with mean = 2 and sd = 1 and truncated at 0
-  logPriorInfectiousPeriod &lt;- log(
-    dtruncnorm(theta[[&quot;D_inf&quot;]], a = 0, b = Inf, mean = 2, sd = 1)
-  )
-  logPriorTemporaryImmunePeriod &lt;- dunif(
-    theta[[&quot;D_imm&quot;]], min = 0, max = 50, log = TRUE
-  )
-  logPriorProbabilityLongTermImmunity &lt;- dunif(
-    theta[[&quot;alpha&quot;]], min = 0, max = 1, log = TRUE
-  )
-  logPriorReportingRate &lt;- dunif(
-    theta[[&quot;rho&quot;]], min = 0, max = 1, log = TRUE
-  )
+    logPriorR0 &lt;- dunif(theta[[&quot;R_0&quot;]], min = 1, max = 50, log = TRUE)
+    # normal distribution with mean = 2 and sd = 1 and truncated at 0
+    logPriorLatentPeriod &lt;- log(dtruncnorm(theta[[&quot;D_lat&quot;]], a = 0, b = Inf, mean = 2,
+        sd = 1))
+    # normal distribution with mean = 2 and sd = 1 and truncated at 0
+    logPriorInfectiousPeriod &lt;- log(dtruncnorm(theta[[&quot;D_inf&quot;]], a = 0, b = Inf,
+        mean = 2, sd = 1))
+    logPriorTemporaryImmunePeriod &lt;- dunif(theta[[&quot;D_imm&quot;]], min = 0, max = 50, log = TRUE)
+    logPriorProbabilityLongTermImmunity &lt;- dunif(theta[[&quot;alpha&quot;]], min = 0, max = 1,
+        log = TRUE)
+    logPriorReportingRate &lt;- dunif(theta[[&quot;rho&quot;]], min = 0, max = 1, log = TRUE)
 
-  logSum &lt;- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod +
-    logPriorTemporaryImmunePeriod + logPriorProbabilityLongTermImmunity +
-    logPriorReportingRate
+    logSum &lt;- logPriorR0 + logPriorLatentPeriod + logPriorInfectiousPeriod + logPriorTemporaryImmunePeriod +
+        logPriorProbabilityLongTermImmunity + logPriorReportingRate
 
-  return(ifelse(log, logSum, exp(logSum)))
+    return(ifelse(log, logSum, exp(logSum)))
 }</code></pre>
 <p>Note the choice of a truncated normal distribution since <span class="math inline">\(D_{lat}\)</span> and <span class="math inline">\(D_{inf}\)</span> must be positive.</p>
 <p>You can now go back to the <a href="mcmc_and_model_comparison.html#informative-priors">practical</a> and run a MCMC with this informative prior.</p>
@@ -657,31 +686,29 @@ plotPosteriorDensity(list(unif = traceBurnThin, info = traceInfoBurnThin))</code
 <div id="model-selection" class="section level1">
 <h1>Model selection</h1>
 <pre class="r"><code># combine the two chains in a data frame
-library(&quot;dplyr&quot;) # needed for the &#39;bind_rows&#39; function
-library(&quot;purrr&quot;) # needed for the &#39;map&#39; function
+library(&quot;dplyr&quot;)  # needed for the &#39;bind_rows&#39; function
+library(&quot;purrr&quot;)  # needed for the &#39;map&#39; function
 traceCombined &lt;- bind_rows(map(traceInfoBurnThin, as.data.frame))
 
 # take the mean of theta
 thetaBar &lt;- colMeans(traceCombined[seitlDeter$thetaNames])
 print(thetaBar)
 ##       R_0     D_lat     D_inf     alpha     D_imm       rho 
-## 7.6512894 1.2825907 3.7076156 0.4744901 9.2406864 0.6476411
+## 7.6292160 1.2840236 3.6875805 0.4760604 9.1959368 0.6476576
 
 # compute its log-likelihood
 initState &lt;- c(S = 279, E = 0, I = 2, T = 3, L = 0, Inc = 0)
-logLikeThetaBar &lt;- dTrajObs(
-  seitlDeter, thetaBar, initState, data = fluTdc1971, log = TRUE
-)
+logLikeThetaBar &lt;- dTrajObs(seitlDeter, thetaBar, initState, data = fluTdc1971, log = TRUE)
 print(logLikeThetaBar)
-## [1] -142.7891
+## [1] -142.7907
 
 # and its deviance
 dThetaBar &lt;- -2 * logLikeThetaBar
 print(dThetaBar)
-## [1] 285.5783
+## [1] 285.5815
 
 # the effective number of parameters
-pD &lt;- var(-2 * traceCombined$log.likelihood) / 2
+pD &lt;- var(-2 * traceCombined$log.likelihood)/2
 print(pD)
 ## [1] NA
 

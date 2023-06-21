@@ -335,27 +335,20 @@ $(document).ready(function () {
 <p>Let’s, again, guess some parameters and initial values:</p>
 <pre class="r"><code>theta &lt;- c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 seitlInitState &lt;- c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
-seit4lInitState &lt;- c(
-  S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0, L.0 = 30, 
-  Inc.0 = 0
-)</code></pre>
+seit4lInitState &lt;- c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0,
+    L.0 = 30, Inc.0 = 0)</code></pre>
 <p>Note the <em>pomp</em> syntax, whereby initial states are named as the named variable with <code>.0</code> appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).</p>
 <div id="deterministic-trajectory" class="section level2">
 <h2>Deterministic trajectory</h2>
-<pre class="r"><code>seitlTraj &lt;- trajectory(seitlPomp,
-  params = c(theta, seitlInitState),
-  format = &quot;data.frame&quot;
-)
+<pre class="r"><code>seitlTraj &lt;- trajectory(seitlPomp, params = c(theta, seitlInitState), format = &quot;data.frame&quot;)
 plotTraj(seitlTraj)</code></pre>
 <p><img src="figure/pomp/unnamed-chunk-10-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>The <code>trajectory</code> function simulates the deterministic skeleton of the <code>pomp</code> object it is given, ignoring all process or measurement stochasticity.</p>
 </div>
 <div id="stochastic-trajectories" class="section level2">
 <h2>Stochastic trajectories</h2>
-<pre class="r"><code>seitlSim &lt;- simulate(seitlPomp,
-  params = c(theta, seitlInitState),
-  include.data = FALSE, format = &quot;data.frame&quot;
-)
+<pre class="r"><code>seitlSim &lt;- simulate(seitlPomp, params = c(theta, seitlInitState), include.data = FALSE,
+    format = &quot;data.frame&quot;)
 
 plotTraj(seitlSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
 <p><img src="figure/pomp/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /> The <code>simulate</code> function simulates the (stochastic) model of the <code>pomp</code> object it is given. By specifying <code>obs = TRUE</code> and <code>states = TRUE</code>, we indicate that we want to have both the model states and observations in the data frame that is returned.</p>
@@ -373,18 +366,13 @@ logLik(pf)</code></pre>
 <p>Several methods are available in <em>pomp</em> for fitting a deterministic or stochastic model to data using maximum likelihood. Remember that this implies a <em>frequentist</em> method, that is the prior distribution is ignored, and the parameter values that yield maximum likelihood are interpreted as the true parameters.</p>
 <div id="trajectory-matching" class="section level2">
 <h2>Trajectory matching</h2>
-<pre class="r"><code>seitlTm &lt;- traj_objfun(seitlPomp,
-  params = c(theta, seitlInitState),
-  est = names(theta)
-)
+<pre class="r"><code>seitlTm &lt;- traj_objfun(seitlPomp, params = c(theta, seitlInitState), est = names(theta))
 res &lt;- optim(par = log(theta), fn = seitlTm)</code></pre>
 <pre class="r"><code>logLik(seitlTm)</code></pre>
 <pre><code>## [1] -139.4111</code></pre>
 <p>This fits the deterministic skeleton to the data by maximising the likelihood using a standard optimisation method (see <code>?traj_objfun</code> for details on the methods available). That is, it ignores all <em>process noise</em> (or <em>demographic stochasticity</em>) in the model.</p>
 <p>We can use the best-fit parameters from trajectory matching to simulate multiple trajectories from the stochastic model by passing the new object <code>seitlTm</code> to <code>simulate</code>.</p>
-<pre class="r"><code>seitlTmSim &lt;- simulate(
-  seitlTm, nsim = 10, format = &quot;data.frame&quot;
-)
+<pre class="r"><code>seitlTmSim &lt;- simulate(seitlTm, nsim = 10, format = &quot;data.frame&quot;)
 plotTraj(seitlTmSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
 <p><img src="figure/pomp/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
@@ -394,13 +382,9 @@ plotTraj(seitlTmSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pr
 names(propSd) &lt;- names(theta)
 rwSd &lt;- do.call(rw_sd, as.list(propSd))
 
-seitlMf &lt;- mif2(
-  seitlPomp, params = coef(seitlTm), Nmif = 50, Np = 1000, 
-  cooling.fraction.50 = 0.01, rw.sd = rwSd
-)
-seitlMfSim &lt;- simulate(
-  seitlMf, nsim = 10, include.data = TRUE, format = &quot;data.frame&quot;
-)
+seitlMf &lt;- mif2(seitlPomp, params = coef(seitlTm), Nmif = 50, Np = 1000, cooling.fraction.50 = 0.01,
+    rw.sd = rwSd)
+seitlMfSim &lt;- simulate(seitlMf, nsim = 10, include.data = TRUE, format = &quot;data.frame&quot;)
 plotTraj(seitlMfSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
 <p><img src="figure/pomp/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>logLik(seitlMf)</code></pre>
@@ -417,12 +401,8 @@ plotTraj(seitlMfSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pr
 <h2>Particle Markov-Chain Monte Carlo (pMCMC)</h2>
 <p>The following code runs pMCMC with adaptation of the proposal distribution using the model given to the <code>POMP</code> object. <strong>Note</strong>: you can try first with a smaller value of the <code>Nmcmc</code> parameter; depending on the power of your computer, the code below can take a while to run.</p>
 <pre class="r"><code># run pMCMC with adaptive MCMC
-seitlPmcmc &lt;- pmcmc(
-  seitlPomp, params = coef(seitlMf), Nmcmc = 5000, Np = 128, 
-  proposal = mvn_rw_adaptive(
-    rw.sd = propSd, scale.start = 100, shape.start = 200
-  )
-)
+seitlPmcmc &lt;- pmcmc(seitlPomp, params = coef(seitlMf), Nmcmc = 5000, Np = 128, proposal = mvn_rw_adaptive(rw.sd = propSd,
+    scale.start = 100, shape.start = 200))
 trace &lt;- traces(seitlPmcmc)</code></pre>
 <pre class="r"><code>library(&quot;coda&quot;)
 # acceptance rate

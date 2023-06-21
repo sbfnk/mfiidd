@@ -381,7 +381,7 @@ ssMeanRelDistance(
   dataObs = fluTdc1971,
   modelObs = simu
 )</code></pre>
-<pre><code>## [1] 0.5966994</code></pre>
+<pre><code>## [1] 0.4716653</code></pre>
 <p>Again, you can change <code>ssMeanRelDistance</code> to your own <code>my_distance</code> function or one from the <a href="distance_examples.html">examples</a>, and try different things for the list of summary statistics (including more or less than two summary statistics).</p>
 <p>You can then test the distribution of distances of the summary statistics from model runs to the summary statistic on the data, in the same way as we did before with the distribution of summary statistics. You can use <code>computeDistanceAbc</code> function provided in the <code>fitR</code> package does the leg work for you. It computes the distance between a <code>fitmodel</code> and the <code>data</code> for a single simulation using a given parameter vector <code>theta</code> and initial state <code>initState</code>. Have a look at the code of <code>computeDistanceAbc</code>; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as an argument. We can test it using</p>
 <pre class="r"><code>computeDistanceAbc(
@@ -392,7 +392,7 @@ ssMeanRelDistance(
   initState = initState,
   data = fluTdc1971
 )</code></pre>
-<pre><code>## [1] 0.5481792</code></pre>
+<pre><code>## [1] 0.9675055</code></pre>
 <p>Again, you can change the list of summary statistics (<code>ssSize</code>, <code>ssMax</code>) and the distance function (<code>ssMeanRelDistance</code>) with your own ones, or other ones from the <a href="sumstat_examples.html">examples</a>.</p>
 <p>The returned distance is the outcome of a single simulation run, so you will get a different result here, which will also depend on your choice of distance function and summary statistics.</p>
 <p>To plot the distribution of distances from the data for a single set of parameter values <code>theta</code>, you can again use <code>replicate</code>.</p>

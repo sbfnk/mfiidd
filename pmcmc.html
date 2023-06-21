@@ -360,10 +360,10 @@ data(models)
 data(fluTdc1971)
 
 # theta close to the mean posterior estimate of the deterministic SEIT4L model
-theta &lt;- c(&quot;R_0&quot; = 7, &quot;D_lat&quot; = 1, &quot;D_inf&quot; = 4, &quot;alpha&quot; = 0.5, &quot;D_imm&quot; = 10, &quot;rho&quot; = 0.65)
+theta &lt;- c(R_0 = 7, D_lat = 1, D_inf = 4, alpha = 0.5, D_imm = 10, rho = 0.65)
 
 # init state as before
-initState &lt;- c(&quot;S&quot; = 279, &quot;E&quot; = 0, &quot;I&quot; = 2, &quot;T1&quot; = 3, &quot;T2&quot; = 0, &quot;T3&quot; = 0, &quot;T4&quot; = 0, &quot;L&quot; = 0, &quot;Inc&quot; = 0)
+initState &lt;- c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0)
 
 # run the particle filter with 20 particles
 my_particleFilter(seit4lStoch, theta, initState, data = fluTdc1971, nParticles = 20)
@@ -380,7 +380,7 @@ my_particleFilter(seit4lStoch, theta, initState, data = fluTdc1971, nParticles =
 <div id="calibrate-the-number-of-particles" class="section level1">
 <h1>Calibrate the number of particles</h1>
 <p>Can you think of and implement an algorithm to calibrate the number of particles?</p>
-<p>Compare your approach with <a href="pmcmc_example_solution.html#calibrate-the-number-of-particles">ours</a> and determine an optimal number of particles.</p>
+<p>Compare your approach with <a href="pmcmc_solution.html#calibrate-the-number-of-particles">ours</a> and determine an optimal number of particles.</p>
 </div>
 <div id="run-pmcmc" class="section level1">
 <h1>Run pMCMC</h1>
@@ -389,7 +389,9 @@ my_particleFilter(seit4lStoch, theta, initState, data = fluTdc1971, nParticles =
 <p>You have probably noticed that running <code>my_particleFilter</code> is time consuming. As we mentioned in the <a href="mcmc_and_model_comparison.html#objectives">previous session</a> this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target.</p>
 <p>In order to efficiently initialise your pMCMC, you can make use the results of the fit of the deterministic SEIT4L model of the previous session. Remember that you can load these results as follows:</p>
 <pre class="r"><code>
-# this should load 2 objects in your environment: mcmcSeit4lInfoPriorTheta1 and mcmcSeit4lInfoPriorTheta2. Each one is a list of 3 elements returned by mcmcMh
+# this should load 2 objects in your environment: mcmcSeit4lInfoPriorTheta1 and
+# mcmcSeit4lInfoPriorTheta2. Each one is a list of 3 elements returned by
+# mcmcMh
 names(mcmcSeit4lInfoPriorTheta1)
 ## [1] &quot;trace&quot;           &quot;acceptanceRate&quot;  &quot;covmatEmpirical&quot;</code></pre>
 <p>In the previous session, you have initialised <code>mcmcMh</code> with a diagonal covariance matrix for the Gaussian proposal using the argument <code>proposalSd</code>. Actually, you can also pass a non-diagonal covariance matrix, accounting for correlations, by using the argument <code>covmat</code> (type <code>?mcmcMh</code> for more details).</p>
@@ -426,10 +428,10 @@ nIterations &lt;- # INSERT HERE
 adaptSizeStart &lt;- # INSERT HERE
 adaptSizeCooling &lt;- # INSERT HERE
 adaptShapeStart &lt;- # INSERT HERE</code></pre>
-<p>If you have trouble filling some of the empty bits, have a look at our <a href="pmcmc_example_solution.html#setting-the-pmcmc">solution</a>.</p>
+<p>If you have trouble filling some of the empty bits, have a look at our <a href="pmcmc_solution.html#setting-the-pmcmc">solution</a>.</p>
 <p>Then you should be able to run <code>mcmcMh</code>:</p>
 <pre class="r"><code># run the pMCMC
-my_pMCMC &lt;- mcmcMh(target = my_posteriorSto(400),
+my_pMCMC &lt;- mcmcMh(target = my_posteriorSto(128),
                    initTheta = initTheta,
                    covmat = covmat,
                    limits = list(lower = lower,upper = upper),
@@ -438,24 +440,24 @@ my_pMCMC &lt;- mcmcMh(target = my_posteriorSto(400),
                    adaptSizeCooling = adaptSizeCooling,
                    adaptShapeStart = adaptShapeStart)</code></pre>
 </div>
-<div id="analyse-a-pmcmc-with-50-particles" class="section level1">
-<h1>Analyse a pMCMC with 50 particles</h1>
-<p>If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let’s have a look at what we would get by running a pMCMC with 50 particles.</p>
+<div id="analyse-a-pmcmc-with-16-particles" class="section level1">
+<h1>Analyse a pMCMC with 16 particles</h1>
+<p>If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let’s have a look at what we would get by running a pMCMC with 16 particles.</p>
 <p>To save time, we have run 8 chains in parallel for you. Each chain was started from a different <code>initTheta</code> and ran for 3000 iterations. The values of <code>initTheta</code> were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:</p>
-<pre class="r"><code>data(pmcmcSeit4lInfoPrior8)
+<pre class="r"><code>data(pmcmcSeit4lInfoPrior)
 # this should load a list with the same name, which contains the 8 chains.
-names(pmcmcSeit4lInfoPrior8)
+names(pmcmcSeit4lInfoPrior16)
 ## NULL
 # each chain is a list of 3 elements returned by mcmcMh
-names(pmcmcSeit4lInfoPrior8[[&quot;chain1&quot;]])
+names(pmcmcSeit4lInfoPrior16[[&quot;chain1&quot;]])
 ## NULL
 # the trace contains 9 variables for 3000 iterations
-dim(pmcmcSeit4lInfoPrior8[[&quot;chain1&quot;]]$trace)
+dim(pmcmcSeit4lInfoPrior16[[&quot;chain1&quot;]]$trace)
 ## NULL</code></pre>
 <p>We can combine the traces of the 8 chains into a <code>mcmc.list</code> object as follows:</p>
 <pre class="r"><code>library(&quot;coda&quot;)
-trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
-  mcmc(chain$trace)
+trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
+    mcmc(chain$trace)
 }))
 head(trace, 1)
 ## [[1]]
@@ -463,95 +465,119 @@ head(trace, 1)
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##          R_0    D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 4.80449 0.608517 3.364615 0.3780495 10.45416 0.5372705  -216.0405
-## [2,] 4.80449 0.608517 3.364615 0.3780495 10.45416 0.5372705  -216.0405
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+##      logLikelihood logDensity
+## [1,]     -119.7101  -131.0695
+## [2,]     -119.7101  -131.0695
 ## 
 ## [[2]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##           R_0    D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 9.852341 1.400515 4.579285 0.4728661 10.29584 0.6473732  -137.2259
-## [2,] 9.852341 1.400515 4.579285 0.4728661 10.29584 0.6473732  -137.2259
+##           R_0    D_lat    D_inf     alpha    D_imm      rho logPrior
+## [1,] 9.156946 1.369854 4.422742 0.4634092 10.10724 0.624404 -12.7751
+## [2,] 9.156946 1.369854 4.422742 0.4634092 10.10724 0.624404 -12.7751
+##      logLikelihood logDensity
+## [1,]     -120.8215  -133.5966
+## [2,]     -120.8215  -133.5966
 ## 
 ## [[3]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##           R_0    D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679  -139.1958
-## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679  -139.1958
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+##      logLikelihood logDensity
+## [1,]     -122.2201  -133.5796
+## [2,]     -122.2201  -133.5796
 ## 
 ## [[4]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##           R_0     D_lat    D_inf    alpha    D_imm       rho logDensity
-## [1,] 5.932091 0.8252154 3.195279 0.442149 6.324777 0.6105623  -137.5905
-## [2,] 5.932091 0.8252154 3.195279 0.442149 6.324777 0.6105623  -137.5905
+##           R_0   D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 5.205378 1.14665 2.257054 0.4387091 11.13603 0.5932959 -10.03886
+## [2,] 5.205378 1.14665 2.257054 0.4387091 11.13603 0.5932959 -10.03886
+##      logLikelihood logDensity
+## [1,]     -124.2126  -134.2514
+## [2,]     -124.2126  -134.2514
 ## 
 ## [[5]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##           R_0    D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 9.474511 1.762513 4.486809 0.5435259 8.673994 0.7218294  -149.9378
-## [2,] 9.474511 1.762513 4.486809 0.5435259 8.673994 0.7218294  -149.9378
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 8.059997 1.707677 2.917582 0.4784999 9.896543 0.6653181 -10.10542
+## [2,] 8.059997 1.707677 2.917582 0.4784999 9.896543 0.6653181 -10.10542
+##      logLikelihood logDensity
+## [1,]     -118.9109  -129.0163
+## [2,]     -118.9109  -129.0163
 ## 
 ## [[6]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##           R_0    D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679  -132.7656
-## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679  -132.7656
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+##      logLikelihood logDensity
+## [1,]     -118.4847  -129.8442
+## [2,]     -118.4847  -129.8442
 ## 
 ## [[7]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##           R_0    D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679  -135.7626
-## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679  -135.7626
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+## [2,] 7.670397 1.287948 3.711294 0.4749959 9.282156 0.6462679 -11.35949
+##      logLikelihood logDensity
+## [1,]     -122.5704  -133.9299
+## [2,]     -122.5704  -133.9299
 ## 
 ## [[8]]
 ## Markov Chain Monte Carlo (MCMC) output:
 ## Start = 1 
 ## End = 2 
 ## Thinning interval = 1 
-##            R_0    D_lat    D_inf     alpha     D_imm       rho logDensity
-## [1,]  9.724407 1.773387 3.707768 0.4978896  9.991263 0.6619867  -143.9198
-## [2,] 10.992104 1.980598 4.447067 0.4964686 10.380152 0.6688356  -143.6763
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 7.686268 1.924227 2.114245 0.5073793 8.322857 0.6307255 -9.651117
+## [2,] 7.686268 1.924227 2.114245 0.5073793 8.322857 0.6307255 -9.651117
+##      logLikelihood logDensity
+## [1,]     -122.8299   -132.481
+## [2,]     -122.8299   -132.481
 ## 
 ## attr(,&quot;class&quot;)
 ## [1] &quot;mcmc.list&quot;</code></pre>
 <p>You can check that the chains were started from different <code>initState</code> and that we used informative priors.</p>
-<p><strong>Take 15 min</strong> to analyse these chains and conclude on the choice of using 50 particles to save computation time.</p>
-<p>You can compare your conclusions with <a href="pmcmc_example_solution.html#analyse-a-pmcmc-with-50-particles">ours</a>.</p>
+<p><strong>Take 15 min</strong> to analyse these chains and conclude on the choice of using 16 particles to save computation time.</p>
+<p>You can compare your conclusions with <a href="pmcmc_solution.html#analyse-a-pmcmc-with-16-particles">ours</a>.</p>
 </div>
-<div id="analyse-a-pmcmc-with-400-particles" class="section level1">
-<h1>Analyse a pMCMC with 400 particles</h1>
-<p>Let’s increase the number of particles to 400, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a <code>mcmc.list</code> object as follows:</p>
+<div id="analyse-a-pmcmc-with-128-particles" class="section level1">
+<h1>Analyse a pMCMC with 128 particles</h1>
+<p>Let’s increase the number of particles to 128, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a <code>mcmc.list</code> object as follows:</p>
 <pre class="r"><code># load
 data(pmcmcSeit4lInfoPrior64)
 # create
-trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
-  mcmc(chain$trace)
+trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
+    mcmc(chain$trace)
 }))</code></pre>
-<p>Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions with 50 and 400 particles using the function <code>plotPosteriorDensity</code>.</p>
-<p>You can also have a look at our <a href="pmcmc_example_solution.html#analyse-a-pmcmc-with-400-particles">solution</a> if that helps.</p>
+<p>Re-do the same analysis as for 16 particles. What differences can you notice? In particular, try to compare the posterior distributions with 16 and 128 particles using the function <code>plotPosteriorDensity</code>.</p>
+<p>You can also have a look at our <a href="pmcmc_solution.html#analyse-a-pmcmc-with-128-particles">solution</a> if that helps.</p>
 </div>
 <div id="stochastic-vs-deterministic-fit" class="section level1">
 <h1>Stochastic vs deterministic fit</h1>
 <p>Compare the posterior of the deterministic and stochastic SEIT4L models. Which model provides the best fit? Can you explain why?</p>
-<p>Check your answer <a href="pmcmc_example_solution.html#stochastic-vs-deterministic-fit">here</a>.</p>
+<p>Check your answer <a href="pmcmc_solution.html#stochastic-vs-deterministic-fit">here</a>.</p>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>

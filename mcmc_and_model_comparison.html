@@ -384,7 +384,7 @@ adaptShapeStart &lt;- # INSERT HERE</code></pre>
 <pre class="r"><code># convert to a mcmc object for coda
 my_trace &lt;- mcmc(my_mcmcTdc$trace)
 # plot the trace
-library(&quot;lattice&quot;) ## for xyplot
+library(&quot;lattice&quot;)  ## for xyplot
 xyplot(my_trace)</code></pre>
 <ul>
 <li>Are you surprised by the trace of the log-prior?</li>
@@ -406,16 +406,23 @@ names(mcmcSeitlTheta1)
 ## [1] &quot;trace&quot;           &quot;acceptanceRate&quot;  &quot;covmatEmpirical&quot;
 # the trace contains 9 variables for 100000 iterations
 dim(mcmcSeitlTheta1$trace)
-## [1] 50000     7
+## [1] 50000     9
 # let&#39;s have a look at it
 head(mcmcSeitlTheta1$trace)
-##           R_0   D_lat    D_inf     alpha    D_imm       rho logDensity
-## [1,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
-## [2,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
-## [3,] 2.000000 2.00000 2.000000 0.8000000 16.00000 0.8500000  -458.5939
-## [4,] 3.931247 3.13481 2.371641 0.7379751 13.91705 0.9243739  -399.2131
-## [5,] 3.931247 3.13481 2.371641 0.7379751 13.91705 0.9243739  -399.2131
-## [6,] 3.931247 3.13481 2.371641 0.7379751 13.91705 0.9243739  -399.2131</code></pre>
+##           R_0    D_lat    D_inf     alpha    D_imm       rho  logPrior
+## [1,] 2.000000 2.000000 2.000000 0.8000000 16.00000 0.8500000 -12.81448
+## [2,] 2.000000 2.000000 2.000000 0.8000000 16.00000 0.8500000 -12.81448
+## [3,] 1.722749 1.481383 1.186734 0.8390849 11.34142 0.8183184 -12.81448
+## [4,] 1.722749 1.481383 1.186734 0.8390849 11.34142 0.8183184 -12.81448
+## [5,] 1.722749 1.481383 1.186734 0.8390849 11.34142 0.8183184 -12.81448
+## [6,] 1.722749 1.481383 1.186734 0.8390849 11.34142 0.8183184 -12.81448
+##      logLikelihood logDensity
+## [1,]     -445.7795  -458.5939
+## [2,]     -445.7795  -458.5939
+## [3,]     -421.8376  -434.6520
+## [4,]     -421.8376  -434.6520
+## [5,]     -421.8376  -434.6520
+## [6,]     -421.8376  -434.6520</code></pre>
 <p><strong>Take 15 minutes to analyse both chains together.</strong></p>
 <p><strong>Hint</strong>: the function <code>mcmc.list</code> of <code>coda</code> can be used to combine several <code>mcmc</code> objects into a <code>mcmc.list</code> object. Diagnostic functions which act on <code>mcmc</code> objects may also be applied to <code>mcmc.list</code> objects. In general, the chains will be combined, if this makes sense, otherwise the diagnostic function will be applied separately to each chain in the list.</p>
 <ul>
@@ -520,7 +527,7 @@ my_postPredCheck(
   initState = initState,
   data = fluTdc1971
 )</code></pre>
-<pre><code>## [1] 0.18</code></pre>
+<pre><code>## [1] 0.1</code></pre>
 <p>Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.</p>
 <p>Does the best model yield to a “better” (higher) p-value?</p>
 <p>The corresponding outputs of <code>mcmcMh</code> were loaded with <code>data(mcmcTdcDeterLongRun)</code> and should already be in your <strong>R</strong> environment:data(mcmcTdcDeterLongRun)</p>

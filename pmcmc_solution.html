@@ -328,13 +328,15 @@ data(pmcmcSeit4lInfoPrior)
 # combine into a `mcmc.list` object
 library(&quot;coda&quot;)
 trace16 &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
-  mcmc(chain$trace)
+    mcmc(chain$trace)
 }))
 
 # acceptance rate is way below the optimal 23%
 1 - rejectionRate(trace16)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-## 0.03717906 0.03717906 0.03717906 0.03717906 0.03717906 0.03717906 0.03717906
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##    0.05130877    0.05130877    0.05130877    0.05130877    0.05130877 
+##           rho      logPrior logLikelihood    logDensity 
+##    0.05130877    0.05130877    0.05130877    0.05130877
 
 # Let&#39;s have a look at the traces
 library(&quot;lattice&quot;)
@@ -351,18 +353,22 @@ xyplot(trace16)</code></pre>
 # combine into a `mcmc.list` object
 library(&quot;coda&quot;)
 trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
-  mcmc(chain$trace)
+    mcmc(chain$trace)
 }))
 
 # acceptance rate is near optimal
 1 - rejectionRate(trace)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##  0.1909386  0.1909386  0.1909386  0.1909386  0.1909386  0.1909386  0.1909386
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##     0.1988996     0.1988996     0.1988996     0.1988996     0.1988996 
+##           rho      logPrior logLikelihood    logDensity 
+##     0.1988996     0.1988996     0.1988996     0.1988996
 
 # Note that the combined ESS is 2 times higher than with 16 particles
 effectiveSize(trace)
-##        R_0      D_lat      D_inf      alpha      D_imm        rho logDensity 
-##   494.7128   649.7627   789.0851   658.8504   696.7371   748.8194   722.2681
+##           R_0         D_lat         D_inf         alpha         D_imm 
+##      520.0792      711.3816      861.4712      709.9831      712.1860 
+##           rho      logPrior logLikelihood    logDensity 
+##      718.5242     1056.8813      771.8884      700.4612
 
 # Let&#39;s have a look at the traces
 library(&quot;lattice&quot;)
@@ -421,51 +427,43 @@ traceCombined &lt;- bind_rows(map(traceThin128, as.data.frame))
 thetaBar &lt;- colMeans(traceCombined[seit4lStoch$thetaNames])
 print(thetaBar)
 ##        R_0      D_lat      D_inf      alpha      D_imm        rho 
-##  9.1379445  1.6924776  2.2730368  0.5060622 12.5201054  0.7072081
+##  8.8950674  1.6844288  2.2466477  0.5051892 12.5774892  0.7084080
 
 # compute its log-likelihood
-initState &lt;- c(
-  S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0
-)
-logLikeThetaBar &lt;- my_particleFilter(seit4lStoch, thetaBar, initState,
-  data = fluTdc1971, nParticles = 128
-)
+initState &lt;- c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, Inc = 0)
+logLikeThetaBar &lt;- my_particleFilter(seit4lStoch, thetaBar, initState, data = fluTdc1971,
+    nParticles = 128)
 print(logLikeThetaBar)
-## [1] -114.8651
+## [1] -113.8204
 
-logLikeThetaBarDeter &lt;- dTrajObs(
-  seit4lDeter, thetaBar, initState, data = fluTdc1971, log = TRUE
-)
+logLikeThetaBarDeter &lt;- dTrajObs(seit4lDeter, thetaBar, initState, data = fluTdc1971,
+    log = TRUE)
 print(logLikeThetaBarDeter)
-## [1] -180.1766
+## [1] -176.2187
 
 # and its deviance
 dThetaBar &lt;- -2 * logLikeThetaBar
 print(dThetaBar)
-## [1] 229.7302
+## [1] 227.6408
 
 # the effective number of parameters
-pD &lt;- var(-2 * traceCombined$logLikelihood) / 2
+pD &lt;- var(-2 * traceCombined$logLikelihood)/2
 print(pD)
-## [1] NA
+## [1] 6.883178
 
 # and finally the DIC
 dic &lt;- dThetaBar + 2 * pD
 print(dic)
-## [1] NA</code></pre>
+## [1] 241.4072</code></pre>
 <p>In the previous session, we found that the DIC of the deterministic SEIT4L model was equal to 265. The difference of 20 indicates that the stochastic model should strongly be preferred to the deterministic model.</p>
 <p>We can visually check this result by plotting the posterior fit of each model:</p>
 <pre class="r"><code># take the mean posterior estimates of the deterministic model
 x &lt;- summary(traceDeter)
 thetaBarDeter &lt;- x$statistics[seit4lDeter$thetaNames, &quot;Mean&quot;]
 
-plotFit(
-  seit4lStoch, thetaBar, initState, data = fluTdc1971, nReplicates = 1000
-)</code></pre>
+plotFit(seit4lStoch, thetaBar, initState, data = fluTdc1971, nReplicates = 1000)</code></pre>
 <p><img src="figure/pmcmc_solution/sto-deter-fit-1.png" width="480" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>plotFit(
-  seit4lDeter, thetaBarDeter, initState, data = fluTdc1971, nReplicates = 1000
-)</code></pre>
+<pre class="r"><code>plotFit(seit4lDeter, thetaBarDeter, initState, data = fluTdc1971, nReplicates = 1000)</code></pre>
 <p><img src="figure/pmcmc_solution/sto-deter-fit-2.png" width="480" style="display: block; margin: auto;" /></p>
 <p>Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.</p>
 <p>You’ve already finished? Why not <a href="pmcmc.html#going-further">go further</a>?</p>

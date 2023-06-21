@@ -432,11 +432,11 @@ traj &lt;- sirDeter$simulate(theta, initState, times)</code></pre>
 head(obsTraj)</code></pre>
 <pre><code>##   time        S          I          R obs
 ## 1    1 999.0000   1.000000  0.0000000   1
-## 2    2 996.4323   2.709838  0.8578584   2
-## 3    3 989.5301   7.295046  3.1748702   2
-## 4    4 971.3444  19.297723  9.3579062  20
-## 5    5 925.8476  48.804024 25.3483747  53
-## 6    6 825.2761 111.044978 63.6789335 128</code></pre>
+## 2    2 996.4323   2.709838  0.8578584   4
+## 3    3 989.5301   7.295046  3.1748702   8
+## 4    4 971.3444  19.297723  9.3579062   8
+## 5    5 925.8476  48.804024 25.3483747  49
+## 6    6 825.2761 111.044978 63.6789335 112</code></pre>
 <p>If you run this multiple times, you will find that the “obs” column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed <code>rPointObs</code> to be deterministic (instead of a random draw from a Poisson distribution), the outcome of <code>rTrajObs</code> would be the same every time. Again, feel free to have a look at the <code>rTrajObs</code> function (by simply typing <code>rTrajObs</code> and hitting return), to see how it performs its task. It will be a good idea to look at the functions that we have provided you throughout the course.</p>
 <p>Now you have completed the overview of a <code>fitmodel</code> object, you are going use some parts of it to code a function that will evaluate the posterior.</p>
 </div>
@@ -484,7 +484,7 @@ my_dLogPosterior &lt;- function(fitmodel, theta, initState, data) {
 sirDeter$dPointObs</code></pre>
 <p>To change the prior and likelihood functions, copy and paste the functions, change them, and reassign them to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type</p>
 <pre class="r"><code>sirDeter$dPointObs &lt;- function(dataPoint, modelPoint, theta, log = FALSE) {
-        # the prevalence is observed through a normally distributed process
+    # the prevalence is observed through a normally distributed process
     return(dnorm(x = dataPoint[[&quot;obs&quot;]], mean = modelPoint[[&quot;I&quot;]], log = log))
 }</code></pre>
 <p><strong>Take 20 minutes to try different distributions for the prior and likelihood distributions</strong> (you could try, for example, to make the prior narrower, or to use a normal distribution for the prior using <code>dnorm</code>; or you could use another distribution for the likelihood). <strong>Does the choice of distribution change the shape of the posterior distribution?</strong></p>

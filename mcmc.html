@@ -384,12 +384,12 @@ for (i in 1:1000)
 <p>Run it, then take a look at what’s in <code>samp</code>.</p>
 <pre class="r"><code>head(samp)</code></pre>
 <pre><code>##        R_0        lp
-## 1 1.734330 -123.3529
-## 2 1.748037 -122.8955
-## 3 1.735031 -123.2635
-## 4 1.744194 -122.7516
-## 5 1.764429 -125.8273
-## 6 1.739204 -122.8799</code></pre>
+## 1 1.757730 -124.1808
+## 2 1.745258 -122.7705
+## 3 1.742299 -122.7582
+## 4 1.748987 -122.9633
+## 5 1.734669 -123.3087
+## 6 1.739623 -122.8553</code></pre>
 <p>How can we use the samples in <code>samp</code> to characterise the posterior distribution of <span class="math inline">\(R_0\)</span>?</p>
 <p>One way is to plot a histogram of the samples:</p>
 <pre class="r"><code>hist(samp[[&quot;R_0&quot;]])</code></pre>

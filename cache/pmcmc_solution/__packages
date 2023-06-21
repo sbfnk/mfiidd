@@ -1,6 +1,5 @@
 adaptivetau
 fitR
-purrr
 here
 deSolve
 rbi
@@ -9,4 +8,5 @@ dplyr
 ggplot2
 coda
 lattice
+purrr
 tidyr

@@ -394,29 +394,19 @@ plotTraj(data = fluTdc1971)</code></pre>
 <div id="deterministic-simulations" class="section level2">
 <h2>Deterministic simulations</h2>
 <p>You can use the <code>plotFit</code> function you encountered in the <a href="introduction.html#assess-the-model-fit">first practical</a> to generate an observation trajectory and display it against the data:</p>
-<pre class="r"><code>thetaBadGuess &lt;- c(
-  R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85
-)
+<pre class="r"><code>thetaBadGuess &lt;- c(R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 initStateBadGuess &lt;- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971)</code></pre>
 <p><img src="figure/play_with_SEITL/oneTraj-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>You can display all states variables (not only the sampled observations) by passing <code>allvars=TRUE</code> to the <code>plotFit</code> function:</p>
-<pre class="r"><code>plotFit(
-  seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971,
-  allVars = TRUE
-)</code></pre>
+<pre class="r"><code>plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, allVars = TRUE)</code></pre>
 <p><img src="figure/play_with_SEITL/allVars-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy <code>obs</code> time-series. You can appreciate the variability of the observation process by plotting several replicates (use the argument <code>n.replicates</code>):</p>
-<pre class="r"><code>plotFit(
-  seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971,
-  nReplicates = 100
-)</code></pre>
+<pre class="r"><code>plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, nReplicates = 100)</code></pre>
 <p><img src="figure/play_with_SEITL/manyObs-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>By default, this function plots the mean and the median as well as the <span class="math inline">\(95^\mathrm{th}\)</span> and <span class="math inline">\(50^\mathrm{th}\)</span> percentiles of the replicated simulations. Alternatively, you can visualise all the simulated trajectories by passing <code>summary=FALSE</code> to the <code>plotFit</code> function:</p>
-<pre class="r"><code>plotFit(
-  seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971,
-  nReplicates = 100, summary = FALSE
-)</code></pre>
+<pre class="r"><code>plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, nReplicates = 100,
+    summary = FALSE)</code></pre>
 <p><img src="figure/play_with_SEITL/allTraj-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.</strong> In particular, try different values for <span class="math inline">\(R_0\in[2-15]\)</span> and <span class="math inline">\(\alpha\in[0.3-1]\)</span>. For which values of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(\alpha\)</span> do you get a decent fit?</p>
 <p>If you didn’t manage to get the two waves, you can have look at <a href="play_with_seitl_example.html#deterministic-simulations">our example</a>.</p>
