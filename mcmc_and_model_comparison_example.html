@@ -59,7 +59,7 @@ if (window.hljs) {
 
 
 
-<link rel="stylesheet" href="styles.css" type="text/css" />
+<link rel="stylesheet" href="mfiidd.css" type="text/css" />
 
 
 
@@ -708,14 +708,14 @@ print(dThetaBar)
 ## [1] 285.5815
 
 # the effective number of parameters
-pD &lt;- var(-2 * traceCombined$log.likelihood)/2
+pD &lt;- var(-2 * traceCombined$logLikelihood)/2
 print(pD)
-## [1] NA
+## [1] 8.614696
 
 # and finally the DIC
 dic &lt;- dThetaBar + 2 * pD
 print(dic)
-## [1] NA</code></pre>
+## [1] 302.8109</code></pre>
 <p>Follow this <a href="mcmc_and_model_comparison.html#posterior-predictive-checks">link</a> to go back to the practical.</p>
 </div>
 
