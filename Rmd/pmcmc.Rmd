@@ -108,7 +108,7 @@ What can you notice when you:
 
 Can you think of and implement an algorithm to calibrate the number of particles? 
 
-Compare your approach with [ours](pmcmc_example_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
+Compare your approach with [ours](pmcmc_solution.html#calibrate-the-number-of-particles) and determine an optimal number of particles.
 
 # Run pMCMC
 
@@ -166,13 +166,13 @@ adaptSizeCooling <- # INSERT HERE
 adaptShapeStart <- # INSERT HERE
 ```
 
-If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_example_solution.html#setting-the-pmcmc).
+If you have trouble filling some of the empty bits, have a look at our [solution](pmcmc_solution.html#setting-the-pmcmc).
 
 Then you should be able to run `mcmcMh`:
 
 ```{r run-pmcmc, eval=FALSE, tidy = FALSE}
 # run the pMCMC
-my_pMCMC <- mcmcMh(target = my_posteriorSto(400),
+my_pMCMC <- mcmcMh(target = my_posteriorSto(128),
                    initTheta = initTheta,
                    covmat = covmat,
                    limits = list(lower = lower,upper = upper),
@@ -182,58 +182,58 @@ my_pMCMC <- mcmcMh(target = my_posteriorSto(400),
                    adaptShapeStart = adaptShapeStart)
 ```
 
-# Analyse a pMCMC with 50 particles
+# Analyse a pMCMC with 16 particles
 
-If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 50 particles.
+If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let's have a look at what we would get by running a pMCMC with 16 particles.
 
 To save time, we have run 8 chains in parallel for you. Each chain was started from a different `initTheta` and ran for 3000 iterations. The values of `initTheta` were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:
 
 ```{r load-trace, collapse=TRUE}
-data(pmcmcSeit4lInfoPrior8)
+data(pmcmcSeit4lInfoPrior)
 # this should load a list with the same name, which contains the 8 chains.
-names(pmcmcSeit4lInfoPrior8)
+names(pmcmcSeit4lInfoPrior16)
 # each chain is a list of 3 elements returned by mcmcMh
-names(pmcmcSeit4lInfoPrior8[["chain1"]])
+names(pmcmcSeit4lInfoPrior16[["chain1"]])
 # the trace contains 9 variables for 3000 iterations
-dim(pmcmcSeit4lInfoPrior8[["chain1"]]$trace)
+dim(pmcmcSeit4lInfoPrior16[["chain1"]]$trace)
 ``` 
 We can combine the traces of the 8 chains into a `mcmc.list` object as follows:
 
 ```{r combine-trace, collapse=TRUE}
 library("coda")
-trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
   mcmc(chain$trace)
 }))
 head(trace, 1)
 ```
 You can check that the chains were started from different `initState` and that we used informative priors.
 
-__Take 15 min__ to analyse these chains and conclude on the choice of using 50 particles to save computation time.
+__Take 15 min__ to analyse these chains and conclude on the choice of using 16 particles to save computation time.
 
-You can compare your conclusions with [ours](pmcmc_example_solution.html#analyse-a-pmcmc-with-50-particles).
+You can compare your conclusions with [ours](pmcmc_solution.html#analyse-a-pmcmc-with-16-particles).
 
-# Analyse a pMCMC with 400 particles
+# Analyse a pMCMC with 128 particles
 
-Let's increase the number of particles to 400, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a `mcmc.list` object as follows:
+Let's increase the number of particles to 128, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a `mcmc.list` object as follows:
 
-```{r load-trace-400, collapse=TRUE}
+```{r load-trace-128, collapse=TRUE}
 # load
 data(pmcmcSeit4lInfoPrior64)
 # create
-trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior8, function(chain) {
+trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
   mcmc(chain$trace)
 }))
 ``` 
 
-Re-do the same analysis as for 50 particles. What differences can you notice? In particular, try to compare the posterior distributions with 50 and 400 particles using the function `plotPosteriorDensity`.
+Re-do the same analysis as for 16 particles. What differences can you notice? In particular, try to compare the posterior distributions with 16 and 128 particles using the function `plotPosteriorDensity`.
 
-You can also have a look at our [solution](pmcmc_example_solution.html#analyse-a-pmcmc-with-400-particles) if that helps.
+You can also have a look at our [solution](pmcmc_solution.html#analyse-a-pmcmc-with-128-particles) if that helps.
 
 # Stochastic vs deterministic fit
 
 Compare the posterior of the deterministic and stochastic SEIT4L models. Which model provides the best fit? Can you explain why?
 
-Check your answer [here](pmcmc_example_solution.html#stochastic-vs-deterministic-fit).
+Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
 
 # Going further
 
