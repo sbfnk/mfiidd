@@ -355,7 +355,7 @@ dThetaBar <- -2 * logLikeThetaBar
 print(dThetaBar)
 
 # the effective number of parameters
-pD <- var(-2 * traceCombined$log.likelihood) / 2
+pD <- var(-2 * traceCombined$logLikelihood) / 2
 print(pD)
 
 # and finally the DIC
