@@ -1,5 +1,6 @@
 library("fitR")
 library("furrr")
+library("future")
 
 data(fluTdc1971)
 data(models)
@@ -17,10 +18,7 @@ seit4lStoch$dPrior <- seitlInfoPrior
 
 cores <- future::availableCores()
 
-future::plan(list(
-  future::tweak(future::multicore, workers = cores),
-  future::tweak(future::multicore, workers = 1)
-))
+future::plan(future::multicore)
 
 nIterations <- 3000
 
@@ -50,4 +48,3 @@ save(
   pmcmcSeit4lInfoPrior16, pmcmcSeit4lInfoPrior128,
   file = here::here("data", "pmcmcSeit4lInfoPrior.rdata")
 )
-

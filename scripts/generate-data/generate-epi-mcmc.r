@@ -9,7 +9,7 @@ dLogPosteriorEpi1 <- function(theta) {
     theta = theta,
     initState = c(S = 999, I = 1, R = 0),
     data = epi1
-  ))
+  )$logDensity)
 }
 
 dLogPosteriorEpi3 <- function(theta) {
@@ -18,7 +18,7 @@ dLogPosteriorEpi3 <- function(theta) {
     theta = theta,
     initState = c(S = 999, I = 1, R = 0),
     data = epi3
-  ))
+  )$logDensity)
 }
 
 dLogPosteriorEpi4 <- function(theta) {
@@ -27,7 +27,7 @@ dLogPosteriorEpi4 <- function(theta) {
     theta = theta,
     initState = c(S = 999, I = 1, R = 0),
     data = epi4
-  ))
+  )$logDensity)
 }
 
 source(here::here("scripts", "snippets", "our-mcmcMh.r"))
