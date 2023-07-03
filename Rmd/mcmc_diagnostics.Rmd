@@ -126,7 +126,7 @@ mcmcTraceBurned <- burnAndThin(mcmcTrace, burn = 1000)
 plot(mcmcTraceBurned)
 ```
 
-It is sometimes said that we are aiming for the trace to look like a [hairy caterpillar](external_ref/hairy_caterpillar.jpg). Can you see the resemblance to the plots on the left?
+It is sometimes said that we are aiming for the trace to look like a [hairy caterpillar](external_fig/import/hairy_caterpillar.jpg). Can you see the resemblance to the plots on the left?
 
 ### Autocorrelations
 
@@ -179,7 +179,7 @@ If we ignore the limited support that parameters can have, we might waste MCMC s
 
 A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for *rates*, such as the ones in the SIR model. A way to force a parameter to be positive is to *transform* them to the log-scale, that is to run MCMC on $\log{(R_0)}$ instead of $R_0$. When calculating the model, we can use the exponential function to transform the parameter back.
 
-An SIR model where the parameters are defined on the log-scale is contained in the `sirExp` object that can be loaded with `data(models)`.
+An SIR model where the parameters are defined on the log-scale is contained in the `sirExpDeter` object that can be loaded with `data(models)`.
 
 You can, again, use a wrapper function and use MCMC to explore the parameters.
 
