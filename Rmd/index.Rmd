@@ -31,5 +31,5 @@ Then you can check that the installation completed successfully by loading the p
 library("fitR")
 ```
 
-To see all the commands available in fitR, have a look at the [fitR documentation](fitR.pdf).
+To see all the commands available in fitR, have a look at the [fitR documentation](http://sbfnk.github.io/fitR/).
 

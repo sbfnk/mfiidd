@@ -3,7 +3,7 @@ title: "Modelling interlude: Tristan da Cunha outbreak & the SEITL model"
 ---
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/play_with_SEITL/", cache.path = "cache/play_with_SEITL/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/play_with_SEITL/", cache.path = "../cache/play_with_SEITL/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r load, include=FALSE, cache=FALSE}
@@ -200,7 +200,7 @@ x <- seq(0, 4 * m, 0.01)
 allK <- c(1, 2, 5, 20)
 names(allK) <- allK
 
-df_dist <- map(allK, \(k) {
+df_dist <- purrr::map(allK, \(k) {
   return(data.frame(
     x = x,
     dens = dgamma(x, shape = k, scale = m / k),

@@ -3,7 +3,7 @@ title: "The SEITL model in *LibBi*"
 ---
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/libbi/", cache.path = "cache/libbi/", fig.cap = "", fig.align = "center", tidy = FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/libbi/", cache.path = "../cache/libbi/", fig.cap = "", fig.align = "center", tidy = FALSE)
 ```
 
 ```{r fitR, include=FALSE, cache=FALSE}

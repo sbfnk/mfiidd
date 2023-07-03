@@ -3,7 +3,7 @@ title: "Full example: particle MCMC"
 ---
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc_solution/", cache.path = "cache/pmcmc_solution/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc_solution/", cache.path = "../cache/pmcmc_solution/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
@@ -194,7 +194,7 @@ We can quantify this by computing the DIC of the stochastic SEIT4L model.
 # combine all traces in a data frame
 library("dplyr")
 library("purrr")
-traceCombined <- bind_rows(map(traceThin128, as.data.frame))
+traceCombined <- bind_rows(purrr::map(traceThin128, as.data.frame))
 
 # take the mean of theta
 thetaBar <- colMeans(traceCombined[seit4lStoch$thetaNames])
