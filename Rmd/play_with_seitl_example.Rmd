@@ -4,7 +4,7 @@ title: "Examples: Tristan da Cunha outbreak & the SEITL model"
 
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, figPath = "figure/play_with_seitl_example/", cachePath = "cache/play_with_seitl_example/", figCap = "", figAlign = "center", message = FALSE, tidy = TRUE, warning = FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/play_with_seitl_example/", cache.path = "../cache/play_with_seitl_example/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, include=FALSE, cache=FALSE}

@@ -3,7 +3,7 @@ title: "MCMC diagnostics"
 ---
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/mcmc_diagnostics/", cache.path = "cache/mcmc_diagnostics/", fig.cap = "", fig.align = "center", tidy = FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/mcmc_diagnostics/", cache.path = "../cache/mcmc_diagnostics/", fig.cap = "", fig.align = "center", tidy = FALSE)
 source(here::here("scripts", "snippets", "our-posterior.r"))
 source(here::here("scripts", "snippets", "epi3-wrapper.r"))
 ```
@@ -11,6 +11,7 @@ source(here::here("scripts", "snippets", "epi3-wrapper.r"))
 ```{r load, include=FALSE,cache=FALSE}
 library(fitR)
 data(models)
+data(epi)
 ```
 
 [Lecture slides](slides/mcmc_slides2.pdf)

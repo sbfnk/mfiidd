@@ -5,7 +5,7 @@ title: "Example: fitting the deterministic SEITL model"
 ```{r setup, echo = FALSE}
 knitr::opts_chunk$set(
   cache = TRUE,
-  cache.path = "cache/mcmc_and_model_comparison_example/",
+  cache.path = "../cache/mcmc_and_model_comparison_example/",
   fig.retina = 2,
   fig.path = "figure/mcmc_and_model_comparison_example/",
   fig.cap = "",
@@ -337,7 +337,7 @@ You can now go back to the [practical](mcmc_and_model_comparison.html#model-sele
 # combine the two chains in a data frame
 library("dplyr") # needed for the 'bind_rows' function
 library("purrr") # needed for the 'map' function
-traceCombined <- bind_rows(map(traceInfoBurnThin, as.data.frame))
+traceCombined <- bind_rows(purrr::map(traceInfoBurnThin, as.data.frame))
 
 # take the mean of theta
 thetaBar <- colMeans(traceCombined[seitlDeter$thetaNames])

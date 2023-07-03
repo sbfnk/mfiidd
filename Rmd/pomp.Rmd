@@ -3,7 +3,7 @@ title: "Fitting models to data using *pomp*"
 --- 
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pomp/", cache.path = "cache/pomp/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
+knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pomp/", cache.path = "../cache/pomp/", fig.cap = "", fig.align = "center", message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 
 ```{r fitR, echo=FALSE, cache=FALSE, results="hide"}
