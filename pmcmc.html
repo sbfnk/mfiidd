@@ -446,14 +446,14 @@ my_pMCMC &lt;- mcmcMh(target = my_posteriorSto(128),
 <p>To save time, we have run 8 chains in parallel for you. Each chain was started from a different <code>initTheta</code> and ran for 3000 iterations. The values of <code>initTheta</code> were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:</p>
 <pre class="r"><code>data(pmcmcSeit4lInfoPrior)
 # this should load a list with the same name, which contains the 8 chains.
-names(pmcmcSeit4lInfoPrior16)
-## NULL
+length(pmcmcSeit4lInfoPrior16)
+## [1] 8
 # each chain is a list of 3 elements returned by mcmcMh
-names(pmcmcSeit4lInfoPrior16[[&quot;chain1&quot;]])
-## NULL
+names(pmcmcSeit4lInfoPrior16[[1]])
+## [1] &quot;trace&quot;           &quot;acceptanceRate&quot;  &quot;covmatEmpirical&quot;
 # the trace contains 9 variables for 3000 iterations
-dim(pmcmcSeit4lInfoPrior16[[&quot;chain1&quot;]]$trace)
-## NULL</code></pre>
+dim(pmcmcSeit4lInfoPrior16[[1]]$trace)
+## [1] 3000    9</code></pre>
 <p>We can combine the traces of the 8 chains into a <code>mcmc.list</code> object as follows:</p>
 <pre class="r"><code>library(&quot;coda&quot;)
 trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
@@ -566,7 +566,7 @@ head(trace, 1)
 <h1>Analyse a pMCMC with 128 particles</h1>
 <p>Let’s increase the number of particles to 128, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a <code>mcmc.list</code> object as follows:</p>
 <pre class="r"><code># load
-data(pmcmcSeit4lInfoPrior64)
+data(pmcmcSeit4lInfoPrior)
 # create
 trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
     mcmc(chain$trace)
@@ -602,7 +602,21 @@ trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
 </ul>
 </div>
 
-<script data-goatcounter="https://mfiidd.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+&nbsp;
+<hr />
+<p>This web site and the material contained in it were primarily created in support of an annual
+  short course
+  on <a href="https://www.lshtm.ac.uk/study/courses/short-courses/infectious-diseases-dynamics">
+  Model Fitting and Inference for Infectious Disease Dynamics</a> at
+  the <a href="https://www.lshtm.ac.uk/">London School of Hygiene & Tropical
+  Medicine</a>. All material is under
+  a <a href="https://github.com/sbfnk/mfiidd/blob/main/LICENSE">MIT
+  license</a>. Please report any issues or suggestions for improvement on the
+  corresponding <a href="https://github.com/sbfnk/mfiidd/issues">GitHub
+  issue tracker</a>.
+</p>
+
+&nbsp;<script data-goatcounter="https://mfiidd.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
 
 
