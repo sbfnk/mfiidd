@@ -299,7 +299,7 @@ $(document).ready(function () {
 <p>Here is how you can wrap a log-posterior function for the <code>SIR</code> model fitted to the <code>epi3</code> data set, with fixed initial conditions of 999 susceptibles, 1 infected, and 0 recovered.</p>
 <pre class="r"><code>my_dLogPosteriorEpi3 &lt;- function(theta) {
   return(my_dLogPosterior(
-    fitmodel = SIR,
+    fitmodel = sirDeter,
     theta = theta,
     initState = c(S = 999, I = 1, R = 0),
     data = epi3

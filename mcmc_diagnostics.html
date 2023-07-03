@@ -392,7 +392,7 @@ acceptanceRate</code></pre>
 <pre class="r"><code>mcmcTraceBurned &lt;- burnAndThin(mcmcTrace, burn = 1000)
 plot(mcmcTraceBurned)</code></pre>
 <p><img src="figure/mcmc_diagnostics/trace_burned-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>It is sometimes said that we are aiming for the trace to look like a <a href="external_ref/hairy_caterpillar.jpg">hairy caterpillar</a>. Can you see the resemblance to the plots on the left?</p>
+<p>It is sometimes said that we are aiming for the trace to look like a <a href="external_fig/import/hairy_caterpillar.jpg">hairy caterpillar</a>. Can you see the resemblance to the plots on the left?</p>
 </div>
 <div id="autocorrelations" class="section level3">
 <h3>Autocorrelations</h3>
@@ -431,7 +431,7 @@ autocorr.plot(mcmcTraceBurnedThinned)</code></pre>
 <div id="transforming-parameters" class="section level3">
 <h3>Transforming parameters</h3>
 <p>A first way for dealing with parameters with limited support applies mostly to parameters which are limited to be positive, as is often the case for <em>rates</em>, such as the ones in the SIR model. A way to force a parameter to be positive is to <em>transform</em> them to the log-scale, that is to run MCMC on <span class="math inline">\(\log{(R_0)}\)</span> instead of <span class="math inline">\(R_0\)</span>. When calculating the model, we can use the exponential function to transform the parameter back.</p>
-<p>An SIR model where the parameters are defined on the log-scale is contained in the <code>sirExp</code> object that can be loaded with <code>data(models)</code>.</p>
+<p>An SIR model where the parameters are defined on the log-scale is contained in the <code>sirExpDeter</code> object that can be loaded with <code>data(models)</code>.</p>
 <p>You can, again, use a wrapper function and use MCMC to explore the parameters.</p>
 <pre class="r"><code>my_dLogPosteriorExpEpi3 &lt;- function(theta) {
   return(my_dLogPosterior(
