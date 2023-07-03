@@ -25,7 +25,7 @@ For the course, please try and make sure you are running at least version 3.2.0 
 #+RESULTS:
 : R version 3.3.2 (2016-10-31)
 
-in an *R* session. If your version is smaller than 3.2.0, please update to at least version 3.2.0 following the instructions on the [[http://cran.rstudio.com/][CRAN website]].
+in an *R* session. If your version is earlier than 4.1.0, please update to at least version 4.1.0 following the instructions on the [[http://cran.rstudio.com/][CRAN website]].
 
 * Data types
 The data types we will be working with in the course are (named) /vectors/, /lists/, and /data frames/. More information on data types in *R* can be found in many places on the web, for example the [[http://en.wikibooks.org/wiki/R_Programming/Data_types][R programming wikibook]].
@@ -212,7 +212,7 @@ To define a new function, we assign a ~function~ object to a variable. For examp
 
 #+BEGIN_SRC R
   add1 <- function(x) {
-      return(x + 1)
+    return(x + 1)
   }
   add1(3)
 #+END_SRC
@@ -229,7 +229,7 @@ Since functions themselves are variables, they can be passed to other functions.
 
 #+BEGIN_SRC R
   doTwice <- function(f, x) {
-      return(f(f(x)))
+    return(f(f(x)))
   }
   doTwice(add1, 3)
 #+END_SRC
@@ -254,8 +254,8 @@ An alternative way for debugging is to include printouts in the function, for ex
 
 #+BEGIN_SRC R
   add1 <- function(x) {
-      cat("Adding 1 to", x, "\n")
-      return(x + 1)
+    cat("Adding 1 to", x, "\n")
+    return(x + 1)
   }
   add1(3)
 #+END_SRC
@@ -270,7 +270,7 @@ A =for= loop in *R* is written using the word =in= and a vector of values that t
 #+BEGIN_SRC R
   squares <- NULL
   for (i in 1:10) {
-      squares[i] <- i * i
+    squares[i] <- i * i
   }
   squares
 #+END_SRC
@@ -282,7 +282,7 @@ A conditional statement in *R* is written using =if=:
 #+BEGIN_SRC R
   k <- 13
   if (k > 10) {
-      cat("k is greater than 10\n")
+    cat("k is greater than 10\n")
   }
 #+END_SRC
 
@@ -291,9 +291,9 @@ An alternative outcome can be specified with =else=
 #+BEGIN_SRC R
     k <- 3
     if (k > 10) {
-        cat("k is greater than 10\n")
+      cat("k is greater than 10\n")
     } else {
-        cat("k is not greater than 10\n")
+      cat("k is not greater than 10\n")
     }
 #+END_SRC
 
@@ -373,22 +373,22 @@ The command for running a model based on a system of differential equations (e.g
 #+BEGIN_SRC R
   sirOde <- function(time, state, parameters) {
 
-      ## parameters
-      beta <- parameters["R_0"] / parameters["infectious.period"]
-      gamma <- 1 / parameters["infectious.period"]
+    ## parameters
+    beta <- parameters["R_0"] / parameters["infectious.period"]
+    gamma <- 1 / parameters["infectious.period"]
 
-      ## states
-      S <- state["S"]
-      I <- state["I"]
-      R <- state["R"]
+    ## states
+    S <- state["S"]
+    I <- state["I"]
+    R <- state["R"]
 
-      N <- S + I + R
+    N <- S + I + R
 
-      dS <- -beta * S * I/N
-      dI <- beta * S * I/N-gamma * I
-      dR <- gamma * I
+    dS <- -beta * S * I/N
+    dI <- beta * S * I/N-gamma * I
+    dR <- gamma * I
 
-      return(list(c(dS, dI, dR)))
+    return(list(c(dS, dI, dR)))
   }
 
 #+END_SRC
@@ -396,10 +396,12 @@ The command for running a model based on a system of differential equations (e.g
 We can plug this into the ~ode~ function
 
 #+BEGIN_SRC R
-  trajectory <- ode(y = c(S = 999, I = 1, R = 0),
-                    times = 1:10,
-                    parms = c(R_0 = 5, infectious.period = 1),
-                    func = sirOde)
+  trajectory <- ode(
+    y = c(S = 999, I = 1, R = 0),
+    times = 1:10,
+    parms = c(R_0 = 5, infectious.period = 1),
+    func = sirOde
+  )
   trajectory
 #+END_SRC
 
@@ -417,36 +419,38 @@ For the SIR model, we could write
 
 #+BEGIN_SRC R
   sirTransitions <- list(
-      c(S = -1, I = 1), # infection
-      c(I = -1, R = 1) # recovery
+    c(S = -1, I = 1), # infection
+    c(I = -1, R = 1) # recovery
   )
 
   sirRateFunc <- function(x, parameters, t) {
 
-      beta <- parameters["R_0"]/parameters["infectious.period"]
-      nu <- 1/parameters["infectious.period"]
+    beta <- parameters["R_0"]/parameters["infectious.period"]
+    nu <- 1/parameters["infectious.period"]
 
-      S <- x["S"]
-      I <- x["I"]
-      R <- x["R"]
+    S <- x["S"]
+    I <- x["I"]
+    R <- x["R"]
 
-      N <- S + I + R
+    N <- S + I + R
 
-      return(c(
-          beta * S * I / N, # infection
-          nu * I # recovery
-      ))
+    return(c(
+      beta * S * I / N, # infection
+      nu * I # recovery
+    ))
   }
 #+END_SRC
 
 To run the stochastic model, we then use the ~ssa.adaptivetau~ function, which takes a vector of initial conditions, the list of transitions and rate function, a named vector of parameters, and the final time (with simulations starting at time 0).
 
 #+BEGIN_SRC R
-  run <- ssa.adaptivetau(init.values = c(S = 999, I = 1, R = 0),
-                         transitions = sirTransitions,
-                         rateFunc = sirRateFunc,
-                         params = c(R_0 = 5, infectious.period = 1),
-                         tf = 10)
+  run <- ssa.adaptivetau(
+    init.values = c(S = 999, I = 1, R = 0),
+    transitions = sirTransitions,
+    rateFunc = sirRateFunc,
+    params = c(R_0 = 5, infectious.period = 1),
+    tf = 10
+  )
   head(run)
 #+END_SRC
 
@@ -460,10 +464,12 @@ To get the output at chosen times, we can use =approx=
 
 #+BEGIN_SRC R
    # get output at times 1, ..., 10
-  runAtTimes <- approx(x = runDf$time,
-                       y = runDf$I,
-                       xout = 1:10,
-                       method = "constant")
+  runAtTimes <- approx(
+    x = runDf$time,
+    y = runDf$I,
+    xout = 1:10,
+    method = "constant"
+  )
   runAtTimes
 #+END_SRC
 
