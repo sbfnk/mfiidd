@@ -191,11 +191,11 @@ To save time, we have run 8 chains in parallel for you. Each chain was started f
 ```{r load-trace, collapse=TRUE}
 data(pmcmcSeit4lInfoPrior)
 # this should load a list with the same name, which contains the 8 chains.
-names(pmcmcSeit4lInfoPrior16)
+length(pmcmcSeit4lInfoPrior16)
 # each chain is a list of 3 elements returned by mcmcMh
-names(pmcmcSeit4lInfoPrior16[["chain1"]])
+names(pmcmcSeit4lInfoPrior16[[1]])
 # the trace contains 9 variables for 3000 iterations
-dim(pmcmcSeit4lInfoPrior16[["chain1"]]$trace)
+dim(pmcmcSeit4lInfoPrior16[[1]]$trace)
 ``` 
 We can combine the traces of the 8 chains into a `mcmc.list` object as follows:
 
@@ -218,7 +218,7 @@ Let's increase the number of particles to 128, which is suggested by the calibra
 
 ```{r load-trace-128, collapse=TRUE}
 # load
-data(pmcmcSeit4lInfoPrior64)
+data(pmcmcSeit4lInfoPrior)
 # create
 trace <- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
   mcmc(chain$trace)
