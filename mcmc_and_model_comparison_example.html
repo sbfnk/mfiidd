@@ -688,7 +688,7 @@ plotPosteriorDensity(list(unif = traceBurnThin, info = traceInfoBurnThin))</code
 <pre class="r"><code># combine the two chains in a data frame
 library(&quot;dplyr&quot;)  # needed for the &#39;bind_rows&#39; function
 library(&quot;purrr&quot;)  # needed for the &#39;map&#39; function
-traceCombined &lt;- bind_rows(map(traceInfoBurnThin, as.data.frame))
+traceCombined &lt;- bind_rows(purrr::map(traceInfoBurnThin, as.data.frame))
 
 # take the mean of theta
 thetaBar &lt;- colMeans(traceCombined[seitlDeter$thetaNames])

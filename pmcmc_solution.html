@@ -421,7 +421,7 @@ plotPosteriorDensity(list(deter = traceDeter, sto = traceThin128))</code></pre>
 <pre class="r"><code># combine all traces in a data frame
 library(&quot;dplyr&quot;)
 library(&quot;purrr&quot;)
-traceCombined &lt;- bind_rows(map(traceThin128, as.data.frame))
+traceCombined &lt;- bind_rows(purrr::map(traceThin128, as.data.frame))
 
 # take the mean of theta
 thetaBar &lt;- colMeans(traceCombined[seit4lStoch$thetaNames])
