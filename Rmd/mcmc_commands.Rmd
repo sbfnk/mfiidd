@@ -4,8 +4,11 @@ title: "Example: generate the mcmcEpi3 data set"
 
 To generate the `mcmcEpi3` data set, we ran
 
-```{r eval = FALSE}
+```{r echo = FALSE, tidy = FALSE}
 knitr::read_chunk(here::here("scripts", "snippets", "epi3-mcmc.r"))
+```
+
+```{r epi3_mcmc, eval = FALSE}
 ```
 
 [Return](mcmc_diagnostics.html#summary-statistics) to the MCMC diagnostics session.
