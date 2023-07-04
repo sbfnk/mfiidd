@@ -12,7 +12,9 @@ set.seed(1234)
 data(models)
 ```
 
-# Objectives
+[Lecture slides](slides/stoch.pdf)
+
+ # Objectives
 
 This session will focus on modelling rather than fitting (don't worry, we will come back to fitting on the next session). __The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL.__ We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course. 
 
