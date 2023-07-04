@@ -296,8 +296,8 @@ $(document).ready(function () {
 </div>
 
 
-<p><a href="slides/stoch.pdf">Lecture slides</a></p>
-<p># Objectives</p>
+<div id="objectives" class="section level1">
+<h1>Objectives</h1>
 <p>This session will focus on modelling rather than fitting (don’t worry, we will come back to fitting on the next session). <strong>The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL.</strong> We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.</p>
 <p>As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971. <strong>Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.</strong> For instance, even if the distribution of the infectious period is the same for all islanders, some islanders will stay infectious longer than others just by chance and might therefore produce more secondary cases. This phenomenon is called <em>demographic stochasticity</em> and it could have played a significant role in the dynamics of the epidemic on Tristan da Cunha.</p>
 <p>Unsurprisingly, to account for demographic stochasticity we need a stochastic model. However, as you will see in this session and the following, <strong>simulating and fitting a stochastic model is much more computationally costly than doing so for a deterministic model</strong>. This is why it is important to understand when and why you need to use stochastic or deterministic models. In fact, we hope that by the end of the day you’ll be convinced that both approaches are complementary.</p>
@@ -309,6 +309,7 @@ $(document).ready(function () {
 <li>Use a more realistic distribution for the time spent in one of the compartment and assess its effect on the shape of the epidemic.</li>
 </ol>
 <p>But first of all, let’s have a look at the data.</p>
+</div>
 <div id="tristan-da-cunha-outbreak" class="section level1">
 <h1>Tristan da Cunha outbreak</h1>
 <p><img src="external_fig/import/TdC.png" /></p>
