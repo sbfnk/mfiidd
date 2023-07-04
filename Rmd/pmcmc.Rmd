@@ -250,4 +250,3 @@ You might have noted that the `for()` loop over particles could be parallelized,
 - A [recent review](https://arxiv.org/abs/1703.02419) by Schön et al.
 - A [comprehensive textbook](https://www.springer.com/gb/book/9780387951461) by Doucet et al.
 - Another [review](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.117.1144) by Arulampalam et al.
-data(mcmcTdcDeterLongRun)
