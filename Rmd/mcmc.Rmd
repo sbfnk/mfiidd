@@ -14,7 +14,7 @@ data(epi)
 source(here::here("scripts", "snippets", "our-posterior.r"))
 ```
 
-[Lecture slides](slides/mcmc_slides1.pdf)
+Lecture slides: [PowerPoint](slides/mcmc_slides1.pptx) / [PDF](slides/mcmc_slides1.pdf)
 
 # Objectives
 
@@ -221,7 +221,7 @@ my_mcmcMh <- function(target, initTheta, proposalSd, nIterations) {
     #   update the current value of the target and keep track of the
     #   number of accepted proposals
 
-    # add the current theta to the vector of samples
+    # - add the current theta to the vector of samples
 
     # return the trace of the chain (i.e., the vector of samples)
 }
