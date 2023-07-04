@@ -14,7 +14,7 @@ Lunch options: [Local map](http://goo.gl/XEPxch)
 * [R](http://cran.r-project.org) is used as the main programming language. Please install at least version: R-4.2.0.
 * [RStudio](http://www.rstudio.com/products/rstudio/download/) (optional) is a popular graphic user interface (GUI).
 
-If you are not familiar with `R`, check our [list of useful commands](slides/rintro.pdf).
+If you are not familiar with **R**, check our [list of useful commands](slides/rintro.pdf).
 
 # Installation of the fitR package
 
@@ -25,7 +25,7 @@ install.packages("remotes")
 remotes::install_github("sbfnk/fitR")
 ```
 
-Then you can check that the installation completed successfully by loading the package into your `R` session:
+Then you can check that the installation completed successfully by loading the package into your **R** session:
 
 ```{r load, eval=FALSE}
 library("fitR")

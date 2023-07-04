@@ -108,7 +108,7 @@ Remember that if you want more detail on what the functions contained in a `fitm
 sirDeter$simulate
 ```
 
-This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). __Take 10 minutes to look at that function and let us know if you have any questions.__ Tomorrow, we will give you a different `fitmodel` object for a different model that comes with its own simulate function.
+This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). __Take 10 minutes to look at that function and let us know if you have any questions.__ Tomorrow, we will give you a different `fitmodel` object for a different model that comes with its own `simulate` function.
 
 ## Prior
 
