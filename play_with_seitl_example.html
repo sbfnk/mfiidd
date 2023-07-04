@@ -307,7 +307,7 @@ $(document).ready(function () {
 <li>The 3 islanders who were ill during the 8-day journey are temporary protected at disembarkation: <span class="math inline">\(T(t=0)=3\)</span>.</li>
 <li>No islander was immune at the beginning of the epidemic.</li>
 </ol>
-<p>Now, you can now go back to the <a href="play_with_seitlHtml#deterministic-vs-stochastic-simulations">practical</a> and check whether these estimates provides a good fit to the data.</p>
+<p>Now, you can now go back to the <a href="play_with_seitl.html#deterministic-vs-stochastic-simulations">practical</a> and check whether these estimates provides a good fit to the data.</p>
 <div id="deterministic-vs-stochastic-simulations" class="section level1">
 <h1>Deterministic vs Stochastic simulations</h1>
 <div id="deterministic-simulations" class="section level2">
@@ -326,7 +326,7 @@ plotFit(seitlDeter, thetaGuess2, initStateGuess, data = fluTdc1971, nReplicates 
 plotFit(seitlDeter, thetaGuess3, initStateGuess, data = fluTdc1971, nReplicates = 100)</code></pre>
 <p><img src="figure/play_with_seitl_example/guess-3-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>This is a decent eyeball fit given that we have 6 parameters. However, we note that many data point are not captured by the model, even accounting for variability of the observation process.</p>
-<p>Now, you can now go back to the <a href="play_with_seitlHtml#stochastic-simulations">practical</a> and check whether the stochastic model provides a better fit to the data.</p>
+<p>Now, you can now go back to the <a href="play_with_seitl.html#stochastic-simulations">practical</a> and check whether the stochastic model provides a better fit to the data.</p>
 </div>
 <div id="stochastic-simulations" class="section level2">
 <h2>Stochastic simulations</h2>
@@ -335,7 +335,7 @@ plotFit(seitlDeter, thetaGuess3, initStateGuess, data = fluTdc1971, nReplicates 
     nonExtinct = c(&quot;E&quot;, &quot;I&quot;))</code></pre>
 <p><img src="figure/play_with_seitl_example/guess-3-stoch-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>The stochastic model better accounts for the variability in the data. In addition, demographic stochasticity can lead to stochastic extinctions at the beginning and at the end of the outbreak when the number of infectious individuals is low and the chain of transmission can break if by chance they recover before infecting a secondary case. By contrast, the cumulative extinction probability doesn’t increase between the two waves, despite the low incidence observed in the data. Note however that the shape of the second wave is quite flat in comparison to the data.</p>
-<p>Now, you can now go back to the <a href="play_with_seitlHtml#exponential-vs-erlang-distributions">practical</a> and check how we can make this model a bit more realistic.</p>
+<p>Now, you can now go back to the <a href="play_with_seitl.html#exponential-vs-erlang-distributions">practical</a> and check how we can make this model a bit more realistic.</p>
 </div>
 </div>
 <div id="exponential-vs-erlang-distributions" class="section level1">
@@ -347,7 +347,7 @@ plotFit(seit4lStoch, thetaGuess3, initStateGuessSEIT4L, data = fluTdc1971, nRepl
     nonExtinct = c(&quot;E&quot;, &quot;I&quot;))</code></pre>
 <p><img src="figure/play_with_seitl_example/guess-3-stoch-SEIT4L-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>With the SEIT4L model the shape of the second epidemic wave is better captured. To explain this, we first note that for the same expected duration, the Erlang distribution with shape <span class="math inline">\(k\)</span> has a variance <span class="math inline">\(k\)</span> times smaller than that of the exponential distribution. Accordingly, recovered individuals stay temporarily protected for similar durations. Consequently, those who do not develop long-term protection go back to the susceptible compartment approximately at the same time. This sudden inflow of susceptible individuals can initiate a bigger second wave.</p>
-<p>You’ve already finished? Why not <a href="play_with_seitlHtml#going-further">go further</a>?</p>
+<p>You’ve already finished? Why not <a href="play_with_seitl.html#going-further">go further</a>?</p>
 </div>
 
 &nbsp;
