@@ -10,7 +10,6 @@ knitr::opts_chunk$set(cache = TRUE, fig.path = "figure/pmcmc/", cache.path = "..
 library(fitR)
 set.seed(1234)
 ```
-[Lecture slides](slides/smc.pdf)
 
 # Objectives
 
