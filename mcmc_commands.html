@@ -297,6 +297,12 @@ $(document).ready(function () {
 
 
 <p>To generate the <code>mcmcEpi3</code> data set, we ran</p>
+<pre class="r"><code>mcmcEpi3 &lt;- my_mcmcMh(
+  target = my_dLogPosteriorEpi3,
+  initTheta = c(R_0 = 1, D_inf = 2),
+  proposalSd = c(0.01, 0.1),
+  nIterations = 10000
+)</code></pre>
 <p><a href="mcmc_diagnostics.html#summary-statistics">Return</a> to the MCMC diagnostics session.</p>
 
 &nbsp;
