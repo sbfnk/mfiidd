@@ -99,7 +99,7 @@ Then you should be able to run `mcmcMh`:
 knitr::read_chunk(here::here("scripts", "snippets", "run-mcmc.r"))
 ```
 
-```{r run_mcmc, eval = FALSE}
+```{r run_mcmc, eval = FALSE, tidy = FALSE}
 ```
 
 You should see some information printed as the chain runs: acceptance rate, state of the chain, log-likelihood etc. __In particular, what can you say about the evolution of the acceptance rate?__
@@ -152,7 +152,7 @@ To save time, we have run 2 chains of 100,000 iterations starting from different
 knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r"))
 ```
 
-```{r theta_init, eval = FALSE}```
+```{r theta_init, eval = FALSE, tidy = FALSE}
 ```
 
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
