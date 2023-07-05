@@ -1,4 +1,4 @@
-# run the MCMC
+# @knitr run_mcmc
 my_mcmcTdc <- mcmcMh(
   target = my_posteriorTdc,
   initTheta = initTheta,
