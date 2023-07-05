@@ -400,8 +400,12 @@ xyplot(my_trace)</code></pre>
 <p>You should have noticed that the effective sample size (ESS) is quite small (&lt;100) for your preliminary run. By contrast, the ESS was much higher for the SIR model of the previous session with a similar number of iterations. However, this model has only 2 parameters against 6 for the SEIT(4)L models. Intuitively, the more parameters you have the bigger is the parameter space and the longer it takes to the MCMC algorithm to explore it. This is why we need to run a much longer chain to achieve a good ESS (~1000).</p>
 <p>To save time, we have run 2 chains of 100,000 iterations starting from different initial <code>theta</code> values:</p>
 <p><code>{r theta_init, eval = FALSE}</code></p>
-<p>Each chain took 4 hours to run on a single-CPU and can be loaded as follows:</p>
-<pre class="r"><code>data(mcmcTdcDeterLongRun)
+<pre><code>
+Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
+
+
+```r
+data(mcmcTdcDeterLongRun)
 # this should load 2 objects in your environment: mcmcSeitlTheta1 and
 # mcmcSeitlTheta2. Each one is a list of 3 elements returned by mcmcMh
 names(mcmcSeitlTheta1)
