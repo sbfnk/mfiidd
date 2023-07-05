@@ -363,7 +363,9 @@ adaptSizeCooling &lt;- # INSERT HERE
 adaptShapeStart &lt;- # INSERT HERE</code></pre>
 <p>If you have trouble filling some of the empty bits, have a look at our <a href="mcmc_and_model_comparison_example.html#setting-the-mcmc">example</a>.</p>
 <p>Then you should be able to run <code>mcmcMh</code>:</p>
-<pre class="r"><code>knitr::read_chunk(here::here(&quot;scripts&quot;, &quot;snippets&quot;, &quot;run-mcmc.r&quot;))</code></pre>
+<pre class="r"><code>my_mcmcTdc &lt;- mcmcMh(target = my_posteriorTdc, initTheta = initTheta, proposalSd = proposalSd,
+    limits = list(lower = lower, upper = upper), nIterations = nIterations, adaptSizeStart = adaptSizeStart,
+    adaptSizeCooling = adaptSizeCooling, adaptShapeStart = adaptShapeStart)</code></pre>
 <p>You should see some information printed as the chain runs: acceptance rate, state of the chain, log-likelihood etc. <strong>In particular, what can you say about the evolution of the acceptance rate?</strong></p>
 <p>Note that we have set the number of iterations to 5000. This is a benchmark and if your laptop is quite slow you might want to perform fewer iterations. Here the objective is to have a short - preliminary - run to calibrate your adaptive parameters before running a longer chain.</p>
 <p><strong>Take 10 minutes to change the parameters controlling the adaptive part of the MCMC and look at the effect on the acceptance rate.</strong> Try to find a “good” combination of these parameters so that the acceptance rate is near the optimal value of 23% (actually, the algorithm efficiency remains high whenever the acceptance rate is between about 0.1 and 0.6 so any value in between is OK). If you can’t find one, look at our <a href="mcmc_and_model_comparison_example.html#setting-the-mcmc">example</a>.</p>
@@ -397,7 +399,7 @@ xyplot(my_trace)</code></pre>
 <h1>Long run analysis</h1>
 <p>You should have noticed that the effective sample size (ESS) is quite small (&lt;100) for your preliminary run. By contrast, the ESS was much higher for the SIR model of the previous session with a similar number of iterations. However, this model has only 2 parameters against 6 for the SEIT(4)L models. Intuitively, the more parameters you have the bigger is the parameter space and the longer it takes to the MCMC algorithm to explore it. This is why we need to run a much longer chain to achieve a good ESS (~1000).</p>
 <p>To save time, we have run 2 chains of 100,000 iterations starting from different initial <code>theta</code> values:</p>
-<pre class="r"><code>knitr::read_chunk(here::here(&quot;scripts&quot;, &quot;snippets&quot;, &quot;theta-init.r&quot;))</code></pre>
+<p><code>{r theta_init, eval = FALSE}</code></p>
 <p>Each chain took 4 hours to run on a single-CPU and can be loaded as follows:</p>
 <pre class="r"><code>data(mcmcTdcDeterLongRun)
 # this should load 2 objects in your environment: mcmcSeitlTheta1 and
