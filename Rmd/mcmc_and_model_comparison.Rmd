@@ -153,6 +153,7 @@ knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r"))
 ```
 
 ```{r theta_init, eval = FALSE}```
+```
 
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
 
