@@ -319,7 +319,7 @@ Of course, this is the outcome of a random draw (100 samples in this case), so i
 
 Does the best model yield to a "better" (higher) p-value?
 
-# Going further
+# References
 
 * If you're interested in finding out more about the comparison between
   different hypotheses to explain the second wave using mathematical models,
