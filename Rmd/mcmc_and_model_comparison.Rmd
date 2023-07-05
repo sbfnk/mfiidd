@@ -296,7 +296,7 @@ my_postPredCheck <- function(trace, nSamples, fitmodel, initState, data) {
 }
 ```
 
-If you have trouble filling any of the empty bits, have a look at our [more guided example](our_ppc.html).
+If you have trouble filling any of the empty bits, have a look at our [more guided example](our-ppc.html).
 
 ```{r source-ppc, cache=FALSE, echo = FALSE}
 source(here::here("scripts", "snippets", "our-ppc.r"))
