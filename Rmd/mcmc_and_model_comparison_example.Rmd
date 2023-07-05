@@ -34,8 +34,11 @@ Although our example refers to the SEITL model, the same commands work for the S
 
 # Setting the MCMC
 
-```{r set-mcmc, eval = FALSE}
+```{r echo = TRUE, tidy = TRUE}
 knitr::read_chunk(here::here("scripts", "snippets", "set-mcmc.r"))
+```
+
+```{r set_mcmc, eval = FALSE}
 ```
 
 You can now go back to the [practical](mcmc_and_model_comparison.html#run-a-mcmc) and try to run MCMC with those settings.
