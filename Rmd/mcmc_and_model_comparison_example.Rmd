@@ -80,20 +80,20 @@ Although the chain was started at a `initTheta` with a low posterior density, it
 Overall, it looks like the chain reached its target distribution after 1000 steps.
 
 ```{r short-run-analysis-burn-test, collapse = TRUE}
-# Let's find a suitable burning:
+# Let's find a suitable burn-in::
 plotEssBurn(trace)
 ```
 
-As anticipated from the trace, burning the first 1000 iterations maximizes the effective sample size (ESS).
+As anticipated from the trace, discarding the first 1000 iterations maximizes the effective sample size (ESS).
 
 ```{r short-run-analysis-burn, collapse = TRUE}
-# Let's create a new trace without the burning
+# Let's create a new trace without the burn-in
 traceBurn <- burnAndThin(trace, burn = 1000)
 xyplot(x = traceBurn)
 # Let's check the ESS
 effectiveSize(traceBurn)
 ```
-Although we have 4000 samples remaining after burning, the ESS is much smaller. This is due to autocorrelation of the chain.
+Although we have 4000 samples remaining after burn-in, the ESS is much smaller. This is due to autocorrelation of the chain.
 
 ```{r short-run-analysis-acf}
 # autocorrelation plot
@@ -170,7 +170,7 @@ Also, given the very high ESS we can reasonably choose a burn-in visually, say 5
 ```{r long-run-burn, collapse = TRUE, fig.width=8}
 traceBurn <- burnAndThin(trace, burn = 5000)
 
-# removing the burning increases the ESS
+# removing the burn-in increases the ESS
 effectiveSize(traceBurn)
 
 # autocorrelation
