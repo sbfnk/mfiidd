@@ -1,3 +1,5 @@
+# @knitr set_mcmc
+
 # load the fitmodels
 data(models)
 

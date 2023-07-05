@@ -23,7 +23,7 @@ In this context, it can be useful to first run a MCMC on the deterministic model
 So in this session you will:
 
 1. Fit the deterministic SEITL and SEIT4L models to the Tristan da Cunha outbreak. This will prepare you for the next session.
-2. Learn on issues that arise when fitting a lot of parameters and how you can try to solve them.
+2. Learn about issues that arise when fitting a lot of parameters and how you can try to solve them.
 3. Compare both models and assess whether the best one actually provides a good fit of the data.
 
 To save time, half of the group will fit the deterministic SEITL model and the other half will fit the deterministic SEIT4L model. In the rest of the session, although most of the examples will refer to the SEITL model, the same commands work for the SEIT4L model, i.e. using `data(seit4lDeter)` instead of `data(seitlDeter)`.
