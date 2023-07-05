@@ -11,6 +11,8 @@ library(fitR)
 set.seed(1234)
 ```
 
+[Lecture slides](slides/smc.pdf)
+
 # Objectives
 
 The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC). As you saw in the lecture, fitting a model with a likelihood approach requires:

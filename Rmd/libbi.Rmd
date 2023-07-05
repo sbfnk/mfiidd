@@ -221,7 +221,7 @@ Now, a number of random variables (defined earlier in the file as so-called `noi
 
 # pMCMC with the stochastic SEITL model
 
-We want to determine the optimal number of T compartments in the stochastic SEITL model. To do this, we run pMCMC with 400 particles and 3000 iterations (i.e., same as in the [pMCMC pratical](pmcmc.html)). But first, we prepare the Tristan da Cunha data set to be used as observation data set with `rbi`:
+We want to determine the optimal number of T compartments in the stochastic SEITL model. To do this, we run pMCMC with 128 particles and 3000 iterations (i.e., same as in the [pMCMC pratical](pmcmc.html)). But first, we prepare the Tristan da Cunha data set to be used as observation data set with `rbi`:
 
 ```{r}
 library("dplyr")
@@ -236,7 +236,7 @@ Now, we can use this data set and the model to run pMCMC. First, we generate 300
 ```{r eval=FALSE}
 prep <- sample(seitlStoch,
   nsamples = 3000, proposal = "prior", obs = tdc,
-  end_time = max(tdc$Cases$time), nparticles = 400
+  end_time = max(tdc$Cases$time), nparticles = 128
 )
 prep <- adapt_proposal(prep, min = 0.1, max = 0.3)
 ```
