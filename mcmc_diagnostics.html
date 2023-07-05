@@ -506,6 +506,12 @@ trace &lt;- my_mcmcMh(
 <pre class="r"><code>sirReporting$dPointObs</code></pre>
 <p>Can you fit this to the <code>epi4</code> data set?</p>
 </div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li>For more on effective sample sizes and different ways to estimate them, have a look at Aki Vehtari’ <a href="https://avehtari.github.io/rhat_ess/ess_comparison.html">comparison of MCMC effective sample size estimators</a>. The one used in the <code>fitR</code> package is the from the <code>coda</code> package, computing the spectral density at frequency zero by fitting an AR model to the chain.</li>
+</ul>
+</div>
 
 &nbsp;
 <hr />
