@@ -95,8 +95,11 @@ If you have trouble filling some of the empty bits, have a look at our [example]
 
 Then you should be able to run `mcmcMh`:
 
-```{r run-mcmc, eval=FALSE}
+```{r echo = FALSE, tidy = FALSE}
 knitr::read_chunk(here::here("scripts", "snippets", "run-mcmc.r"))
+```
+
+```{r run_mcmc, eval = FALSE}
 ```
 
 You should see some information printed as the chain runs: acceptance rate, state of the chain, log-likelihood etc. __In particular, what can you say about the evolution of the acceptance rate?__
@@ -145,9 +148,11 @@ You should have noticed that the effective sample size (ESS) is quite small (<10
 
 To save time, we have run 2 chains of 100,000 iterations starting from different initial `theta` values:
 
-```{r theta-init, eval=FALSE}
+```{r echo = FALSE, tidy = FALSE}
 knitr::read_chunk(here::here("scripts", "snippets", "theta-init.r"))
 ```
+
+```{r theta_init, eval = FALSE}```
 
 Each chain took 4 hours to run on a single-CPU and can be loaded as follows:
 
