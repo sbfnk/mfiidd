@@ -287,3 +287,7 @@ sirReporting$dPointObs
 ```
 
 Can you fit this to the `epi4` data set?
+
+# References
+
+* For more on effective sample sizes and different ways to estimate them, have a look at Aki Vehtari' [comparison of MCMC effective sample size estimators](https://avehtari.github.io/rhat_ess/ess_comparison.html). The one used in the `fitR` package is the from the `coda` package, computing the spectral density at frequency zero by fitting an AR model to the chain.
