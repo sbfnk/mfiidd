@@ -300,7 +300,7 @@ $(document).ready(function () {
 <h1>Objectives</h1>
 <p>As you should have noticed in the previous session, several simulations are required to assess the dynamics of a stochastic model against a single one for a deterministic model. Similarly, in the next session you will see that <strong>fitting a stochastic model is also computationally much more intensive than fitting a deterministic model</strong>. Because of this, we want to avoid wasting simulation runs, which could happen for two reasons:</p>
 <ul>
-<li>If you initialise the MCMC with a <code>initTheta</code> far from the region of high posterior density, <strong>the chain might take a long time to reach this region of interest</strong> and you will have to burn a lot of iterations.</li>
+<li>If you initialise the MCMC with a <code>initTheta</code> far from the region of high posterior density, <strong>the chain might take a long time to reach this region of interest</strong> and you will have to discard a lot of iterations.</li>
 <li>If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in <strong>poor mixing and sub-optimal acceptance rates</strong> and you will have to run your chain for longer (or thin it).</li>
 </ul>
 <p>In this context, it can be useful to first run a MCMC on the deterministic model, which can be simulated faster, and learn from the output of this chain to initialise the chain for the fit of the stochastic model. <strong>The rationale for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.</strong></p>
@@ -314,7 +314,7 @@ $(document).ready(function () {
 </div>
 <div id="run-a-mcmc" class="section level1">
 <h1>Run a MCMC</h1>
-<p>Here you could use the function <code>my_mcmcMh</code> that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Because of this, using the adaptive MCMC might be a better choice.</p>
+<p>Here you could use the function <code>my_mcmcMh</code> that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Because of this, using adaptive MCMC might be a better choice.</p>
 <p><strong>Take 10 minutes to have a look at the adaptive MCMC implemented in the function <code>mcmcMh</code>.</strong> As you can see, this function takes similar arguments as your function <code>my_mcmcMh</code>: <code>target</code>, <code>initTheta</code>, <code>proposalSd</code> and <code>nIterations</code>, plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of <code>mcmcMh</code>.</p>
 <p>Note also that this function returns a list that contains, in addition to the trace, the acceptance rate and the empirical covariance matrix of the posterior. The latter will be useful for improving the covariance matrix of the Gaussian proposal in the next session, when we will fit the stochastic model.</p>
 <p>The first step is to code a wrapper function to evaluate the posterior at a given <code>theta</code> value. Here again, you could wrap the function <code>my_dLogPosterior</code> that you have already coded and pass it to <code>mcmcMh</code> so that it returns samples of <code>theta</code> from the posterior distribution.</p>
@@ -390,7 +390,7 @@ library(&quot;lattice&quot;)  ## for xyplot
 xyplot(my_trace)</code></pre>
 <ul>
 <li>Are you surprised by the trace of the log-prior?</li>
-<li>Determine what burning and thinning would be appropriate for your trace.</li>
+<li>Determine what burn-in and thinning would be appropriate for your trace.</li>
 <li>Compare the thinned and unthinned traces (e.g. posterior estimates, density). Do you think it is important to thin?</li>
 </ul>
 <p>If you are not sure about how to analyse your trace, have a look at our <a href="mcmc_and_model_comparison_example.html#short-run-analysis">example</a>.</p>
@@ -532,6 +532,12 @@ my_postPredCheck(
 <pre><code>## [1] 0.1</code></pre>
 <p>Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.</p>
 <p>Does the best model yield to a “better” (higher) p-value?</p>
+</div>
+<div id="going-further" class="section level1">
+<h1>Going further</h1>
+<ul>
+<li>If you’re interested in finding out more about the comparison between different hypotheses to explain the second wave using mathematical models, make sure to check out the <a href="https://doi.org/10.1098/rspb.2011.0300">paper by Camacho et al. (2011)</a> and associated <a href="slides/anton_talk.pdf">slides</a> on the topic.</li>
+</ul>
 </div>
 
 &nbsp;

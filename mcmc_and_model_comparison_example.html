@@ -355,11 +355,11 @@ xyplot(x = trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-trace-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Although the chain was started at a <code>initTheta</code> with a low posterior density, it quickly finds the region of the parameter space with high posterior density. Note also the constant trace of the log-prior since we have assumed a uniform prior.</p>
 <p>Overall, it looks like the chain reached its target distribution after 1000 steps.</p>
-<pre class="r"><code># Let&#39;s find a suitable burning:
+<pre class="r"><code># Let&#39;s find a suitable burn-in::
 plotEssBurn(trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-burn-test-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>As anticipated from the trace, burning the first 1000 iterations maximizes the effective sample size (ESS).</p>
-<pre class="r"><code># Let&#39;s create a new trace without the burning
+<p>As anticipated from the trace, discarding the first 1000 iterations maximizes the effective sample size (ESS).</p>
+<pre class="r"><code># Let&#39;s create a new trace without the burn-in
 traceBurn &lt;- burnAndThin(trace, burn = 1000)
 xyplot(x = traceBurn)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-burn-1.png" width="672" style="display: block; margin: auto;" /></p>
@@ -369,7 +369,7 @@ effectiveSize(traceBurn)
 ##      70.38059      66.62130      74.02227      84.33808      69.38730 
 ##           rho      logPrior logLikelihood    logDensity 
 ##     134.97679       0.00000     100.89045     100.89045</code></pre>
-<p>Although we have 4000 samples remaining after burning, the ESS is much smaller. This is due to autocorrelation of the chain.</p>
+<p>Although we have 4000 samples remaining after burn-in, the ESS is much smaller. This is due to autocorrelation of the chain.</p>
 <pre class="r"><code># autocorrelation plot
 acfplot(x = traceBurn, lag.max = 60)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-acf-1.png" width="672" style="display: block; margin: auto;" /> The autocorrelation between samples drops substantially for a lag of 20 iterations. We can thin the trace to reduce the autocorrelation.</p>
@@ -534,7 +534,7 @@ xyplot(trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-combine-traces-1.png" width="672" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain. Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.</p>
 <pre class="r"><code>traceBurn &lt;- burnAndThin(trace, burn = 5000)
 
-# removing the burning increases the ESS
+# removing the burn-in increases the ESS
 effectiveSize(traceBurn)
 ##           R_0         D_lat         D_inf         alpha         D_imm 
 ##      2495.223      3024.481      3132.444      3201.725      3188.532 
