@@ -137,7 +137,7 @@ xyplot(my_trace)
 ```
 
 * Are you surprised by the trace of the log-prior?
-* Determine what burning and thinning would be appropriate for your trace.
+* Determine what burn-in and thinning would be appropriate for your trace.
 * Compare the thinned and unthinned traces (e.g. posterior estimates, density). Do you think it is important to thin?
 
 If you are not sure about how to analyse your trace, have a look at our [example](mcmc_and_model_comparison_example.html#short-run-analysis).
