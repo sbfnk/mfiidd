@@ -34,7 +34,7 @@ Although our example refers to the SEITL model, the same commands work for the S
 
 # Setting the MCMC
 
-```{r echo = TRUE, tidy = TRUE}
+```{r echo = FALSE, tidy = TRUE}
 knitr::read_chunk(here::here("scripts", "snippets", "set-mcmc.r"))
 ```
 
