@@ -15,7 +15,7 @@ set.seed(1234)
 
 As you should have noticed in the previous session, several simulations are required to assess the dynamics of a stochastic model against a single one for a deterministic model. Similarly, in the next session you will see that __fitting a stochastic model is also computationally much more intensive than fitting a deterministic model__. Because of this, we want to avoid wasting simulation runs, which could happen for two reasons:
 
-* If you initialise the MCMC with a `initTheta` far from the region of high posterior density, __the chain might take a long time to reach this region of interest__ and you will have to burn a lot of iterations.
+* If you initialise the MCMC with a `initTheta` far from the region of high posterior density, __the chain might take a long time to reach this region of interest__ and you will have to discard a lot of iterations.
 * If the covariance matrix of the Gaussian proposal is very different from the posterior, this will result in __poor mixing and sub-optimal acceptance rates__ and you will have to run your chain for longer (or thin it).
 
 In this context, it can be useful to first run a MCMC on the deterministic model, which can be simulated faster, and learn from the output of this chain to initialise the chain for the fit of the stochastic model. __The rationale for this approach is that the deterministic model is an approximation of the stochastic model and should capture, in most cases, the same dynamics.__
@@ -31,7 +31,7 @@ To save time, half of the group will fit the deterministic SEITL model and the o
 
 # Run a MCMC
 
-Here you could use the function `my_mcmcMh` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Because of this, using the adaptive MCMC might be a better choice.
+Here you could use the function `my_mcmcMh` that you have already coded but it might result in poor acceptance rates since the models have 6 parameters to be estimated. Because of this, using adaptive MCMC might be a better choice.
 
 __Take 10 minutes to have a look at the adaptive MCMC implemented in the function `mcmcMh`.__ As you can see, this function takes similar arguments as your function `my_mcmcMh`: `target`, `initTheta`, `proposalSd` and `nIterations`, plus several new ones that control the adaptive part of the algorithm and that you can learn about via the help page of `mcmcMh`.
 
@@ -312,3 +312,11 @@ my_postPredCheck(
 Of course, this is the outcome of a random draw (100 samples in this case), so it will give a different result every time. With more samples, you could improve the estimate.
 
 Does the best model yield to a "better" (higher) p-value?
+
+# Going further
+
+* If you're interested in finding out more about the comparison between
+  different hypotheses to explain the second wave using mathematical models,
+  make sure to check out the [paper by Camacho et al.
+  (2011)](https://doi.org/10.1098/rspb.2011.0300) and associated
+  [slides](slides/anton_talk.pdf) on the topic.
