@@ -247,6 +247,10 @@ Check your answer [here](pmcmc_solution.html#stochastic-vs-deterministic-fit).
 
 You might have noted that the `for()` loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in **R** you can also have a look at the code of `particleFilter`. Actually, all the test runs were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.
 
+## SMC^2
+
+For pMCMC we have combined a particle filter (to estimate the likelihood and sample from the posterior distribution of trajectories) and Metropolis-Hastings MCMC (to sample from the posterior distribution of parameters). Another option for sampling from the joint distribution of trajectories is to run what is called SMC^2 (or SMC squared), where Sequential Monte Carlo is used both for parameters and state trajectories. See this [presentation](external_ref/PierreJacobMAS2014.pdf) by Pierre Jacob for more details and some visualisations.
+
 # References
 
 - A [recent review](https://arxiv.org/abs/1703.02419) by Schön et al.
