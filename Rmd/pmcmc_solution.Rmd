@@ -41,7 +41,7 @@ knitr::read_chunk(here::here("scripts", "snippets", "calibrate-smc.r"))
 
 We ran this calibration algorithm and obtained the following results:
 
-```{r plot-calibration, echo=FALSE, fig.height=6, fig.width=8}
+```{r plot-calibration, echo=TRUE, fig.height=6, fig.width=8, tidy = FALSE}
 library("dplyr")
 library("tidyr")
 library("ggplot2")
