@@ -8,7 +8,4 @@ The *fitR* package introduced in this course was developed as a teaching tool, a
 - [The SEITL model in *LibBi*](libbi.html). For more information see also the [LibBi web site](https://libbi.org).
 - We also recommend looking at [*stan*](https://mc-stan.org/) a general probabilistic programming language for Bayesian inference, as well as the great tutorials for using them with infectious disease published by [Chatzilena et al. (2019)](https://doi.org/10.1016/j.epidem.2019.100367) and [Grinsztajn et al.](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html)
 - The [mcstate](https://mrc-ide.github.io/mcstate/) package for model fitting, combined with [odin](https://mrc-ide.github.io/odin/index.html), [dust](https://mrc-ide.github.io/dust/) and [odin.dust](https://mrc-ide.github.io/odin.dust/) is implements several of the methods introduced in this course. See the [vignette on fitting SIR models](https://mrc-ide.github.io/mcstate/articles/sir_models.html) for an introductory example.
-
-
-
-
+- For a more general discussion of different approaches to fitting mechanistic epidemic models to data including a comparison of different approaches to modelling the observation process, make sure you read [Fitting mechanistic epidemic models to data: A comparison of simple Markov chain Monte Carlo approaches](https://doi.org/10.1177/0962280217747054) by Li et al.
