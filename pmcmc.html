@@ -592,6 +592,10 @@ trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
 <h2>Optimization</h2>
 <p>You might have noted that the <code>for()</code> loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in <strong>R</strong> you can also have a look at the code of <code>particleFilter</code>. Actually, all the test runs were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.</p>
 </div>
+<div id="smc2" class="section level2">
+<h2>SMC^2</h2>
+<p>For pMCMC we have combined a particle filter (to estimate the likelihood and sample from the posterior distribution of trajectories) and Metropolis-Hastings MCMC (to sample from the posterior distribution of parameters). Another option for sampling from the joint distribution of trajectories is to run what is called SMC^2 (or SMC squared), where Sequential Monte Carlo is used both for parameters and state trajectories. See this <a href="external_ref/PierreJacobMAS2014.pdf">presentation</a> by Pierre Jacob for more details and some visualisations.</p>
+</div>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
