@@ -6,9 +6,8 @@ The *fitR* package introduced in this course was developed as a teaching tool, a
 
 - [Fitting models to data using *pomp*](pomp.html). For more information, see also the tutorials at the [pomp web site](https://kingaa.github.io/pomp/).
 - [The SEITL model in *LibBi*](libbi.html). For more information see also the [LibBi web site](https://libbi.org).
-- We also recommend looking at [*stan*](https://mc-stan.org/) a general probabilistic programming language for Bayesian inference, as well as the great tutorials for using them with infectious disease published by [Chatzilena et al. (2019)](https://doi.org/10.1016/j.epidem.2019.100367) and [Grinsztajn et al.](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html).
-
- 
+- We also recommend looking at [*stan*](https://mc-stan.org/) a general probabilistic programming language for Bayesian inference, as well as the great tutorials for using them with infectious disease published by [Chatzilena et al. (2019)](https://doi.org/10.1016/j.epidem.2019.100367) and [Grinsztajn et al.](https://mc-stan.org/users/documentation/case-studies/boarding_school_case_study.html)
+- The [mcstate](https://mrc-ide.github.io/mcstate/) package for model fitting, combined with [odin](https://mrc-ide.github.io/odin/index.html), [dust](https://mrc-ide.github.io/dust/) and [odin.dust](https://mrc-ide.github.io/odin.dust/) is implements several of the methods introduced in this course. See the [vignette on fitting SIR models](https://mrc-ide.github.io/mcstate/articles/sir_models.html) for an introductory example.
 
 
 
