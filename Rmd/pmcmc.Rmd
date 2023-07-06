@@ -134,18 +134,18 @@ You can now set the pMCMC by filling the empty bits below:
 ```{r set-pmcmc, eval=FALSE, tidy=FALSE}
 
 # wrapper for posterior
-my_posteriorSto <- function(theta){
+my_posteriorSto <- function(theta) {
 
     my_fitmodel <- # INSERT HERE
     my_initState <- # INSERT HERE
+    my_nParticles <- # INSERT HERE
 
     return(dLogPosterior(fitmodel = my_fitmodel,
                          theta = theta,
                          initState = my_initState,
                          data = fluTdc1971,
                          margLogLike = my_particleFilter,
-                         nParticles = nParticles))
-    
+                         nParticles = my_nParticles))
 }
 
 # theta to initialise the pMCMC
@@ -173,7 +173,7 @@ Then you should be able to run `mcmcMh`:
 
 ```{r run-pmcmc, eval=FALSE, tidy = FALSE}
 # run the pMCMC
-my_pMCMC <- mcmcMh(target = my_posteriorSto(128),
+my_pMCMC <- mcmcMh(target = my_posteriorSto,
                    initTheta = initTheta,
                    covmat = covmat,
                    limits = list(lower = lower,upper = upper),
