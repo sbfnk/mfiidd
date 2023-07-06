@@ -32,8 +32,11 @@ Ideally we want enough particles to obtain a fairly stable estimate of the log-l
 
 A simple calibration approach consists in plotting the mean, standard deviation and computational time of the log-likelihood estimate as a function of the number of particles. Although several parameters can be tested, we will use a `theta` close to the mean posterior estimate of the deterministic fit since it is likely to be the region of the parameter space we want to explore with the pMCMC.
 
-```{r calibration-SMC, eval = FALSE, tidy = FALSE}
+```{r echo = FALSE}
 knitr::read_chunk(here::here("scripts", "snippets", "calibrate-smc.r"))
+```
+
+```{r calibrate_smc, eval = FALSE, tidy = FALSE}
 ```
 
 We ran this calibration algorithm and obtained the following results:
@@ -75,8 +78,11 @@ You can now return to the [practical](pmcmc.html#run-pmcmc) and set your pMCMC w
 
 # Setting the pMCMC
 
-```{r set-pmcmc, eval=FALSE, tidy = FALSE}
+```{r echo = FALSE}
 knitr::read_chunk(here::here("scripts", "snippets", "set-pmcmc.r"))
+```
+
+```{r set_pmcmc, eval = FALSE, tidy = FALSE}
 ```
 
 You can now go back to the [practical](pmcmc.html#run-a-pmcmc) and try to run 	pMCMC with those settings.

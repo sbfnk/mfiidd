@@ -1,3 +1,5 @@
+# @knitr calibrate_smc
+
 # load fitmodel, data and define initState
 data(fluTdc1971)
 

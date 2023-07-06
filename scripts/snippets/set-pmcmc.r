@@ -1,3 +1,5 @@
+# @knitr set_pmcmc
+
 # wrapper for posterior
 my_posteriorSto <- function(theta) {
   my_fitmodel <- seit4lStoch
