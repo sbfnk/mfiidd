@@ -1,6 +1,6 @@
 model seitlDeter {
   const k_erlang = 1
-  const N = 1000
+  const N = 284
   const timestep = 1
   dim k(k_erlang)
   state S, E, I, T[k], L, Inc
