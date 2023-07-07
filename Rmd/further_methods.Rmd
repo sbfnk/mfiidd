@@ -4,6 +4,8 @@ title: "Further methods for model fitting and inference"
 
 [Modelling process uncertainty](slides/process_uncertainty.html)
 
+[Closing slides](slides/closing.pdf)
+
 The *fitR* package introduced in this course was developed as a teaching tool, and the implementation of inference algorithms in this package is not particularly efficient of stable. For vastly superior alternative options for fitting models to data there are much better options. Here we provide some additional short tutorials that show how these could be used to fit the SEITL and related models to the Tristan da Cunha data set.
 
 - [Fitting models to data using *pomp*](pomp.html). For more information, see also the tutorials at the [pomp web site](https://kingaa.github.io/pomp/).
