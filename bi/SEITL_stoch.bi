@@ -1,4 +1,4 @@
-model seitlDeter {
+model seitlStoch {
   const k_erlang = 1
   const N = 284
   const timestep = 1
