@@ -1,6 +1,6 @@
 model seitlDeter {
   const k_erlang = 1
-  const N = 1000
+  const N = 284
   dim k(k_erlang)
   state S, E, I, T[k], L, Inc
   param R_0, D_lat, D_inf, alpha, D_imm, rho
