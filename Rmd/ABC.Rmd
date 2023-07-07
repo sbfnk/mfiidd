@@ -11,6 +11,8 @@ library(fitR)
 set.seed(1234)
 ```
 
+[Lecture slides](slides/abc_slides.pdf)
+
 # Objectives
 
 The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. More specifically, you will
