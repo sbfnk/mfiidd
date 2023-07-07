@@ -434,8 +434,8 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
 tdc &lt;- list(Cases = fluTdc1971 |&gt; dplyr::select(time, value = obs))</code></pre>
 <p>The <code>rbi</code> object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns <code>time</code> and <code>value</code>. Here, the observations are called <code>Cases</code>, the same as in the line specifying the observation density in the LibBi file above.</p>
 <p>Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.</p>
-<pre class="r"><code>prep &lt;- sample(seitlStoch,
-  nsamples = 3000, proposal = &quot;prior&quot;, obs = tdc,
+<pre class="r"><code>prep &lt;- sample(
+  seitlStoch, nsamples = 3000, proposal = &quot;prior&quot;, obs = tdc,
   end_time = max(tdc$Cases$time), nparticles = 128
 )
 prep &lt;- adapt_proposal(prep, min = 0.1, max = 0.3)</code></pre>
@@ -448,9 +448,8 @@ max_erlang &lt;- 9
 
 for (i in 1:max_erlang) {
   cat(&quot;Fitting with&quot;, i, &quot;T compartment(s).\n&quot;)
-  bi[[i]] &lt;- sample(prep,
-    model = fix(prep$model, k_erlang = i),
-    nsamples = 3000
+  bi[[i]] &lt;- sample(
+    prep, model = fix(prep$model, k_erlang = i), nsamples = 3000
   )
 }
 
