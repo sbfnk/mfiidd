@@ -232,8 +232,8 @@ The `rbi` object expects data to be given as a named list, where each element co
 Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.
 
 ```{r eval=FALSE}
-prep <- sample(seitlStoch,
-  nsamples = 3000, proposal = "prior", obs = tdc,
+prep <- sample(
+  seitlStoch, nsamples = 3000, proposal = "prior", obs = tdc,
   end_time = max(tdc$Cases$time), nparticles = 128
 )
 prep <- adapt_proposal(prep, min = 0.1, max = 0.3)
@@ -255,9 +255,8 @@ max_erlang <- 9
 
 for (i in 1:max_erlang) {
   cat("Fitting with", i, "T compartment(s).\n")
-  bi[[i]] <- sample(prep,
-    model = fix(prep$model, k_erlang = i),
-    nsamples = 3000
+  bi[[i]] <- sample(
+    prep, model = fix(prep$model, k_erlang = i), nsamples = 3000
   )
 }
 
