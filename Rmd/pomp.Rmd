@@ -48,6 +48,8 @@ source("https://sbfnk.github.io/mfiidd/pomp/seitlPomp.r", echo = TRUE)
 ```
 ```{r include = FALSE}
 source("pomp/seitlPomp.r", echo = TRUE)
+source("pomp/seit2lPomp.r", echo = TRUE)
+source("pomp/seit4lPomp.r", echo = TRUE)
 ```
 
 If this yields a compile error, have a look at the [important information for windows and mac users](http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.) or ask us for help. If you can't get it to work at all, you work with the *R* versions of the  code (see the note after the next paragraph).
@@ -60,6 +62,8 @@ source("https://sbfnk.github.io/mfiidd/pomp/seitlPompR.r", echo = TRUE)
 ```
 ```{r include = FALSE}
 source("pomp/seitlPompR.r", echo = TRUE)
+source("pomp/seit2lPompR.r", echo = TRUE)
+source("pomp/seit4lPompR.r", echo = TRUE)
 ```
 which creates an object called `seitlPompR`.
 
