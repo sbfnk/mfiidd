@@ -13,6 +13,7 @@
 
 <title>Introduction to model fitting in R</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -299,18 +300,36 @@ $(document).ready(function () {
 <p><a href="slides/intro_slides.pdf">Lecture slides</a></p>
 <div id="objectives" class="section level1">
 <h1>Objectives</h1>
-<p>The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to the <code>fitR</code> package, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.</p>
+<p>The aim of this first session is to set you up with a framework for
+model fitting. To do this, we will introduce you to the
+<code>fitR</code> package, which we have created to facilitate
+interaction during this course. This is not a full-fledged model fitting
+suite. Instead, we use it to provide you with model code that follows a
+common structure, as well as data and solutions to the practical
+exercises.</p>
 <p>In this session, you will</p>
 <ol style="list-style-type: decimal">
-<li>familiarise yourselves with the structure of models in the <code>fitR</code> package</li>
-<li>combine the prior and likelihood to calculate the posterior for a simple SIR model</li>
+<li>familiarise yourselves with the structure of models in the
+<code>fitR</code> package</li>
+<li>combine the prior and likelihood to calculate the posterior for a
+simple SIR model</li>
 <li>explore the posterior of a model that has a single parameter</li>
 </ol>
-<p>The first part will be mostly about introducing you to the structure we have set up – you won’t have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.</p>
+<p>The first part will be mostly about introducing you to the structure
+we have set up – you won’t have to do much yourself in this part, but it
+would be worth spending some time familiarising yourself with the code
+and the commands, to make sure you understand what is going on. Later,
+you will write your own function to calculate a posterior density and
+use it to explore an outbreak described by a simple SIR model.</p>
 </div>
 <div id="a-deterministic-sir-model" class="section level1">
 <h1>A deterministic SIR model</h1>
-<p>First, we will work with a simple deterministic SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number <span class="math inline">\(R_0\)</span> and the infectious period <span class="math inline">\(D_\mathrm{inf}\)</span>. The model equations are</p>
+<p>First, we will work with a simple deterministic SIR model. We will
+later fit this to a simple data set. The model has two parameters, the
+basic reproductive number <span class="math inline">\(R_0\)</span> and
+the infectious period <span
+class="math inline">\(D_\mathrm{inf}\)</span>. The model equations
+are</p>
 <p><span class="math display">\[
 \begin{cases}
 \begin{aligned}
@@ -320,14 +339,30 @@ $(document).ready(function () {
 \end{aligned}
 \end{cases}
 \]</span></p>
-<p>where <span class="math inline">\(S\)</span>, <span class="math inline">\(I\)</span> and <span class="math inline">\(R\)</span> stand for the susceptible, infected and recovered compartments, respectively, <span class="math inline">\(\beta=R_0/D_\mathrm{inf}\)</span>, <span class="math inline">\(\nu = 1/D_\mathrm{inf}\)</span> and <span class="math inline">\(N = S + I + R\)</span> is constant. To load this model into your <strong>R</strong> session, type</p>
+<p>where <span class="math inline">\(S\)</span>, <span
+class="math inline">\(I\)</span> and <span
+class="math inline">\(R\)</span> stand for the susceptible, infected and
+recovered compartments, respectively, <span
+class="math inline">\(\beta=R_0/D_\mathrm{inf}\)</span>, <span
+class="math inline">\(\nu = 1/D_\mathrm{inf}\)</span> and <span
+class="math inline">\(N = S + I + R\)</span> is constant. To load this
+model into your <strong>R</strong> session, type</p>
 <pre class="r"><code>data(models)</code></pre>
-<p>This will load a few <code>fitmodel</code> objects into your <strong>R</strong> session, including one called <code>sirDeter</code> (for “SIR, deterministic”). A <code>fitmodel</code> is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the <code>sirDeter</code> model. If at any time something goes wrong, you can always go back to the original model by typing <code>data(models)</code>.</p>
-<p>To see the objects that the <code>sirDeter</code> model contains, type</p>
+<p>This will load a few <code>fitmodel</code> objects into your
+<strong>R</strong> session, including one called <code>sirDeter</code>
+(for “SIR, deterministic”). A <code>fitmodel</code> is simply a
+collection of functions and variables that define a model. Later in this
+session, you might change parts of the <code>sirDeter</code> model. If
+at any time something goes wrong, you can always go back to the original
+model by typing <code>data(models)</code>.</p>
+<p>To see the objects that the <code>sirDeter</code> model contains,
+type</p>
 <pre class="r"><code>names(sirDeter)</code></pre>
 <pre><code>## [1] &quot;name&quot;       &quot;stateNames&quot; &quot;thetaNames&quot; &quot;simulate&quot;   &quot;rPointObs&quot; 
 ## [6] &quot;dPrior&quot;     &quot;dPointObs&quot;</code></pre>
-<p>A <code>fitmodel</code> object provides its description, as well as the names of its state variables and parameters. These can be accessed with</p>
+<p>A <code>fitmodel</code> object provides its description, as well as
+the names of its state variables and parameters. These can be accessed
+with</p>
 <pre class="r"><code>sirDeter$name</code></pre>
 <pre><code>## [1] &quot;SIR with constant population size&quot;</code></pre>
 <pre class="r"><code>sirDeter$stateNames</code></pre>
@@ -338,14 +373,21 @@ $(document).ready(function () {
 <ol style="list-style-type: decimal">
 <li><code>simulate</code> to run the model,</li>
 <li><code>dPrior</code> to calculate the prior density,</li>
-<li><code>dPointObs</code> to calculate the log-likelihood of a given data point with respect to the model,</li>
-<li><code>rPointObs</code> to generate observations from a model run.</li>
+<li><code>dPointObs</code> to calculate the log-likelihood of a given
+data point with respect to the model,</li>
+<li><code>rPointObs</code> to generate observations from a model
+run.</li>
 </ol>
-<p>We will now look at these one after the other. If at any time you would like more information on the components of a <code>fitmodel</code>, you can do so by typing</p>
+<p>We will now look at these one after the other. If at any time you
+would like more information on the components of a
+<code>fitmodel</code>, you can do so by typing</p>
 <pre class="r"><code>?fitmodel</code></pre>
 <div id="simulate" class="section level2">
 <h2>Simulate</h2>
-<p>To simulate a model run, we use the <code>simulate</code> command which comes with a <code>fitmodel</code> (see above). To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.</p>
+<p>To simulate a model run, we use the <code>simulate</code> command
+which comes with a <code>fitmodel</code> (see above). To run the SIR
+model, we have to provide parameter values, initial state values and the
+times at which we want model output.</p>
 <pre class="r"><code>theta &lt;- c(R_0 = 3, D_inf = 2)
 initState &lt;- c(S = 999, I = 1, R = 0)
 times &lt;- 1:100
@@ -359,38 +401,78 @@ traj &lt;- sirDeter$simulate(theta, initState, times)</code></pre>
 ## 4    4 971.3444  19.297723  9.3579062
 ## 5    5 925.8476  48.804024 25.3483747
 ## 6    6 825.2761 111.044978 63.6789335</code></pre>
-<p><code>head</code> prints the first few rows of the data set. If you just type <code>traj</code> (without the <code>head</code>), you’ll see the whole trajectory.</p>
+<p><code>head</code> prints the first few rows of the data set. If you
+just type <code>traj</code> (without the <code>head</code>), you’ll see
+the whole trajectory.</p>
 <p>To visualise model output, you can use <code>plotTraj</code>.</p>
 <pre class="r"><code>plotTraj(traj)</code></pre>
 <p><img src="figure/introduction/traj_sir_sim-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><strong>Take 10 minutes to run the model with different values of the parameters and initial state, and output times.</strong></p>
-<p>Remember that if you want more detail on what the functions contained in a <code>fitmodel</code> do, type the function name after <code>sirDeter$</code> (or whichever <code>fitmodel</code> object you are looking at; for now, we consider <code>sirDeter</code>). For example, to look at the <code>simulate</code> function of <code>sirDeter</code>, type</p>
+<p><strong>Take 10 minutes to run the model with different values of the
+parameters and initial state, and output times.</strong></p>
+<p>Remember that if you want more detail on what the functions contained
+in a <code>fitmodel</code> do, type the function name after
+<code>sirDeter$</code> (or whichever <code>fitmodel</code> object you
+are looking at; for now, we consider <code>sirDeter</code>). For
+example, to look at the <code>simulate</code> function of
+<code>sirDeter</code>, type</p>
 <pre class="r"><code>sirDeter$simulate</code></pre>
-<p>This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). <strong>Take 10 minutes to look at that function and let us know if you have any questions.</strong> Tomorrow, we will give you a different <code>fitmodel</code> object for a different model that comes with its own <code>simulate</code> function.</p>
+<p>This is the key function that encodes the dynamic model we would like
+to fit to data (in this case, the simple SIR model). <strong>Take 10
+minutes to look at that function and let us know if you have any
+questions.</strong> Tomorrow, we will give you a different
+<code>fitmodel</code> object for a different model that comes with its
+own <code>simulate</code> function.</p>
 </div>
 <div id="prior" class="section level2">
 <h2>Prior</h2>
-<p>To evaluate the (logarithm of the) prior for a certain combination of parameters, use the <code>dPrior</code> function</p>
+<p>To evaluate the (logarithm of the) prior for a certain combination of
+parameters, use the <code>dPrior</code> function</p>
 <pre class="r"><code>sirDeter$dPrior(theta)</code></pre>
 <pre><code>## [1] 0.0003367003</code></pre>
 <pre class="r"><code>sirDeter$dPrior(theta, log = TRUE)</code></pre>
 <pre><code>## [1] -7.996317</code></pre>
 <p>Have a look at the <code>dPrior</code> function by typing</p>
 <pre class="r"><code>sirDeter$dPrior</code></pre>
-<p>You will see that this calculates the prior of the parameters using uniform distributions on <span class="math inline">\(R_0\)</span> (between 1 and 100) and <span class="math inline">\(D_\mathrm{inf}\)</span> (between 0 and 30). <strong>For the moment, just have a look at it and make sure you understand it.</strong> Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.</p>
+<p>You will see that this calculates the prior of the parameters using
+uniform distributions on <span class="math inline">\(R_0\)</span>
+(between 1 and 100) and <span
+class="math inline">\(D_\mathrm{inf}\)</span> (between 0 and 30).
+<strong>For the moment, just have a look at it and make sure you
+understand it.</strong> Later, we will modify this to see how the choice
+of prior distributions can influence the posterior distribution.</p>
 </div>
 <div id="likelihood" class="section level2">
 <h2>Likelihood</h2>
-<p>The <code>dPointObs</code> function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the <code>sirDeter</code> model is</p>
+<p>The <code>dPointObs</code> function is used to evaluate the
+likelihood of a data point. For example, the (logarithm of the)
+probability density of observing a prevalence of 18 when there are 31
+infectious people in the <code>sirDeter</code> model is</p>
 <pre class="r"><code>sirDeter$dPointObs(dataPoint = c(obs = 18), modelPoint = c(I = 31), theta, log = TRUE)</code></pre>
 <pre><code>## [1] -5.583676</code></pre>
 <p>Have a look at the <code>dPointObs</code> function by typing</p>
 <pre class="r"><code>sirDeter$dPointObs</code></pre>
-<p>You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its <code>obs</code> member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the <code>I</code> member of the model point (above, a model prevalence of 31 infections).</p>
-<p>In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and <code>sirDeter$dPointObs</code> answers the question: what is the probability of observing 18 cases when the prevalence is 31? <strong>For the moment, just have a look at the function and make sure you understand it.</strong> Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.</p>
-<p>Let’s load a test data set contained in the <code>fitR</code> package using</p>
+<p>You will see that this calculates the likelihood of a data point
+(above, an observed prevalence of 18 infections) by taking its
+<code>obs</code> member (an observation of prevalence) and evaluating it
+with respect to a Poisson distribution centred around the <code>I</code>
+member of the model point (above, a model prevalence of 31
+infections).</p>
+<p>In other words, it assumes that the observation follows a Poisson
+distribution centred around the current prevalence, and
+<code>sirDeter$dPointObs</code> answers the question: what is the
+probability of observing 18 cases when the prevalence is 31? <strong>For
+the moment, just have a look at the function and make sure you
+understand it.</strong> Later, we will modify this to see how the choice
+of the likelihood can influence the posterior distribution.</p>
+<p>Let’s load a test data set contained in the <code>fitR</code> package
+using</p>
 <pre class="r"><code>data(epi)</code></pre>
-<p>This contains several epidemic data sets. The first one, called <code>epi1</code>, has been created using this same SIR model, with an infectious period of 2 weeks, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of <span class="math inline">\(R_0\)</span>. You can look at this data set using</p>
+<p>This contains several epidemic data sets. The first one, called
+<code>epi1</code>, has been created using this same SIR model, with an
+infectious period of 2 weeks, in a population of 1000, with 1 initial
+infected and the remaining population susceptible. Later, we will try to
+estimate the value of <span class="math inline">\(R_0\)</span>. You can
+look at this data set using</p>
 <pre class="r"><code>head(epi1)</code></pre>
 <pre><code>##   time obs
 ## 1    1   0
@@ -399,34 +481,71 @@ traj &lt;- sirDeter$simulate(theta, initState, times)</code></pre>
 ## 4    4   2
 ## 5    5   3
 ## 6    6   9</code></pre>
-<p>The observations (“obs”) in the <code>epi1</code> data set are based on weekly observed prevalence (“I”). You can plot the data using</p>
+<p>The observations (“obs”) in the <code>epi1</code> data set are based
+on weekly observed prevalence (“I”). You can plot the data using</p>
 <pre class="r"><code>plotTraj(data = epi1)</code></pre>
 <p><img src="figure/introduction/plot_epi1-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>To calculate the log-likelihood of a set of parameters and initial state, we can use the <code>dTrajObs</code> function contained in <code>fitR</code>. This function takes a <code>fitmodel</code>, a parameter vector, an initial state and a data set as arguments and proceeds in 3 steps:</p>
+<p>To calculate the log-likelihood of a set of parameters and initial
+state, we can use the <code>dTrajObs</code> function contained in
+<code>fitR</code>. This function takes a <code>fitmodel</code>, a
+parameter vector, an initial state and a data set as arguments and
+proceeds in 3 steps:</p>
 <ol style="list-style-type: decimal">
-<li>simulate the model using the <code>simulate</code> function of the <code>fitmodel</code> with the given parameters and initial state.</li>
-<li>evaluate the log-likelihood at every data point using the <code>dPointObs</code> function of the model.</li>
+<li>simulate the model using the <code>simulate</code> function of the
+<code>fitmodel</code> with the given parameters and initial state.</li>
+<li>evaluate the log-likelihood at every data point using the
+<code>dPointObs</code> function of the model.</li>
 <li>return the sum all the log-likelihood values.</li>
 </ol>
-<p>The value returned is <span class="math inline">\(\log(p(\mathrm{Data}|X_0, \theta))\)</span>: the log-likelihood of the chosen set of parameters and initial state.</p>
+<p>The value returned is <span
+class="math inline">\(\log(p(\mathrm{Data}|X_0, \theta))\)</span>: the
+log-likelihood of the chosen set of parameters and initial state.</p>
 <pre class="r"><code>dTrajObs(sirDeter, theta, initState, epi1, log = TRUE)</code></pre>
 <pre><code>## [1] -3507.914</code></pre>
-<p>Of course, you might get a different number here if you played with the parameters. You will later need the <code>dTrajObs</code> function to calculate the posterior density as a function of the parameters. Feel free to have a look at the <code>dTrajObs</code> function (by typing <code>dTrajObs</code> and hitting return), to see how it performs its task.</p>
+<p>Of course, you might get a different number here if you played with
+the parameters. You will later need the <code>dTrajObs</code> function
+to calculate the posterior density as a function of the parameters. Feel
+free to have a look at the <code>dTrajObs</code> function (by typing
+<code>dTrajObs</code> and hitting return), to see how it performs its
+task.</p>
 </div>
 <div id="generate-observations" class="section level2">
 <h2>Generate observations</h2>
-<p>The function <code>rPointObs</code> generates a single random observation from a single point in a model trajectory. At the moment, we won’t need this, but it will be later useful when it comes to model assessment.</p>
-<p><code>rPointObs</code> can be seen as the inverse of <code>dPointObs</code>. Whereas <code>dPointObs</code> evaluates the likelihood at a data point with respect to the model, <code>rPointObs</code> takes the model and generates a (randomly sampled) data point.</p>
-<p>Note also that <code>rPointObs</code> differs from <code>simulate</code>. While <code>simulate</code> simulates the (in this case, deterministic) model trajectory, <code>rPointObs</code> encodes the uncertainty involved in observations to produce a random observation point on the basis of a state of the model. To generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write</p>
+<p>The function <code>rPointObs</code> generates a single random
+observation from a single point in a model trajectory. At the moment, we
+won’t need this, but it will be later useful when it comes to model
+assessment.</p>
+<p><code>rPointObs</code> can be seen as the inverse of
+<code>dPointObs</code>. Whereas <code>dPointObs</code> evaluates the
+likelihood at a data point with respect to the model,
+<code>rPointObs</code> takes the model and generates a (randomly
+sampled) data point.</p>
+<p>Note also that <code>rPointObs</code> differs from
+<code>simulate</code>. While <code>simulate</code> simulates the (in
+this case, deterministic) model trajectory, <code>rPointObs</code>
+encodes the uncertainty involved in observations to produce a random
+observation point on the basis of a state of the model. To generate a
+randomly observed prevalence on the basis of a true prevalence of 31, we
+can write</p>
 <pre class="r"><code>sirDeter$rPointObs(modelPoint = c(I = 31), theta)</code></pre>
 <pre><code>## obs 
 ##  24</code></pre>
-<p>Of course, you might see a different number, as the result of this command is the outcome of a random draw.</p>
-<p>To generate a whole trajectory with simulated observation, we have implemented a function called <code>rTrajObs</code>, which can be seen as the inverse of <code>dTrajObs</code>. The <code>rTrajObs</code> function takes a <code>fitmodel</code>, a parameter vector, an initial state and a vector of observation times as arguments and proceeds in 3 steps:</p>
+<p>Of course, you might see a different number, as the result of this
+command is the outcome of a random draw.</p>
+<p>To generate a whole trajectory with simulated observation, we have
+implemented a function called <code>rTrajObs</code>, which can be seen
+as the inverse of <code>dTrajObs</code>. The <code>rTrajObs</code>
+function takes a <code>fitmodel</code>, a parameter vector, an initial
+state and a vector of observation times as arguments and proceeds in 3
+steps:</p>
 <ol style="list-style-type: decimal">
-<li>simulate the model using the <code>simulate</code> function of the <code>fitmodel</code> (see above, where you looked at <code>sirDeter$simulate</code>).</li>
-<li>apply the <code>rPointObs</code> function at every time point to generate the observations.</li>
-<li>return the simulated trajectory, with an added column for the observations.</li>
+<li>simulate the model using the <code>simulate</code> function of the
+<code>fitmodel</code> (see above, where you looked at
+<code>sirDeter$simulate</code>).</li>
+<li>apply the <code>rPointObs</code> function at every time point to
+generate the observations.</li>
+<li>return the simulated trajectory, with an added column for the
+observations.</li>
 </ol>
 <pre class="r"><code>obsTraj &lt;- rTrajObs(sirDeter, theta, initState, epi1$time)
 head(obsTraj)</code></pre>
@@ -437,14 +556,31 @@ head(obsTraj)</code></pre>
 ## 4    4 971.3444  19.297723  9.3579062   8
 ## 5    5 925.8476  48.804024 25.3483747  49
 ## 6    6 825.2761 111.044978 63.6789335 112</code></pre>
-<p>If you run this multiple times, you will find that the “obs” column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed <code>rPointObs</code> to be deterministic (instead of a random draw from a Poisson distribution), the outcome of <code>rTrajObs</code> would be the same every time. Again, feel free to have a look at the <code>rTrajObs</code> function (by simply typing <code>rTrajObs</code> and hitting return), to see how it performs its task. It will be a good idea to look at the functions that we have provided you throughout the course.</p>
-<p>Now you have completed the overview of a <code>fitmodel</code> object, you are going use some parts of it to code a function that will evaluate the posterior.</p>
+<p>If you run this multiple times, you will find that the “obs” column
+is different every time. This is because the observations are results of
+random draws from the (deterministic) model trajectory. If we changed
+<code>rPointObs</code> to be deterministic (instead of a random draw
+from a Poisson distribution), the outcome of <code>rTrajObs</code> would
+be the same every time. Again, feel free to have a look at the
+<code>rTrajObs</code> function (by simply typing <code>rTrajObs</code>
+and hitting return), to see how it performs its task. It will be a good
+idea to look at the functions that we have provided you throughout the
+course.</p>
+<p>Now you have completed the overview of a <code>fitmodel</code>
+object, you are going use some parts of it to code a function that will
+evaluate the posterior.</p>
 </div>
 </div>
 <div id="calculate-the-posterior" class="section level1">
 <h1>Calculate the posterior</h1>
-<p><strong>Code it yourself</strong>: Write a function to calculate the value of the posterior <span class="math inline">\(p(\theta, X_0|\mathrm{Data})\)</span> (up to a normalisation constant) for a given set of parameters and initial state, with respect to a data set.</p>
-<p>Below you will find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.</p>
+<p><strong>Code it yourself</strong>: Write a function to calculate the
+value of the posterior <span class="math inline">\(p(\theta,
+X_0|\mathrm{Data})\)</span> (up to a normalisation constant) for a given
+set of parameters and initial state, with respect to a data set.</p>
+<p>Below you will find the skeleton of such a function. We have inserted
+comments for every line that you should insert. If you are struggling at
+any point, click on the link below the code for a more guided
+example.</p>
 <pre class="r"><code># This is a function that takes 4 arguments:
 # - fitmodel, a fitmodel object that defines the model dynamics, prior and likelihoods.
 # - theta, a named vector of parameters
@@ -460,40 +596,76 @@ my_dLogPosterior &lt;- function(fitmodel, theta, initState, data) {
 
     # return the logged posterior probability
 }</code></pre>
-<p>If you have trouble filling any of the empty bits in, have a look at our <a href="posterior_example.html">more guided example</a>.</p>
-<p>Once you are done with this, check that your function returns a sensible value.</p>
+<p>If you have trouble filling any of the empty bits in, have a look at
+our <a href="posterior_example.html">more guided example</a>.</p>
+<p>Once you are done with this, check that your function returns a
+sensible value.</p>
 <pre class="r"><code>my_dLogPosterior(sirDeter, theta, initState, epi1)</code></pre>
 <pre><code>## [1] -3515.91</code></pre>
 <p>Would you expect to see the same value?</p>
 </div>
 <div id="assess-the-model-fit" class="section level1">
 <h1>Assess the model fit</h1>
-<p>You can visually assess a model run against data using the <code>plotFit</code> function, which generates an observation trajectory from a model, parameters and initial state using <code>rTrajObs</code> (see above) and plots it (lines) against the data (points).</p>
-<p>Note that you can also simulate multiple replicates (using the <code>nReplicates</code> argument) or plot the deterministic model trajectories (using <code>allVars = TRUE</code>). See <code>?plotFit</code> for all available options.</p>
+<p>You can visually assess a model run against data using the
+<code>plotFit</code> function, which generates an observation trajectory
+from a model, parameters and initial state using <code>rTrajObs</code>
+(see above) and plots it (lines) against the data (points).</p>
+<p>Note that you can also simulate multiple replicates (using the
+<code>nReplicates</code> argument) or plot the deterministic model
+trajectories (using <code>allVars = TRUE</code>). See
+<code>?plotFit</code> for all available options.</p>
 <pre class="r"><code>plotFit(sirDeter, theta, initState, epi1)</code></pre>
 <p><img src="figure/introduction/plotfit_epi1-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Clearly, not a very good fit on this occasion. In the next section, you will explore the posterior distribution to find a better one. <strong>Before that, take 10 minutes to visually assess the fit of your model under different parameter sets and get familiar with the function <code>plotFit</code>.</strong></p>
+<p>Clearly, not a very good fit on this occasion. In the next section,
+you will explore the posterior distribution to find a better one.
+<strong>Before that, take 10 minutes to visually assess the fit of your
+model under different parameter sets and get familiar with the function
+<code>plotFit</code>.</strong></p>
 </div>
 <div id="explore-the-posterior" class="section level1">
 <h1>Explore the posterior</h1>
-<p>You are now ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical, we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, <span class="math inline">\(R_0\)</span>.</p>
-<p>As stated above, the infectious period of the <code>epi1</code> data set was 2 weeks. You can evaluate the posterior at different values of <span class="math inline">\(R_0\)</span> using the function <code>my_dLogPosterior</code> you wrote above (or the one provided by clicking through to our <a href="posterior_example_solution.html">solution</a>).</p>
-<p><strong>Take 10 minutes to figure out in which range of <span class="math inline">\(R_0\)</span> the posterior is maximised. Does the model fit the data (looking at <code>plotFit</code>)?</strong></p>
-<p>You can also change the prior and likelihood definitions of the <code>sirDeter</code> model. Remember that you can see the definition of <code>sirDeter$dPrior</code> and <code>sirDeter$dPointObs</code> by typing</p>
+<p>You are now ready to do parameter estimation by exploring the
+posterior at different values of the parameter. In the next practical,
+we will see how to automate this step using MCMC, but for now let us
+simply evaluate the posterior at different values of the single unknown
+parameter, <span class="math inline">\(R_0\)</span>.</p>
+<p>As stated above, the infectious period of the <code>epi1</code> data
+set was 2 weeks. You can evaluate the posterior at different values of
+<span class="math inline">\(R_0\)</span> using the function
+<code>my_dLogPosterior</code> you wrote above (or the one provided by
+clicking through to our <a
+href="posterior_example_solution.html">solution</a>).</p>
+<p><strong>Take 10 minutes to figure out in which range of <span
+class="math inline">\(R_0\)</span> the posterior is maximised. Does the
+model fit the data (looking at <code>plotFit</code>)?</strong></p>
+<p>You can also change the prior and likelihood definitions of the
+<code>sirDeter</code> model. Remember that you can see the definition of
+<code>sirDeter$dPrior</code> and <code>sirDeter$dPointObs</code> by
+typing</p>
 <pre class="r"><code>sirDeter$dPrior
 sirDeter$dPointObs</code></pre>
-<p>To change the prior and likelihood functions, copy and paste the functions, change them, and reassign them to their variables. For example, to change the point log-likelihood to follow a normal distribution, you could type</p>
+<p>To change the prior and likelihood functions, copy and paste the
+functions, change them, and reassign them to their variables. For
+example, to change the point log-likelihood to follow a normal
+distribution, you could type</p>
 <pre class="r"><code>sirDeter$dPointObs &lt;- function(dataPoint, modelPoint, theta, log = FALSE) {
     # the prevalence is observed through a normally distributed process
     return(dnorm(x = dataPoint[[&quot;obs&quot;]], mean = modelPoint[[&quot;I&quot;]], log = log))
 }</code></pre>
-<p><strong>Take 20 minutes to try different distributions for the prior and likelihood distributions</strong> (you could try, for example, to make the prior narrower, or to use a normal distribution for the prior using <code>dnorm</code>; or you could use another distribution for the likelihood). <strong>Does the choice of distribution change the shape of the posterior distribution?</strong></p>
+<p><strong>Take 20 minutes to try different distributions for the prior
+and likelihood distributions</strong> (you could try, for example, to
+make the prior narrower, or to use a normal distribution for the prior
+using <code>dnorm</code>; or you could use another distribution for the
+likelihood). <strong>Does the choice of distribution change the shape of
+the posterior distribution?</strong></p>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
 <div id="imperfect-reporting-of-cases" class="section level2">
 <h2>Imperfect reporting of cases</h2>
-<p>If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, <code>epi2</code>, which you can have a look at with</p>
+<p>If you knew that on average only 10% of cases were reported, how
+would you change the point likelihood? You can test this with a second
+data set, <code>epi2</code>, which you can have a look at with</p>
 <pre class="r"><code>head(epi2)</code></pre>
 <pre><code>##   time obs
 ## 1    1   0
@@ -502,11 +674,20 @@ sirDeter$dPointObs</code></pre>
 ## 4    4   2
 ## 5    5   3
 ## 6    6   9</code></pre>
-<p>This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate <span class="math inline">\(R_0\)</span>?</p>
+<p>This was created with an infectious period 2 and a reporting rate of
+10%. Can you estimate <span class="math inline">\(R_0\)</span>?</p>
 </div>
-<div id="including-demographic-processes-and-seasonal-forcing" class="section level2">
+<div id="including-demographic-processes-and-seasonal-forcing"
+class="section level2">
 <h2>Including demographic processes and seasonal forcing</h2>
-<p>Recurrent diseases like Influenza require additional mechanisms to explain their <a href="https://websenti.u707.jussieu.fr/sentiweb/?lang=en&amp;page=serie">long-term dynamics</a>. To get a better feel for the code used to simulate the model, you could modify the <code>sirDeter</code> model to include demographic processes (birth &amp; deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).</p>
+<p>Recurrent diseases like Influenza require additional mechanisms to
+explain their <a
+href="https://websenti.u707.jussieu.fr/sentiweb/?lang=en&amp;page=serie">long-term
+dynamics</a>. To get a better feel for the code used to simulate the
+model, you could modify the <code>sirDeter</code> model to include
+demographic processes (birth &amp; deaths) as well as a seasonal forcing
+on the transmission rate of the pathogen (several solutions are
+possible).</p>
 </div>
 </div>
 

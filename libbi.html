@@ -13,6 +13,7 @@
 
 <title>The SEITL model in LibBi</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -298,14 +299,31 @@ $(document).ready(function () {
 
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>So far, we have used self-written R code and the <code>fitR</code> package to conduct inference. This is highly inefficient. Generally, code written in machine-compiled languages such as C or C++ can be several orders of magnitude faster. Moreover, smart parallelisation of the various steps involved, as well as other techniques that accelerate computation can have a big impact on the time needed to obtain satisfactory results.</p>
-<p>There are numerous tools around that address this, and it is difficult to come up with a comprehensive list. A popular package is <a href="https://kingaa.github.io/pomp">pomp</a>, which includes multiple methods and many examples from infectious disease modelling. Here, we will look at a library called <em>LibBi</em> (Library for Bayesian inference). It can be used from R via the <code>rbi</code> package.</p>
+<p>So far, we have used self-written R code and the <code>fitR</code>
+package to conduct inference. This is highly inefficient. Generally,
+code written in machine-compiled languages such as C or C++ can be
+several orders of magnitude faster. Moreover, smart parallelisation of
+the various steps involved, as well as other techniques that accelerate
+computation can have a big impact on the time needed to obtain
+satisfactory results.</p>
+<p>There are numerous tools around that address this, and it is
+difficult to come up with a comprehensive list. A popular package is <a
+href="https://kingaa.github.io/pomp">pomp</a>, which includes multiple
+methods and many examples from infectious disease modelling. Here, we
+will look at a library called <em>LibBi</em> (Library for Bayesian
+inference). It can be used from R via the <code>rbi</code> package.</p>
 </div>
 <div id="installing-libbi-and-rbi" class="section level1">
 <h1>Installing LibBi and RBi</h1>
-<p>By far the easiest way for installing <a href="http://libbi.org">LibBi</a> is using <a href="https://brew.sh">Homebrew</a> (on OS X) or <a href="http://linuxbrew.sh">Linuxbrew</a> (on linux). Once one of these is installed, issue the following command (using a command shell, i.e. Terminal or similar):</p>
+<p>By far the easiest way for installing <a
+href="http://libbi.org">LibBi</a> is using <a
+href="https://brew.sh">Homebrew</a> (on OS X) or <a
+href="http://linuxbrew.sh">Linuxbrew</a> (on linux). Once one of these
+is installed, issue the following command (using a command shell,
+i.e. Terminal or similar):</p>
 <pre class="sh"><code>brew install libbi</code></pre>
-<p>You’ll also need the <code>rbi</code> and <code>rbi.helpers</code> packages:</p>
+<p>You’ll also need the <code>rbi</code> and <code>rbi.helpers</code>
+packages:</p>
 <pre class="r"><code>install.packages(&quot;rbi&quot;)
 install.packages(&quot;rbi.helpers&quot;)</code></pre>
 <pre class="r"><code>library(&quot;rbi&quot;)</code></pre>
@@ -321,33 +339,52 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
 ## 
 ##     sample</code></pre>
 <pre class="r"><code>library(&quot;rbi.helpers&quot;)</code></pre>
-<p>If you are running this on MacOS, it is probably a good idea to also run</p>
+<p>If you are running this on MacOS, it is probably a good idea to also
+run</p>
 <pre class="r"><code>options(libbi_args = list(openmp = FALSE))</code></pre>
-<p>as OpenMP is not supported by the default C++ compiler that comes with MacOS.</p>
-<p>For an introduction to the functionalities of the <code>rbi</code> and <code>rbi.helpers</code> packages, you can have a look at the <a href="https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html">RBi vignette</a> and <a href="rbi_helpers.html">RBi.helpers vignette</a>.</p>
+<p>as OpenMP is not supported by the default C++ compiler that comes
+with MacOS.</p>
+<p>For an introduction to the functionalities of the <code>rbi</code>
+and <code>rbi.helpers</code> packages, you can have a look at the <a
+href="https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html">RBi
+vignette</a> and <a href="rbi_helpers.html">RBi.helpers
+vignette</a>.</p>
 </div>
 <div id="deterministic-seitl-model" class="section level1">
 <h1>Deterministic SEITL model</h1>
-<p>Models are given in LibBi using text files that follow a specific structure. You can download our LibBi implementation of the deterministic SEITL model using</p>
+<p>Models are given in LibBi using text files that follow a specific
+structure. You can download our LibBi implementation of the
+deterministic SEITL model using</p>
 <pre class="r"><code>seitlDeter &lt;- bi_model(lines = readLines(
   &quot;https://sbfnk.github.io/mfiidd/bi/SEITL_deter.bi&quot;
 ))</code></pre>
-<p>Here, <code>readLines</code> simple reads in the text file from the web site, and <code>bi_model</code> prepares it to be used with the <code>rbi</code> package.</p>
+<p>Here, <code>readLines</code> simple reads in the text file from the
+web site, and <code>bi_model</code> prepares it to be used with the
+<code>rbi</code> package.</p>
 <p>Look at the contents of the model file by typing</p>
 <pre class="r"><code>seitlDeter</code></pre>
 <p>This file has the following sections:</p>
 <pre class="c"><code>model seitlDeter {</code></pre>
 <pre class="c"><code>  const k_erlang = 1
   const N = 284</code></pre>
-<p>This defines two constants: the number of Erlang compartments (here: 1) and the population size (here: 284). We can change these from within R, for example if we want more than one Erlang compartment.</p>
+<p>This defines two constants: the number of Erlang compartments (here:
+1) and the population size (here: 284). We can change these from within
+R, for example if we want more than one Erlang compartment.</p>
 <pre class="c"><code>  dim k(k_erlang)</code></pre>
-<p>This defines a <em>dimension</em> (i.e., the number of elements in a vector), that we’ll later use for the temporary immune compartments <em>T</em>.</p>
+<p>This defines a <em>dimension</em> (i.e., the number of elements in a
+vector), that we’ll later use for the temporary immune compartments
+<em>T</em>.</p>
 <pre class="c"><code>  state S, E, I, T[k], L, Inc</code></pre>
-<p>This defines the model states, that is variables that change over time. Note the <code>[k]</code> after <code>T</code>, specifying that <code>T</code> has dimension <code>k</code> (that is, <code>k_erlang</code> compartments).</p>
+<p>This defines the model states, that is variables that change over
+time. Note the <code>[k]</code> after <code>T</code>, specifying that
+<code>T</code> has dimension <code>k</code> (that is,
+<code>k_erlang</code> compartments).</p>
 <pre class="c"><code>  param R_0, D_lat, D_inf, alpha, D_imm, rho</code></pre>
-<p>This defines the parameter, that is variables that don’t change over time.</p>
+<p>This defines the parameter, that is variables that don’t change over
+time.</p>
 <pre class="c"><code>  obs Cases</code></pre>
-<p>This defines an <em>observation</em> variable, that is one that will be expected in the data passed to LibBi.</p>
+<p>This defines an <em>observation</em> variable, that is one that will
+be expected in the data passed to LibBi.</p>
 <pre class="c"><code>  sub initial { 
     E &lt;- 0
     I &lt;- 2
@@ -356,7 +393,10 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
     Inc &lt;- 0
     S &lt;- N - I - T[0]
   }</code></pre>
-<p>This specifies the initial states of the system. Here they are fixed, but they could be drawn from distributions, too. We start with 2 infectious individuals and 3 in the first <code>T</code> compartment.</p>
+<p>This specifies the initial states of the system. Here they are fixed,
+but they could be drawn from distributions, too. We start with 2
+infectious individuals and 3 in the first <code>T</code>
+compartment.</p>
 <pre class="c"><code>  sub parameter { 
     R_0 ~ uniform(1, 50)
     D_lat ~ uniform(0, 10)
@@ -365,9 +405,11 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
     alpha ~ uniform(0, 1)
     rho ~ uniform(0, 1)
   }</code></pre>
-<p>This specifies the prior distributions. Here, they are all uniform, just in the <code>fitmodel</code> implementation of the SEITL model.</p>
+<p>This specifies the prior distributions. Here, they are all uniform,
+just in the <code>fitmodel</code> implementation of the SEITL model.</p>
 <pre class="c"><code>  sub transition {</code></pre>
-<p>This starts the <em>transition</em> block, that is the process model.</p>
+<p>This starts the <em>transition</em> block, that is the process
+model.</p>
 <pre class="c"><code>    inline beta = R_0/D_inf
     inline epsilon = 1/D_lat
     inline nu = 1/D_inf
@@ -386,11 +428,14 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
       dL/dt = alpha * k_erlang * tau * T[k_erlang - 1]
       dInc/dt = epsilon * E
     }</code></pre>
-<p>This defines the system of ODEs. Note the notation for <code>dT[k]/dt</code>, where the ODE depends on whether <code>k</code> is zero or greater than zero.</p>
+<p>This defines the system of ODEs. Note the notation for
+<code>dT[k]/dt</code>, where the ODE depends on whether <code>k</code>
+is zero or greater than zero.</p>
 <pre class="c"><code>  sub observation {
     Cases ~ poisson(rho * Inc)
   }</code></pre>
-<p>This defines the observation model. We use a observations distributed according to a Poisson distribution.</p>
+<p>This defines the observation model. We use a observations distributed
+according to a Poisson distribution.</p>
 </div>
 <div id="stochastic-seitl-model" class="section level1">
 <h1>Stochastic SEITL model</h1>
@@ -400,7 +445,8 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
 ))</code></pre>
 <p>Again, you can look at the contents of the model file by typing</p>
 <pre class="r"><code>seitlStoch</code></pre>
-<p>This is very similar to the deterministic model, but the <code>transition</code> block (the process model) is different:</p>
+<p>This is very similar to the deterministic model, but the
+<code>transition</code> block (the process model) is different:</p>
 <pre class="c"><code>    infection ~ binomial(S, 1 - exp(-beta * I/N * timestep))
     incubation ~ binomial(E, 1 - exp(-epsilon * timestep))
     loss_infectiousness ~ binomial(I, 1 - exp(-nu * timestep))
@@ -413,11 +459,17 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
     T[k] &lt;- T[k] + (k == 0 ? loss_infectiousness : 0) + (k &gt; 0 ? immunity[k - 1] : 0) - immunity[k]
     L &lt;- L + immunity[k_erlang - 1] - loss_immunity
     Inc &lt;- Inc + infection</code></pre>
-<p>Now, a number of random variables (defined earlier in the file as so-called <code>noise</code> variables) are first drawn from a binomial distribution and then used to update the model states.</p>
+<p>Now, a number of random variables (defined earlier in the file as
+so-called <code>noise</code> variables) are first drawn from a binomial
+distribution and then used to update the model states.</p>
 </div>
 <div id="pmcmc-with-the-stochastic-seitl-model" class="section level1">
 <h1>pMCMC with the stochastic SEITL model</h1>
-<p>We want to determine the optimal number of T compartments in the stochastic SEITL model. To do this, we run pMCMC with 128 particles and 3000 iterations (i.e., same as in the <a href="pmcmc.html">pMCMC pratical</a>). But first, we prepare the Tristan da Cunha data set to be used as observation data set with <code>rbi</code>:</p>
+<p>We want to determine the optimal number of T compartments in the
+stochastic SEITL model. To do this, we run pMCMC with 128 particles and
+3000 iterations (i.e., same as in the <a href="pmcmc.html">pMCMC
+pratical</a>). But first, we prepare the Tristan da Cunha data set to be
+used as observation data set with <code>rbi</code>:</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
@@ -432,8 +484,18 @@ install.packages(&quot;rbi.helpers&quot;)</code></pre>
 ##     intersect, setdiff, setequal, union</code></pre>
 <pre class="r"><code>data(fluTdc1971)
 tdc &lt;- list(Cases = fluTdc1971 |&gt; dplyr::select(time, value = obs))</code></pre>
-<p>The <code>rbi</code> object expects data to be given as a named list, where each element corresponds to a variable of the same name, with values given by a data frame with columns <code>time</code> and <code>value</code>. Here, the observations are called <code>Cases</code>, the same as in the line specifying the observation density in the LibBi file above.</p>
-<p>Now, we can use this data set and the model to run pMCMC. First, we generate 3000 samples where we use the prior distribution as proposal distribution, to find a good starting point for the MCMC chain. We then use this to adapt the widths of the (independent truncated normal) proposals in a series of trial runs, until they yield acceptance rates between 0.1 and 0.3.</p>
+<p>The <code>rbi</code> object expects data to be given as a named list,
+where each element corresponds to a variable of the same name, with
+values given by a data frame with columns <code>time</code> and
+<code>value</code>. Here, the observations are called
+<code>Cases</code>, the same as in the line specifying the observation
+density in the LibBi file above.</p>
+<p>Now, we can use this data set and the model to run pMCMC. First, we
+generate 3000 samples where we use the prior distribution as proposal
+distribution, to find a good starting point for the MCMC chain. We then
+use this to adapt the widths of the (independent truncated normal)
+proposals in a series of trial runs, until they yield acceptance rates
+between 0.1 and 0.3.</p>
 <pre class="r"><code>prep &lt;- sample(
   seitlStoch, nsamples = 3000, proposal = &quot;prior&quot;, obs = tdc,
   end_time = max(tdc$Cases$time), nparticles = 128
@@ -441,8 +503,10 @@ tdc &lt;- list(Cases = fluTdc1971 |&gt; dplyr::select(time, value = obs))</code>
 prep &lt;- adapt_proposal(prep, min = 0.1, max = 0.3)</code></pre>
 <p>We can inspect the adapted model by typing</p>
 <pre class="r"><code>prep$model</code></pre>
-<p>This now contains a <code>proposal_parameter</code> block at the bottom, which contains the proposal distributions.</p>
-<p>Next, we run 3000 pMCMC iterations for 1 to 9 Erlang compartments for T.</p>
+<p>This now contains a <code>proposal_parameter</code> block at the
+bottom, which contains the proposal distributions.</p>
+<p>Next, we run 3000 pMCMC iterations for 1 to 9 Erlang compartments for
+T.</p>
 <pre class="r"><code>bi &lt;- list()
 max_erlang &lt;- 9
 
@@ -471,14 +535,17 @@ for (i in 1:max_erlang) {
 for (i in 1:max_erlang) {
   dic &lt;- rbind(dic, data.frame(compartments = i, DIC = DIC(bi[[i]])))
 }</code></pre>
-<p>Let’s plot the DIC as a function of the number of Erlang compartments.</p>
+<p>Let’s plot the DIC as a function of the number of Erlang
+compartments.</p>
 <pre class="r"><code>library(&quot;ggplot2&quot;)
 ggplot(dic, aes(x = compartments, y = DIC)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks = c(1, 5, 9))</code></pre>
 <p><img src="figure/libbi/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Which model fits best? You can visually inspect the fit of, for example, the SEIT3L model by plotting filtered trajectories as generated by the pMCMC algorithm</p>
+<p>Which model fits best? You can visually inspect the fit of, for
+example, the SEIT3L model by plotting filtered trajectories as generated
+by the pMCMC algorithm</p>
 <pre class="r"><code>os &lt;- summary(bi[[3]], type = &quot;obs&quot;)
 
 ggplot(os, aes(x = time)) +
@@ -487,7 +554,11 @@ ggplot(os, aes(x = time)) +
   geom_point(aes(y = obs), fluTdc1971, color = &quot;darkred&quot;) +
   ylab(&quot;cases&quot;)</code></pre>
 <p><img src="figure/libbi/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>This plots trajectories from the posterior <span class="math inline">\(p(X, \theta|\mathrm{Data})\)</span>. Alternatively, we can re-simulate and plot trajectories from <span class="math inline">\(p(X|\theta) p(X, \theta | Data)\)</span>. To resimulate, we call:</p>
+<p>This plots trajectories from the posterior <span
+class="math inline">\(p(X, \theta|\mathrm{Data})\)</span>.
+Alternatively, we can re-simulate and plot trajectories from <span
+class="math inline">\(p(X|\theta) p(X, \theta | Data)\)</span>. To
+resimulate, we call:</p>
 <pre class="r"><code>resim &lt;- simulate(bi[[3]])</code></pre>
 <p>and to plot</p>
 <pre class="r"><code>reos &lt;- summary(resim, type = &quot;obs&quot;)
@@ -514,10 +585,21 @@ ggplot(retraj_subsampled, aes(x = time, y = value)) +
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
 <ul>
-<li>More information on all the methods and options and available can be found in the <a href="http://libbi.org/docs/LibBi-Manual.pdf">LibBi manual</a> and the accompanying <a href="https://arxiv.org/abs/1306.3277">paper</a>.</li>
-<li>More information on the R packages can be found in the <a href="https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html">RBi vignette</a> and <a href="rbi_helpers.html">RBi.helpers vignette</a>.</li>
-<li>LibBi has been superseded by a new library called <a href="https://birch-lang.org/">Birch</a>. This allows to specify more general models than is possible in LibBi.</li>
-<li>As another example of a library for model fitting and inference you could have a go at <em>pomp</em>. The deterministic and stochastic SEITL models can be found <a href="pomp.html">here</a>. Can you fit them to the Tristan da Cunha data set?</li>
+<li>More information on all the methods and options and available can be
+found in the <a href="http://libbi.org/docs/LibBi-Manual.pdf">LibBi
+manual</a> and the accompanying <a
+href="https://arxiv.org/abs/1306.3277">paper</a>.</li>
+<li>More information on the R packages can be found in the <a
+href="https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html">RBi
+vignette</a> and <a href="rbi_helpers.html">RBi.helpers
+vignette</a>.</li>
+<li>LibBi has been superseded by a new library called <a
+href="https://birch-lang.org/">Birch</a>. This allows to specify more
+general models than is possible in LibBi.</li>
+<li>As another example of a library for model fitting and inference you
+could have a go at <em>pomp</em>. The deterministic and stochastic SEITL
+models can be found <a href="pomp.html">here</a>. Can you fit them to
+the Tristan da Cunha data set?</li>
 </ul>
 </div>
 

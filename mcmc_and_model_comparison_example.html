@@ -13,6 +13,7 @@
 
 <title>Example: fitting the deterministic SEITL model</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -291,14 +292,20 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Example: fitting the deterministic SEITL model</h1>
+<h1 class="title toc-ignore">Example: fitting the deterministic SEITL
+model</h1>
 
 </div>
 
 
-<p>Here is an example of possible answers to the practical on fitting the deterministic SEITL model to the Tristan da Cunha outbreak.</p>
-<p>Each section below correspond to a section of the practical. Thus, you can have a look at our example for one section and then go back to the practical to answer the following sections.</p>
-<p>Although our example refers to the SEITL model, the same commands work for the SEIT4L model (i.e. <code>seit4lDeter</code> instead of <code>seitlDeter</code>).</p>
+<p>Here is an example of possible answers to the practical on fitting
+the deterministic SEITL model to the Tristan da Cunha outbreak.</p>
+<p>Each section below correspond to a section of the practical. Thus,
+you can have a look at our example for one section and then go back to
+the practical to answer the following sections.</p>
+<p>Although our example refers to the SEITL model, the same commands
+work for the SEIT4L model (i.e. <code>seit4lDeter</code> instead of
+<code>seitlDeter</code>).</p>
 <div id="setting-the-mcmc" class="section level1">
 <h1>Setting the MCMC</h1>
 <pre class="r"><code># load the fitmodels
@@ -333,11 +340,14 @@ nIterations &lt;- 5000
 adaptSizeStart &lt;- 100
 adaptSizeCooling &lt;- 0.999
 adaptShapeStart &lt;- 200</code></pre>
-<p>You can now go back to the <a href="mcmc_and_model_comparison.html#run-a-mcmc">practical</a> and try to run MCMC with those settings.</p>
+<p>You can now go back to the <a
+href="mcmc_and_model_comparison.html#run-a-mcmc">practical</a> and try
+to run MCMC with those settings.</p>
 </div>
 <div id="run-mcmc" class="section level1">
 <h1>Run MCMC</h1>
-<p>If you didn’t manage to run MCMC, or it took too long to obtain a few thousand iterations, you can load our short run as follows:</p>
+<p>If you didn’t manage to run MCMC, or it took too long to obtain a few
+thousand iterations, you can load our short run as follows:</p>
 <pre class="r"><code>data(models)
 data(mcmcTdcDeterShortRun)
 # this should load 2 objects in your environment: mcmcSeitl and mcmcSeitl4.
@@ -363,7 +373,9 @@ head(mcmcSeitl$trace)
 ## [4,]     -320.2052  -333.0197
 ## [5,]     -195.9429  -208.7574
 ## [6,]     -195.9429  -208.7574</code></pre>
-<p>You can now go back to the <a href="mcmc_and_model_comparison.html#short-run-analysis">practical</a> and analyse this trace.</p>
+<p>You can now go back to the <a
+href="mcmc_and_model_comparison.html#short-run-analysis">practical</a>
+and analyse this trace.</p>
 </div>
 <div id="short-run-analysis" class="section level1">
 <h1>Short run analysis</h1>
@@ -384,12 +396,17 @@ trace &lt;- mcmc(mcmcSeitl$trace)
 library(&quot;lattice&quot;)  ## for the &#39;xyplot&#39; command
 xyplot(x = trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-trace-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Although the chain was started at a <code>initTheta</code> with a low posterior density, it quickly finds the region of the parameter space with high posterior density. Note also the constant trace of the log-prior since we have assumed a uniform prior.</p>
-<p>Overall, it looks like the chain reached its target distribution after 1000 steps.</p>
+<p>Although the chain was started at a <code>initTheta</code> with a low
+posterior density, it quickly finds the region of the parameter space
+with high posterior density. Note also the constant trace of the
+log-prior since we have assumed a uniform prior.</p>
+<p>Overall, it looks like the chain reached its target distribution
+after 1000 steps.</p>
 <pre class="r"><code># Let&#39;s find a suitable burn-in::
 plotEssBurn(trace)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-burn-test-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>As anticipated from the trace, discarding the first 1000 iterations maximizes the effective sample size (ESS).</p>
+<p>As anticipated from the trace, discarding the first 1000 iterations
+maximizes the effective sample size (ESS).</p>
 <pre class="r"><code># Let&#39;s create a new trace without the burn-in
 traceBurn &lt;- burnAndThin(trace, burn = 1000)
 xyplot(x = traceBurn)</code></pre>
@@ -400,10 +417,13 @@ effectiveSize(traceBurn)
 ##      70.38059      66.62130      74.02227      84.33808      69.38730 
 ##           rho      logPrior logLikelihood    logDensity 
 ##     134.97679       0.00000     100.89045     100.89045</code></pre>
-<p>Although we have 4000 samples remaining after burn-in, the ESS is much smaller. This is due to autocorrelation of the chain.</p>
+<p>Although we have 4000 samples remaining after burn-in, the ESS is
+much smaller. This is due to autocorrelation of the chain.</p>
 <pre class="r"><code># autocorrelation plot
 acfplot(x = traceBurn, lag.max = 60)</code></pre>
-<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-acf-1.png" width="672" style="display: block; margin: auto;" /> The autocorrelation between samples drops substantially for a lag of 20 iterations. We can thin the trace to reduce the autocorrelation.</p>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-acf-1.png" width="672" style="display: block; margin: auto;" />
+The autocorrelation between samples drops substantially for a lag of 20
+iterations. We can thin the trace to reduce the autocorrelation.</p>
 <pre class="r"><code># Let&#39;s create a thinned trace
 traceBurnThin &lt;- burnAndThin(traceBurn, thin = 20)
 xyplot(x = traceBurnThin)</code></pre>
@@ -414,11 +434,14 @@ effectiveSize(traceBurnThin)
 ##      60.32844      56.31209      56.32156      77.34331      62.12285 
 ##           rho      logPrior logLikelihood    logDensity 
 ##      96.18594       0.00000      69.92988      69.92988</code></pre>
-<p>Although the thinned trace has 20 times less fewer than the unthinned trace, it has a similar ESS. This is because the autocorrelation has been reduced.</p>
+<p>Although the thinned trace has 20 times less fewer than the unthinned
+trace, it has a similar ESS. This is because the autocorrelation has
+been reduced.</p>
 <pre class="r"><code># new autocorrelation plot
 acfplot(x = traceBurnThin, lag.max = 60)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-acf-thin-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Let’s compare the posterior estimates of the thinned and unthinned traces.</p>
+<p>Let’s compare the posterior estimates of the thinned and unthinned
+traces.</p>
 <pre class="r"><code># The unthinned trace
 summary(traceBurn)
 ## 
@@ -488,14 +511,24 @@ summary(traceBurnThin)
 ## logPrior       -12.8145  -12.8145  -12.8145  -12.8145  -12.8145
 ## logLikelihood -145.4018 -142.0507 -140.5424 -139.8670 -138.8033
 ## logDensity    -158.2162 -154.8651 -153.3569 -152.6815 -151.6178</code></pre>
-<p>They are very similar. So why thin? Because autocorrelation produces clumpy samples that are unrepresentative, in the short run, of the true underlying posterior distribution. We can check this by comparing the thinned and unthinned distributions using the function <code>plotPosteriorDensity</code> of the <code>fitR</code> package:</p>
+<p>They are very similar. So why thin? Because autocorrelation produces
+clumpy samples that are unrepresentative, in the short run, of the true
+underlying posterior distribution. We can check this by comparing the
+thinned and unthinned distributions using the function
+<code>plotPosteriorDensity</code> of the <code>fitR</code> package:</p>
 <pre class="r"><code>plotPosteriorDensity(list(unthinned = traceBurn, thinned = traceBurnThin))</code></pre>
-<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-compare-density-1.png" width="960" style="display: block; margin: auto;" /> The thinned trace shows a smoother distribution despite having less samples than the unthinned one. This because the local “bumps” of the unthinned distribution are caused by autocorrelated samples.</p>
-<p>You can now go back to the <a href="mcmc_and_model_comparison.html#long-run-analysis">practical</a> and perform a similar analysis for a long-run MCMC.</p>
+<p><img src="figure/mcmc_and_model_comparison_example/short-run-analysis-compare-density-1.png" width="960" style="display: block; margin: auto;" />
+The thinned trace shows a smoother distribution despite having less
+samples than the unthinned one. This because the local “bumps” of the
+unthinned distribution are caused by autocorrelated samples.</p>
+<p>You can now go back to the <a
+href="mcmc_and_model_comparison.html#long-run-analysis">practical</a>
+and perform a similar analysis for a long-run MCMC.</p>
 </div>
 <div id="long-run-analysis" class="section level1">
 <h1>Long run analysis</h1>
-<p>Here is an example of an analysis for our long run (50k iterations)</p>
+<p>Here is an example of an analysis for our long run (50k
+iterations)</p>
 <pre class="r"><code># load mcmc output
 data(mcmcTdcDeterLongRun)
 
@@ -562,7 +595,11 @@ effectiveSize(trace)
 # plot the traces
 library(&quot;lattice&quot;)  ## for the &#39;xyplot&#39; command
 xyplot(trace)</code></pre>
-<p><img src="figure/mcmc_and_model_comparison_example/long-run-combine-traces-1.png" width="672" style="display: block; margin: auto;" /> Note that the acceptance rate and the ESS are computed for the combined chain whereas the traces are plotted for each chain. Also, given the very high ESS we can reasonably choose a burn-in visually, say 5000 iterations.</p>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-combine-traces-1.png" width="672" style="display: block; margin: auto;" />
+Note that the acceptance rate and the ESS are computed for the combined
+chain whereas the traces are plotted for each chain. Also, given the
+very high ESS we can reasonably choose a burn-in visually, say 5000
+iterations.</p>
 <pre class="r"><code>traceBurn &lt;- burnAndThin(trace, burn = 5000)
 
 # removing the burn-in increases the ESS
@@ -575,21 +612,35 @@ effectiveSize(traceBurn)
 # autocorrelation
 acfplot(traceBurn, lag.max = 60)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-burn-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p>Again, given the very high ESS, we can be quite generous in our choice of the thinning.</p>
+<p>Again, given the very high ESS, we can be quite generous in our
+choice of the thinning.</p>
 <pre class="r"><code># Thinning: let&#39;s keep 1 iteration every 40
 traceBurnThin &lt;- burnAndThin(traceBurn, thin = 40)
 xyplot(traceBurnThin)</code></pre>
-<p><img src="figure/mcmc_and_model_comparison_example/long-run-thin-1.png" width="672" style="display: block; margin: auto;" /> However, let’s compare the thinned and unthinnned distributions.</p>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-thin-1.png" width="672" style="display: block; margin: auto;" />
+However, let’s compare the thinned and unthinnned distributions.</p>
 <pre class="r"><code># Note that plotPosteriorDensity can take a list of mcmc.list It will plot the
 # different mcmc.list by combining their elements Let&#39;s plot the combined
 # unthinned trace vs the combined thinned trace.
 plotPosteriorDensity(list(unthinned = traceBurn, thinned = traceBurnThin))</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-compare-thin-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>In contrast to the previous short-run, they are almost no difference between the thinned and unthinned chains. <strong>Indeed, with such a long chain, the clumpy autocorrelation has been averaged out!</strong></p>
-<p>In fact, there are several references that show that the longer (unthinned) chain usually yields better estimates of the true posterior than the shorter thinned chain, even for percentiles in the tail of the distribution. <strong>That said, thinning can be useful for other reasons, such as memory or time constraints in post-chain processing.</strong></p>
-<p>Now, we can compare whether the two independent chains, started at <code>theta1</code> and <code>theta2</code>, have converged to the same posterior distribution</p>
+<p>In contrast to the previous short-run, they are almost no difference
+between the thinned and unthinned chains. <strong>Indeed, with such a
+long chain, the clumpy autocorrelation has been averaged
+out!</strong></p>
+<p>In fact, there are several references that show that the longer
+(unthinned) chain usually yields better estimates of the true posterior
+than the shorter thinned chain, even for percentiles in the tail of the
+distribution. <strong>That said, thinning can be useful for other
+reasons, such as memory or time constraints in post-chain
+processing.</strong></p>
+<p>Now, we can compare whether the two independent chains, started at
+<code>theta1</code> and <code>theta2</code>, have converged to the same
+posterior distribution</p>
 <pre class="r"><code>densityplot(traceBurnThin)</code></pre>
-<p><img src="figure/mcmc_and_model_comparison_example/long-run-compare-chains-1.png" width="672" style="display: block; margin: auto;" /> Since the chains have converged to the same posterior, we can use the combined estimates</p>
+<p><img src="figure/mcmc_and_model_comparison_example/long-run-compare-chains-1.png" width="672" style="display: block; margin: auto;" />
+Since the chains have converged to the same posterior, we can use the
+combined estimates</p>
 <pre class="r"><code># the function summary combines the chains of a mcmc.list
 summary(traceBurnThin)
 ## 
@@ -624,8 +675,16 @@ summary(traceBurnThin)
 ## logPrior       -12.8145  -12.8145  -12.8145  -12.8145  -12.8145
 ## logLikelihood -145.6336 -142.1916 -140.9629 -140.0194 -138.8614
 ## logDensity    -158.4481 -155.0061 -153.7774 -152.8339 -151.6759</code></pre>
-<p>Running several independent chains starting from different parts of the parameter space allows us to check whether the posterior distribution is multi-modal. If so, then we must be careful when combining the chains. For instance, an estimate of the mean computed with <code>summary</code> won’t be meaningful for a parameter with a multi-modal posterior.</p>
-<p><strong>By contrast, for a unimodal posteriors, combining chains is an efficient way to increase the ESS and the precision of the posterior estimates.</strong> Furthermore, running several “shorter” chains in parallel is faster than running one “long” chain.</p>
+<p>Running several independent chains starting from different parts of
+the parameter space allows us to check whether the posterior
+distribution is multi-modal. If so, then we must be careful when
+combining the chains. For instance, an estimate of the mean computed
+with <code>summary</code> won’t be meaningful for a parameter with a
+multi-modal posterior.</p>
+<p><strong>By contrast, for a unimodal posteriors, combining chains is
+an efficient way to increase the ESS and the precision of the posterior
+estimates.</strong> Furthermore, running several “shorter” chains in
+parallel is faster than running one “long” chain.</p>
 <p>Finally, let’s assess the fit of the deterministic SEITL model.</p>
 <pre class="r"><code># load data
 data(fluTdc1971)
@@ -648,25 +707,57 @@ plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, da
 plotPosteriorFit(trace = trace, fitmodel = seitlDeter, initState = initState, data = fluTdc1971,
     posteriorSummary = &quot;max&quot;)</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/long-run-fit-3.png" width="576" style="display: block; margin: auto;" /></p>
-<p>Note that the 95% credible intervals (CI) for the posterior fit under the MAP captures the highest data point. By contrast, the fit of the second peak seems quite poor, even for the MAP.</p>
-<p>You can now go back to the <a href="mcmc_and_model_comparison.html#correlations">practical</a> and look at the posterior correlations between the parameters.</p>
+<p>Note that the 95% credible intervals (CI) for the posterior fit under
+the MAP captures the highest data point. By contrast, the fit of the
+second peak seems quite poor, even for the MAP.</p>
+<p>You can now go back to the <a
+href="mcmc_and_model_comparison.html#correlations">practical</a> and
+look at the posterior correlations between the parameters.</p>
 </div>
 <div id="correlations" class="section level1">
 <h1>Correlations</h1>
-<p>The correlation of the posterior distribution can be investigated using <code>levelplot</code>.</p>
+<p>The correlation of the posterior distribution can be investigated
+using <code>levelplot</code>.</p>
 <pre class="r"><code>library(&quot;lattice&quot;)  ## for the &#39;levelplot command
 # levelplot doesn&#39;t accept `mcmc.list`, we pass the first `mcmc` only.
 levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/correlation-levelplot-1.png" width="576" style="display: block; margin: auto;" /></p>
-<p>Note the strong positive correlations (~0.8) between <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{lat}\)</span> and between <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span>. In order to explain the wide 95% CIs of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span>, let’s have a look at the contact rate <span class="math inline">\(\beta = R_0/D_{inf}\)</span>.</p>
+<p>Note the strong positive correlations (~0.8) between <span
+class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_{lat}\)</span> and between <span
+class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_{inf}\)</span>. In order to explain the wide 95%
+CIs of <span class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_{inf}\)</span>, let’s have a look at the contact
+rate <span class="math inline">\(\beta = R_0/D_{inf}\)</span>.</p>
 <pre class="r"><code>with(as.data.frame(traceBurnThin[[1]]), quantile(R_0/D_inf, probs = c(0.025, 0.25,
     0.5, 0.75, 0.975)))
 ##     2.5%      25%      50%      75%    97.5% 
 ## 1.112567 1.394826 1.584295 1.783682 2.192854</code></pre>
-<p>The posterior value of <span class="math inline">\(\beta\)</span> varies somewhat less than the posterior values of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_\mathrm{inf}\)</span>. Indeed, this parameter is constrained by the shape of the initial phase of the outbreak. Conversely, there are an infinite number of combinations of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span> that lead to the same <span class="math inline">\(\beta\)</span>, hence their wide 95% CIs.</p>
-<p>A second effect that could explain the wide posterior density in <span class="math inline">\(R_0\)</span> is the very high attack rate. Indeed, once <span class="math inline">\(R_0&gt;5\)</span> it doesn’t make much difference whether <span class="math inline">\(R_0\)</span> is equal to, say, 10 or 20.</p>
-<p>We can also note that the posterior estimate of <span class="math inline">\(D_{inf} = 11\)</span> days (95% CI: <span class="math inline">\([6-15]\)</span>) is biologically unrealistic based on previous empirical estimates. However, our approach did not include any prior information as the default <code>seitlDeter</code> fitmodel comes with uniform priors for all parameters.</p>
-<p>In order to include previous empirical information on <span class="math inline">\(D_{lat}\)</span> and <span class="math inline">\(D_{inf}\)</span>, let’s modify the <code>dPrior</code> function of <code>seitlDeter</code> as follows:</p>
+<p>The posterior value of <span class="math inline">\(\beta\)</span>
+varies somewhat less than the posterior values of <span
+class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_\mathrm{inf}\)</span>. Indeed, this parameter is
+constrained by the shape of the initial phase of the outbreak.
+Conversely, there are an infinite number of combinations of <span
+class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_{inf}\)</span> that lead to the same <span
+class="math inline">\(\beta\)</span>, hence their wide 95% CIs.</p>
+<p>A second effect that could explain the wide posterior density in
+<span class="math inline">\(R_0\)</span> is the very high attack rate.
+Indeed, once <span class="math inline">\(R_0&gt;5\)</span> it doesn’t
+make much difference whether <span class="math inline">\(R_0\)</span> is
+equal to, say, 10 or 20.</p>
+<p>We can also note that the posterior estimate of <span
+class="math inline">\(D_{inf} = 11\)</span> days (95% CI: <span
+class="math inline">\([6-15]\)</span>) is biologically unrealistic based
+on previous empirical estimates. However, our approach did not include
+any prior information as the default <code>seitlDeter</code> fitmodel
+comes with uniform priors for all parameters.</p>
+<p>In order to include previous empirical information on <span
+class="math inline">\(D_{lat}\)</span> and <span
+class="math inline">\(D_{inf}\)</span>, let’s modify the
+<code>dPrior</code> function of <code>seitlDeter</code> as follows:</p>
 <pre class="r"><code>seitlDeter$dPrior &lt;- function(theta, log = FALSE) {
     # package with truncated normal distribution
     library(truncnorm)
@@ -688,12 +779,17 @@ levelplot(traceBurnThin[[1]], col.regions = heat.colors(100))</code></pre>
 
     return(ifelse(log, logSum, exp(logSum)))
 }</code></pre>
-<p>Note the choice of a truncated normal distribution since <span class="math inline">\(D_{lat}\)</span> and <span class="math inline">\(D_{inf}\)</span> must be positive.</p>
-<p>You can now go back to the <a href="mcmc_and_model_comparison.html#informative-priors">practical</a> and run a MCMC with this informative prior.</p>
+<p>Note the choice of a truncated normal distribution since <span
+class="math inline">\(D_{lat}\)</span> and <span
+class="math inline">\(D_{inf}\)</span> must be positive.</p>
+<p>You can now go back to the <a
+href="mcmc_and_model_comparison.html#informative-priors">practical</a>
+and run a MCMC with this informative prior.</p>
 </div>
 <div id="informative-priors" class="section level1">
 <h1>Informative priors</h1>
-<p>Here we combine both chains with informative priors and compare the posterior distribution with the one above.</p>
+<p>Here we combine both chains with informative priors and compare the
+posterior distribution with the one above.</p>
 <pre class="r"><code>library(&quot;coda&quot;)
 # create mcmc object
 traceInfo1 &lt;- mcmc(mcmcSeitlInfoPriorTheta1$trace)
@@ -711,8 +807,18 @@ plotPosteriorDensity(traceInfoBurnThin)</code></pre>
 <pre class="r"><code># compare the effect of informative priors on the posterior distribution
 plotPosteriorDensity(list(unif = traceBurnThin, info = traceInfoBurnThin))</code></pre>
 <p><img src="figure/mcmc_and_model_comparison_example/info-prior-analysis-2.png" width="672" style="display: block; margin: auto;" /></p>
-<p><span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{inf}\)</span> have very different posterior distributions. This is expected as there is an informative prior on <span class="math inline">\(D_{inf}\)</span>, and <span class="math inline">\(R_0\)</span> is strongly correlated to <span class="math inline">\(D_{inf}\)</span>. Note also that the mode of all other parameters have changed, though less than <span class="math inline">\(D_{inf}\)</span> and <span class="math inline">\(R_0\)</span>. This illustrate the influence that one prior can have on the full posterior distribution.</p>
-<p>You can now go back to the <a href="mcmc_and_model_comparison.html#model-selection">practical</a>.</p>
+<p><span class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_{inf}\)</span> have very different posterior
+distributions. This is expected as there is an informative prior on
+<span class="math inline">\(D_{inf}\)</span>, and <span
+class="math inline">\(R_0\)</span> is strongly correlated to <span
+class="math inline">\(D_{inf}\)</span>. Note also that the mode of all
+other parameters have changed, though less than <span
+class="math inline">\(D_{inf}\)</span> and <span
+class="math inline">\(R_0\)</span>. This illustrate the influence that
+one prior can have on the full posterior distribution.</p>
+<p>You can now go back to the <a
+href="mcmc_and_model_comparison.html#model-selection">practical</a>.</p>
 </div>
 <div id="model-selection" class="section level1">
 <h1>Model selection</h1>
@@ -747,7 +853,9 @@ print(pD)
 dic &lt;- dThetaBar + 2 * pD
 print(dic)
 ## [1] 302.8109</code></pre>
-<p>Follow this <a href="mcmc_and_model_comparison.html#posterior-predictive-checks">link</a> to go back to the practical.</p>
+<p>Follow this <a
+href="mcmc_and_model_comparison.html#posterior-predictive-checks">link</a>
+to go back to the practical.</p>
 </div>
 
 &nbsp;

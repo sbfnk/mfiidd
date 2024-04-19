@@ -13,6 +13,7 @@
 
 <title>Particle MCMC</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -299,23 +300,39 @@ $(document).ready(function () {
 <p><a href="slides/smc.pdf">Lecture slides</a></p>
 <div id="objectives" class="section level1">
 <h1>Objectives</h1>
-<p>The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC). As you saw in the lecture, fitting a model with a likelihood approach requires:</p>
+<p>The aim of this session is to learn how you can fit a stochastic
+model using the particle MCMC Metropolis-Hastings algorithm (pMCMC). As
+you saw in the lecture, fitting a model with a likelihood approach
+requires:</p>
 <ul>
 <li>To explore the parameter space efficiently</li>
 <li>To evaluate the likelihood at a given parameter</li>
 </ul>
-<p>In the <a href="mcmc_and_model_comparison.html">previous session</a>, you have used the function <code>mcmcMh</code> to explore the parameter space with the Metropolis-Hastings algorithm and the function <code>dTrajObs</code> to evaluate the likelihood for your deterministic model. In order to fit a stochastic model, we can still use the <code>mcmcMh</code> function to explore the parameter space efficiently but we need to use a new function to evaluate the likelihood. This new function is called a particle filter.</p>
+<p>In the <a href="mcmc_and_model_comparison.html">previous session</a>,
+you have used the function <code>mcmcMh</code> to explore the parameter
+space with the Metropolis-Hastings algorithm and the function
+<code>dTrajObs</code> to evaluate the likelihood for your deterministic
+model. In order to fit a stochastic model, we can still use the
+<code>mcmcMh</code> function to explore the parameter space efficiently
+but we need to use a new function to evaluate the likelihood. This new
+function is called a particle filter.</p>
 <p>In this session you will:</p>
 <ol style="list-style-type: decimal">
-<li>code a particle filter to estimate the likelihood of a stochastic model</li>
+<li>code a particle filter to estimate the likelihood of a stochastic
+model</li>
 <li>learn how to calibrate the number of particles</li>
-<li>fit the stochastic SEIT4L model to the Tristan da Cunha outbreak with pMCMC</li>
+<li>fit the stochastic SEIT4L model to the Tristan da Cunha outbreak
+with pMCMC</li>
 </ol>
 </div>
 <div id="code-a-particle-filter" class="section level1">
 <h1>Code a particle filter</h1>
-<p>Before running pMCMC, we need to code a particle filter in order to evaluate the log-likelihood of the data at a given proposed <code>theta</code>.</p>
-<p>Below you can find the skeleton of such a function. We have inserted comments at each step of the algorithm. If you are struggling at any point, follow the link below the code for a more guided example.</p>
+<p>Before running pMCMC, we need to code a particle filter in order to
+evaluate the log-likelihood of the data at a given proposed
+<code>theta</code>.</p>
+<p>Below you can find the skeleton of such a function. We have inserted
+comments at each step of the algorithm. If you are struggling at any
+point, follow the link below the code for a more guided example.</p>
 <pre class="r"><code># This is a function that takes four parameters:
 # - fitmodel: a fitmodel object
 # - theta: named numeric vector. Values of the parameters for which the marginal log-likelihood is desired.
@@ -348,7 +365,8 @@ my_particleFilter &lt;- function(fitmodel, theta, initState, data, nParticles) {
     # sum of the log of the mean of the weights at each observation time
 
 }</code></pre>
-<p>If you have trouble filling any of the empty bits, have a look at our <a href="smc_example.html">more guided example</a>.</p>
+<p>If you have trouble filling any of the empty bits, have a look at our
+<a href="smc_example.html">more guided example</a>.</p>
 </div>
 <div id="run-a-particle-filter" class="section level1">
 <h1>Run a particle filter</h1>
@@ -368,7 +386,8 @@ initState &lt;- c(S = 279, E = 0, I = 2, T1 = 3, T2 = 0, T3 = 0, T4 = 0, L = 0, 
 # run the particle filter with 20 particles
 my_particleFilter(seit4lStoch, theta, initState, data = fluTdc1971, nParticles = 20)
 ## [1] -124.5306</code></pre>
-<p>Does your particle filter return the same value for the marginal log-likelihood? Can you explain why?</p>
+<p>Does your particle filter return the same value for the marginal
+log-likelihood? Can you explain why?</p>
 <p>What can you notice when you:</p>
 <ul>
 <li>Run several replicates with the same number of particles</li>
@@ -379,22 +398,45 @@ my_particleFilter(seit4lStoch, theta, initState, data = fluTdc1971, nParticles =
 </div>
 <div id="calibrate-the-number-of-particles" class="section level1">
 <h1>Calibrate the number of particles</h1>
-<p>Can you think of and implement an algorithm to calibrate the number of particles?</p>
-<p>Compare your approach with <a href="pmcmc_solution.html#calibrate-the-number-of-particles">ours</a> and determine an optimal number of particles.</p>
+<p>Can you think of and implement an algorithm to calibrate the number
+of particles?</p>
+<p>Compare your approach with <a
+href="pmcmc_solution.html#calibrate-the-number-of-particles">ours</a>
+and determine an optimal number of particles.</p>
 </div>
 <div id="run-pmcmc" class="section level1">
 <h1>Run pMCMC</h1>
-<p>You can now write a new wrapper for the function <code>dLogPosterior</code> that will take <code>margLogLike = my_particleFilter</code> as argument. This wrapper will then be passed to <code>mcmcMh</code>.</p>
-<p>Note that the function <code>dLogPosterior</code> doesn’t have a <code>nParticles</code> argument so you might wonder how to specify it to <code>my_particleFilter</code>? Have a look at the documentation of <code>dLogPosterior</code>. You should notice the <code>...</code> argument, which allows you to pass any extra argument to the function <code>margLogLike</code>.</p>
-<p>You have probably noticed that running <code>my_particleFilter</code> is time consuming. As we mentioned in the <a href="mcmc_and_model_comparison.html#objectives">previous session</a> this can lead to a waste of time and computational resources if you initialise the pMCMC with parameter values far from the target and with a Gaussian proposal that is very different from the target.</p>
-<p>In order to efficiently initialise your pMCMC, you can make use the results of the fit of the deterministic SEIT4L model of the previous session. Remember that you can load these results as follows:</p>
+<p>You can now write a new wrapper for the function
+<code>dLogPosterior</code> that will take
+<code>margLogLike = my_particleFilter</code> as argument. This wrapper
+will then be passed to <code>mcmcMh</code>.</p>
+<p>Note that the function <code>dLogPosterior</code> doesn’t have a
+<code>nParticles</code> argument so you might wonder how to specify it
+to <code>my_particleFilter</code>? Have a look at the documentation of
+<code>dLogPosterior</code>. You should notice the <code>...</code>
+argument, which allows you to pass any extra argument to the function
+<code>margLogLike</code>.</p>
+<p>You have probably noticed that running <code>my_particleFilter</code>
+is time consuming. As we mentioned in the <a
+href="mcmc_and_model_comparison.html#objectives">previous session</a>
+this can lead to a waste of time and computational resources if you
+initialise the pMCMC with parameter values far from the target and with
+a Gaussian proposal that is very different from the target.</p>
+<p>In order to efficiently initialise your pMCMC, you can make use the
+results of the fit of the deterministic SEIT4L model of the previous
+session. Remember that you can load these results as follows:</p>
 <pre class="r"><code>
 # this should load 2 objects in your environment: mcmcSeit4lInfoPriorTheta1 and
 # mcmcSeit4lInfoPriorTheta2. Each one is a list of 3 elements returned by
 # mcmcMh
 names(mcmcSeit4lInfoPriorTheta1)
 ## [1] &quot;trace&quot;           &quot;acceptanceRate&quot;  &quot;covmatEmpirical&quot;</code></pre>
-<p>In the previous session, you have initialised <code>mcmcMh</code> with a diagonal covariance matrix for the Gaussian proposal using the argument <code>proposalSd</code>. Actually, you can also pass a non-diagonal covariance matrix, accounting for correlations, by using the argument <code>covmat</code> (type <code>?mcmcMh</code> for more details).</p>
+<p>In the previous session, you have initialised <code>mcmcMh</code>
+with a diagonal covariance matrix for the Gaussian proposal using the
+argument <code>proposalSd</code>. Actually, you can also pass a
+non-diagonal covariance matrix, accounting for correlations, by using
+the argument <code>covmat</code> (type <code>?mcmcMh</code> for more
+details).</p>
 <p>You can now set the pMCMC by filling the empty bits below:</p>
 <pre class="r"><code># wrapper for posterior
 my_posteriorSto &lt;- function(theta) {
@@ -428,7 +470,8 @@ nIterations &lt;- # INSERT HERE
 adaptSizeStart &lt;- # INSERT HERE
 adaptSizeCooling &lt;- # INSERT HERE
 adaptShapeStart &lt;- # INSERT HERE</code></pre>
-<p>If you have trouble filling some of the empty bits, have a look at our <a href="pmcmc_solution.html#setting-the-pmcmc">solution</a>.</p>
+<p>If you have trouble filling some of the empty bits, have a look at
+our <a href="pmcmc_solution.html#setting-the-pmcmc">solution</a>.</p>
 <p>Then you should be able to run <code>mcmcMh</code>:</p>
 <pre class="r"><code># run the pMCMC
 my_pMCMC &lt;- mcmcMh(target = my_posteriorSto,
@@ -442,8 +485,18 @@ my_pMCMC &lt;- mcmcMh(target = my_posteriorSto,
 </div>
 <div id="analyse-a-pmcmc-with-16-particles" class="section level1">
 <h1>Analyse a pMCMC with 16 particles</h1>
-<p>If you have run a pMCMC you should have noticed that it takes quite a lot of time as we need to run a particle filter at each iteration. Since the computation time scales linearly with the number of particles you might be tempted to reduce this number. Let’s have a look at what we would get by running a pMCMC with 16 particles.</p>
-<p>To save time, we have run 8 chains in parallel for you. Each chain was started from a different <code>initTheta</code> and ran for 3000 iterations. The values of <code>initTheta</code> were chosen close to the mean posterior estimates of the deterministic fit and their empirical covariance matrix was also used for the Gaussian proposal kernel. Each chain took 6 hours to complete on a scientific computing cluster and can be loaded as follows:</p>
+<p>If you have run a pMCMC you should have noticed that it takes quite a
+lot of time as we need to run a particle filter at each iteration. Since
+the computation time scales linearly with the number of particles you
+might be tempted to reduce this number. Let’s have a look at what we
+would get by running a pMCMC with 16 particles.</p>
+<p>To save time, we have run 8 chains in parallel for you. Each chain
+was started from a different <code>initTheta</code> and ran for 3000
+iterations. The values of <code>initTheta</code> were chosen close to
+the mean posterior estimates of the deterministic fit and their
+empirical covariance matrix was also used for the Gaussian proposal
+kernel. Each chain took 6 hours to complete on a scientific computing
+cluster and can be loaded as follows:</p>
 <pre class="r"><code>data(pmcmcSeit4lInfoPrior)
 # this should load a list with the same name, which contains the 8 chains.
 length(pmcmcSeit4lInfoPrior16)
@@ -454,7 +507,8 @@ names(pmcmcSeit4lInfoPrior16[[1]])
 # the trace contains 9 variables for 3000 iterations
 dim(pmcmcSeit4lInfoPrior16[[1]]$trace)
 ## [1] 3000    9</code></pre>
-<p>We can combine the traces of the 8 chains into a <code>mcmc.list</code> object as follows:</p>
+<p>We can combine the traces of the 8 chains into a
+<code>mcmc.list</code> object as follows:</p>
 <pre class="r"><code>library(&quot;coda&quot;)
 trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
     mcmc(chain$trace)
@@ -558,51 +612,94 @@ head(trace, 1)
 ## 
 ## attr(,&quot;class&quot;)
 ## [1] &quot;mcmc.list&quot;</code></pre>
-<p>You can check that the chains were started from different <code>initState</code> and that we used informative priors.</p>
-<p><strong>Take 15 min</strong> to analyse these chains and conclude on the choice of using 16 particles to save computation time.</p>
-<p>You can compare your conclusions with <a href="pmcmc_solution.html#analyse-a-pmcmc-with-16-particles">ours</a>.</p>
+<p>You can check that the chains were started from different
+<code>initState</code> and that we used informative priors.</p>
+<p><strong>Take 15 min</strong> to analyse these chains and conclude on
+the choice of using 16 particles to save computation time.</p>
+<p>You can compare your conclusions with <a
+href="pmcmc_solution.html#analyse-a-pmcmc-with-16-particles">ours</a>.</p>
 </div>
 <div id="analyse-a-pmcmc-with-128-particles" class="section level1">
 <h1>Analyse a pMCMC with 128 particles</h1>
-<p>Let’s increase the number of particles to 128, which is suggested by the calibration analysis. Again, to save time we have run 8 chains of 3000 iterations in parallel. Each chain took 40 hours to complete on a scientific computing cluster and can be loaded and stored in a <code>mcmc.list</code> object as follows:</p>
+<p>Let’s increase the number of particles to 128, which is suggested by
+the calibration analysis. Again, to save time we have run 8 chains of
+3000 iterations in parallel. Each chain took 40 hours to complete on a
+scientific computing cluster and can be loaded and stored in a
+<code>mcmc.list</code> object as follows:</p>
 <pre class="r"><code># load
 data(pmcmcSeit4lInfoPrior)
 # create
 trace &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior128, function(chain) {
     mcmc(chain$trace)
 }))</code></pre>
-<p>Re-do the same analysis as for 16 particles. What differences can you notice? In particular, try to compare the posterior distributions with 16 and 128 particles using the function <code>plotPosteriorDensity</code>.</p>
-<p>You can also have a look at our <a href="pmcmc_solution.html#analyse-a-pmcmc-with-128-particles">solution</a> if that helps.</p>
+<p>Re-do the same analysis as for 16 particles. What differences can you
+notice? In particular, try to compare the posterior distributions with
+16 and 128 particles using the function
+<code>plotPosteriorDensity</code>.</p>
+<p>You can also have a look at our <a
+href="pmcmc_solution.html#analyse-a-pmcmc-with-128-particles">solution</a>
+if that helps.</p>
 </div>
 <div id="stochastic-vs-deterministic-fit" class="section level1">
 <h1>Stochastic vs deterministic fit</h1>
-<p>Compare the posterior of the deterministic and stochastic SEIT4L models. Which model provides the best fit? Can you explain why?</p>
-<p>Check your answer <a href="pmcmc_solution.html#stochastic-vs-deterministic-fit">here</a>.</p>
+<p>Compare the posterior of the deterministic and stochastic SEIT4L
+models. Which model provides the best fit? Can you explain why?</p>
+<p>Check your answer <a
+href="pmcmc_solution.html#stochastic-vs-deterministic-fit">here</a>.</p>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
 <div id="filtered-trajectories" class="section level2">
 <h2>Filtered trajectories</h2>
 <ul>
-<li>Actually, in addition to the log-likelihood, a particle filter can also return the filtered trajectories (i.e. all the trajectories that “survived” until the last observation time). You can update your filter so it keeps track and returns the filtered trajectories. Alternatively, there is a function in the package called <code>particleFilter</code> that will do it for you (see <code>?particleFilter</code> for documentation). Have a look at its code.</li>
-<li>If you run a particle filter with our function <code>particleFilter</code>, you can then plot the filtered trajectories using the function <code>plotSmc</code>.</li>
+<li>Actually, in addition to the log-likelihood, a particle filter can
+also return the filtered trajectories (i.e. all the trajectories that
+“survived” until the last observation time). You can update your filter
+so it keeps track and returns the filtered trajectories. Alternatively,
+there is a function in the package called <code>particleFilter</code>
+that will do it for you (see <code>?particleFilter</code> for
+documentation). Have a look at its code.</li>
+<li>If you run a particle filter with our function
+<code>particleFilter</code>, you can then plot the filtered trajectories
+using the function <code>plotSmc</code>.</li>
 </ul>
 </div>
 <div id="optimization" class="section level2">
 <h2>Optimization</h2>
-<p>You might have noted that the <code>for()</code> loop over particles could be parallelized, as particles can be propagated independently. You could take advantage of this to code a parallel loop and make your algorithm even faster. If you have never coded a parallel program in <strong>R</strong> you can also have a look at the code of <code>particleFilter</code>. Actually, all the test runs were performed on a scientific computing cluster with 12 core machines. So the computational time is expected to be multiplied by 12 without parallelization of the particle filter.</p>
+<p>You might have noted that the <code>for()</code> loop over particles
+could be parallelized, as particles can be propagated independently. You
+could take advantage of this to code a parallel loop and make your
+algorithm even faster. If you have never coded a parallel program in
+<strong>R</strong> you can also have a look at the code of
+<code>particleFilter</code>. Actually, all the test runs were performed
+on a scientific computing cluster with 12 core machines. So the
+computational time is expected to be multiplied by 12 without
+parallelization of the particle filter.</p>
 </div>
 <div id="smc2" class="section level2">
 <h2>SMC^2</h2>
-<p>For pMCMC we have combined a particle filter (to estimate the likelihood and sample from the posterior distribution of trajectories) and Metropolis-Hastings MCMC (to sample from the posterior distribution of parameters). Another option for sampling from the joint distribution of trajectories is to run what is called SMC^2 (or SMC squared), where Sequential Monte Carlo is used both for parameters and state trajectories. See this <a href="external_ref/PierreJacobMAS2014.pdf">presentation</a> by Pierre Jacob for more details and some visualisations.</p>
+<p>For pMCMC we have combined a particle filter (to estimate the
+likelihood and sample from the posterior distribution of trajectories)
+and Metropolis-Hastings MCMC (to sample from the posterior distribution
+of parameters). Another option for sampling from the joint distribution
+of trajectories is to run what is called SMC^2 (or SMC squared), where
+Sequential Monte Carlo is used both for parameters and state
+trajectories. See this <a
+href="external_ref/PierreJacobMAS2014.pdf">presentation</a> by Pierre
+Jacob for more details and some visualisations.</p>
 </div>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
 <ul>
-<li>A <a href="https://arxiv.org/abs/1703.02419">recent review</a> by Schön et al.</li>
-<li>A <a href="https://www.springer.com/gb/book/9780387951461">comprehensive textbook</a> by Doucet et al.</li>
-<li>Another <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.117.1144">review</a> by Arulampalam et al.</li>
+<li>A <a href="https://arxiv.org/abs/1703.02419">recent review</a> by
+Schön et al.</li>
+<li>A <a
+href="https://www.springer.com/gb/book/9780387951461">comprehensive
+textbook</a> by Doucet et al.</li>
+<li>Another <a
+href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.117.1144">review</a>
+by Arulampalam et al.</li>
 </ul>
 </div>
 

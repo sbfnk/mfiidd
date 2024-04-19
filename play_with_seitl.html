@@ -13,6 +13,7 @@
 
 <title>Modelling interlude: Tristan da Cunha outbreak &amp; the SEITL model</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -291,7 +292,8 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Modelling interlude: Tristan da Cunha outbreak &amp; the SEITL model</h1>
+<h1 class="title toc-ignore">Modelling interlude: Tristan da Cunha
+outbreak &amp; the SEITL model</h1>
 
 </div>
 
@@ -299,25 +301,87 @@ $(document).ready(function () {
 <p><a href="slides/stoch.pdf">Lecture slides</a></p>
 <div id="objectives" class="section level1">
 <h1>Objectives</h1>
-<p>This session will focus on modelling rather than fitting (don’t worry, we will come back to fitting on the next session). <strong>The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL.</strong> We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.</p>
-<p>As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971. <strong>Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.</strong> For instance, even if the distribution of the infectious period is the same for all islanders, some islanders will stay infectious longer than others just by chance and might therefore produce more secondary cases. This phenomenon is called <em>demographic stochasticity</em> and it could have played a significant role in the dynamics of the epidemic on Tristan da Cunha.</p>
-<p>Unsurprisingly, to account for demographic stochasticity we need a stochastic model. However, as you will see in this session and the following, <strong>simulating and fitting a stochastic model is much more computationally costly than doing so for a deterministic model</strong>. This is why it is important to understand when and why you need to use stochastic or deterministic models. In fact, we hope that by the end of the day you’ll be convinced that both approaches are complementary.</p>
-<p>Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you <strong>how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution</strong>.</p>
+<p>This session will focus on modelling rather than fitting (don’t
+worry, we will come back to fitting on the next session). <strong>The
+aim of this session is to familiarise yourselves with a real data set:
+the Tristan da Cunha outbreak and a new model called SEITL.</strong> We
+felt this session was necessary as we will use this dataset and this
+model as a toy example to illustrate all the concepts and methods from
+now until the end of the course.</p>
+<p>As you will read below, the SEITL model has been proposed as a
+mechanistic explanation for a two-wave influenza A/H3N2 epidemic that
+occurred on the remote island of Tristan da Cunha in 1971. <strong>Given
+the small population size of this island (284 inhabitants), random
+effects at the individual level may have had important consequences at
+the population level.</strong> For instance, even if the distribution of
+the infectious period is the same for all islanders, some islanders will
+stay infectious longer than others just by chance and might therefore
+produce more secondary cases. This phenomenon is called <em>demographic
+stochasticity</em> and it could have played a significant role in the
+dynamics of the epidemic on Tristan da Cunha.</p>
+<p>Unsurprisingly, to account for demographic stochasticity we need a
+stochastic model. However, as you will see in this session and the
+following, <strong>simulating and fitting a stochastic model is much
+more computationally costly than doing so for a deterministic
+model</strong>. This is why it is important to understand when and why
+you need to use stochastic or deterministic models. In fact, we hope
+that by the end of the day you’ll be convinced that both approaches are
+complementary.</p>
+<p>Finally, because this session is devoted to modelling rather than
+fitting, we thought it was useful to show you <strong>how you can make
+your model biologically more realistic by using distributions for the
+time spent in each compartment that are more realistic than the
+exponential distribution</strong>.</p>
 <p>In brief, in this session you will:</p>
 <ol style="list-style-type: decimal">
-<li>Familiarise yourselves with the structure of the SEITL model and try to guess its parameter values from the literature.</li>
-<li>Compare deterministic and stochastic simulations in order to explore the role of demographic stochasticity in the dynamics of the SEITL model.</li>
-<li>Use a more realistic distribution for the time spent in one of the compartment and assess its effect on the shape of the epidemic.</li>
+<li>Familiarise yourselves with the structure of the SEITL model and try
+to guess its parameter values from the literature.</li>
+<li>Compare deterministic and stochastic simulations in order to explore
+the role of demographic stochasticity in the dynamics of the SEITL
+model.</li>
+<li>Use a more realistic distribution for the time spent in one of the
+compartment and assess its effect on the shape of the epidemic.</li>
 </ol>
 <p>But first of all, let’s have a look at the data.</p>
 </div>
 <div id="tristan-da-cunha-outbreak" class="section level1">
 <h1>Tristan da Cunha outbreak</h1>
 <p><img src="external_fig/import/TdC.png" /></p>
-<p><a href="http://en.wikipedia.org/wiki/Tristan_da_Cunha">Tristan da Cunha</a> is a volcanic island in the South Atlantic Ocean. It has been inhabited since the <span class="math inline">\(19^{th}\)</span> century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas. Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island. <strong>These ships were often the cause of introduction of new diseases into the population.</strong> As for influenza, no outbreak had been reported since an epidemic of A/H1N1 in 1954. In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.</p>
-<p>On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha. <strong>Three of them had developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing.</strong> Various family gatherings welcomed their disembarkation and in the ensuing days an epidemic started to spread rapidly throughout the whole island population. <strong>After three weeks of propagation, while the epidemic was declining, some islanders developed second episodes of illness and a second peak of cases was recorded.</strong> The epidemic faded out after this second wave and lasted a total of 59 days. Despite the lack of virological data, serological evidence indicates that all episodes of illness were due to influenza A/H3N2.</p>
-<p>Among the 284 islanders, 273 (96%) experienced at least one episode of illness and 92 (32%) experienced two, which is remarkable for influenza. Unfortunately, <strong>only 312 of the 365 attacks (85%) are known to within a single day of accuracy</strong> and constitute the dataset reported by <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2130434/">Mantle &amp; Tyrrell in 1973</a>.</p>
-<p>The dataset of daily incidence can be loaded and plotted as follows:</p>
+<p><a href="http://en.wikipedia.org/wiki/Tristan_da_Cunha">Tristan da
+Cunha</a> is a volcanic island in the South Atlantic Ocean. It has been
+inhabited since the <span class="math inline">\(19^{th}\)</span> century
+and in 1971, the 284 islanders were living in the single village of the
+island: Edinburgh of the Seven Seas. Whereas the internal contacts were
+typical of close-knit village communities, contacts with the outside
+world were infrequent and mostly due to fishing vessels that
+occasionally took passengers to or from the island. <strong>These ships
+were often the cause of introduction of new diseases into the
+population.</strong> As for influenza, no outbreak had been reported
+since an epidemic of A/H1N1 in 1954. In this context of a small
+population with limited immunity against influenza, an unusual epidemic
+occurred in 1971, 3 years after the global emergence of the new subtype
+A/H3N2.</p>
+<p>On August 13, a ship returning from Cape Town landed five islanders
+on Tristan da Cunha. <strong>Three of them had developed acute
+respiratory disease during the 8-day voyage and the other two presented
+similar symptoms immediately after landing.</strong> Various family
+gatherings welcomed their disembarkation and in the ensuing days an
+epidemic started to spread rapidly throughout the whole island
+population. <strong>After three weeks of propagation, while the epidemic
+was declining, some islanders developed second episodes of illness and a
+second peak of cases was recorded.</strong> The epidemic faded out after
+this second wave and lasted a total of 59 days. Despite the lack of
+virological data, serological evidence indicates that all episodes of
+illness were due to influenza A/H3N2.</p>
+<p>Among the 284 islanders, 273 (96%) experienced at least one episode
+of illness and 92 (32%) experienced two, which is remarkable for
+influenza. Unfortunately, <strong>only 312 of the 365 attacks (85%) are
+known to within a single day of accuracy</strong> and constitute the
+dataset reported by <a
+href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2130434/">Mantle &amp;
+Tyrrell in 1973</a>.</p>
+<p>The dataset of daily incidence can be loaded and plotted as
+follows:</p>
 <pre class="r"><code>data(fluTdc1971)
 head(fluTdc1971)
 ##         date time obs
@@ -334,116 +398,302 @@ plotTraj(data = fluTdc1971)</code></pre>
 </div>
 <div id="seitl-model" class="section level1">
 <h1>SEITL model</h1>
-<p>One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, <strong>some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain</strong> that was still circulating. This can be modelled as follows:</p>
-<div class="figure">
-<img src="external_fig/import/SEITL.jpg" alt="" />
-<p class="caption">The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability <span class="math inline">\(\alpha\)</span> to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S).</p>
+<p>One possible explanation for the rapid influenza reinfections
+reported during this two-wave outbreak is that following recovery from a
+first infection, <strong>some islanders did not develop long-term
+protective immunity and remained fully susceptible to reinfection by the
+same influenza strain</strong> that was still circulating. This can be
+modelled as follows:</p>
+<div class="float">
+<img src="external_fig/import/SEITL.jpg"
+alt="The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability \alpha to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S)." />
+<div class="figcaption">The SEITL model extends the classical SIR model
+to account for the dynamics and host heterogeneity of the immune
+response among the islanders. Following recovery, hosts remain
+temporarily protected against reinfection thanks to the cellular immune
+response (T-cells). Accordingly, they enter the T stage (temporary
+protection). Then, following down-regulation of the cellular response,
+the humoral immune response (antibodies) has a probability <span
+class="math inline">\(\alpha\)</span> to reach a level sufficient to
+protect against reinfection. In this case, recovered hosts enter the L
+stage (long-term protection), but otherwise they remain unprotected and
+re-enter the susceptible pool (S).</div>
 </div>
-<p>The SEITL model can be described with five states (S, E, I, T and L) and five parameters:</p>
+<p>The SEITL model can be described with five states (S, E, I, T and L)
+and five parameters:</p>
 <ol style="list-style-type: decimal">
-<li>basic reproductive number (<span class="math inline">\(R_0\)</span>)</li>
-<li>latent period (<span class="math inline">\(D_\mathrm{lat}\)</span>)</li>
-<li>infectious period (<span class="math inline">\(D_\mathrm{inf}\)</span>)</li>
-<li>temporary-immune period (<span class="math inline">\(D_\mathrm{imm}\)</span>)</li>
-<li>probability of developing a long-term protection (<span class="math inline">\(\alpha\)</span>).</li>
+<li>basic reproductive number (<span
+class="math inline">\(R_0\)</span>)</li>
+<li>latent period (<span
+class="math inline">\(D_\mathrm{lat}\)</span>)</li>
+<li>infectious period (<span
+class="math inline">\(D_\mathrm{inf}\)</span>)</li>
+<li>temporary-immune period (<span
+class="math inline">\(D_\mathrm{imm}\)</span>)</li>
+<li>probability of developing a long-term protection (<span
+class="math inline">\(\alpha\)</span>).</li>
 </ol>
 <p>and the following deterministic equations:</p>
 <p><span class="math display">\[
 \begin{cases}
 \begin{aligned}
-\frac{\mathrm{d}S}{\mathrm{d}t} &amp;= - \beta S \frac{I}{N} + (1-\alpha) \tau T\\
-\frac{\mathrm{d}E}{\mathrm{d}t} &amp;= \beta S \frac{I}{N} - \epsilon E\\
+\frac{\mathrm{d}S}{\mathrm{d}t} &amp;= - \beta S \frac{I}{N} +
+(1-\alpha) \tau T\\
+\frac{\mathrm{d}E}{\mathrm{d}t} &amp;= \beta S \frac{I}{N} - \epsilon
+E\\
 \frac{\mathrm{d}I}{\mathrm{d}t} &amp;= \epsilon E - \nu I\\
 \frac{\mathrm{d}T}{\mathrm{d}t} &amp;= \nu I - \tau T\\
 \frac{\mathrm{d}L}{\mathrm{d}t} &amp;= \alpha \tau T\\
 \end{aligned}
 \end{cases}
 \]</span></p>
-<p>where <span class="math inline">\(\beta=R_0/D_\mathrm{inf}\)</span>, <span class="math inline">\(\epsilon=1/D_\mathrm{lat}\)</span>, <span class="math inline">\(\nu = 1/D_\mathrm{inf}\)</span>, <span class="math inline">\(\tau=1/D_\mathrm{imm}\)</span> and <span class="math inline">\(N = S + E + I + L + T\)</span> is constant.</p>
-<p>It can be shown that <strong>there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model</strong>. In that sense, the deterministic equations are a description of the stochastic model, too.</p>
-<p>In order to fit the SEITL model to the Tristan da Cunha dataset we need to add one state variable and one parameter to the model:</p>
+<p>where <span class="math inline">\(\beta=R_0/D_\mathrm{inf}\)</span>,
+<span class="math inline">\(\epsilon=1/D_\mathrm{lat}\)</span>, <span
+class="math inline">\(\nu = 1/D_\mathrm{inf}\)</span>, <span
+class="math inline">\(\tau=1/D_\mathrm{imm}\)</span> and <span
+class="math inline">\(N = S + E + I + L + T\)</span> is constant.</p>
+<p>It can be shown that <strong>there is an analogy between the
+deterministic equations and the algorithm that performs stochastic
+simulations of the model</strong>. In that sense, the deterministic
+equations are a description of the stochastic model, too.</p>
+<p>In order to fit the SEITL model to the Tristan da Cunha dataset we
+need to add one state variable and one parameter to the model:</p>
 <ul>
-<li><strong>The dataset represents daily incidence counts:</strong> we need to create a <span class="math inline">\(6^\mathrm{th}\)</span> state variable - called <span class="math inline">\(\mathrm{Inc}\)</span> - to track the daily number of new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable: <span class="math display">\[
+<li><strong>The dataset represents daily incidence counts:</strong> we
+need to create a <span class="math inline">\(6^\mathrm{th}\)</span>
+state variable - called <span
+class="math inline">\(\mathrm{Inc}\)</span> - to track the daily number
+of new cases. Assuming that new cases are reported when they become
+symptomatic and infectious, we have the following equation for the new
+state variable: <span class="math display">\[
 \frac{d\mathrm{Inc}}{dt} = \epsilon E
 \]</span></li>
-<li><strong>The dataset is incomplete:</strong> only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate <span class="math inline">\(\rho\)</span>. Since this reporting rate is unknown (we can only presume that it should be below 85% due to reporting errors) we will include it as an additional parameter.</li>
+<li><strong>The dataset is incomplete:</strong> only 85% of the cases
+were reported. In addition, we need to account for potential
+under-reporting of asymptomatic cases. We assume that the data were
+reported according to a Poisson process with reporting rate <span
+class="math inline">\(\rho\)</span>. Since this reporting rate is
+unknown (we can only presume that it should be below 85% due to
+reporting errors) we will include it as an additional parameter.</li>
 </ul>
-<p>The deterministic and stochastic SEITL models are already implemented as two <code>fitmodel</code> objects called <code>seitlDeter</code> and <code>seitlStoch</code> respectively. These can be loaded into your <strong>R</strong> session by typing:</p>
+<p>The deterministic and stochastic SEITL models are already implemented
+as two <code>fitmodel</code> objects called <code>seitlDeter</code> and
+<code>seitlStoch</code> respectively. These can be loaded into your
+<strong>R</strong> session by typing:</p>
 <pre class="r"><code>data(models)</code></pre>
-<p>A brief technical note: You might be confused that we use a function called <code>data</code> to load a <code>fitmodel</code>. However, this was the best way to provide you with models that preserved comments in the code of the function. Type <code>seitlDeter$simulate</code>, for instance.</p>
-<p><strong>Take 10 minutes to look at the different elements of both models.</strong> In particular, you might be interested in how the daily incidence is computed in the function <code>seitlDeter$simulate</code> and how the likelihood function <code>seitlDeter$dPointObs</code> accounts for under-reporting.</p>
-<p>You should also notice that <code>seitlStoch</code> mainly differs from <code>seitlDeter</code> through the <code>simulate</code> function, which replaces the deterministic equations solver by a stochastic simulation algorithm. More precisely, this algorithm needs a list of transitions (<code>seitlTransitions</code>) and a function to compute the transition rate (<code>seitlRateFunc</code>). Make sure you understand all the transitions and rates and see the analogy with the deterministic equations.</p>
-<p>If you are curious about how the stochastic model is simulated, you can have a look at the code of the function <code>simulateModelStochastic</code>. You will note that it calls the function <code>ssa.adaptivetau</code> of the <strong>R</strong> package <code>adaptivetau</code>, and then processes the returned data frame in order to extract the state of the model at the desired observation times given by <code>times</code>.</p>
-<p>However, before doing any simulation, we need some parameter values and an initial state for the model.</p>
+<p>A brief technical note: You might be confused that we use a function
+called <code>data</code> to load a <code>fitmodel</code>. However, this
+was the best way to provide you with models that preserved comments in
+the code of the function. Type <code>seitlDeter$simulate</code>, for
+instance.</p>
+<p><strong>Take 10 minutes to look at the different elements of both
+models.</strong> In particular, you might be interested in how the daily
+incidence is computed in the function <code>seitlDeter$simulate</code>
+and how the likelihood function <code>seitlDeter$dPointObs</code>
+accounts for under-reporting.</p>
+<p>You should also notice that <code>seitlStoch</code> mainly differs
+from <code>seitlDeter</code> through the <code>simulate</code> function,
+which replaces the deterministic equations solver by a stochastic
+simulation algorithm. More precisely, this algorithm needs a list of
+transitions (<code>seitlTransitions</code>) and a function to compute
+the transition rate (<code>seitlRateFunc</code>). Make sure you
+understand all the transitions and rates and see the analogy with the
+deterministic equations.</p>
+<p>If you are curious about how the stochastic model is simulated, you
+can have a look at the code of the function
+<code>simulateModelStochastic</code>. You will note that it calls the
+function <code>ssa.adaptivetau</code> of the <strong>R</strong> package
+<code>adaptivetau</code>, and then processes the returned data frame in
+order to extract the state of the model at the desired observation times
+given by <code>times</code>.</p>
+<p>However, before doing any simulation, we need some parameter values
+and an initial state for the model.</p>
 <div id="parameter-values-and-initial-state" class="section level2">
 <h2>Parameter values and initial state</h2>
-<p>Based on the description of the outbreak above and the information below found in the literature, can you think of one or more set(s) of values for the parameters (<code>theta</code>) and initial state (<code>initState</code>) of the model?</p>
+<p>Based on the description of the outbreak above and the information
+below found in the literature, can you think of one or more set(s) of
+values for the parameters (<code>theta</code>) and initial state
+(<code>initState</code>) of the model?</p>
 <ol style="list-style-type: decimal">
-<li>The <span class="math inline">\(R_0\)</span> of influenza is commonly estimated to be around 2. However, it can be significantly larger in close-knit communities with exceptional contact configurations.</li>
-<li>Both the average latent and infectious periods for influenza have been estimated around 2 days each.</li>
-<li>The down-regulation of the cellular response is completed on average 15 days after symptom onset.</li>
-<li>Serological surveys have shown that the seroconversion rate to influenza (probability of developing antibodies) is around 80%. However, it is likely that <strong>not</strong> all seroconverted individuals acquire a long-term protective against reinfection.</li>
-<li>Between 20 and 30% of the infections with influenza are asymptomatic.</li>
-<li>There is very limited cross-immunity between influenza viruses A/H1N1 and A/H3N2.</li>
+<li>The <span class="math inline">\(R_0\)</span> of influenza is
+commonly estimated to be around 2. However, it can be significantly
+larger in close-knit communities with exceptional contact
+configurations.</li>
+<li>Both the average latent and infectious periods for influenza have
+been estimated around 2 days each.</li>
+<li>The down-regulation of the cellular response is completed on average
+15 days after symptom onset.</li>
+<li>Serological surveys have shown that the seroconversion rate to
+influenza (probability of developing antibodies) is around 80%. However,
+it is likely that <strong>not</strong> all seroconverted individuals
+acquire a long-term protective against reinfection.</li>
+<li>Between 20 and 30% of the infections with influenza are
+asymptomatic.</li>
+<li>There is very limited cross-immunity between influenza viruses
+A/H1N1 and A/H3N2.</li>
 </ol>
 </div>
 </div>
-<div id="deterministic-vs-stochastic-simulations" class="section level1">
+<div id="deterministic-vs-stochastic-simulations"
+class="section level1">
 <h1>Deterministic vs Stochastic simulations</h1>
-<p>Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. We suggest to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way. Of course, if you don’t like to guess parameter values, you can still use <a href="play_with_seitl_example.html#parameter-values-and-initial-state">ours</a>.</p>
+<p>Now, try to assess whether the SEITL model can reproduce the two-wave
+outbreak of Tristan da Cunha with your guess values for the initial
+state and the parameters. This will give you the opportunity to compare
+the deterministic and stochastic model. We suggest to start with the
+deterministic model and then move on to the stochastic model but feel
+free to proceed in a different way. Of course, if you don’t like to
+guess parameter values, you can still use <a
+href="play_with_seitl_example.html#parameter-values-and-initial-state">ours</a>.</p>
 <div id="deterministic-simulations" class="section level2">
 <h2>Deterministic simulations</h2>
-<p>You can use the <code>plotFit</code> function you encountered in the <a href="introduction.html#assess-the-model-fit">first practical</a> to generate an observation trajectory and display it against the data:</p>
+<p>You can use the <code>plotFit</code> function you encountered in the
+<a href="introduction.html#assess-the-model-fit">first practical</a> to
+generate an observation trajectory and display it against the data:</p>
 <pre class="r"><code>thetaBadGuess &lt;- c(R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 initStateBadGuess &lt;- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971)</code></pre>
 <p><img src="figure/play_with_SEITL/oneTraj-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>You can display all states variables (not only the sampled observations) by passing <code>allvars=TRUE</code> to the <code>plotFit</code> function:</p>
+<p>You can display all states variables (not only the sampled
+observations) by passing <code>allvars=TRUE</code> to the
+<code>plotFit</code> function:</p>
 <pre class="r"><code>plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, allVars = TRUE)</code></pre>
 <p><img src="figure/play_with_SEITL/allVars-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>Note that although the simulation of the trajectory is deterministic, the observation process is stochastic, hence the noisy <code>obs</code> time-series. You can appreciate the variability of the observation process by plotting several replicates (use the argument <code>n.replicates</code>):</p>
+<p>Note that although the simulation of the trajectory is deterministic,
+the observation process is stochastic, hence the noisy <code>obs</code>
+time-series. You can appreciate the variability of the observation
+process by plotting several replicates (use the argument
+<code>n.replicates</code>):</p>
 <pre class="r"><code>plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, nReplicates = 100)</code></pre>
 <p><img src="figure/play_with_SEITL/manyObs-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>By default, this function plots the mean and the median as well as the <span class="math inline">\(95^\mathrm{th}\)</span> and <span class="math inline">\(50^\mathrm{th}\)</span> percentiles of the replicated simulations. Alternatively, you can visualise all the simulated trajectories by passing <code>summary=FALSE</code> to the <code>plotFit</code> function:</p>
+<p>By default, this function plots the mean and the median as well as
+the <span class="math inline">\(95^\mathrm{th}\)</span> and <span
+class="math inline">\(50^\mathrm{th}\)</span> percentiles of the
+replicated simulations. Alternatively, you can visualise all the
+simulated trajectories by passing <code>summary=FALSE</code> to the
+<code>plotFit</code> function:</p>
 <pre class="r"><code>plotFit(seitlDeter, thetaBadGuess, initStateBadGuess, data = fluTdc1971, nReplicates = 100,
     summary = FALSE)</code></pre>
 <p><img src="figure/play_with_SEITL/allTraj-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><strong>Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.</strong> In particular, try different values for <span class="math inline">\(R_0\in[2-15]\)</span> and <span class="math inline">\(\alpha\in[0.3-1]\)</span>. For which values of <span class="math inline">\(R_0\)</span> and <span class="math inline">\(\alpha\)</span> do you get a decent fit?</p>
-<p>If you didn’t manage to get the two waves, you can have look at <a href="play_with_seitl_example.html#deterministic-simulations">our example</a>.</p>
-<p>You should find that it is hard to capture all the data-point with the deterministic model. We will now test if this can be better reproduced with a stochastic model which explicitly accounts for the discrete nature of individuals.</p>
+<p><strong>Now, take 10 minutes to explore the dynamics of the model for
+different parameter and initial state values.</strong> In particular,
+try different values for <span
+class="math inline">\(R_0\in[2-15]\)</span> and <span
+class="math inline">\(\alpha\in[0.3-1]\)</span>. For which values of
+<span class="math inline">\(R_0\)</span> and <span
+class="math inline">\(\alpha\)</span> do you get a decent fit?</p>
+<p>If you didn’t manage to get the two waves, you can have look at <a
+href="play_with_seitl_example.html#deterministic-simulations">our
+example</a>.</p>
+<p>You should find that it is hard to capture all the data-point with
+the deterministic model. We will now test if this can be better
+reproduced with a stochastic model which explicitly accounts for the
+discrete nature of individuals.</p>
 </div>
 <div id="stochastic-simulations" class="section level2">
 <h2>Stochastic simulations</h2>
-<p><strong>Take about 10 minutes to explore the dynamics of the stochastic SEITL model with the function <code>plotFit</code>.</strong></p>
-<p>Note that <code>seitlStoch</code> has the same <code>theta.names</code> and <code>state.names</code> as <code>seitlDeter</code>, which means that you can use the same parameters and initial state vectors as in the previous section.</p>
-<p>In addition, you might find useful to plot the time-series of the extinction probability (i.e. the proportion of faded out simulations) by specifying the infectious states to <code>plotFit</code> as the epidemic will persist as long as there is at least one individual in one of these states. You can do so by using the <code>non.extinct</code> argument of <code>plotFit</code> (see the documentation for more details).</p>
-<p><strong>What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?</strong> Otherwise you can have a look at <a href="play_with_seitl_example.html#stochastic-simulations">our example</a>.</p>
+<p><strong>Take about 10 minutes to explore the dynamics of the
+stochastic SEITL model with the function
+<code>plotFit</code>.</strong></p>
+<p>Note that <code>seitlStoch</code> has the same
+<code>theta.names</code> and <code>state.names</code> as
+<code>seitlDeter</code>, which means that you can use the same
+parameters and initial state vectors as in the previous section.</p>
+<p>In addition, you might find useful to plot the time-series of the
+extinction probability (i.e. the proportion of faded out simulations) by
+specifying the infectious states to <code>plotFit</code> as the epidemic
+will persist as long as there is at least one individual in one of these
+states. You can do so by using the <code>non.extinct</code> argument of
+<code>plotFit</code> (see the documentation for more details).</p>
+<p><strong>What differences do you notice between stochastic and
+deterministic simulations? Can you make any conclusions on the role of
+demographic stochasticity on the dynamics of the SEITL model?</strong>
+Otherwise you can have a look at <a
+href="play_with_seitl_example.html#stochastic-simulations">our
+example</a>.</p>
 <p>Now, let’s try to make this model a bit more realistic.</p>
 </div>
 </div>
 <div id="exponential-vs-erlang-distributions" class="section level1">
 <h1>Exponential vs Erlang distributions</h1>
-<p>So far, we have assumed that the time spent in each compartment follows an <a href="http://en.wikipedia.org/wiki/Exponential_distribution">exponential distribution</a>, because by assuming transitions happen at constant rates we have implied that the process is <a href="http://en.wikipedia.org/wiki/Memorylessness">memoryless</a>. <strong>Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response.</strong></p>
-<p>In order to include a memory effect, it is common practice to replace the exponential distribution by an <a href="http://en.wikipedia.org/wiki/Agner_Krarup_Erlang#mediaviewer/File:Erlang.jpg">Erlang distribution</a>. This distribution is parametrised by its mean <span class="math inline">\(m\)</span> and shape <span class="math inline">\(k\)</span> and can be modelled by <span class="math inline">\(k\)</span> consecutive sub-stages, each being exponentially distributed with mean <span class="math inline">\(m/k\)</span>.</p>
-<p>As illustrated below the flexibility of the Erlang distribution ranges from the exponential (<span class="math inline">\(k=1\)</span>) to Gaussian-like (<span class="math inline">\(k&gt;&gt;1\)</span>) distributions.</p>
+<p>So far, we have assumed that the time spent in each compartment
+follows an <a
+href="http://en.wikipedia.org/wiki/Exponential_distribution">exponential
+distribution</a>, because by assuming transitions happen at constant
+rates we have implied that the process is <a
+href="http://en.wikipedia.org/wiki/Memorylessness">memoryless</a>.
+<strong>Although mathematically convenient, this property is not
+realistic for many biological processes such as the contraction of the
+cellular response.</strong></p>
+<p>In order to include a memory effect, it is common practice to replace
+the exponential distribution by an <a
+href="http://en.wikipedia.org/wiki/Agner_Krarup_Erlang#mediaviewer/File:Erlang.jpg">Erlang
+distribution</a>. This distribution is parametrised by its mean <span
+class="math inline">\(m\)</span> and shape <span
+class="math inline">\(k\)</span> and can be modelled by <span
+class="math inline">\(k\)</span> consecutive sub-stages, each being
+exponentially distributed with mean <span
+class="math inline">\(m/k\)</span>.</p>
+<p>As illustrated below the flexibility of the Erlang distribution
+ranges from the exponential (<span class="math inline">\(k=1\)</span>)
+to Gaussian-like (<span class="math inline">\(k&gt;&gt;1\)</span>)
+distributions.</p>
 <p><img src="figure/play_with_SEITL/erlang-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>We propose to extend the SEITL as follows:</p>
-<div class="figure">
-<img src="external_fig/import/SEIT4L.jpg" alt="" />
-<p class="caption">The SEIT4L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the <span class="math inline">\(T\)</span> compartment (temporary protection) follows an Erlang distribution with mean <span class="math inline">\(D_\mathrm{imm}=1/\tau\)</span> and shape equal to 4 and is modelled by 4 sub-stages <span class="math inline">\(T_{1,2,3,4}\)</span>, each being exponentially distributed with mean equal to <span class="math inline">\(\frac{D_\mathrm{imm}}{4}\)</span>.</p>
+<div class="float">
+<img src="external_fig/import/SEIT4L.jpg"
+alt="The SEIT4L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the T compartment (temporary protection) follows an Erlang distribution with mean D_\mathrm{imm}=1/\tau and shape equal to 4 and is modelled by 4 sub-stages T_{1,2,3,4}, each being exponentially distributed with mean equal to \frac{D_\mathrm{imm}}{4}." />
+<div class="figcaption">The SEIT4L model extends the SEITL model to
+account for memory effect in the contraction of the cellular response.
+The time spent in the <span class="math inline">\(T\)</span> compartment
+(temporary protection) follows an Erlang distribution with mean <span
+class="math inline">\(D_\mathrm{imm}=1/\tau\)</span> and shape equal to
+4 and is modelled by 4 sub-stages <span
+class="math inline">\(T_{1,2,3,4}\)</span>, each being exponentially
+distributed with mean equal to <span
+class="math inline">\(\frac{D_\mathrm{imm}}{4}\)</span>.</div>
 </div>
-<p>The deterministic and stochastic SEIT4L models are already implemented as <code>fitmodel</code> objects called <code>seit4lDeter</code> and <code>seit4lStoch</code> that were also loaded into your <strong>R</strong> session with <code>data(models)</code>.</p>
-<p><strong>Take 5 minutes to have a look at the function <code>simulate</code> of these SEIT4L models and make sure you understand how the Erlang distribution for the <span class="math inline">\(T\)</span> compartment is coded.</strong></p>
-<p>Now, compare the dynamics of the SEITL and SEIT4L model using <code>plotFit</code>. Use your best guess from the previous section as well as stochastic and deterministic simulations. Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the <code>initState</code> of SEIT4L accordingly.</p>
-<p><strong>Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution of the <span class="math inline">\(T\)</span> compartment?</strong></p>
-<p>Again, feel free to can have a look at <a href="play_with_seitl_example.html#exponential-vs-erlang-distributions">our example</a>.</p>
-<p>In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.</p>
+<p>The deterministic and stochastic SEIT4L models are already
+implemented as <code>fitmodel</code> objects called
+<code>seit4lDeter</code> and <code>seit4lStoch</code> that were also
+loaded into your <strong>R</strong> session with
+<code>data(models)</code>.</p>
+<p><strong>Take 5 minutes to have a look at the function
+<code>simulate</code> of these SEIT4L models and make sure you
+understand how the Erlang distribution for the <span
+class="math inline">\(T\)</span> compartment is coded.</strong></p>
+<p>Now, compare the dynamics of the SEITL and SEIT4L model using
+<code>plotFit</code>. Use your best guess from the previous section as
+well as stochastic and deterministic simulations. Note that although
+SEITL and SEIT4L share the same parameters, their state variables differ
+so you need to modify the <code>initState</code> of SEIT4L
+accordingly.</p>
+<p><strong>Can you notice any differences? If so, which model seems to
+provide the best fit? Do you understand why the shape of the epidemic
+changes when you use the Erlang distribution of the <span
+class="math inline">\(T\)</span> compartment?</strong></p>
+<p>Again, feel free to can have a look at <a
+href="play_with_seitl_example.html#exponential-vs-erlang-distributions">our
+example</a>.</p>
+<p>In the next session, you will verify your intuition by using a
+statistical criterion to find which model fits the best the Tristan da
+Cunha outbreak.</p>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
 <ul>
-<li>Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this <a href="external_ref/poisson_obs.pdf">reference</a> from Germán Rodríguez’ <a href="https://grodri.github.io/glms/notes/">lecture notes on generalized linear models</a>.</li>
-<li>You might wonder why we only modified the distribution of the <span class="math inline">\(T\)</span> compartment. Indeed, wouldn’t it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?</li>
+<li>Curious about why we use the Poisson likelihood for count data? Have
+a look at the bottom of page 3 of this <a
+href="external_ref/poisson_obs.pdf">reference</a> from Germán Rodríguez’
+<a href="https://grodri.github.io/glms/notes/">lecture notes on
+generalized linear models</a>.</li>
+<li>You might wonder why we only modified the distribution of the <span
+class="math inline">\(T\)</span> compartment. Indeed, wouldn’t it be
+more realistic to use Erlang distributions for all the other
+compartments? And why did we use a shape equal to 4 and not 2 or 100?
+Think about another variant of the SEITL model and implement it by
+modifying the original version in a similar way as we did for the SEIT4L
+model. Does it fit the data better?</li>
 </ul>
 </div>
 

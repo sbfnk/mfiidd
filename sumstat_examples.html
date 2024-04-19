@@ -13,6 +13,7 @@
 
 <title>Example summary statistics</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -296,8 +297,16 @@ $(document).ready(function () {
 </div>
 
 
-<p>Here is a (by no means exhaustive) list of examples for summary statistics.</p>
-<p><strong>Technical note</strong>: we added put <code>na.rm = T</code> to all the summary statistics. This tells the function to ignore data points that have a non-existing value. Normally, this shouldn’t happen, but unfortunately the deterministic ODE integrators in the <code>deSolve</code> package can run into numerical instabilities when a trajectory stays around 0 for too long and produce very small negative states. Normally this is not a problem, but it will be if we try to take a sample from the Poisson distribution.</p>
+<p>Here is a (by no means exhaustive) list of examples for summary
+statistics.</p>
+<p><strong>Technical note</strong>: we added put <code>na.rm = T</code>
+to all the summary statistics. This tells the function to ignore data
+points that have a non-existing value. Normally, this shouldn’t happen,
+but unfortunately the deterministic ODE integrators in the
+<code>deSolve</code> package can run into numerical instabilities when a
+trajectory stays around 0 for too long and produce very small negative
+states. Normally this is not a problem, but it will be if we try to take
+a sample from the Poisson distribution.</p>
 <pre class="r"><code># maximum incidence before day 13
 ssMax_0_12 &lt;- function(traj) {
   return(max(traj[traj$time &lt; 13, ]$obs, na.rm = T))
@@ -353,7 +362,8 @@ ssSize &lt;- function(traj) {
   return(sum(traj$obs, na.rm = T))
 }</code></pre>
 <p>Copy and paste any of these you would like to test.</p>
-<p><a href="ABC.html#summary-statistics">Return</a> to the ABC session.</p>
+<p><a href="ABC.html#summary-statistics">Return</a> to the ABC
+session.</p>
 
 &nbsp;
 <hr />

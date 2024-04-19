@@ -13,6 +13,7 @@
 
 <title>Fitting models to data using pomp</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -291,58 +292,134 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Fitting models to data using <em>pomp</em></h1>
+<h1 class="title toc-ignore">Fitting models to data using
+<em>pomp</em></h1>
 
 </div>
 
 
 <div id="objectives" class="section level1">
 <h1>Objectives</h1>
-<p>The aim of this session is to introduce the <em>R</em> package <em>pomp</em>, which contains functions for many of the tasks we have performed in this course. The benefit of using a package like <em><a href="http://pomp.r-forge.r-project.org/">pomp</a></em> (or alternatives such as <a href="https://github.com/sballesteros/ssm">SSM</a> or <a href="http://libbi.org/">libbi</a>) is that they have been optimised for computational efficiency and can take full advantage of any available hardware (including running on a high-performance cluster). The disadvantage of using readily available packages is that 1) to allow for good performance, models are usually not coded in <em>R</em>, 2) any specific method or functionality you want to use might not be implemented, and 3) they can be more difficult to debug when something is going wrong.</p>
-<p>The aim of this session is to see how the different methods we have encountered in the course can be applied to fit a model to data using <em>pomp</em>. It is meant to serve both as a recap of what you have done in the last few days as well as an introduction to one of the available packages for model fitting and inference.</p>
-<p>In the <a href="pmcmc.html">previous session</a>, you coded a particle filter to estimate the likelihood, and the function <code>mcmcMh</code> to sample from the posterior distribution with a Metropolis-Hastings algorithm.</p>
+<p>The aim of this session is to introduce the <em>R</em> package
+<em>pomp</em>, which contains functions for many of the tasks we have
+performed in this course. The benefit of using a package like <em><a
+href="http://pomp.r-forge.r-project.org/">pomp</a></em> (or alternatives
+such as <a href="https://github.com/sballesteros/ssm">SSM</a> or <a
+href="http://libbi.org/">libbi</a>) is that they have been optimised for
+computational efficiency and can take full advantage of any available
+hardware (including running on a high-performance cluster). The
+disadvantage of using readily available packages is that 1) to allow for
+good performance, models are usually not coded in <em>R</em>, 2) any
+specific method or functionality you want to use might not be
+implemented, and 3) they can be more difficult to debug when something
+is going wrong.</p>
+<p>The aim of this session is to see how the different methods we have
+encountered in the course can be applied to fit a model to data using
+<em>pomp</em>. It is meant to serve both as a recap of what you have
+done in the last few days as well as an introduction to one of the
+available packages for model fitting and inference.</p>
+<p>In the <a href="pmcmc.html">previous session</a>, you coded a
+particle filter to estimate the likelihood, and the function
+<code>mcmcMh</code> to sample from the posterior distribution with a
+Metropolis-Hastings algorithm.</p>
 <p>In this session you will:</p>
 <ol style="list-style-type: decimal">
-<li>learn how to code a model in <code>pomp</code> using C snippets or <em>R</em> code</li>
-<li>explore how to use a particle filter and pMCMC using <code>pomp</code></li>
+<li>learn how to code a model in <code>pomp</code> using C snippets or
+<em>R</em> code</li>
+<li>explore how to use a particle filter and pMCMC using
+<code>pomp</code></li>
 </ol>
 </div>
 <div id="code-a-model-in-pomp" class="section level1">
 <h1>Code a model in <em>pomp</em></h1>
-<p>To do model fitting with <em>pomp</em>, you need to create a <code>pomp</code> object. This works a bit like the fitmodel objects we created earlier. To create a <code>pomp</code> object, you need to specify a data set as well as functions that simulate the model, evaluate the prior density, etc. The components and functions that need to go into a <code>pomp</code> object are determined by the method that one wants to use. For more information on this, you can have a look at the recent <a href="http://kingaa.github.io/pomp/vignettes/pompjss.pdf">article</a> on <em>pomp</em> in the Journal of Statistical Software.</p>
+<p>To do model fitting with <em>pomp</em>, you need to create a
+<code>pomp</code> object. This works a bit like the fitmodel objects we
+created earlier. To create a <code>pomp</code> object, you need to
+specify a data set as well as functions that simulate the model,
+evaluate the prior density, etc. The components and functions that need
+to go into a <code>pomp</code> object are determined by the method that
+one wants to use. For more information on this, you can have a look at
+the recent <a
+href="http://kingaa.github.io/pomp/vignettes/pompjss.pdf">article</a> on
+<em>pomp</em> in the Journal of Statistical Software.</p>
 <p>To load the <code>pomp</code> library, type</p>
 <pre class="r"><code>library(&quot;pomp&quot;)</code></pre>
-<p>If this does not work, you need to install the <code>pomp</code> library first. You can do this using</p>
+<p>If this does not work, you need to install the <code>pomp</code>
+library first. You can do this using</p>
 <pre class="r"><code>install.packages(&quot;pomp&quot;)</code></pre>
-<p>To specify a model that you want to fit to data in <em>pomp</em>, you can either write a function in <em>R</em>, or you can use so-called C snippets, that is model code written in C that is pre-compiled and can be called from an <em>R</em> function. The advantage of doing this is that you can benefit from the speed of compiled C code while not having to learn an awful lot about the details of C syntax.</p>
-<p>We have coded up the models of the previous practical sessions in <em>pomp</em> for you. To look at, for example, the <code>SEITL</code> model, use</p>
+<p>To specify a model that you want to fit to data in <em>pomp</em>, you
+can either write a function in <em>R</em>, or you can use so-called C
+snippets, that is model code written in C that is pre-compiled and can
+be called from an <em>R</em> function. The advantage of doing this is
+that you can benefit from the speed of compiled C code while not having
+to learn an awful lot about the details of C syntax.</p>
+<p>We have coded up the models of the previous practical sessions in
+<em>pomp</em> for you. To look at, for example, the <code>SEITL</code>
+model, use</p>
 <pre class="r"><code>source(&quot;https://sbfnk.github.io/mfiidd/pomp/seitlPomp.r&quot;, echo = TRUE)</code></pre>
-<p>If this yields a compile error, have a look at the <a href="http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.">important information for windows and mac users</a> or ask us for help. If you can’t get it to work at all, you work with the <em>R</em> versions of the code (see the note after the next paragraph).</p>
-<p><strong>Take 15 minutes</strong> to have a look at the code that is printed when you execute this command, and try to understand what it does. You can have a look at our <a href="pomp_seitl_explanation.html">more detailed explanation</a> for further help. If your R client truncates the output, you can look at the full code in a browser by looking at <a href="https://github.com/sbfnk/mfiidd/blob/main/Rmd/pomp/seitlPomp.r" class="uri">https://github.com/sbfnk/mfiidd/blob/main/Rmd/pomp/seitlPomp.r</a> or the files at <a href="https://github.com/sbfnk/mfiidd/tree/main/Rmd/pomp" class="uri">https://github.com/sbfnk/mfiidd/tree/main/Rmd/pomp</a> for the other files in the practical to which we refer below.</p>
-<p><strong>Note</strong>: For the examples presented here, we are providing an alternative version that is coded entirely in <em>R</em>. To look at this, simply add “” to the file names (before the <code>.r</code> extension). For example, to see the <em>R</em> version of the <code>SEITL</code> model in <em>pomp</em>, type</p>
+<p>If this yields a compile error, have a look at the <a
+href="http://kingaa.github.io/pomp/vignettes/getting_started.html#important-information-for-windows-and-mac-users.">important
+information for windows and mac users</a> or ask us for help. If you
+can’t get it to work at all, you work with the <em>R</em> versions of
+the code (see the note after the next paragraph).</p>
+<p><strong>Take 15 minutes</strong> to have a look at the code that is
+printed when you execute this command, and try to understand what it
+does. You can have a look at our <a
+href="pomp_seitl_explanation.html">more detailed explanation</a> for
+further help. If your R client truncates the output, you can look at the
+full code in a browser by looking at <a
+href="https://github.com/sbfnk/mfiidd/blob/main/Rmd/pomp/seitlPomp.r"
+class="uri">https://github.com/sbfnk/mfiidd/blob/main/Rmd/pomp/seitlPomp.r</a>
+or the files at <a
+href="https://github.com/sbfnk/mfiidd/tree/main/Rmd/pomp"
+class="uri">https://github.com/sbfnk/mfiidd/tree/main/Rmd/pomp</a> for
+the other files in the practical to which we refer below.</p>
+<p><strong>Note</strong>: For the examples presented here, we are
+providing an alternative version that is coded entirely in <em>R</em>.
+To look at this, simply add “” to the file names (before the
+<code>.r</code> extension). For example, to see the <em>R</em> version
+of the <code>SEITL</code> model in <em>pomp</em>, type</p>
 <pre class="r"><code>source(&quot;https://sbfnk.github.io/mfiidd/pomp/seitlPompR.r&quot;, echo = TRUE)</code></pre>
 <p>which creates an object called <code>seitlPompR</code>.</p>
-<p>How would you change the (C or <em>R</em> code) to get the <code>SEIT4L</code> model? You can have a go at it yourself, or load our version using</p>
+<p>How would you change the (C or <em>R</em> code) to get the
+<code>SEIT4L</code> model? You can have a go at it yourself, or load our
+version using</p>
 <pre class="r"><code>source(&quot;https://sbfnk.github.io/mfiidd/pomp/seit4lPomp.r&quot;, echo = TRUE)</code></pre>
 <p>(again, simply add “R” to get the <em>R</em> version).</p>
-<p>We now have a <code>pomp</code> object called <code>seitlPomp</code> (or <code>seitlPompR</code>, or <code>seit4lPomp</code> etc.), containing the data, the deterministic skeleton, the stochastic model and the observation process. All the functions we use below take this object as argument and pick whichever elements from within the <code>seitlPomp</code> are needed.</p>
-<p>Now try the following operations (with <code>SEITL</code> or <code>SEIT4L</code>). For full documentation of the functions used, refer to the <em>R</em> help pages, which you can access using <code>?function</code> (replacing ‘function’ with the name of the function you are interested in).</p>
-<p>We suggest that you try the methods described below with both of the models.</p>
+<p>We now have a <code>pomp</code> object called <code>seitlPomp</code>
+(or <code>seitlPompR</code>, or <code>seit4lPomp</code> etc.),
+containing the data, the deterministic skeleton, the stochastic model
+and the observation process. All the functions we use below take this
+object as argument and pick whichever elements from within the
+<code>seitlPomp</code> are needed.</p>
+<p>Now try the following operations (with <code>SEITL</code> or
+<code>SEIT4L</code>). For full documentation of the functions used,
+refer to the <em>R</em> help pages, which you can access using
+<code>?function</code> (replacing ‘function’ with the name of the
+function you are interested in).</p>
+<p>We suggest that you try the methods described below with both of the
+models.</p>
 </div>
-<div id="simulating-the-model-and-estimating-the-likelihood" class="section level1">
+<div id="simulating-the-model-and-estimating-the-likelihood"
+class="section level1">
 <h1>Simulating the model and estimating the likelihood</h1>
 <p>Let’s, again, guess some parameters and initial values:</p>
 <pre class="r"><code>theta &lt;- c(R0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 seitlInitState &lt;- c(S.0 = 250, E.0 = 0, I.0 = 4, T.0 = 0, L.0 = 30, Inc.0 = 0)
 seit4lInitState &lt;- c(S.0 = 250, E.0 = 0, I.0 = 4, T1.0 = 0, T2.0 = 0, T3.0 = 0, T4.0 = 0,
     L.0 = 30, Inc.0 = 0)</code></pre>
-<p>Note the <em>pomp</em> syntax, whereby initial states are named as the named variable with <code>.0</code> appended. Note also that the SEIT4L model needs a slightly different initial state (because the variable names are different).</p>
+<p>Note the <em>pomp</em> syntax, whereby initial states are named as
+the named variable with <code>.0</code> appended. Note also that the
+SEIT4L model needs a slightly different initial state (because the
+variable names are different).</p>
 <div id="deterministic-trajectory" class="section level2">
 <h2>Deterministic trajectory</h2>
 <pre class="r"><code>seitlTraj &lt;- trajectory(seitlPompR, params = c(theta, seitlInitState), format = &quot;data.frame&quot;)
 plotTraj(seitlTraj)</code></pre>
 <p><img src="figure/pomp/unnamed-chunk-10-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>The <code>trajectory</code> function simulates the deterministic skeleton of the <code>pomp</code> object it is given, ignoring all process or measurement stochasticity.</p>
+<p>The <code>trajectory</code> function simulates the deterministic
+skeleton of the <code>pomp</code> object it is given, ignoring all
+process or measurement stochasticity.</p>
 </div>
 <div id="stochastic-trajectories" class="section level2">
 <h2>Stochastic trajectories</h2>
@@ -350,7 +427,12 @@ plotTraj(seitlTraj)</code></pre>
     format = &quot;data.frame&quot;)
 
 plotTraj(seitlSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
-<p><img src="figure/pomp/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /> The <code>simulate</code> function simulates the (stochastic) model of the <code>pomp</code> object it is given. By specifying <code>obs = TRUE</code> and <code>states = TRUE</code>, we indicate that we want to have both the model states and observations in the data frame that is returned.</p>
+<p><img src="figure/pomp/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" />
+The <code>simulate</code> function simulates the (stochastic) model of
+the <code>pomp</code> object it is given. By specifying
+<code>obs = TRUE</code> and <code>states = TRUE</code>, we indicate that
+we want to have both the model states and observations in the data frame
+that is returned.</p>
 </div>
 </div>
 <div id="particle-filter" class="section level1">
@@ -358,24 +440,37 @@ plotTraj(seitlSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
 <pre class="r"><code>pf &lt;- pfilter(seitlPompR, params = c(theta, seitlInitState), Np = 100)
 logLik(pf)</code></pre>
 <pre><code>## [1] -221.0246</code></pre>
-<p>This estimates the likelihood of the given parameters using a particle filter with <code>Np = 100</code> particles.</p>
+<p>This estimates the likelihood of the given parameters using a
+particle filter with <code>Np = 100</code> particles.</p>
 </div>
-<div id="model-fitting-by-maximising-the-likelihood" class="section level1">
+<div id="model-fitting-by-maximising-the-likelihood"
+class="section level1">
 <h1>Model fitting by maximising the likelihood</h1>
-<p>Several methods are available in <em>pomp</em> for fitting a deterministic or stochastic model to data using maximum likelihood. Remember that this implies a <em>frequentist</em> method, that is the prior distribution is ignored, and the parameter values that yield maximum likelihood are interpreted as the true parameters.</p>
+<p>Several methods are available in <em>pomp</em> for fitting a
+deterministic or stochastic model to data using maximum likelihood.
+Remember that this implies a <em>frequentist</em> method, that is the
+prior distribution is ignored, and the parameter values that yield
+maximum likelihood are interpreted as the true parameters.</p>
 <div id="trajectory-matching" class="section level2">
 <h2>Trajectory matching</h2>
 <pre class="r"><code>seitlTm &lt;- traj_objfun(seitlPompR, params = c(theta, seitlInitState), est = names(theta))
 res &lt;- optim(par = log(theta), fn = seitlTm)</code></pre>
 <pre class="r"><code>logLik(seitlTm)</code></pre>
 <pre><code>## [1] -139.4111</code></pre>
-<p>This fits the deterministic skeleton to the data by maximising the likelihood using a standard optimisation method (see <code>?traj_objfun</code> for details on the methods available). That is, it ignores all <em>process noise</em> (or <em>demographic stochasticity</em>) in the model.</p>
-<p>We can use the best-fit parameters from trajectory matching to simulate multiple trajectories from the stochastic model by passing the new object <code>seitlTm</code> to <code>simulate</code>.</p>
+<p>This fits the deterministic skeleton to the data by maximising the
+likelihood using a standard optimisation method (see
+<code>?traj_objfun</code> for details on the methods available). That
+is, it ignores all <em>process noise</em> (or <em>demographic
+stochasticity</em>) in the model.</p>
+<p>We can use the best-fit parameters from trajectory matching to
+simulate multiple trajectories from the stochastic model by passing the
+new object <code>seitlTm</code> to <code>simulate</code>.</p>
 <pre class="r"><code>seitlTmSim &lt;- simulate(seitlTm, nsim = 10, format = &quot;data.frame&quot;)
 plotTraj(seitlTmSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
 <p><img src="figure/pomp/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="maximum-likelihood-by-iterated-filtering-mif" class="section level2">
+<div id="maximum-likelihood-by-iterated-filtering-mif"
+class="section level2">
 <h2>Maximum likelihood by iterated filtering (MIF)</h2>
 <pre class="r"><code>propSd &lt;- rep(0.01, length(theta))
 names(propSd) &lt;- names(theta)
@@ -387,17 +482,47 @@ seitlMfSim &lt;- simulate(seitlMf, nsim = 10, include.data = TRUE, format = &quo
 plotTraj(seitlMfSim, data = fluTdc1971, stateNames = &quot;obs&quot;)</code></pre>
 <pre class="r"><code>logLik(seitlMf)</code></pre>
 <pre><code>## [1] -124.7027</code></pre>
-<p>This fits the stochastic model to the data by maximising the likelihood using so-called <a href="https://en.wikipedia.org/wiki/Iterated_filtering">iterated filtering</a>. The parameters to be fitted are randomly perturbed (via a so-called random walk) in parameter space and the likelihood estimated with a particle filter. When <em>iterating</em> this procedure with smaller and smaller perturbations (i.e., smaller and smaller steps in the random walk), the parameters converge to the maximum likelihood estimate. For more information on maximum likelihood by iterated filtering, see the references given on the <a href="https://en.wikipedia.org/wiki/Iterated_filtering#References">wikipedia page</a>.</p>
-<p>In the function call above, we have used <code>Nmif = 50</code> iterations of MIF for finding the parameters that maximise the likelihood, <code>Np = 1000</code> particles for the likelihood itself, and a proportion of <code>cooling.fraction.50 = 0.01</code> of the random walk intensity remaining after 50 iterations.</p>
-<p>Note that we have initialised the method with the maximum likelihood estimate obtained from trajectory matching the deterministic model (<code>seitlTm</code>). It is a common procedure to initialise more computationally intensive models with results from a simpler, more approximate method.</p>
+<p>This fits the stochastic model to the data by maximising the
+likelihood using so-called <a
+href="https://en.wikipedia.org/wiki/Iterated_filtering">iterated
+filtering</a>. The parameters to be fitted are randomly perturbed (via a
+so-called random walk) in parameter space and the likelihood estimated
+with a particle filter. When <em>iterating</em> this procedure with
+smaller and smaller perturbations (i.e., smaller and smaller steps in
+the random walk), the parameters converge to the maximum likelihood
+estimate. For more information on maximum likelihood by iterated
+filtering, see the references given on the <a
+href="https://en.wikipedia.org/wiki/Iterated_filtering#References">wikipedia
+page</a>.</p>
+<p>In the function call above, we have used <code>Nmif = 50</code>
+iterations of MIF for finding the parameters that maximise the
+likelihood, <code>Np = 1000</code> particles for the likelihood itself,
+and a proportion of <code>cooling.fraction.50 = 0.01</code> of the
+random walk intensity remaining after 50 iterations.</p>
+<p>Note that we have initialised the method with the maximum likelihood
+estimate obtained from trajectory matching the deterministic model
+(<code>seitlTm</code>). It is a common procedure to initialise more
+computationally intensive models with results from a simpler, more
+approximate method.</p>
 </div>
 </div>
-<div id="model-fitting-by-sampling-from-the-posterior-distribution" class="section level1">
+<div id="model-fitting-by-sampling-from-the-posterior-distribution"
+class="section level1">
 <h1>Model fitting by sampling from the posterior distribution</h1>
-<p>Several methods are available in <em>pomp</em> for fitting a deterministic or stochastic model to data by sampling from the posterior distribution. Remember that this implies a <em>Bayesian</em> method, that is the prior distribution is taken into account, and the parameter vectors sampled from the posterior distribution are interpreted as draws from a random distribution that encodes our uncertainty.</p>
-<div id="particle-markov-chain-monte-carlo-pmcmc" class="section level2">
+<p>Several methods are available in <em>pomp</em> for fitting a
+deterministic or stochastic model to data by sampling from the posterior
+distribution. Remember that this implies a <em>Bayesian</em> method,
+that is the prior distribution is taken into account, and the parameter
+vectors sampled from the posterior distribution are interpreted as draws
+from a random distribution that encodes our uncertainty.</p>
+<div id="particle-markov-chain-monte-carlo-pmcmc"
+class="section level2">
 <h2>Particle Markov-Chain Monte Carlo (pMCMC)</h2>
-<p>The following code runs pMCMC with adaptation of the proposal distribution using the model given to the <code>POMP</code> object. <strong>Note</strong>: you can try first with a smaller value of the <code>Nmcmc</code> parameter; depending on the power of your computer, the code below can take a while to run.</p>
+<p>The following code runs pMCMC with adaptation of the proposal
+distribution using the model given to the <code>POMP</code> object.
+<strong>Note</strong>: you can try first with a smaller value of the
+<code>Nmcmc</code> parameter; depending on the power of your computer,
+the code below can take a while to run.</p>
 <pre class="r"><code># run pMCMC with adaptive MCMC
 seitlPmcmc &lt;- pmcmc(seitlPompR, params = coef(seitlMf), Nmcmc = 5000, Np = 128, proposal = mvn_rw_adaptive(rw.sd = propSd,
     scale.start = 100, shape.start = 200))
@@ -407,16 +532,46 @@ trace &lt;- traces(seitlPmcmc)</code></pre>
 1 - rejectionRate(trace)
 
 plot(trace)</code></pre>
-<p>This runs pMCMC on the model, here for <code>Nmcmc = 5000</code> MCMC iterations with <code>Np = 128</code> particles. If you’re interested in seeing the adaptation of the covariance matrix in action, you can run the <code>pmcmc</code> command above with the additional argument <code>verbose = TRUE</code>.</p>
-<p>You will notice that the pMCMC runs much faster than the one we implemented earlier in the course. This is because both the model and the particle filter are now coded in C and compiled to fully use the processing power of the computer it runs on. Remember that the trace plots for the earlier practicals were obtained by running the code for several hours on a computing cluster. The code above, while perhaps not running for quite long enough for a reliable estimation of the posterior densities, should run in only a few minutes to run on your computer (on a Macbook Pro, it took a few minutes). You could try running the same sequence of commands with the <code>seitlPompR</code> object to see the enourmous difference in running times.</p>
-<p>Look at the trace and density plots above. Are you satisfied with the performance of the MCMC? How would you check if you can trust the resulting posterior samples? What would you change if you weren’t satisfied? We hope that the knowledge and tools you have acquired in this course means you know what might be needed in order to obtain a reliable model fit. Do you get the same answers as yesterday?</p>
+<p>This runs pMCMC on the model, here for <code>Nmcmc = 5000</code> MCMC
+iterations with <code>Np = 128</code> particles. If you’re interested in
+seeing the adaptation of the covariance matrix in action, you can run
+the <code>pmcmc</code> command above with the additional argument
+<code>verbose = TRUE</code>.</p>
+<p>You will notice that the pMCMC runs much faster than the one we
+implemented earlier in the course. This is because both the model and
+the particle filter are now coded in C and compiled to fully use the
+processing power of the computer it runs on. Remember that the trace
+plots for the earlier practicals were obtained by running the code for
+several hours on a computing cluster. The code above, while perhaps not
+running for quite long enough for a reliable estimation of the posterior
+densities, should run in only a few minutes to run on your computer (on
+a Macbook Pro, it took a few minutes). You could try running the same
+sequence of commands with the <code>seitlPompR</code> object to see the
+enourmous difference in running times.</p>
+<p>Look at the trace and density plots above. Are you satisfied with the
+performance of the MCMC? How would you check if you can trust the
+resulting posterior samples? What would you change if you weren’t
+satisfied? We hope that the knowledge and tools you have acquired in
+this course means you know what might be needed in order to obtain a
+reliable model fit. Do you get the same answers as yesterday?</p>
 </div>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
 <ul>
-<li>There are other methods available in <em>pomp</em>, such as ABC (Approximate Bayesian Computation). They all operate by the same principle of solving the problems of 1) estimating the likelihood (in the case of a stochastic model) and 2) maximising the it (if frequentist) or sampling from the posterior distribution (if Bayesian). You can read up on the different methods on the <a href="https://kingaa.github.io/pomp/">pomp web site</a>, and try to use them on the Tristan da Cunha dataset.</li>
-<li>As another example of a library for model fitting and inference you could have a go at LibBi and the corresponding R package RBi. The deterministic and stochastic SEITL models can be found <a href="libbi.html">here</a>. Can you fit them to the Tristan da Cunha data set?</li>
+<li>There are other methods available in <em>pomp</em>, such as ABC
+(Approximate Bayesian Computation). They all operate by the same
+principle of solving the problems of 1) estimating the likelihood (in
+the case of a stochastic model) and 2) maximising the it (if
+frequentist) or sampling from the posterior distribution (if Bayesian).
+You can read up on the different methods on the <a
+href="https://kingaa.github.io/pomp/">pomp web site</a>, and try to use
+them on the Tristan da Cunha dataset.</li>
+<li>As another example of a library for model fitting and inference you
+could have a go at LibBi and the corresponding R package RBi. The
+deterministic and stochastic SEITL models can be found <a
+href="libbi.html">here</a>. Can you fit them to the Tristan da Cunha
+data set?</li>
 </ul>
 </div>
 

@@ -13,6 +13,7 @@
 
 <title>Full example: particle MCMC</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -298,16 +299,35 @@ $(document).ready(function () {
 
 <div id="run-a-particle-filter" class="section level1">
 <h1>Run a particle filter</h1>
-<p>The particle filter returns a Monte-Carlo estimate of the log-likelihood and, as every Monte-carlo estimate, its precision depends on the number of particles.</p>
-<p>If you have too few particles then you will have a highly variable estimate of the log-likelihood and this will make the exploration of the likelihood surface quite imprecise. In addition, you might experience particle depletion (if you don’t know what that means just try to run a particle filter with a single particle).</p>
-<p>If you have too many particles, then you will have an accurate estimate of your log-likelihood but it will be very time consuming so inefficient in practice.</p>
-<p>In addition, the variability of the estimate might also depend on the region of the parameter space. For instance, in some region you might experience significant variability with 100 particles whereas in another region it might be fairly stable.</p>
-<p>You can now return to the <a href="pmcmc.html#calibrate-the-number-of-particles">practical</a> and try to think on a way to calibrate the number of particles.</p>
+<p>The particle filter returns a Monte-Carlo estimate of the
+log-likelihood and, as every Monte-carlo estimate, its precision depends
+on the number of particles.</p>
+<p>If you have too few particles then you will have a highly variable
+estimate of the log-likelihood and this will make the exploration of the
+likelihood surface quite imprecise. In addition, you might experience
+particle depletion (if you don’t know what that means just try to run a
+particle filter with a single particle).</p>
+<p>If you have too many particles, then you will have an accurate
+estimate of your log-likelihood but it will be very time consuming so
+inefficient in practice.</p>
+<p>In addition, the variability of the estimate might also depend on the
+region of the parameter space. For instance, in some region you might
+experience significant variability with 100 particles whereas in another
+region it might be fairly stable.</p>
+<p>You can now return to the <a
+href="pmcmc.html#calibrate-the-number-of-particles">practical</a> and
+try to think on a way to calibrate the number of particles.</p>
 </div>
 <div id="calibrate-the-number-of-particles" class="section level1">
 <h1>Calibrate the number of particles</h1>
-<p>Ideally we want enough particles to obtain a fairly stable estimate of the log-likelihood in a reasonable computational time.</p>
-<p>A simple calibration approach consists in plotting the mean, standard deviation and computational time of the log-likelihood estimate as a function of the number of particles. Although several parameters can be tested, we will use a <code>theta</code> close to the mean posterior estimate of the deterministic fit since it is likely to be the region of the parameter space we want to explore with the pMCMC.</p>
+<p>Ideally we want enough particles to obtain a fairly stable estimate
+of the log-likelihood in a reasonable computational time.</p>
+<p>A simple calibration approach consists in plotting the mean, standard
+deviation and computational time of the log-likelihood estimate as a
+function of the number of particles. Although several parameters can be
+tested, we will use a <code>theta</code> close to the mean posterior
+estimate of the deterministic fit since it is likely to be the region of
+the parameter space we want to explore with the pMCMC.</p>
 <pre class="r"><code># load fitmodel, data and define initState
 data(fluTdc1971)
 
@@ -358,7 +378,8 @@ for (nParticles in testNparticles) {
 
   calibrateSmc &lt;- rbind(calibrateSmc, t(ans))
 }</code></pre>
-<p>We ran this calibration algorithm and obtained the following results:</p>
+<p>We ran this calibration algorithm and obtained the following
+results:</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
 library(&quot;tidyr&quot;)
 library(&quot;ggplot2&quot;)
@@ -388,8 +409,27 @@ p &lt;- ggplot(dfPlot, aes(x = nParticles, y = value)) +
   xlab(&quot;number of particles&quot;)
 print(p)</code></pre>
 <p><img src="figure/pmcmc_solution/plot-calibration-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p>We can see how, with increasing number of particles, the standard deviation of the log-likelihood estimate decreases whilst the run time increases. Ideally we want to balance between a stable enough estimate of the log-likelihood to ensure good mixing and computation time. Various studies have shown that this is broadly the case at values of the standard deviation between 1 and 3 (see, e.g. <a href="https://doi.org/10.48550/arXiv.1709.04196">Farnhead and Küsch, section 7.2.1</a>). We can see that this happens somewhere around 100 particles in our example (indicated by a dashed red line). We can also see that the computational time increases linearly with the number of particles. Using 128 particles may be optimal if we want a stable estimator while minimising the computational time, but would take 2.3 days on the computer where this experiment was run to run the particle filter 10,000 times. Since every step of the pMCMC requires to run a particle filter, that means that it will take the same amount of time to generate 10,000 samples of the pMCMC. This is why you will often need a scientific computing cluster to run a pMCMC and make extensive use of parallelisation.</p>
-<p>You can now return to the <a href="pmcmc.html#run-pmcmc">practical</a> and set your pMCMC with 128 particles.</p>
+<p>We can see how, with increasing number of particles, the standard
+deviation of the log-likelihood estimate decreases whilst the run time
+increases. Ideally we want to balance between a stable enough estimate
+of the log-likelihood to ensure good mixing and computation time.
+Various studies have shown that this is broadly the case at values of
+the standard deviation between 1 and 3 (see, e.g. <a
+href="https://doi.org/10.48550/arXiv.1709.04196">Farnhead and Küsch,
+section 7.2.1</a>). We can see that this happens somewhere around 100
+particles in our example (indicated by a dashed red line). We can also
+see that the computational time increases linearly with the number of
+particles. Using 128 particles may be optimal if we want a stable
+estimator while minimising the computational time, but would take 2.3
+days on the computer where this experiment was run to run the particle
+filter 10,000 times. Since every step of the pMCMC requires to run a
+particle filter, that means that it will take the same amount of time to
+generate 10,000 samples of the pMCMC. This is why you will often need a
+scientific computing cluster to run a pMCMC and make extensive use of
+parallelisation.</p>
+<p>You can now return to the <a
+href="pmcmc.html#run-pmcmc">practical</a> and set your pMCMC with 128
+particles.</p>
 </div>
 <div id="setting-the-pmcmc" class="section level1">
 <h1>Setting the pMCMC</h1>
@@ -440,11 +480,14 @@ nIterations &lt;- 50 # just a few since it takes quite a lot of time
 adaptSizeStart &lt;- 100
 adaptSizeCooling &lt;- 0.99
 adaptShapeStart &lt;- 100</code></pre>
-<p>You can now go back to the <a href="pmcmc.html#run-a-pmcmc">practical</a> and try to run pMCMC with those settings.</p>
+<p>You can now go back to the <a
+href="pmcmc.html#run-a-pmcmc">practical</a> and try to run pMCMC with
+those settings.</p>
 </div>
 <div id="analyse-a-pmcmc-with-16-particles" class="section level1">
 <h1>Analyse a pMCMC with 16 particles</h1>
-<p>Here is an example of analysis of our 8 chains of 3000 iterations with 16 particles.</p>
+<p>Here is an example of analysis of our 8 chains of 3000 iterations
+with 16 particles.</p>
 <pre class="r"><code># load traces
 data(pmcmcSeit4lInfoPrior)
 
@@ -465,13 +508,24 @@ trace16 &lt;- mcmc.list(lapply(pmcmcSeit4lInfoPrior16, function(chain) {
 library(&quot;lattice&quot;)
 xyplot(trace16)</code></pre>
 <p><img src="figure/pmcmc_solution/analyse-n8-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>We can see that in several chains the sampler gets “stuck”, rendering our inference and any resulting calculations (e.g. of ESS) highly unreliable.</p>
-<p>With so few particles, the likelihood estimate is very noisy and the exploration of the parameter space is not efficient. That said, the theoretical properties of the pMCMC guarantee that the chain will converge to the true posterior, even with 1 particle. Of course, this will take a lot of iterations so in practice it might be more efficient to spend more time computing the likelihood (i.e. having more particles) in order to reduce the number of iterations.</p>
-<p>You can now return to the <a href="pmcmc.html#analyse-a-pmcmc-with-128-particles">practical</a> and analyse a pMCMC with much more particles that we ran for you.</p>
+<p>We can see that in several chains the sampler gets “stuck”, rendering
+our inference and any resulting calculations (e.g. of ESS) highly
+unreliable.</p>
+<p>With so few particles, the likelihood estimate is very noisy and the
+exploration of the parameter space is not efficient. That said, the
+theoretical properties of the pMCMC guarantee that the chain will
+converge to the true posterior, even with 1 particle. Of course, this
+will take a lot of iterations so in practice it might be more efficient
+to spend more time computing the likelihood (i.e. having more particles)
+in order to reduce the number of iterations.</p>
+<p>You can now return to the <a
+href="pmcmc.html#analyse-a-pmcmc-with-128-particles">practical</a> and
+analyse a pMCMC with much more particles that we ran for you.</p>
 </div>
 <div id="analyse-a-pmcmc-with-128-particles" class="section level1">
 <h1>Analyse a pMCMC with 128 particles</h1>
-<p>Here is an example of analysis of our 8 chains of 3000 iterations with 128 particles.</p>
+<p>Here is an example of analysis of our 8 chains of 3000 iterations
+with 128 particles.</p>
 <pre class="r"><code>
 # combine into a `mcmc.list` object
 library(&quot;coda&quot;)
@@ -497,7 +551,10 @@ effectiveSize(trace)
 library(&quot;lattice&quot;)
 xyplot(trace)</code></pre>
 <p><img src="figure/pmcmc_solution/analyse-n64-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>As in the analysis with 16 particles, the burn-in period is relatively short. However, with 128 particles the chains mix much better. We can carefully choose the burn-in period with <code>plotEssBurn</code>.</p>
+<p>As in the analysis with 16 particles, the burn-in period is
+relatively short. However, with 128 particles the chains mix much
+better. We can carefully choose the burn-in period with
+<code>plotEssBurn</code>.</p>
 <pre class="r"><code># Actually, it looks like no burn-in is needed:
 plotEssBurn(trace)</code></pre>
 <p><img src="figure/pmcmc_solution/analyse-n128-burn-1.png" width="960" style="display: block; margin: auto;" /></p>
@@ -512,17 +569,42 @@ traceThin128 &lt;- burnAndThin(trace, thin = 20)
 # Let&#39;s plot the posterior densities
 densityplot(x = traceThin128)</code></pre>
 <p><img src="figure/pmcmc_solution/analyse-n128-burn-3.png" width="960" style="display: block; margin: auto;" /></p>
-<p>All 8 chains seems to have converged to the same posterior, which are smoother than with 16 particles. Let’s compare the combined posterior densities with that obtained with 16 particles</p>
+<p>All 8 chains seems to have converged to the same posterior, which are
+smoother than with 16 particles. Let’s compare the combined posterior
+densities with that obtained with 16 particles</p>
 <pre class="r"><code>plotPosteriorDensity(list(n16 = trace16, n128 = traceThin128))</code></pre>
 <p><img src="figure/pmcmc_solution/n128-n16-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><strong>Although the posterior distributions are similar, those with 128 particles are smoother and more representative thanks to higher ESS.</strong> Note the different location of the mode of <span class="math inline">\(R_0\)</span>, which is shifted to the left with 16 particles. This is because 1 of the 8 chains with 16 particles shows a posterior with much lower <span class="math inline">\(R_0\)</span> (see figure above), whereas the remaining 4 seems to have converged to the same distribution as the pMCMC with 128 particles.</p>
-<p>Finally, note that the log-likelihood is overestimated with 16 particles, which can be problematic for model selection as we would overestimate the fit of the model.</p>
-<p><strong>Overall, this analysis confirms that the pMCMC works even with 16 particles but that it will require much more iterations to achieve the same posterior as the pMCMC with 128 particles.</strong> Although the latter takes more time at each iteration, it provides more better samples on short-runs. A good strategy is therefore to run many short chains in parallel with 128 particles. The chains start at different <code>initTheta</code> near the mode of the deterministic posterior, and are then combined to increase the overall ESS.</p>
-<p>You can now return to the <a href="pmcmc.html#stochastic-vs-deterministic-fit">practical</a> and proceed to the last section of this session.</p>
+<p><strong>Although the posterior distributions are similar, those with
+128 particles are smoother and more representative thanks to higher
+ESS.</strong> Note the different location of the mode of <span
+class="math inline">\(R_0\)</span>, which is shifted to the left with 16
+particles. This is because 1 of the 8 chains with 16 particles shows a
+posterior with much lower <span class="math inline">\(R_0\)</span> (see
+figure above), whereas the remaining 4 seems to have converged to the
+same distribution as the pMCMC with 128 particles.</p>
+<p>Finally, note that the log-likelihood is overestimated with 16
+particles, which can be problematic for model selection as we would
+overestimate the fit of the model.</p>
+<p><strong>Overall, this analysis confirms that the pMCMC works even
+with 16 particles but that it will require much more iterations to
+achieve the same posterior as the pMCMC with 128 particles.</strong>
+Although the latter takes more time at each iteration, it provides more
+better samples on short-runs. A good strategy is therefore to run many
+short chains in parallel with 128 particles. The chains start at
+different <code>initTheta</code> near the mode of the deterministic
+posterior, and are then combined to increase the overall ESS.</p>
+<p>You can now return to the <a
+href="pmcmc.html#stochastic-vs-deterministic-fit">practical</a> and
+proceed to the last section of this session.</p>
 </div>
 <div id="stochastic-vs-deterministic-fit" class="section level1">
 <h1>Stochastic vs deterministic fit</h1>
-<p>Here we compare the combined traces of the deterministic SEIT4L model (2 chains of 50000 iterations) with those obtained with the stochastic version (8 chains of <span class="math inline">\(3000\)</span> iterations). Both analysis have assumed informative priors for <span class="math inline">\(D_\mathrm{lat}\)</span> and <span class="math inline">\(D_\mathrm{inf}\)</span> .</p>
+<p>Here we compare the combined traces of the deterministic SEIT4L model
+(2 chains of 50000 iterations) with those obtained with the stochastic
+version (8 chains of <span class="math inline">\(3000\)</span>
+iterations). Both analysis have assumed informative priors for <span
+class="math inline">\(D_\mathrm{lat}\)</span> and <span
+class="math inline">\(D_\mathrm{inf}\)</span> .</p>
 <pre class="r"><code># load, burn and thin the deterministic fit
 
 # create mcmc object
@@ -540,7 +622,12 @@ traceDeter &lt;- burnAndThin(trace, burn = 5000, thin = 40)
 # compare posterior density
 plotPosteriorDensity(list(deter = traceDeter, sto = traceThin128))</code></pre>
 <p><img src="figure/pmcmc_solution/sto-deter-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Overall, the posterior distributions are quite different. This is especially true for <span class="math inline">\(R_0\)</span> and <span class="math inline">\(D_{imm}\)</span>. In addition, the discrepancy in the posterior distribution of the log-likelihood seems to indicate that the stochastic model fits much better. We can quantify this by computing the DIC of the stochastic SEIT4L model.</p>
+<p>Overall, the posterior distributions are quite different. This is
+especially true for <span class="math inline">\(R_0\)</span> and <span
+class="math inline">\(D_{imm}\)</span>. In addition, the discrepancy in
+the posterior distribution of the log-likelihood seems to indicate that
+the stochastic model fits much better. We can quantify this by computing
+the DIC of the stochastic SEIT4L model.</p>
 <pre class="r"><code># combine all traces in a data frame
 library(&quot;dplyr&quot;)
 library(&quot;purrr&quot;)
@@ -578,8 +665,12 @@ print(pD)
 dic &lt;- dThetaBar + 2 * pD
 print(dic)
 ## [1] 241.4072</code></pre>
-<p>In the previous session, we found that the DIC of the deterministic SEIT4L model was equal to 275. The difference of about 30 indicates that the stochastic model should strongly be preferred to the deterministic model.</p>
-<p>We can visually check this result by plotting the posterior fit of each model:</p>
+<p>In the previous session, we found that the DIC of the deterministic
+SEIT4L model was equal to 275. The difference of about 30 indicates that
+the stochastic model should strongly be preferred to the deterministic
+model.</p>
+<p>We can visually check this result by plotting the posterior fit of
+each model:</p>
 <pre class="r"><code># take the mean posterior estimates of the deterministic model
 x &lt;- summary(traceDeter)
 thetaBarDeter &lt;- x$statistics[seit4lDeter$thetaNames, &quot;Mean&quot;]
@@ -588,8 +679,13 @@ plotFit(seit4lStoch, thetaBar, initState, data = fluTdc1971, nReplicates = 1000)
 <p><img src="figure/pmcmc_solution/sto-deter-fit-1.png" width="480" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plotFit(seit4lDeter, thetaBarDeter, initState, data = fluTdc1971, nReplicates = 1000)</code></pre>
 <p><img src="figure/pmcmc_solution/sto-deter-fit-2.png" width="480" style="display: block; margin: auto;" /></p>
-<p>Despite the fact that the deterministic model seems to better capture the first peak of the epidemic, the stochastic model better explains the variability of the observed time-series. In particular, the 95% CI of the stochastic model captures almost all the observed data points, even during the first peak.</p>
-<p>You’ve already finished? Why not <a href="pmcmc.html#going-further">go further</a>?</p>
+<p>Despite the fact that the deterministic model seems to better capture
+the first peak of the epidemic, the stochastic model better explains the
+variability of the observed time-series. In particular, the 95% CI of
+the stochastic model captures almost all the observed data points, even
+during the first peak.</p>
+<p>You’ve already finished? Why not <a
+href="pmcmc.html#going-further">go further</a>?</p>
 </div>
 
 &nbsp;

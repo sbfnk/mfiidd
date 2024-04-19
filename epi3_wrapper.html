@@ -13,6 +13,7 @@
 
 <title>epi3 wrapper</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -296,7 +297,10 @@ $(document).ready(function () {
 </div>
 
 
-<p>Here is how you can wrap a log-posterior function for the <code>SIR</code> model fitted to the <code>epi3</code> data set, with fixed initial conditions of 999 susceptibles, 1 infected, and 0 recovered.</p>
+<p>Here is how you can wrap a log-posterior function for the
+<code>SIR</code> model fitted to the <code>epi3</code> data set, with
+fixed initial conditions of 999 susceptibles, 1 infected, and 0
+recovered.</p>
 <pre class="r"><code>my_dLogPosteriorEpi3 &lt;- function(theta) {
   return(my_dLogPosterior(
     fitmodel = sirDeter,
@@ -305,8 +309,11 @@ $(document).ready(function () {
     data = epi3
   ))
 }</code></pre>
-<p>You can copy and paste the function into your <strong>R</strong> session, and proceed from there.</p>
-<p><a href="mcmc_diagnostics.html#sampling-more-than-one-parameter">Return</a> to the MCMC diagnostics session.</p>
+<p>You can copy and paste the function into your <strong>R</strong>
+session, and proceed from there.</p>
+<p><a
+href="mcmc_diagnostics.html#sampling-more-than-one-parameter">Return</a>
+to the MCMC diagnostics session.</p>
 
 &nbsp;
 <hr />

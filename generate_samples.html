@@ -13,6 +13,7 @@
 
 <title>Example: generate samples</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -296,7 +297,8 @@ $(document).ready(function () {
 </div>
 
 
-<p>An example command to generate samples from <code>my_rLogPosteriorEpi1</code> using <code>my_mcmcMh</code> is:</p>
+<p>An example command to generate samples from
+<code>my_rLogPosteriorEpi1</code> using <code>my_mcmcMh</code> is:</p>
 <pre class="r"><code>trace &lt;- my_mcmcMh(
   target = my_dLogPosteriorR0Epi1, # target distribution
   initTheta = 1, # intial parameter guess
@@ -304,8 +306,10 @@ $(document).ready(function () {
   # Gaussian proposal: 0.1
   nIterations = 1000
 ) # number of iterations</code></pre>
-<p>You can copy and paste this command into your <strong>R</strong> session, and proceed from there.</p>
-<p><a href="mcmc.html#sampling-from-a-posterior-distribution">Return</a> to the MCMC session.</p>
+<p>You can copy and paste this command into your <strong>R</strong>
+session, and proceed from there.</p>
+<p><a href="mcmc.html#sampling-from-a-posterior-distribution">Return</a>
+to the MCMC session.</p>
 
 &nbsp;
 <hr />

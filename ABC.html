@@ -13,6 +13,7 @@
 
 <title>Inference with ABC</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -299,23 +300,44 @@ $(document).ready(function () {
 <p><a href="slides/abc_slides.pdf">Lecture slides</a></p>
 <div id="objectives" class="section level1">
 <h1>Objectives</h1>
-<p>The aim of this practical is to use Approximate Bayesian Computation (ABC) to circumvent the need for a tractable likelihood function when fitting your model. More specifically, you will</p>
+<p>The aim of this practical is to use Approximate Bayesian Computation
+(ABC) to circumvent the need for a tractable likelihood function when
+fitting your model. More specifically, you will</p>
 <ol style="list-style-type: decimal">
 <li>write some functions to evaluate summary statistics</li>
-<li>use the summary statistics to calculate a distance between model runs and the data</li>
-<li>approximate the SEITL model posterior using ABC rejection algorithm</li>
+<li>use the summary statistics to calculate a distance between model
+runs and the data</li>
+<li>approximate the SEITL model posterior using ABC rejection
+algorithm</li>
 </ol>
-<p>To illustrate ABC, you are again going to fit the <a href="play_with_seitl.html">SEITL model</a> to the Tristan da Cunha epidemics. Although in this case we do have a tractable likelihood function, you may have noticed that it is computationally costly to evaluate with the particle filter for the stochastic SEITL model (i.e., it takes a long time to run), so ABC could be an attractive alternative. Running and evaluating pMCMC and ABC on this same data set also gives us the chance to compare the two approaches.</p>
+<p>To illustrate ABC, you are again going to fit the <a
+href="play_with_seitl.html">SEITL model</a> to the Tristan da Cunha
+epidemics. Although in this case we do have a tractable likelihood
+function, you may have noticed that it is computationally costly to
+evaluate with the particle filter for the stochastic SEITL model (i.e.,
+it takes a long time to run), so ABC could be an attractive alternative.
+Running and evaluating pMCMC and ABC on this same data set also gives us
+the chance to compare the two approaches.</p>
 </div>
 <div id="background" class="section level1">
 <h1>Background</h1>
 <p>There are two approximation steps at the core of ABC:</p>
 <ul>
-<li>it replaces observations with summary statistics. Unless these summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>, this leads to a possibly less informative posterior density.</li>
-<li>we are accepting simulations that are within an <em>acceptance window</em> of the data. Unless the acceptance tolerances are equal to 0, this leads to biased samples from the posterior.</li>
+<li>it replaces observations with summary statistics. Unless these
+summary statistics are <a
+href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>,
+this leads to a possibly less informative posterior density.</li>
+<li>we are accepting simulations that are within an <em>acceptance
+window</em> of the data. Unless the acceptance tolerances are equal to
+0, this leads to biased samples from the posterior.</li>
 </ul>
-<p>On the other hand, we have seen in a previous session that MCMC provides unbiased samples from the true posterior at little cost for the deterministic SEITL model. You will end this session by fitting this deterministic model with ABC and assess the accuracy of your ABC posterior distribution by comparing it with the true posterior.</p>
-<p>As before, you can load the stochastic SEITL model and the Tristan da Cunha data set with</p>
+<p>On the other hand, we have seen in a previous session that MCMC
+provides unbiased samples from the true posterior at little cost for the
+deterministic SEITL model. You will end this session by fitting this
+deterministic model with ABC and assess the accuracy of your ABC
+posterior distribution by comparing it with the true posterior.</p>
+<p>As before, you can load the stochastic SEITL model and the Tristan da
+Cunha data set with</p>
 <pre class="r"><code>data(models)
 data(fluTdc1971)</code></pre>
 <p>Once again, you can plot the Tristan da Cunha data with</p>
@@ -324,7 +346,12 @@ data(fluTdc1971)</code></pre>
 </div>
 <div id="summary-statistics" class="section level1">
 <h1>Summary statistics</h1>
-<p>First of all, you need to define a set of summary statistics for the time series. Have a look at the figure above and think of statistics that would describe the data, and capture the features you want to capture. Finally, code at least two functions that take a trajectory (with an <code>obs</code> column containing the observations) as input and return the values of your summary statistics.</p>
+<p>First of all, you need to define a set of summary statistics for the
+time series. Have a look at the figure above and think of statistics
+that would describe the data, and capture the features you want to
+capture. Finally, code at least two functions that take a trajectory
+(with an <code>obs</code> column containing the observations) as input
+and return the values of your summary statistics.</p>
 <pre class="r"><code>traj &lt;- fluTdc1971
 
 # a function that takes one parameter:
@@ -337,8 +364,14 @@ my_summaryStat1 &lt;- function(traj) {
 ss1.data &lt;- my_summaryStat1(traj)
 
 # write other summary statistics</code></pre>
-<p>If you have trouble coding these up yourself, have a look at some of our <a href="sumstat_examples.html">examples</a>.</p>
-<p>Test how your summary statistics vary with a single set of parameters. You can use the <strong>R</strong> function <code>replicates</code>, which calls the same function a specified number of times. For example, to call the <code>ssSize</code> function from the <a href="sumstat_examples.html">examples</a> (which calculates final size) on 100 generated observation trajectories, you can use</p>
+<p>If you have trouble coding these up yourself, have a look at some of
+our <a href="sumstat_examples.html">examples</a>.</p>
+<p>Test how your summary statistics vary with a single set of
+parameters. You can use the <strong>R</strong> function
+<code>replicates</code>, which calls the same function a specified
+number of times. For example, to call the <code>ssSize</code> function
+from the <a href="sumstat_examples.html">examples</a> (which calculates
+final size) on 100 generated observation trajectories, you can use</p>
 <pre class="r"><code>theta &lt;- c(R_0 = 2, D_lat = 2, D_inf = 2, alpha = 0.9, D_imm = 13, rho = 0.85)
 initState &lt;- c(S = 250, E = 0, I = 4, T = 0, L = 30, Inc = 0)
 hist(
@@ -348,13 +381,39 @@ hist(
   xlab = &quot;summary statistic&quot;
 )</code></pre>
 <p><img src="figure/ABC/size_hist-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>These are stochastic simulations so of course your histogram will look different. If you created your own function for summary statistics (e.g., <code>my_summaryStat1</code>), replace <code>ssSize</code> in the plot command with that one and test how it varies over different simulation runs. We suggest that you try a few summary statistics to get a feeling for how they vary across simulations.</p>
-<p>The last command is easiest read from the inside out: <code>rTrajObs</code> with the given arguments produces an observation trajectory from the <code>seitlStoch</code> model, <code>ssSize</code> calculates the final size (i.e., total number of people infected) for such a trajectory, <code>replicates</code> does it 100 times and <code>hist</code> plots the outcome (i.e., the replicates of the final size) as a histogram. Depending on the summary statistic you choose, you might see quite a large amount of variation in the outcome of the summary statistic even with a single set of parameters. This might be a problem later when you define an acceptance window: if it is chosen too large, there is a risk that parameter values are accepted indiscriminately. If it is too small, the acceptance will be low and, consequently, many simulation runs wasted because even good parameter sets will often miss the acceptance window.</p>
-<p>Do you think your summary statistics are <a href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>?</p>
+<p>These are stochastic simulations so of course your histogram will
+look different. If you created your own function for summary statistics
+(e.g., <code>my_summaryStat1</code>), replace <code>ssSize</code> in the
+plot command with that one and test how it varies over different
+simulation runs. We suggest that you try a few summary statistics to get
+a feeling for how they vary across simulations.</p>
+<p>The last command is easiest read from the inside out:
+<code>rTrajObs</code> with the given arguments produces an observation
+trajectory from the <code>seitlStoch</code> model, <code>ssSize</code>
+calculates the final size (i.e., total number of people infected) for
+such a trajectory, <code>replicates</code> does it 100 times and
+<code>hist</code> plots the outcome (i.e., the replicates of the final
+size) as a histogram. Depending on the summary statistic you choose, you
+might see quite a large amount of variation in the outcome of the
+summary statistic even with a single set of parameters. This might be a
+problem later when you define an acceptance window: if it is chosen too
+large, there is a risk that parameter values are accepted
+indiscriminately. If it is too small, the acceptance will be low and,
+consequently, many simulation runs wasted because even good parameter
+sets will often miss the acceptance window.</p>
+<p>Do you think your summary statistics are <a
+href="http://en.wikipedia.org/wiki/Sufficient_statistic">sufficient</a>?</p>
 </div>
-<div id="distance-between-observed-and-simulated-summary-statistics" class="section level1">
+<div id="distance-between-observed-and-simulated-summary-statistics"
+class="section level1">
 <h1>Distance between observed and simulated summary statistics</h1>
-<p>The second step is to compare your data with your simulation using a function that computes the distance between your observed and simulated summary statistics. In the most general case, you will want to write a distance function for each summary statistic. Here, let’s write a single function that calculates the distance between all summary statistics and returns either a single (e.g., mean) distance or a vector of distances.</p>
+<p>The second step is to compare your data with your simulation using a
+function that computes the distance between your observed and simulated
+summary statistics. In the most general case, you will want to write a
+distance function for each summary statistic. Here, let’s write a single
+function that calculates the distance between all summary statistics and
+returns either a single (e.g., mean) distance or a vector of
+distances.</p>
 <pre class="r"><code># a function that takes 5 arguments:
 # - sumStats: a list of functions to calculate summary statistics
 # - dataObs: the trajectory of observations (data)
@@ -373,8 +432,11 @@ my_distance &lt;- function(sumStats, dataObs, modelObs) {
   # trajectories in terms of the summary statistics. E.g., a vector
   # of distances or a mean distance
 }</code></pre>
-<p>If you have any trouble writing a function for the distance, have a look at our <a href="distance_examples.html">examples</a>.</p>
-<p>Test that your summary distance function returns a sensible value (here, we have assigned the <code>ssMeanRelDistance</code> from the examples to <code>my_distance</code>.</p>
+<p>If you have any trouble writing a function for the distance, have a
+look at our <a href="distance_examples.html">examples</a>.</p>
+<p>Test that your summary distance function returns a sensible value
+(here, we have assigned the <code>ssMeanRelDistance</code> from the
+examples to <code>my_distance</code>.</p>
 <pre class="r"><code>simu &lt;- rTrajObs(seitlStoch, theta, initState, fluTdc1971$time)
 ssMeanRelDistance(
   sumStats = list(ssSize, ssMax),
@@ -382,8 +444,22 @@ ssMeanRelDistance(
   modelObs = simu
 )</code></pre>
 <pre><code>## [1] 0.4716653</code></pre>
-<p>Again, you can change <code>ssMeanRelDistance</code> to your own <code>my_distance</code> function or one from the <a href="distance_examples.html">examples</a>, and try different things for the list of summary statistics (including more or less than two summary statistics).</p>
-<p>You can then test the distribution of distances of the summary statistics from model runs to the summary statistic on the data, in the same way as we did before with the distribution of summary statistics. You can use <code>computeDistanceAbc</code> function provided in the <code>fitR</code> package does the leg work for you. It computes the distance between a <code>fitmodel</code> and the <code>data</code> for a single simulation using a given parameter vector <code>theta</code> and initial state <code>initState</code>. Have a look at the code of <code>computeDistanceAbc</code>; all it does is generate a simulated observation trajectory and evaluate the distance using a function passed as an argument. We can test it using</p>
+<p>Again, you can change <code>ssMeanRelDistance</code> to your own
+<code>my_distance</code> function or one from the <a
+href="distance_examples.html">examples</a>, and try different things for
+the list of summary statistics (including more or less than two summary
+statistics).</p>
+<p>You can then test the distribution of distances of the summary
+statistics from model runs to the summary statistic on the data, in the
+same way as we did before with the distribution of summary statistics.
+You can use <code>computeDistanceAbc</code> function provided in the
+<code>fitR</code> package does the leg work for you. It computes the
+distance between a <code>fitmodel</code> and the <code>data</code> for a
+single simulation using a given parameter vector <code>theta</code> and
+initial state <code>initState</code>. Have a look at the code of
+<code>computeDistanceAbc</code>; all it does is generate a simulated
+observation trajectory and evaluate the distance using a function passed
+as an argument. We can test it using</p>
 <pre class="r"><code>computeDistanceAbc(
   sumStats = list(ssSize, ssMax),
   distanceAbc = ssMeanRelDistance,
@@ -393,9 +469,16 @@ ssMeanRelDistance(
   data = fluTdc1971
 )</code></pre>
 <pre><code>## [1] 0.9675055</code></pre>
-<p>Again, you can change the list of summary statistics (<code>ssSize</code>, <code>ssMax</code>) and the distance function (<code>ssMeanRelDistance</code>) with your own ones, or other ones from the <a href="sumstat_examples.html">examples</a>.</p>
-<p>The returned distance is the outcome of a single simulation run, so you will get a different result here, which will also depend on your choice of distance function and summary statistics.</p>
-<p>To plot the distribution of distances from the data for a single set of parameter values <code>theta</code>, you can again use <code>replicate</code>.</p>
+<p>Again, you can change the list of summary statistics
+(<code>ssSize</code>, <code>ssMax</code>) and the distance function
+(<code>ssMeanRelDistance</code>) with your own ones, or other ones from
+the <a href="sumstat_examples.html">examples</a>.</p>
+<p>The returned distance is the outcome of a single simulation run, so
+you will get a different result here, which will also depend on your
+choice of distance function and summary statistics.</p>
+<p>To plot the distribution of distances from the data for a single set
+of parameter values <code>theta</code>, you can again use
+<code>replicate</code>.</p>
 <pre class="r"><code>hist(
   replicate(100, computeDistanceAbc(
     sumStats = list(ssSize, ssMax),
@@ -408,17 +491,38 @@ ssMeanRelDistance(
   xlab = &quot;distance&quot;
 )</code></pre>
 <p><img src="figure/ABC/distances_plot-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Again, these are stochastic simulations so your histogram will look different, and again you can test this with different summary statistics (including more, or fewer) and distance functions. How widely are the distances distributed for a single set of parameters? This should give you an indication for a reasonable acceptance window. Ideally, you want to have summary statistics that vary a lot between parameter values (so the acceptance window can distinguish between good or bad fits), but not so much within parameter values (so you don’t have to reject many runs from good parameters). Finding the right combination summary statistics and distance functions to achieve this can be very difficult, though, and one usually ends up having to make compromises between the two.</p>
+<p>Again, these are stochastic simulations so your histogram will look
+different, and again you can test this with different summary statistics
+(including more, or fewer) and distance functions. How widely are the
+distances distributed for a single set of parameters? This should give
+you an indication for a reasonable acceptance window. Ideally, you want
+to have summary statistics that vary a lot between parameter values (so
+the acceptance window can distinguish between good or bad fits), but not
+so much within parameter values (so you don’t have to reject many runs
+from good parameters). Finding the right combination summary statistics
+and distance functions to achieve this can be very difficult, though,
+and one usually ends up having to make compromises between the two.</p>
 </div>
 <div id="abc-rejection-algorithm" class="section level1">
 <h1>ABC rejection algorithm</h1>
-<p>Lastly, write a function that will return the approximated posterior distribution for theta using the ABC rejection algorithm. We will propose <span class="math inline">\(D_{lat}\)</span> anf <span class="math inline">\(D_{inf}\)</span> from informative priors:</p>
+<p>Lastly, write a function that will return the approximated posterior
+distribution for theta using the ABC rejection algorithm. We will
+propose <span class="math inline">\(D_{lat}\)</span> anf <span
+class="math inline">\(D_{inf}\)</span> from informative priors:</p>
 <ul>
-<li><span class="math inline">\(D_{lat}\sim\mathcal{Gamma}(shape=16,rate=8)\)</span></li>
-<li><span class="math inline">\(D_{inf}\sim\mathcal{Gamma}(shape=16,rate=8)\)</span></li>
+<li><span
+class="math inline">\(D_{lat}\sim\mathcal{Gamma}(shape=16,rate=8)\)</span></li>
+<li><span
+class="math inline">\(D_{inf}\sim\mathcal{Gamma}(shape=16,rate=8)\)</span></li>
 </ul>
-<p>We choose the Gamma distribution as our parameters must be positive in value. The mean of the gamma distribution is <span class="math inline">\(shape/rate\)</span> and the variance is <span class="math inline">\(shape/rate^2\)</span>. Hence here the mean of the distribution is 2 and the variance is 0.25.</p>
-<p>For the sake of simplicity and time, we will assume the remaining parameters are fixed at: R_0 = 2, alpha = 0.9, D_imm = 13, rho = 0.85.</p>
+<p>We choose the Gamma distribution as our parameters must be positive
+in value. The mean of the gamma distribution is <span
+class="math inline">\(shape/rate\)</span> and the variance is <span
+class="math inline">\(shape/rate^2\)</span>. Hence here the mean of the
+distribution is 2 and the variance is 0.25.</p>
+<p>For the sake of simplicity and time, we will assume the remaining
+parameters are fixed at: R_0 = 2, alpha = 0.9, D_imm = 13, rho =
+0.85.</p>
 <pre class="r"><code># a function that takes 7 arguments:
 # - N :the number of desired samples
 # - epsilon: a vector (if the distance function returns a vector) or
@@ -449,8 +553,10 @@ my_abcAlgorithm &lt;- function(N, epsilon, sumStats, distanceAbc,
 
   # return the accepted values
 }</code></pre>
-<p>If you have trouble filling any of the empty bits in, have a look at our <a href="abc_example.html">more guided example</a>.</p>
-<p>Once you have coded this function you can perform some tests to calibrate the tolerances.</p>
+<p>If you have trouble filling any of the empty bits in, have a look at
+our <a href="abc_example.html">more guided example</a>.</p>
+<p>Once you have coded this function you can perform some tests to
+calibrate the tolerances.</p>
 <pre class="r"><code>my_abcAlgorithm(
   N = 1000, epsilon = 5,
   sumStats = list(ssMax, ssSize),
@@ -459,13 +565,25 @@ my_abcAlgorithm &lt;- function(N, epsilon, sumStats, distanceAbc,
   initState = initState,
   data = fluTdc1971
 )</code></pre>
-<p>Again, you can change the list of summary statistics and distance values to some that you have written yourselves, or others from the examples.</p>
-<p>You will see that, if your tolerances are too large, you will accept too wide a range of parameter sets. If your tolerances are too small you will have a better approximation of the posterior but very low acceptance rate.</p>
+<p>Again, you can change the list of summary statistics and distance
+values to some that you have written yourselves, or others from the
+examples.</p>
+<p>You will see that, if your tolerances are too large, you will accept
+too wide a range of parameter sets. If your tolerances are too small you
+will have a better approximation of the posterior but very low
+acceptance rate.</p>
 </div>
-<div id="going-further-abc-smc-with-two-populations" class="section level1">
+<div id="going-further-abc-smc-with-two-populations"
+class="section level1">
 <h1>Going further: ABC-SMC with two populations</h1>
-<p>The ABC rejection algorithm can be slow and inefficient. An improvement is to resample populations of parameters with decreasing values of tolerance.</p>
-<p>Run your function <code>my_abcAlgorithm</code> with a large tolerance for <code>N = 1000</code>. This is your first population (<code>pop_1</code>). From this population, we will randomly sample parameter sets (rows of the matrix), perturb them by a small value and perform the ABC rejection step with a smalller tolerance.</p>
+<p>The ABC rejection algorithm can be slow and inefficient. An
+improvement is to resample populations of parameters with decreasing
+values of tolerance.</p>
+<p>Run your function <code>my_abcAlgorithm</code> with a large tolerance
+for <code>N = 1000</code>. This is your first population
+(<code>pop_1</code>). From this population, we will randomly sample
+parameter sets (rows of the matrix), perturb them by a small value and
+perform the ABC rejection step with a smalller tolerance.</p>
 <pre class="r"><code># use the ABC rejection algorithm to find population 1 in the ABC-SMC algorithm
 
 pop_1 &lt;- my_abcAlgorithm(
@@ -501,9 +619,16 @@ pop_1 &lt;- my_abcAlgorithm(
 # update i (dimension of results store)
 
 # return the accepted values</code></pre>
-<p>Try running the ABC rejection algorithm with a small tolerance and compare the computation time to ABC-SMC with two populations.</p>
-<p>If you have trouble filling any of the empty bits in, have a look at our <a href="abc_smc_solution.html">solution</a>.</p>
-<p>We can add more populations to the ABC-SMC algorithm described above, but then we will need to calculate ‘weights’ for each parameter set. A <a href="http://rsif.royalsocietypublishing.org/content/6/31/187.short">paper</a> by Toni et al. describes weights for the ABC-SMC algorithm (for deterministic and stochastic models) in detail.</p>
+<p>Try running the ABC rejection algorithm with a small tolerance and
+compare the computation time to ABC-SMC with two populations.</p>
+<p>If you have trouble filling any of the empty bits in, have a look at
+our <a href="abc_smc_solution.html">solution</a>.</p>
+<p>We can add more populations to the ABC-SMC algorithm described above,
+but then we will need to calculate ‘weights’ for each parameter set. A
+<a
+href="http://rsif.royalsocietypublishing.org/content/6/31/187.short">paper</a>
+by Toni et al. describes weights for the ABC-SMC algorithm (for
+deterministic and stochastic models) in detail.</p>
 </div>
 
 &nbsp;

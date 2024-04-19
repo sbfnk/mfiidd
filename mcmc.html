@@ -13,6 +13,7 @@
 
 <title>Practical session: Sampling from an univariate distribution using MCMC</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -291,25 +292,37 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Practical session: Sampling from an univariate distribution using MCMC</h1>
+<h1 class="title toc-ignore">Practical session: Sampling from an
+univariate distribution using MCMC</h1>
 
 </div>
 
 
-<p>Lecture slides: <a href="slides/mcmc_slides1.pptx">PowerPoint</a> / <a href="slides/mcmc_slides1.pdf">PDF</a></p>
+<p>Lecture slides: <a href="slides/mcmc_slides1.pptx">PowerPoint</a> /
+<a href="slides/mcmc_slides1.pdf">PDF</a></p>
 <div id="objectives" class="section level1">
 <h1>Objectives</h1>
-<p>The aim of this session is to learn how to sample from a posterior distribution using MCMC with the Metropolis-Hastings algorithm. More specifically, in this session you will</p>
+<p>The aim of this session is to learn how to sample from a posterior
+distribution using MCMC with the Metropolis-Hastings algorithm. More
+specifically, in this session you will</p>
 <ol style="list-style-type: decimal">
-<li>use grid approximation and rejection sampling to explore the posterior distribution of <span class="math inline">\(R_0\)</span> from the previous session, as a ‘warm up’</li>
-<li>code your first MCMC algorithm to sample from an univariate distribution</li>
-<li>check your algorithm by sampling from a simple Normal distribution</li>
-<li>use it to sample from the posterior distribution of <span class="math inline">\(R_0\)</span> from the previous session.</li>
+<li>use grid approximation and rejection sampling to explore the
+posterior distribution of <span class="math inline">\(R_0\)</span> from
+the previous session, as a ‘warm up’</li>
+<li>code your first MCMC algorithm to sample from an univariate
+distribution</li>
+<li>check your algorithm by sampling from a simple Normal
+distribution</li>
+<li>use it to sample from the posterior distribution of <span
+class="math inline">\(R_0\)</span> from the previous session.</li>
 </ol>
 </div>
 <div id="grid-approximation" class="section level1">
 <h1>Grid approximation</h1>
-<p>This code runs the SIR model with a sequence of different values for <span class="math inline">\(R_0\)</span>, saving the values of <span class="math inline">\(R_0\)</span> and associated posterior probabilities along the way.</p>
+<p>This code runs the SIR model with a sequence of different values for
+<span class="math inline">\(R_0\)</span>, saving the values of <span
+class="math inline">\(R_0\)</span> and associated posterior
+probabilities along the way.</p>
 <pre class="r"><code>theta &lt;- c(R_0 = 3, D_inf = 2) # parameter vector
 initState &lt;- c(S = 999, I = 1, R = 0) # initial conditions
 grid &lt;- NULL # set aside to hold the grid approximation
@@ -326,8 +339,11 @@ for (testR0 in seq(1.6, 1.9, length.out = 25))
     # Save this iteration, using rbind to add another row to the grid data frame
     grid &lt;- rbind(grid, data.frame(R_0 = testR0, lp = lp))
 }</code></pre>
-<p>Run the code above, first making sure that <code>my_dLogPosterior</code>, <code>sirDeter</code>, and <code>epi1</code> are still available from the previous session.</p>
-<p>The grid approximation is now in the data frame <code>grid</code>. Have a look at it:</p>
+<p>Run the code above, first making sure that
+<code>my_dLogPosterior</code>, <code>sirDeter</code>, and
+<code>epi1</code> are still available from the previous session.</p>
+<p>The grid approximation is now in the data frame <code>grid</code>.
+Have a look at it:</p>
 <pre class="r"><code>head(grid)</code></pre>
 <pre><code>##      R_0        lp
 ## 1 1.6000 -286.9860
@@ -336,24 +352,49 @@ for (testR0 in seq(1.6, 1.9, length.out = 25))
 ## 4 1.6375 -210.1697
 ## 5 1.6500 -190.1610
 ## 6 1.6625 -172.8743</code></pre>
-<p>Each row should show a value for <span class="math inline">\(R_0\)</span> and the associated log posterior probability.</p>
-<p>We can find the <a href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation">maximum a posteriori probability estimate</a> (MAP) by inspection of the data frame, or locate the associated value of <span class="math inline">\(R_0\)</span> using <code>which.max</code> as follows.</p>
+<p>Each row should show a value for <span
+class="math inline">\(R_0\)</span> and the associated log posterior
+probability.</p>
+<p>We can find the <a
+href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation">maximum
+a posteriori probability estimate</a> (MAP) by inspection of the data
+frame, or locate the associated value of <span
+class="math inline">\(R_0\)</span> using <code>which.max</code> as
+follows.</p>
 <pre class="r"><code>max_row &lt;- which.max(grid[[&quot;lp&quot;]]) # row of MAP estimate
 grid[max_row, ] # log posterior probability and R_0 at that row</code></pre>
-<p>Which value of R0 has the highest posterior probability? Does this match what you found in the previous session?</p>
-<p>We can also plot our grid approximation of the posterior distribution:</p>
+<p>Which value of R0 has the highest posterior probability? Does this
+match what you found in the previous session?</p>
+<p>We can also plot our grid approximation of the posterior
+distribution:</p>
 <pre class="r"><code>plot(x = grid[[&quot;R_0&quot;]], y = exp(grid[[&quot;lp&quot;]]), type = &quot;p&quot;, xlab = &quot;R_0&quot;, ylab = &quot;posterior&quot;)</code></pre>
 <p><img src="figure/mcmc/grid_plot-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Note the values on the Y axis. Why are they so small?</p>
-<p>We can also estimate the mean posterior value of <span class="math inline">\(R_0\)</span> using a weighted mean, weighting each grid evaluation by its posterior probability.</p>
+<p>We can also estimate the mean posterior value of <span
+class="math inline">\(R_0\)</span> using a weighted mean, weighting each
+grid evaluation by its posterior probability.</p>
 <pre class="r"><code>weighted.mean(grid[[&quot;R_0&quot;]], w = exp(grid[[&quot;lp&quot;]]))</code></pre>
 <p><strong>Improving the grid approximation</strong></p>
-<p>From the plot above, it should be clear that we may not have approximated the posterior distribution very well – we only found a few points for <span class="math inline">\(R_0\)</span> that are substantially supported by the data. This means that <code>weighted.mean</code> above will only be influenced by a small number of values. We also may not have as accurate an estimate for <span class="math inline">\(R_0\)</span> as we might like to have.</p>
-<p>In the code above, the expression <code>seq(1.6, 1.9, length.out = 25)</code> sets up a grid with 25 points for <span class="math inline">\(R_0\)</span> ranging from 1.6 to 1.9. How does exploring a smaller range of values for <span class="math inline">\(R_0\)</span> – or generating more points – change the MAP estimate, the estimate of the mean posterior value for <span class="math inline">\(R_0\)</span>, and the plot of the approximated posterior distribution?</p>
+<p>From the plot above, it should be clear that we may not have
+approximated the posterior distribution very well – we only found a few
+points for <span class="math inline">\(R_0\)</span> that are
+substantially supported by the data. This means that
+<code>weighted.mean</code> above will only be influenced by a small
+number of values. We also may not have as accurate an estimate for <span
+class="math inline">\(R_0\)</span> as we might like to have.</p>
+<p>In the code above, the expression
+<code>seq(1.6, 1.9, length.out = 25)</code> sets up a grid with 25
+points for <span class="math inline">\(R_0\)</span> ranging from 1.6 to
+1.9. How does exploring a smaller range of values for <span
+class="math inline">\(R_0\)</span> – or generating more points – change
+the MAP estimate, the estimate of the mean posterior value for <span
+class="math inline">\(R_0\)</span>, and the plot of the approximated
+posterior distribution?</p>
 </div>
 <div id="rejection-sampling" class="section level1">
 <h1>Rejection sampling</h1>
-<p>This code uses rejection sampling to sample from the posterior distribution of <span class="math inline">\(R_0\)</span>.</p>
+<p>This code uses rejection sampling to sample from the posterior
+distribution of <span class="math inline">\(R_0\)</span>.</p>
 <pre class="r"><code># max_lp should be greater than, but not too much greater than,
 # the maximum log posterior of the target distribution
 max_lp &lt;- -122.7
@@ -390,42 +431,77 @@ for (i in 1:1000)
 ## 4 1.748987 -122.9633
 ## 5 1.734669 -123.3087
 ## 6 1.739623 -122.8553</code></pre>
-<p>How can we use the samples in <code>samp</code> to characterise the posterior distribution of <span class="math inline">\(R_0\)</span>?</p>
+<p>How can we use the samples in <code>samp</code> to characterise the
+posterior distribution of <span class="math inline">\(R_0\)</span>?</p>
 <p>One way is to plot a histogram of the samples:</p>
 <pre class="r"><code>hist(samp[[&quot;R_0&quot;]])</code></pre>
 <p><img src="figure/mcmc/reject_hist-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Your plot will probably look different, since the code above uses random sampling. We can also calculate some summary statistics, for example:</p>
+<p>Your plot will probably look different, since the code above uses
+random sampling. We can also calculate some summary statistics, for
+example:</p>
 <pre class="r"><code>mean(samp[[&quot;R_0&quot;]])
 sd(samp[[&quot;R_0&quot;]])
 quantile(samp[[&quot;R_0&quot;]])</code></pre>
-<p>Note that we are not using “weighted” versions of any of these standard statistical summaries, because each sample of <span class="math inline">\(R_0\)</span> in <code>samp</code> is <em>already</em> present with a probability proportional to its posterior probability.</p>
-<p>For this reason, in many ways it can be easier to work with samples than with a grid approximation, since we don’t have to worry about any points in the sample having a different weight.</p>
-<p>Since we have, nonetheless, kept track of the log posterior probability of each sample, we can still get an estimate of the MAP for <span class="math inline">\(R_0\)</span>, similarly to how we did it before.</p>
+<p>Note that we are not using “weighted” versions of any of these
+standard statistical summaries, because each sample of <span
+class="math inline">\(R_0\)</span> in <code>samp</code> is
+<em>already</em> present with a probability proportional to its
+posterior probability.</p>
+<p>For this reason, in many ways it can be easier to work with samples
+than with a grid approximation, since we don’t have to worry about any
+points in the sample having a different weight.</p>
+<p>Since we have, nonetheless, kept track of the log posterior
+probability of each sample, we can still get an estimate of the MAP for
+<span class="math inline">\(R_0\)</span>, similarly to how we did it
+before.</p>
 <pre class="r"><code>samp[which.max(samp[[&quot;lp&quot;]]), &quot;R_0&quot;]</code></pre>
 <p><strong>Questions for discussion:</strong></p>
 <ol style="list-style-type: decimal">
-<li>How much do the summary statistics change if you perform the sampling again?</li>
-<li>If you decrease the number of attempts from 1000 to 100, would you expect the summary statistics to change more each time sampling is peformed or less? What does this tell you about reliable sampling?</li>
-<li>What are the advantages and disadvantages of grid approximation versus rejection sampling?</li>
+<li>How much do the summary statistics change if you perform the
+sampling again?</li>
+<li>If you decrease the number of attempts from 1000 to 100, would you
+expect the summary statistics to change more each time sampling is
+peformed or less? What does this tell you about reliable sampling?</li>
+<li>What are the advantages and disadvantages of grid approximation
+versus rejection sampling?</li>
 </ol>
 </div>
 <div id="my-first-mcmc-sampler" class="section level1">
 <h1>My first MCMC sampler</h1>
-<p>Having been introduced to grid approximation and rejection sampling, we will now learn how to sample from a posterior distribution using MCMC with the Metropolis-Hastings algorithm.</p>
-<p><strong>Code it yourself</strong>: In the next session you will write a function that samples from an arbitrary <em>target distribution</em> using MCMC. For now, let us focus on sampling from an univariate distribution, i.e. that has a single parameter, and use a standard Gaussian proposal distribution <span class="math inline">\(q(\theta&#39;|\theta)\)</span>. The MCMC function we want to write should take four arguments:</p>
+<p>Having been introduced to grid approximation and rejection sampling,
+we will now learn how to sample from a posterior distribution using MCMC
+with the Metropolis-Hastings algorithm.</p>
+<p><strong>Code it yourself</strong>: In the next session you will write
+a function that samples from an arbitrary <em>target distribution</em>
+using MCMC. For now, let us focus on sampling from an univariate
+distribution, i.e. that has a single parameter, and use a standard
+Gaussian proposal distribution <span
+class="math inline">\(q(\theta&#39;|\theta)\)</span>. The MCMC function
+we want to write should take four arguments:</p>
 <ol style="list-style-type: decimal">
-<li>a function that can <em>evaluate</em> the target distribution at any value of its parameter</li>
+<li>a function that can <em>evaluate</em> the target distribution at any
+value of its parameter</li>
 <li>an initial value for the parameter</li>
-<li>the standard deviation of the (Gaussian) <em>proposal distribution</em> (i.e., the average step size of the sampler)</li>
+<li>the standard deviation of the (Gaussian) <em>proposal
+distribution</em> (i.e., the average step size of the sampler)</li>
 <li>the number of iterations for which to run the sampler.</li>
 </ol>
-<p>The MCMC function should evaluate the target distribution at the given initial parameter value, and then apply the Metropolis-Hastings algorithm for the specified number of iterations.</p>
-<p>Below you will find the skeleton of such a MCMC function. We have inserted comments before every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.</p>
+<p>The MCMC function should evaluate the target distribution at the
+given initial parameter value, and then apply the Metropolis-Hastings
+algorithm for the specified number of iterations.</p>
+<p>Below you will find the skeleton of such a MCMC function. We have
+inserted comments before every line that you should insert. If you are
+struggling at any point, click on the link below the code for a more
+guided example.</p>
 <p><strong>A few useful tips:</strong></p>
 <ul>
-<li>To draw a random number from a Gaussian distribution, you can use the function <code>rnorm</code>, see <code>?rnorm</code>.</li>
-<li>To draw a uniform random number between 0 and 1, you can use <code>runif(n = 1)</code>.</li>
-<li>Also, you will find it useful to keep track of the number of accepted proposal steps as we will use it later to evaluate the efficiency of the sampler.</li>
+<li>To draw a random number from a Gaussian distribution, you can use
+the function <code>rnorm</code>, see <code>?rnorm</code>.</li>
+<li>To draw a uniform random number between 0 and 1, you can use
+<code>runif(n = 1)</code>.</li>
+<li>Also, you will find it useful to keep track of the number of
+accepted proposal steps as we will use it later to evaluate the
+efficiency of the sampler.</li>
 </ul>
 <p><!-- Lastly, we can set up our function to pass any arguments to the target distribution (for example, the initial state of the posterior) by using the `...` argument. If we add `...` to the function arguments or the MCMC sampler (see below) we can pass `...` to the target function, in which case all arguments not recognised by the MCMC sampler will be passed on to the target distribution function. For more information on `...`, you can look at the help file for it using `?dotsMethods`, and for more hints on using it, click the link below the code, which will take you to a more guided example. --></p>
 <!-- Note that 'rnorm' returns an unnamed
@@ -469,41 +545,91 @@ my_mcmcMh &lt;- function(target, initTheta, proposalSd, nIterations) {
 
     # return the trace of the chain (i.e., the vector of samples)
 }</code></pre>
-<p>If you have trouble filling any of the empty bits in, have a look at our <a href="mcmc_example.html">more guided example</a>.</p>
+<p>If you have trouble filling any of the empty bits in, have a look at
+our <a href="mcmc_example.html">more guided example</a>.</p>
 </div>
 <div id="sampling-from-a-normal-distribution" class="section level1">
 <h1>Sampling from a Normal distribution</h1>
-<p>In principle, we can use the Metropolis-Hastings sampler you just coded to sample from any target distribution. Before that, and to make sure it works, we are going to test it on a simple distribution. Imagine you didn’t know how to draw random numbers from a Normal distribution. You could use the Metropolis-Hastings sampler to do this. In <strong>R</strong>, the function to evaluate the probability density of a number under a Normal distribution is called <code>dnorm</code>. It looks like this</p>
+<p>In principle, we can use the Metropolis-Hastings sampler you just
+coded to sample from any target distribution. Before that, and to make
+sure it works, we are going to test it on a simple distribution. Imagine
+you didn’t know how to draw random numbers from a Normal distribution.
+You could use the Metropolis-Hastings sampler to do this. In
+<strong>R</strong>, the function to evaluate the probability density of
+a number under a Normal distribution is called <code>dnorm</code>. It
+looks like this</p>
 <pre class="r"><code>plot(dnorm,
      xlim = c(-5, 5),
      ylab = &quot;probability density&quot;)</code></pre>
 <p><img src="figure/mcmc/dnorm_plot-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>We want to generate random numbers that follow the same distribution. There is one small extra step we have to do before we can sample from <code>dnorm</code>. Remember that we have set up the Metropolis-Hastings sampler above to expect the target distribution to return the logarithm of the probability density, whereas <code>dnorm</code>, by default, returns the (un-logged) probability density.</p>
-<p>We can, however, instruct <code>dnorm</code> to return the logarithm of the probability density using the argument <code>log = TRUE</code>, and we use a <em>wrapper</em> function to do so. To sample, for example, from a normal distribution centred around 0, with standard deviation 1, we define a function that takes one argument and returns the logarithm of the probability density at the argument from such a normal distribution</p>
+<p>We want to generate random numbers that follow the same distribution.
+There is one small extra step we have to do before we can sample from
+<code>dnorm</code>. Remember that we have set up the Metropolis-Hastings
+sampler above to expect the target distribution to return the logarithm
+of the probability density, whereas <code>dnorm</code>, by default,
+returns the (un-logged) probability density.</p>
+<p>We can, however, instruct <code>dnorm</code> to return the logarithm
+of the probability density using the argument <code>log = TRUE</code>,
+and we use a <em>wrapper</em> function to do so. To sample, for example,
+from a normal distribution centred around 0, with standard deviation 1,
+we define a function that takes one argument and returns the logarithm
+of the probability density at the argument from such a normal
+distribution</p>
 <pre class="r"><code>dnormLog &lt;- function(theta) {
    return(dnorm(x = theta, mean = 0, sd = 1, log = TRUE))
 }</code></pre>
-<p>We can now sample from <code>dnormLog</code> using our MCMC sampler</p>
+<p>We can now sample from <code>dnormLog</code> using our MCMC
+sampler</p>
 <pre class="r"><code>startingValue &lt;- 1 # starting value for MCMC
 sigma &lt;- 1 # standard deviation of MCMC
 iter &lt;- 1000
 trace &lt;- my_mcmcMh(target = dnormLog, initTheta = startingValue,
    proposalSd = sigma, nIterations = iter)</code></pre>
-<p>We will talk later about diagnosing the trace (i.e., the sequence of samples) of an MCMC run. For now, you can visualise the trace of your MCMC run using</p>
+<p>We will talk later about diagnosing the trace (i.e., the sequence of
+samples) of an MCMC run. For now, you can visualise the trace of your
+MCMC run using</p>
 <pre class="r"><code>plot(trace, type = &quot;l&quot;)</code></pre>
 <p><img src="figure/mcmc/plot_trace-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>You can plot a histogram of the samples generated using the function <code>hist</code>. Here, since the target is known, you can also check that your samples are normally distributed by using the function <code>curve</code>:</p>
+<p>You can plot a histogram of the samples generated using the function
+<code>hist</code>. Here, since the target is known, you can also check
+that your samples are normally distributed by using the function
+<code>curve</code>:</p>
 <pre class="r"><code>hist(trace, freq = FALSE)
 curve(dnorm, from = -4, to = 4, col=&quot;red&quot;, add=TRUE)</code></pre>
 <p><img src="figure/mcmc/hist_trace-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>This example looks reassuringly similar to the normal distribution centred around 0. Of course, since MCMC is based on sampling random numbers, your plot will look slightly different.</p>
-<p><strong>Take 10 minutes to try different values for <code>initTheta</code> and <code>proposalSd</code>. How do these affect the plots of the trace and the histogram?</strong></p>
+<p>This example looks reassuringly similar to the normal distribution
+centred around 0. Of course, since MCMC is based on sampling random
+numbers, your plot will look slightly different.</p>
+<p><strong>Take 10 minutes to try different values for
+<code>initTheta</code> and <code>proposalSd</code>. How do these affect
+the plots of the trace and the histogram?</strong></p>
 </div>
 <div id="sampling-from-a-posterior-distribution" class="section level1">
 <h1>Sampling from a posterior distribution</h1>
-<p>We can now use our Metropolis-Hastings sampler to sample from the posterior distribution of the previous practical. You should have a <code>my_dLogPosterior</code> function that evaluates the posterior distribution at a given value of the parameters and initial state, for a given model and with respect to a given data set (if you don’t have this function, you can use the one from our <a href="posterior_example_solution.html">solution</a>). Again, we need to slightly adapt this to be able to explore it with our Metropolis-Hastings sampler.</p>
-<p>Remember that we wrote <code>my_mcmcMh</code> to explore a single parameter. Our simplest SIR model, however has two parameters: the basic reproduction number <span class="math inline">\(R_0\)</span> and the duration of infection <span class="math inline">\(D_\mathrm{inf}\)</span>. So for now, we are going to keep the duration of infection fixed at 2 weeks and just explore the posterior distribution of <span class="math inline">\(R_0\)</span>.</p>
-<p>Lastly, <code>my_dLogPosterior</code> takes four parameters, and to use it with the <code>my_mcmcMh</code> function we have to turn it into a function that just takes one parameter, here <span class="math inline">\(R_0\)</span>. Again, we use a wrapper function for this, which returns the posterior density for a given value of <span class="math inline">\(R_0\)</span> for the <code>SIR</code> model with respect to the <code>epi1</code> data set, and for fixed <code>initState</code> (<span class="math inline">\(X_0\)</span>).</p>
+<p>We can now use our Metropolis-Hastings sampler to sample from the
+posterior distribution of the previous practical. You should have a
+<code>my_dLogPosterior</code> function that evaluates the posterior
+distribution at a given value of the parameters and initial state, for a
+given model and with respect to a given data set (if you don’t have this
+function, you can use the one from our <a
+href="posterior_example_solution.html">solution</a>). Again, we need to
+slightly adapt this to be able to explore it with our
+Metropolis-Hastings sampler.</p>
+<p>Remember that we wrote <code>my_mcmcMh</code> to explore a single
+parameter. Our simplest SIR model, however has two parameters: the basic
+reproduction number <span class="math inline">\(R_0\)</span> and the
+duration of infection <span
+class="math inline">\(D_\mathrm{inf}\)</span>. So for now, we are going
+to keep the duration of infection fixed at 2 weeks and just explore the
+posterior distribution of <span class="math inline">\(R_0\)</span>.</p>
+<p>Lastly, <code>my_dLogPosterior</code> takes four parameters, and to
+use it with the <code>my_mcmcMh</code> function we have to turn it into
+a function that just takes one parameter, here <span
+class="math inline">\(R_0\)</span>. Again, we use a wrapper function for
+this, which returns the posterior density for a given value of <span
+class="math inline">\(R_0\)</span> for the <code>SIR</code> model with
+respect to the <code>epi1</code> data set, and for fixed
+<code>initState</code> (<span class="math inline">\(X_0\)</span>).</p>
 <pre class="r"><code>my_dLogPosteriorR0Epi1 &lt;- function(r0) {
   return(my_dLogPosterior(
     fitmodel = sirDeter,
@@ -512,29 +638,56 @@ curve(dnorm, from = -4, to = 4, col=&quot;red&quot;, add=TRUE)</code></pre>
     data = epi1)
   )
 }</code></pre>
-<p>We can test that this function returns the value of the posterior for a given value of <span class="math inline">\(R_0\)</span>.</p>
+<p>We can test that this function returns the value of the posterior for
+a given value of <span class="math inline">\(R_0\)</span>.</p>
 <pre class="r"><code>my_dLogPosteriorR0Epi1(r0 = 3)</code></pre>
 <pre><code>## [1] -3515.91</code></pre>
-<p>You should get the same number unless you changed the <code>SIR$dPointObs</code> function.</p>
-<p><strong>Take 10 minutes to generate samples from <code>my_dLogPosteriorR0Epi1</code> using <code>my_mcmcMh</code>. Can you work out the command to do this?</strong> If you have any problems with this, have a look at our <a href="generate_samples.html">solution</a>.</p>
-<p>Once you have generated the samples from the posterior distribution, you can calculate summary statistics such as:</p>
+<p>You should get the same number unless you changed the
+<code>SIR$dPointObs</code> function.</p>
+<p><strong>Take 10 minutes to generate samples from
+<code>my_dLogPosteriorR0Epi1</code> using <code>my_mcmcMh</code>. Can
+you work out the command to do this?</strong> If you have any problems
+with this, have a look at our <a
+href="generate_samples.html">solution</a>.</p>
+<p>Once you have generated the samples from the posterior distribution,
+you can calculate summary statistics such as:</p>
 <ul>
-<li>sample mean of <span class="math inline">\(R_0\)</span> using <code>mean(trace)</code>,</li>
+<li>sample mean of <span class="math inline">\(R_0\)</span> using
+<code>mean(trace)</code>,</li>
 <li>sample median using <code>median(trace)</code></li>
-<li>95% credible intervals using <code>quantile(trace, probs=c(0.025, 0.975))</code>.</li>
+<li>95% credible intervals using
+<code>quantile(trace, probs=c(0.025, 0.975))</code>.</li>
 </ul>
-<p>Try to re-run your MCMC with different values for <code>initTheta</code> (the starting values for <span class="math inline">\(R_0\)</span>), for <code>proposalSd</code> (the standard deviation of the Gaussian proposal distribution <span class="math inline">\(q(\theta&#39;|\theta)\)</span>), and for <code>iter</code> (the number of iterations). Look at plots generated using <code>plot</code> and <code>hist</code> (see above), summary statistics and the acceptance rate.</p>
-<p><strong>Take 15 minutes to check how the answers to the following questions depend on parameters:</strong></p>
+<p>Try to re-run your MCMC with different values for
+<code>initTheta</code> (the starting values for <span
+class="math inline">\(R_0\)</span>), for <code>proposalSd</code> (the
+standard deviation of the Gaussian proposal distribution <span
+class="math inline">\(q(\theta&#39;|\theta)\)</span>), and for
+<code>iter</code> (the number of iterations). Look at plots generated
+using <code>plot</code> and <code>hist</code> (see above), summary
+statistics and the acceptance rate.</p>
+<p><strong>Take 15 minutes to check how the answers to the following
+questions depend on parameters:</strong></p>
 <ol style="list-style-type: decimal">
-<li>What is the <a href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation">maximum a posteriori probability estimate</a> (MAP) of <span class="math inline">\(R_0\)</span>? Does this match your estimate from the previous session?</li>
+<li>What is the <a
+href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation">maximum
+a posteriori probability estimate</a> (MAP) of <span
+class="math inline">\(R_0\)</span>? Does this match your estimate from
+the previous session?</li>
 <li>What determines the acceptance rate?</li>
-<li>How many iterations do you need to get a good estimate for <span class="math inline">\(R_0\)</span>?</li>
+<li>How many iterations do you need to get a good estimate for <span
+class="math inline">\(R_0\)</span>?</li>
 </ol>
-<p>In the next session we will look at all of these issues in more detail.</p>
+<p>In the next session we will look at all of these issues in more
+detail.</p>
 </div>
 <div id="going-further" class="section level1">
 <h1>Going further</h1>
-<p>Try changing the <code>my_mcmcMh</code> function to use different proposal distributions from a normal distributions (e.g., using <code>runif</code> or <code>rlnorm</code> instead of <code>rnorm</code>). How do these affect the three questions above (best estimate, acceptance rate, number of iterations needed)?</p>
+<p>Try changing the <code>my_mcmcMh</code> function to use different
+proposal distributions from a normal distributions (e.g., using
+<code>runif</code> or <code>rlnorm</code> instead of
+<code>rnorm</code>). How do these affect the three questions above (best
+estimate, acceptance rate, number of iterations needed)?</p>
 </div>
 
 &nbsp;

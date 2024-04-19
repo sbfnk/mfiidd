@@ -13,6 +13,7 @@
 
 <title>Partial example: posterior</title>
 
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -296,7 +297,10 @@ $(document).ready(function () {
 </div>
 
 
-<p>Below, you can find an example of how to code the posterior. Some bits are left out for you to fill in (marked “INSERT HERE”). Each “INSERT HERE” statement requires one line of code. If you struggle, you can find a link to the solution below the function.</p>
+<p>Below, you can find an example of how to code the posterior. Some
+bits are left out for you to fill in (marked “INSERT HERE”). Each
+“INSERT HERE” statement requires one line of code. If you struggle, you
+can find a link to the solution below the function.</p>
 <pre class="r"><code># This is a function that takes 4 arguments:
 # - fitmodel, a fitmodel object that defines the model dynamics,
 #   prior and likelihoods.
@@ -321,7 +325,10 @@ my_dLogPosterior &lt;- function(fitmodel, theta, initState, data) {
     return(logPosterior)
 
 }</code></pre>
-<p>If you run into any problems, have a look at our <a href="posterior_example_solution.html">solution</a>. Otherwise, <a href="introduction.html#calculate-the-posterior">return to the practical</a>.</p>
+<p>If you run into any problems, have a look at our <a
+href="posterior_example_solution.html">solution</a>. Otherwise, <a
+href="introduction.html#calculate-the-posterior">return to the
+practical</a>.</p>
 
 &nbsp;
 <hr />
