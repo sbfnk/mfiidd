@@ -24,16 +24,23 @@ This repository contains course materials for "Model fitting and inference for i
 - **MCMC slides/**: LaTeX beamer slides and assets
 
 ### Technology Stack
-- **Primary Language**: Transitioning to Julia (v1.11.7+)
+- **Primary Language**: Julia (v1.11.7+) with modern Bayesian inference
 - **Legacy Content**: R with RMarkdown
-- **Dependencies**: Julia packages listed in `Project.toml` (DifferentialEquations, LanguageServer, Revise, SymbolServer)
-- **Website Generation**: RMarkdown site using `rmarkdown::render_site()`
+- **Core Dependencies**: 
+  - **Turing.jl**: Probabilistic programming and MCMC sampling
+  - **Distributions.jl**: Elegant prior specification and likelihood calculation
+  - **DifferentialEquations.jl**: ODE solving for epidemiological models
+  - **Plots.jl/StatsPlots.jl**: Visualization and MCMC diagnostics
+  - **MCMCChains.jl**: MCMC chain analysis and diagnostics
+- **Website Generation**: Quarto for Julia code blocks, RMarkdown for legacy content
 
 ### Model Framework
-The course uses a structured approach for epidemiological models with these components:
-- `fitmodel` objects containing: name, state variables, parameters, simulation functions, prior distributions, likelihood functions
-- Deterministic and stochastic variants of each model
-- Standardized interface for MCMC, ABC, and particle MCMC methods
+The course uses a modern Bayesian approach for epidemiological models:
+- **`FitModel` struct**: Contains name, state variables, parameters, `Distribution` objects for priors, simulation and likelihood functions
+- **Turing.jl integration**: Direct translation to `@model` functions for MCMC sampling
+- **Distribution objects**: Elegant prior specification using `Distributions.jl` (e.g., `Uniform(1.0, 100.0)`, `Normal(2.5, 0.5)`)
+- **Likelihood patterns**: Using `~` syntax compatible with Turing.jl (e.g., `obs[i] ~ Poisson(expected_cases[i])`)
+- **MCMC sampling**: Built-in support for NUTS, HMC, and other modern samplers
 
 ## Common Development Commands
 
@@ -61,17 +68,23 @@ julia --project=. -e "using Pkg; Pkg.instantiate()"
 - Development dependencies include LanguageServer and Revise for interactive development
 
 ### Julia Code Structure
-- **src/FitModels.jl**: Core epidemiological modeling framework with `FitModel` struct
+- **src/FitModels.jl**: Core epidemiological modeling framework with Turing.jl integration
+  - `FitModel` struct with `Distribution` objects for priors
+  - `@model` functions for Turing.jl compatibility
+  - Functions: `log_prior()`, `log_likelihood()`, `log_posterior()`, `sample_posterior()`
+  - Visualization: `plot_trajectory()`, `plot_fit()`, `plot_posterior_predictive()`
 - **src/SampleData.jl**: Sample epidemic datasets and model loading functions
-- **qmd/**: Quarto documents with Julia code blocks (converted from Rmd)
-- Models follow pattern: simulation functions, prior/likelihood evaluation, observation generation
+- **qmd/**: Quarto documents demonstrating Bayesian workflows with Julia
+- **test_julia_code.jl**: Comprehensive tests including Turing.jl integration
 
 ### Working with Course Materials
-- RMarkdown files use `cache=TRUE` for expensive computations (legacy)
-- Quarto files use Julia execution environment
+- **Modern Bayesian workflow**: Prior specification → MCMC sampling → Posterior analysis
+- **Elegant syntax**: Use `Distribution` objects directly (e.g., `R_0 ~ Uniform(1.0, 100.0)`)
+- **MCMC sampling**: `chain = sample_posterior(model, data, init_state, n_samples=1000)`
+- **Diagnostics**: Use `StatsPlots.jl` for trace plots, density plots, and convergence checks
+- **Posterior predictive checks**: Built-in functions for model validation
 - Course data loaded via `load_models()` and `load_epi_data()` functions
-- Exercise solutions follow naming pattern: `*_example.qmd` → `*_solution.qmd`
-- Use `include("../src/FitModels.jl")` to load Julia modeling framework
+- Use `include("../src/FitModels.jl")` to load the full Bayesian modeling framework
 
 ## Development Notes
 
