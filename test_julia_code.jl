@@ -1,7 +1,7 @@
 #!/usr/bin/env julia
 
-# Test script to verify the Julia translation works
-println("Testing Julia translation of MFIIDD course materials...")
+# Test script to verify the Julia translation works with Turing.jl compatibility
+println("Testing Turing.jl compatible Julia translation...")
 
 try
     # Test loading modules
@@ -18,6 +18,7 @@ try
     println("Model name: ", sir_deter.name)
     println("State names: ", sir_deter.state_names)
     println("Parameter names: ", sir_deter.theta_names)
+    println("Priors: ", sir_deter.priors)
     
     # Test simulation
     theta = Dict(:R_0 => 2.5, :D_inf => 2.0)
@@ -28,15 +29,9 @@ try
     println("✓ Successfully simulated model trajectory")
     println("Trajectory size: ", size(trajectory))
     
-    # Test prior
-    prior_val = sir_deter.d_prior(theta, log=true)
-    println("✓ Successfully calculated prior: ", prior_val)
-    
-    # Test likelihood
-    data_point = Dict(:obs => 18)
-    model_point = Dict(:I => 31)
-    likelihood_val = sir_deter.d_point_obs(data_point, model_point, theta, log=true)
-    println("✓ Successfully calculated likelihood: ", likelihood_val)
+    # Test prior using new Distribution objects
+    prior_val = log_prior(sir_deter, theta)
+    println("✓ Successfully calculated log prior: ", prior_val)
     
     # Test data loading
     epi_data = load_epi_data()
@@ -44,19 +39,31 @@ try
     println("✓ Successfully loaded epidemic data")
     println("Data size: ", size(epi1))
     
-    # Test trajectory likelihood
-    traj_likelihood = d_traj_obs(sir_deter, theta, init_state, epi1, log=true)
-    println("✓ Successfully calculated trajectory likelihood: ", traj_likelihood)
+    # Test likelihood using new structure
+    likelihood_val = log_likelihood(sir_deter, theta, init_state, epi1)
+    println("✓ Successfully calculated log likelihood: ", likelihood_val)
     
-    # Test posterior
-    posterior_val = my_d_log_posterior(sir_deter, theta, init_state, epi1)
-    println("✓ Successfully calculated posterior: ", posterior_val)
+    # Test posterior using new structure
+    posterior_val = log_posterior(sir_deter, theta, init_state, epi1)
+    println("✓ Successfully calculated log posterior: ", posterior_val)
     
     # Test observation generation
     obs_trajectory = r_traj_obs(sir_deter, theta, init_state, epi1.time)
     println("✓ Successfully generated observation trajectory")
     
-    println("\n🎉 All tests passed! Julia translation is working correctly.")
+    # Test Turing.jl integration
+    println("Testing Turing.jl integration...")
+    small_data = epi1[1:10, :]  # Use smaller dataset for faster testing
+    
+    # Test model compilation (don't run full sampling in test)
+    model = sir_model(small_data, init_state)
+    println("✓ Successfully created Turing model")
+    
+    # Test that we can sample (just a few samples for testing)
+    chain = sample(model, Prior(), 10)  # Sample from prior for quick test
+    println("✓ Successfully sampled from Turing model")
+    
+    println("\n🎉 All tests passed! Turing.jl compatible Julia translation is working correctly.")
     
 catch e
     println("❌ Error during testing: ", e)

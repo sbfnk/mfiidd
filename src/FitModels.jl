@@ -2,27 +2,29 @@ using DifferentialEquations
 using Distributions
 using DataFrames
 using Plots
+using Turing
+using StatsPlots
+using MCMCChains
 
 """
     FitModel
 
-A structure that defines a model for fitting, containing:
+A structure that defines a model for fitting, compatible with Turing.jl patterns.
+Contains:
 - name: descriptive name of the model
 - state_names: names of state variables
 - theta_names: names of parameters
+- priors: Dictionary of parameter names to Distribution objects
 - simulate: function to simulate the model
-- d_prior: function to calculate prior density
-- d_point_obs: function to calculate likelihood of a data point
-- r_point_obs: function to generate observations from model
+- likelihood: function to calculate likelihood using Distribution objects
 """
 struct FitModel
     name::String
     state_names::Vector{String}
     theta_names::Vector{String}
+    priors::Dict{Symbol, Distribution}
     simulate::Function
-    d_prior::Function
-    d_point_obs::Function
-    r_point_obs::Function
+    likelihood::Function
 end
 
 """
@@ -32,9 +34,9 @@ Simulate deterministic SIR model with parameters theta, initial state init_state
 at times specified in times vector.
 """
 function sir_simulate_deterministic(theta, init_state, times)
-    # Extract parameters
-    R_0 = theta[:R_0]
-    D_inf = theta[:D_inf]
+    # Extract parameters - support both Dict and NamedTuple
+    R_0 = haskey(theta, :R_0) ? theta[:R_0] : theta.R_0
+    D_inf = haskey(theta, :D_inf) ? theta[:D_inf] : theta.D_inf
     
     # Define ODE function
     function sir_ode!(du, u, p, t)
@@ -68,121 +70,165 @@ function sir_simulate_deterministic(theta, init_state, times)
 end
 
 """
-    sir_prior(theta; log=false)
+    sir_likelihood(data, trajectory)
 
-Calculate prior density for SIR model parameters.
-Uses uniform priors: R_0 ~ U(1,100), D_inf ~ U(0,30)
-"""
-function sir_prior(theta; log=false)
-    # Uniform prior on R_0: U[1,100]
-    log_prior_R0 = logpdf(Uniform(1, 100), theta[:R_0])
-    # Uniform prior on infectious period: U[0,30]
-    log_prior_D_inf = logpdf(Uniform(0, 30), theta[:D_inf])
-    
-    log_sum = log_prior_R0 + log_prior_D_inf
-    
-    return log ? log_sum : exp(log_sum)
-end
-
-"""
-    sir_point_likelihood(data_point, model_point, theta; log=false)
-
-Calculate likelihood of a single data point given model state.
+Calculate likelihood of data given model trajectory using Distributions.jl.
 Assumes observations follow Poisson distribution around true prevalence.
 """
-function sir_point_likelihood(data_point, model_point, theta; log=false)
-    # The prevalence is observed through a Poisson process
-    return logpdf(Poisson(model_point[:I]), data_point[:obs]) * (log ? 1 : exp(1))
-end
-
-"""
-    sir_generate_obs_point(model_point, theta)
-
-Generate random observation from model state.
-"""
-function sir_generate_obs_point(model_point, theta)
-    # The prevalence is observed through a Poisson process
-    obs_point = rand(Poisson(model_point[:I]))
-    return Dict(:obs => obs_point)
+function sir_likelihood(data, trajectory)
+    # Initialize log-likelihood
+    total_loglik = 0.0
+    
+    # Calculate likelihood for each observation
+    for i in 1:nrow(data)
+        # Find corresponding model point
+        time_idx = findfirst(trajectory.time .≈ data.time[i])
+        if time_idx !== nothing
+            # Poisson likelihood: obs ~ Poisson(I)
+            obs_dist = Poisson(max(trajectory.I[time_idx], 1e-6))  # Avoid zero rates
+            total_loglik += logpdf(obs_dist, data.obs[i])
+        end
+    end
+    
+    return total_loglik
 end
 
 """
     create_sir_deterministic()
 
-Create deterministic SIR fitmodel object.
+Create deterministic SIR fitmodel object with Turing.jl compatible structure.
 """
 function create_sir_deterministic()
     sir_name = "SIR with constant population size"
     sir_state_names = ["S", "I", "R"]
     sir_theta_names = ["R_0", "D_inf"]
     
+    # Define priors using Distribution objects
+    sir_priors = Dict(
+        :R_0 => Uniform(1.0, 100.0),      # R_0 ~ Uniform(1, 100)
+        :D_inf => Uniform(0.1, 30.0)      # D_inf ~ Uniform(0.1, 30)
+    )
+    
     return FitModel(
         sir_name,
         sir_state_names,
         sir_theta_names,
+        sir_priors,
         sir_simulate_deterministic,
-        sir_prior,
-        sir_point_likelihood,
-        sir_generate_obs_point
+        sir_likelihood
     )
 end
 
 """
-    d_traj_obs(fitmodel, theta, init_state, data; log=true)
+    log_prior(fitmodel, theta)
 
-Calculate log-likelihood of trajectory with respect to data.
+Calculate log-prior density using Distribution objects.
 """
-function d_traj_obs(fitmodel, theta, init_state, data; log=true)
-    # 1. Simulate the model
-    trajectory = fitmodel.simulate(theta, init_state, data.time)
-    
-    # 2. Calculate likelihood at each data point
-    log_likelihood = 0.0
-    for i in 1:nrow(data)
-        data_point = Dict(:obs => data.obs[i])
-        model_point = Dict(:I => trajectory.I[i])
-        log_likelihood += fitmodel.d_point_obs(data_point, model_point, theta, log=true)
+function log_prior(fitmodel, theta)
+    total_logprior = 0.0
+    for (param, prior_dist) in fitmodel.priors
+        if haskey(theta, param)
+            total_logprior += logpdf(prior_dist, theta[param])
+        elseif hasproperty(theta, param)
+            total_logprior += logpdf(prior_dist, getproperty(theta, param))
+        else
+            error("Parameter $param not found in theta")
+        end
     end
-    
-    return log ? log_likelihood : exp(log_likelihood)
+    return total_logprior
 end
 
 """
-    my_d_log_posterior(fitmodel, theta, init_state, data)
+    log_likelihood(fitmodel, theta, init_state, data)
+
+Calculate log-likelihood of trajectory with respect to data.
+"""
+function log_likelihood(fitmodel, theta, init_state, data)
+    # Simulate the model
+    trajectory = fitmodel.simulate(theta, init_state, data.time)
+    
+    # Calculate likelihood using the model's likelihood function
+    return fitmodel.likelihood(data, trajectory)
+end
+
+"""
+    log_posterior(fitmodel, theta, init_state, data)
 
 Calculate log-posterior density for given parameters and initial state.
+This follows Turing.jl patterns: log_posterior = log_prior + log_likelihood
 """
-function my_d_log_posterior(fitmodel, theta, init_state, data)
+function log_posterior(fitmodel, theta, init_state, data)
     # Calculate log-prior
-    log_prior = fitmodel.d_prior(theta, log=true)
+    logprior = log_prior(fitmodel, theta)
     
-    # Calculate log-likelihood
-    log_likelihood = d_traj_obs(fitmodel, theta, init_state, data, log=true)
+    # Calculate log-likelihood  
+    loglik = log_likelihood(fitmodel, theta, init_state, data)
     
-    # Calculate log-posterior
-    log_posterior = log_prior + log_likelihood
+    # Return log-posterior
+    return logprior + loglik
+end
+
+"""
+    @model sir_model(data, init_state)
+
+Turing.jl model definition for SIR model.
+This demonstrates how to use the FitModel structure with Turing.jl.
+"""
+@model function sir_model(data, init_state)
+    # Priors - using the same distributions as in our FitModel
+    R_0 ~ Uniform(1.0, 100.0)
+    D_inf ~ Uniform(0.1, 30.0)
     
-    return log_posterior
+    # Package parameters
+    theta = (R_0=R_0, D_inf=D_inf)
+    
+    # Simulate model
+    trajectory = sir_simulate_deterministic(theta, init_state, data.time)
+    
+    # Likelihood - observations follow Poisson distribution
+    for i in 1:nrow(data)
+        # Find corresponding time point in trajectory
+        time_idx = findfirst(trajectory.time .≈ data.time[i])
+        if time_idx !== nothing
+            expected_cases = max(trajectory.I[time_idx], 1e-6)  # Avoid zero rates
+            data.obs[i] ~ Poisson(expected_cases)
+        end
+    end
+end
+
+"""
+    sample_posterior(fitmodel, data, init_state; n_samples=1000, sampler=NUTS())
+
+Sample from posterior using Turing.jl.
+"""
+function sample_posterior(fitmodel, data, init_state; n_samples=1000, sampler=NUTS())
+    # Create the Turing model
+    model = sir_model(data, init_state)
+    
+    # Sample from posterior
+    chain = sample(model, sampler, n_samples)
+    
+    return chain
 end
 
 """
     r_traj_obs(fitmodel, theta, init_state, times)
 
-Generate trajectory with simulated observations.
+Generate trajectory with simulated observations using Distribution objects.
 """
 function r_traj_obs(fitmodel, theta, init_state, times)
-    # 1. Simulate the model
+    # Simulate the model
     trajectory = fitmodel.simulate(theta, init_state, times)
     
-    # 2. Generate observations at each time point
+    # Generate observations at each time point using Poisson distribution
     obs = zeros(Int, length(times))
     for i in 1:length(times)
-        model_point = Dict(:I => trajectory.I[i])
-        obs_point = fitmodel.r_point_obs(model_point, theta)
-        obs[i] = obs_point[:obs]
+        expected_cases = max(trajectory.I[i], 1e-6)  # Avoid zero rates
+        obs_dist = Poisson(expected_cases)
+        obs[i] = rand(obs_dist)
     end
     
-    # 3. Add observations to trajectory
+    # Add observations to trajectory
     trajectory.obs = obs
     
     return trajectory
@@ -231,6 +277,46 @@ function plot_fit(fitmodel, theta, init_state, data; n_replicates=1)
     
     xlabel!(p, "Time")
     ylabel!(p, "Observations")
+    
+    return p
+end
+
+"""
+    plot_posterior_predictive(chain, data, init_state; n_samples=100)
+
+Plot posterior predictive checks using samples from MCMC chain.
+"""
+function plot_posterior_predictive(chain, data, init_state; n_samples=100)
+    p = plot(title="Posterior Predictive Check")
+    
+    # Extract parameter samples
+    n_total = length(chain)
+    sample_indices = rand(1:n_total, min(n_samples, n_total))
+    
+    for i in sample_indices
+        # Extract parameters from chain
+        R_0_sample = chain[:R_0][i]
+        D_inf_sample = chain[:D_inf][i]
+        theta_sample = Dict(:R_0 => R_0_sample, :D_inf => D_inf_sample)
+        
+        # Generate trajectory
+        trajectory = sir_simulate_deterministic(theta_sample, init_state, data.time)
+        
+        # Plot with transparency
+        if i == sample_indices[1]
+            plot!(p, trajectory.time, trajectory.I, alpha=0.1, color=:blue, 
+                  linewidth=0.5, label="Posterior samples")
+        else
+            plot!(p, trajectory.time, trajectory.I, alpha=0.1, color=:blue, 
+                  linewidth=0.5, label="")
+        end
+    end
+    
+    # Plot data
+    scatter!(p, data.time, data.obs, label="Observed", markersize=4, color=:black)
+    
+    xlabel!(p, "Time")
+    ylabel!(p, "Cases")
     
     return p
 end
