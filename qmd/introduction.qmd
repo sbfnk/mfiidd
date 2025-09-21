@@ -1,0 +1,285 @@
+---
+title: "Introduction to model fitting in Julia"
+format: html
+jupyter: julia-1.11
+---
+
+[Lecture slides](slides/intro_slides.pdf)
+
+# Objectives
+
+The aim of this first session is to set you up with a framework for model fitting. To do this, we will introduce you to our Julia package for infectious disease modeling, which we have created to facilitate interaction during this course. This is not a full-fledged model fitting suite. Instead, we use it to provide you with model code that follows a common structure, as well as data and solutions to the practical exercises.
+
+In this session, you will
+
+1. familiarise yourselves with the structure of models in our Julia package
+2. combine the prior and likelihood to calculate the posterior for a simple SIR model
+3. explore the posterior of a model that has a single parameter
+
+The first part will be mostly about introducing you to the structure we have set up -- you won't have to do much yourself in this part, but it would be worth spending some time familiarising yourself with the code and the commands, to make sure you understand what is going on. Later, you will write your own function to calculate a posterior density and use it to explore an outbreak described by a simple SIR model.
+
+# A deterministic SIR model
+
+First, we will work with a simple deterministic SIR model. We will later fit this to a simple data set. The model has two parameters, the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$. The model equations are
+
+$$
+\begin{cases}
+\begin{aligned}
+\frac{\mathrm{d}S}{\mathrm{d}t} &= - \beta S \frac{I}{N}\\
+\frac{\mathrm{d}I}{\mathrm{d}t} &= \beta S \frac{I}{N} - \nu I\\
+\frac{\mathrm{d}R}{\mathrm{d}t} &= \nu I\\
+\end{aligned}
+\end{cases}
+$$
+
+where $S$, $I$ and $R$ stand for the susceptible, infected and recovered compartments, respectively, $\beta=R_0/D_\mathrm{inf}$, $\nu = 1/D_\mathrm{inf}$ and $N = S + I + R$ is constant. To load this model into your **Julia** session, type
+
+```{julia}
+#| output: false
+include("../src/FitModels.jl")
+include("../src/SampleData.jl")
+
+# Load models
+models = load_models()
+sir_deter = models[:sir_deter]
+```
+
+This will load a few `FitModel` objects into your **Julia** session, including one called `sir_deter` (for "SIR, deterministic"). A `FitModel` is simply a collection of functions and variables that define a model. Later in this session, you might change parts of the `sir_deter` model. If at any time something goes wrong, you can always reload the models by running the code above again.
+
+To see the fields that the `sir_deter` model contains, you can access them directly:
+
+```{julia}
+println("Model name: ", sir_deter.name)
+println("State names: ", sir_deter.state_names)
+println("Parameter names: ", sir_deter.theta_names)
+```
+
+A `FitModel` object provides its description, as well as the names of its state variables and parameters. Moreover, each `FitModel` contains four functions:
+
+1. `simulate` to run the model,
+2. `d_prior` to calculate the prior density,
+3. `d_point_obs` to calculate the log-likelihood of a given data point with respect to the model,
+4. `r_point_obs` to generate observations from a model run.
+
+We will now look at these one after the other.
+
+## Simulate
+
+To simulate a model run, we use the `simulate` function which comes with a `FitModel`. To run the SIR model, we have to provide parameter values, initial state values and the times at which we want model output.
+
+```{julia}
+# Define parameters
+theta = Dict(:R_0 => 2.5, :D_inf => 2.0)
+
+# Define initial state: [S, I, R]
+init_state = [999.0, 1.0, 0.0]
+
+# Define time points
+times = 0:1:100
+
+# Simulate the model
+trajectory = sir_deter.simulate(theta, init_state, times)
+```
+
+We can now look at the output of the model run:
+
+```{julia}
+first(trajectory, 6)
+```
+
+This shows the first few rows of the trajectory. You can see the whole trajectory by just typing `trajectory`.
+
+To visualise model output, you can use the `plot_trajectory` function:
+
+```{julia}
+plot_trajectory(trajectory)
+```
+
+**Take 10 minutes to run the model with different values of the parameters and initial state, and output times.**
+
+You can look at the `simulate` function implementation to understand how the model works:
+
+```{julia}
+#| eval: false
+sir_deter.simulate
+```
+
+This is the key function that encodes the dynamic model we would like to fit to data (in this case, the simple SIR model). **Take 10 minutes to look at that function and let us know if you have any questions.** Tomorrow, we will give you a different `FitModel` object for a different model that comes with its own `simulate` function.
+
+## Prior
+
+To evaluate the (logarithm of the) prior for a certain combination of parameters, use the `d_prior` function:
+
+```{julia}
+sir_deter.d_prior(theta)
+```
+
+```{julia}
+sir_deter.d_prior(theta, log=true)
+```
+
+Have a look at the `d_prior` function implementation. You will see that this calculates the prior of the parameters using uniform distributions on $R_0$ (between 1 and 100) and $D_\mathrm{inf}$ (between 0 and 30). **For the moment, just have a look at it and make sure you understand it.** Later, we will modify this to see how the choice of prior distributions can influence the posterior distribution.
+
+## Likelihood
+
+The `d_point_obs` function is used to evaluate the likelihood of a data point. For example, the (logarithm of the) probability density of observing a prevalence of 18 when there are 31 infectious people in the `sir_deter` model is:
+
+```{julia}
+data_point = Dict(:obs => 18)
+model_point = Dict(:I => 31)
+sir_deter.d_point_obs(data_point, model_point, theta, log=true)
+```
+
+You will see that this calculates the likelihood of a data point (above, an observed prevalence of 18 infections) by taking its `obs` member (an observation of prevalence) and evaluating it with respect to a Poisson distribution centred around the `I` member of the model point (above, a model prevalence of 31 infections).
+
+In other words, it assumes that the observation follows a Poisson distribution centred around the current prevalence, and `sir_deter.d_point_obs` answers the question: what is the probability of observing 18 cases when the prevalence is 31? **For the moment, just have a look at the function and make sure you understand it.** Later, we will modify this to see how the choice of the likelihood can influence the posterior distribution.
+
+Let's load a test data set:
+
+```{julia}
+# Load epidemic data
+epi_data = load_epi_data()
+epi1 = epi_data[:epi1]
+```
+
+This contains several epidemic data sets. The first one, called `epi1`, has been created using this same SIR model, with an infectious period of 2 weeks, in a population of 1000, with 1 initial infected and the remaining population susceptible. Later, we will try to estimate the value of $R_0$. You can look at this data set using:
+
+```{julia}
+first(epi1, 6)
+```
+
+The observations ("obs") in the `epi1` data set are based on weekly observed prevalence ("I"). You can plot the data using:
+
+```{julia}
+using Plots
+scatter(epi1.time, epi1.obs, xlabel="Time", ylabel="Observations", 
+        title="Epidemic Data", label="Observed cases")
+```
+
+To calculate the log-likelihood of a set of parameters and initial state, we can use the `d_traj_obs` function. This function takes a `FitModel`, a parameter vector, an initial state and a data set as arguments and proceeds in 3 steps:
+
+1. simulate the model using the `simulate` function of the `FitModel` with the given parameters and initial state.
+2. evaluate the log-likelihood at every data point using the `d_point_obs` function of the model.
+3. return the sum all the log-likelihood values.
+
+The value returned is $\log(p(\mathrm{Data}|X_0, \theta))$: the log-likelihood of the chosen set of parameters and initial state.
+
+```{julia}
+d_traj_obs(sir_deter, theta, init_state, epi1, log=true)
+```
+
+Of course, you might get a different number here if you played with the parameters. You will later need the `d_traj_obs` function to calculate the posterior density as a function of the parameters.
+
+## Generate observations
+
+The function `r_point_obs` generates a single random observation from a single point in a model trajectory. At the moment, we won't need this, but it will be later useful when it comes to model assessment.
+
+`r_point_obs` can be seen as the inverse of `d_point_obs`. Whereas `d_point_obs` evaluates the likelihood at a data point with respect to the model, `r_point_obs` takes the model and generates a (randomly sampled) data point.
+
+Note also that `r_point_obs` differs from `simulate`. While `simulate` simulates the (in this case, deterministic) model trajectory, `r_point_obs` encodes the uncertainty involved in observations to produce a random observation point on the basis of a state of the model. To generate a randomly observed prevalence on the basis of a true prevalence of 31, we can write:
+
+```{julia}
+model_point = Dict(:I => 31)
+sir_deter.r_point_obs(model_point, theta)
+```
+
+Of course, you might see a different number, as the result of this command is the outcome of a random draw.
+
+To generate a whole trajectory with simulated observation, we have implemented a function called `r_traj_obs`, which can be seen as the inverse of `d_traj_obs`. The `r_traj_obs` function takes a `FitModel`, a parameter vector, an initial state and a vector of observation times as arguments and proceeds in 3 steps:
+
+1. simulate the model using the `simulate` function of the `FitModel`.
+2. apply the `r_point_obs` function at every time point to generate the observations.
+3. return the simulated trajectory, with an added column for the observations.
+
+```{julia}
+obs_trajectory = r_traj_obs(sir_deter, theta, init_state, epi1.time)
+first(obs_trajectory, 6)
+```
+
+If you run this multiple times, you will find that the "obs" column is different every time. This is because the observations are results of random draws from the (deterministic) model trajectory. If we changed `r_point_obs` to be deterministic (instead of a random draw from a Poisson distribution), the outcome of `r_traj_obs` would be the same every time.
+
+Now you have completed the overview of a `FitModel` object, you are going use some parts of it to code a function that will evaluate the posterior.
+
+# Calculate the posterior
+
+**Code it yourself**: Write a function to calculate the value of the posterior $p(\theta, X_0|\mathrm{Data})$ (up to a normalisation constant) for a given set of parameters and initial state, with respect to a data set.
+
+Below you will find the skeleton of such a function. We have inserted comments for every line that you should insert. If you are struggling at any point, click on the link below the code for a more guided example.
+
+```{julia}
+#| eval: false
+# This is a function that takes 4 arguments:
+# - fitmodel, a FitModel object that defines the model dynamics, prior and likelihoods.
+# - theta, a dictionary of parameters
+# - init_state, a vector of initial states
+# - data, the data set we are fitting the model to 
+# It should return the posterior for the given model, parameters, initial state and data.
+function my_d_log_posterior(fitmodel, theta, init_state, data)
+    
+    # calculate the fitmodel log-prior for parameter theta
+    
+    # calculate the fitmodel log-likelihood for parameter theta and
+    # initial state init_state, with respect to the data set data.
+    
+    # return the logged posterior probability
+end
+```
+
+The solution is already implemented in our package. Let's test it:
+
+```{julia}
+my_d_log_posterior(sir_deter, theta, init_state, epi1)
+```
+
+Would you expect to see the same value?
+
+# Assess the model fit
+
+You can visually assess a model run against data using the `plot_fit` function, which generates an observation trajectory from a model, parameters and initial state using `r_traj_obs` and plots it (lines) against the data (points).
+
+Note that you can also simulate multiple replicates (using the `n_replicates` argument). 
+
+```{julia}
+plot_fit(sir_deter, theta, init_state, epi1)
+```
+
+Clearly, not a very good fit on this occasion. In the next section, you will explore the posterior distribution to find a better one. **Before that, take 10 minutes to visually assess the fit of your model under different parameter sets and get familiar with the function `plot_fit`.**
+
+# Explore the posterior
+
+You are now ready to do parameter estimation by exploring the posterior at different values of the parameter. In the next practical, we will see how to automate this step using MCMC, but for now let us simply evaluate the posterior at different values of the single unknown parameter, $R_0$.
+
+As stated above, the infectious period of the `epi1` data set was 2 weeks. You can evaluate the posterior at different values of $R_0$ using the function `my_d_log_posterior`:
+
+```{julia}
+# Try different values of R_0
+R_0_values = [1.5, 2.0, 2.5, 3.0, 3.5]
+for R_0 in R_0_values
+    theta_test = Dict(:R_0 => R_0, :D_inf => 2.0)
+    posterior = my_d_log_posterior(sir_deter, theta_test, init_state, epi1)
+    println("R_0 = $R_0, log-posterior = $posterior")
+end
+```
+
+**Take 10 minutes to figure out in which range of $R_0$ the posterior is maximised. Does the model fit the data (looking at `plot_fit`)?**
+
+You can also change the prior and likelihood definitions of the `sir_deter` model. To do this, you would need to create a new `FitModel` object with modified functions.
+
+**Take 20 minutes to try different distributions for the prior and likelihood distributions** (you could try, for example, to make the prior narrower, or to use a normal distribution for the prior; or you could use another distribution for the likelihood). **Does the choice of distribution change the shape of the posterior distribution?**
+
+# Going further
+
+## Imperfect reporting of cases
+
+If you knew that on average only 10% of cases were reported, how would you change the point likelihood? You can test this with a second data set, `epi2`, which you can have a look at with:
+
+```{julia}
+epi2 = epi_data[:epi2]
+first(epi2, 6)
+```
+
+This was created with an infectious period 2 and a reporting rate of 10%. Can you estimate $R_0$?
+
+## Including demographic processes and seasonal forcing
+
+Recurrent diseases like Influenza require additional mechanisms to explain their long-term dynamics. To get a better feel for the code used to simulate the model, you could modify the `sir_deter` model to include demographic processes (birth & deaths) as well as a seasonal forcing on the transmission rate of the pathogen (several solutions are possible).
