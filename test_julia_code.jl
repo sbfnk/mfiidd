@@ -9,29 +9,15 @@ try
     include("src/SampleData.jl")
     println("✓ Successfully loaded modules")
     
-    # Test creating models
-    models = load_models()
-    sir_deter = models[:sir_deter]
-    println("✓ Successfully created SIR model")
-    
-    # Test model properties
-    println("Model name: ", sir_deter.name)
-    println("State names: ", sir_deter.state_names)
-    println("Parameter names: ", sir_deter.theta_names)
-    println("Priors: ", sir_deter.priors)
     
     # Test simulation
-    theta = Dict(:R_0 => 2.5, :D_inf => 2.0)
+    theta = (R_0=2.5, D_inf=2.0)
     init_state = [999.0, 1.0, 0.0]
     times = 0:1:20
     
-    trajectory = sir_deter.simulate(theta, init_state, times)
+    trajectory = sir_simulate_deterministic(theta, init_state, times)
     println("✓ Successfully simulated model trajectory")
     println("Trajectory size: ", size(trajectory))
-    
-    # Test prior using new Distribution objects
-    prior_val = log_prior(sir_deter, theta)
-    println("✓ Successfully calculated log prior: ", prior_val)
     
     # Test data loading
     epi_data = load_epi_data()
@@ -39,28 +25,21 @@ try
     println("✓ Successfully loaded epidemic data")
     println("Data size: ", size(epi1))
     
-    # Test likelihood using new structure
-    likelihood_val = log_likelihood(sir_deter, theta, init_state, epi1)
-    println("✓ Successfully calculated log likelihood: ", likelihood_val)
-    
-    # Test posterior using new structure
-    posterior_val = log_posterior(sir_deter, theta, init_state, epi1)
-    println("✓ Successfully calculated log posterior: ", posterior_val)
-    
-    # Test observation generation
-    obs_trajectory = r_traj_obs(sir_deter, theta, init_state, epi1.time)
-    println("✓ Successfully generated observation trajectory")
-    
-    # Test Turing.jl integration
-    println("Testing Turing.jl integration...")
-    small_data = epi1[1:10, :]  # Use smaller dataset for faster testing
-    
-    # Test model compilation (don't run full sampling in test)
-    model = sir_model(small_data, init_state)
+    # Test Turing.jl model and conditioning
+    model = sir_model(epi1.obs, init_state, epi1.time)
     println("✓ Successfully created Turing model")
     
+    # Test conditioning
+    conditioned_model = model | theta  
+    posterior_val = logpdf(conditioned_model, ())
+    println("✓ Successfully calculated log posterior using conditioning: ", posterior_val)
+    
     # Test that we can sample (just a few samples for testing)
-    chain = sample(model, Prior(), 10)  # Sample from prior for quick test
+    small_data_obs = epi1.obs[1:10]  # Use smaller dataset for faster testing  
+    small_times = epi1.time[1:10]
+    small_model = sir_model(small_data_obs, init_state, small_times)
+    
+    chain = sample(small_model, Prior(), 10)  # Sample from prior for quick test
     println("✓ Successfully sampled from Turing model")
     
     println("\n🎉 All tests passed! Turing.jl compatible Julia translation is working correctly.")

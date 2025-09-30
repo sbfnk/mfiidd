@@ -36,18 +36,6 @@ function create_epi2_data()
     return DataFrame(time = times, obs = obs)
 end
 
-"""
-    load_models()
-
-Create and return standard fitmodel objects.
-"""
-function load_models()
-    sir_deter = create_sir_deterministic()
-    
-    return Dict(
-        :sir_deter => sir_deter
-    )
-end
 
 """
     load_epi_data()
