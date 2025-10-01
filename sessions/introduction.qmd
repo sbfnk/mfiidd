@@ -757,13 +757,8 @@ plot!(p)
 
 # Why we need algorithmic approaches
 
-Through simulation, we've built intuition about:
-- **Priors**: Our beliefs before seeing data
-- **Likelihood**: How well parameters explain the data
-- **Posterior**: Combining beliefs with evidence
-- **Uncertainty**: Multiple parameter values are consistent with data
-
-But our manual approach has serious limitations:
+We have seen how being able to simulate a model, in combination with prior densities and observation probabilities (expressed in the likelihood) enables us to fit this model to data and develop an understanding of parametric uncertainty.
+But we have done so using grid search, which has serious limitations:
 
 ```{julia}
 # The curse of dimensionality
@@ -779,10 +774,10 @@ end
 
 **Problems with manual exploration:**
 
-1. **Computational cost**: Grid search doesn't scale
-2. **Poor sampling**: We might miss important regions
-3. **No convergence guarantees**: How do we know when we've explored enough?
-4. **Inefficient**: We waste time in low-probability regions
+- **Computational cost**: Grid search doesn't scale
+- **Poor sampling**: We might miss important regions
+- **No convergence guarantees**: How do we know when we've explored enough?
+- **Inefficient**: We waste time in low-probability regions
 
 # Summary
 
