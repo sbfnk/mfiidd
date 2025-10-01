@@ -29,7 +29,9 @@ In this session, you will
 ```{julia}
 #| echo: false
 using Pkg
-Pkg.activate("..")
+# Activate the project root (one level up from sessions/)
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
 ```
 
 ## Source file
