@@ -23,6 +23,7 @@ auto
 *.out
 *.bcf
 *.run.xml
+*.html
 
 # Rmd stuff
 cache/
@@ -39,3 +40,5 @@ data/
 
 _site/
 site_libs/
+
+**/*_files

@@ -1,0 +1,796 @@
+---
+title: "Introduction to model fitting in Julia"
+format: html
+engine: julia
+---
+
+[Lecture slides](slides/intro_slides.pdf)
+
+# Introduction
+
+# Objectives
+
+::: {.callout-note collapse="true"}
+
+# Setup
+
+```{julia}
+#| echo: false
+using Pkg
+Pkg.activate("..")
+```
+
+## Source file
+
+The source file of this session is located at `sessions/introduction.qmd`.
+
+## Load libraries
+
+```{julia}
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DifferentialEquations ## for differential equations
+using DataFrames ## for data frames
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+```
+
+## Initialisation
+
+We set a random seed for reproducibility. 
+Setting this ensures that you should get exactly the same results on your computer as we do.
+
+```{julia}
+Random.seed!(1234)
+```
+
+:::
+
+The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition. We will use **Distributions.jl** for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+
+In this session, you will
+
+1. understand **priors**, **likelihood**, and **posterior** through simulation
+2. calculate posterior distributions through manual grid search
+3. manually explore the posterior by trying different parameter values
+4. understand why we need algorithmic approaches (setting up the next session)
+
+The key insight: Bayesian inference is fundamentally about simulation and comparison. 
+We will do this manually first, then automate it later.
+
+# A deterministic SIR model in Julia
+
+We'll work with a simple deterministic SIR model. The model has two parameters: the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$. The model equations are:
+
+$$
+\begin{cases}
+\begin{aligned}
+\frac{\mathrm{d}S}{\mathrm{d}t} &= - \beta S \frac{I}{N}\\
+\frac{\mathrm{d}I}{\mathrm{d}t} &= \beta S \frac{I}{N} - \nu I\\
+\frac{\mathrm{d}R}{\mathrm{d}t} &= \nu I\\
+\end{aligned}
+\end{cases}
+$$
+
+where $\beta=R_0/D_\mathrm{inf}$ and $\nu = 1/D_\mathrm{inf}$.
+
+To use this model in Julia we first define a function that represents the ODEs:
+
+```{julia}
+# Define ODE function
+function sir_ode!(du, u, p, t)
+    S, I, R = u
+    R_0, D_inf = p
+    N = S + I + R
+        
+    β = R_0 / D_inf
+    ν = 1 / D_inf
+
+    du[1] = -β * S * I / N  # dS/dt
+    du[2] = β * S * I / N - ν * I  # dI/dt
+    du[3] = ν * I  # dR/dt
+end
+```
+
+::: {.callout-tip collapse = "true"}
+## Why is there an exclamation mark in `sir_ode!()`?
+
+In Julia, the exclamation mark indicates that the function can modify its arguments.
+In this case, the function modifies `du` in the last 3 lines to indicate the current change in the system as given by the ODEs.
+:::
+
+In order to simulate this model, i.e. numerically integrate the differential equations, we define it as an `ODEproblem` (which tells Julia that the function we defined above represents the dynamics of the system) which we then solve:
+
+```{julia}
+#| output: false
+
+## define initial state
+init_state = [999, 1, 0]
+## define start and end times
+t0, tend = (0, 30)
+## define parameters: R_0 = 2.5, D_inf = 2
+p = [2.5, 2]
+# Define ODE problem
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
+ # Solve ODE
+sol = solve(prob, saveat = 1)
+```
+
+::: {.callout-tip collapse = "true"}
+## More details on these commands
+Let's take a closer look at what each of these commands do:
+```{{julia}}
+init_state = [999, 1, 0]
+```
+This creates an 1-dimensional [Array](https://docs.julialang.org/en/v1/manual/arrays/) (i.e., a vector) with three elements that we will later use to represent the initial state of our forward simulation (999 susceptibles, 1 infective and 0 recovered).
+The output tells us that the elements of the vector are of type `Int64`, i.e. integer-valued numbers.
+
+```{{julia}}
+t0, tend = (t0, tend)
+```
+This assigns values to the variables `t0` (0) and `tend` (30).
+It is just a shorter version of writing
+```{{julia}}
+t0 = 0
+tend = 40
+```
+
+```{{julia}}
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
+```
+
+This defines our ODE system. 
+The first argument to `ODEproblem()` is a function that contains the equations of the ODE, in our case the `sir_ode!()` function we defined earlier.
+The second argument is the initial state.
+The third argument defines that start and end time of the simulation, here given as a _tuple_ indicated by round parentheses, `(t0, tend)`.
+A tuple is similar to an array (defined with brackets as we did above in defining `init_state`) but more flexible in allowing different data types, as in e.g. lists in R.
+Here we could also have used a vector `[t0, tend]`.
+Either will be correctly interpreted by `ODEProblem()`.
+The fourth argument gives the parameters of the model `p` as a vector.
+
+```{{julia}}
+sol = solve(prob, saveat = 1)
+```
+
+This solves the ODE problem given by `prob`.
+The `saveat` argument tells the solver to save state information at time steps of size 1.
+If this is not given, the time steps at which information is saved will be chosen by the ODE solver - this is often fine but as we will later want to compare this to observations at integer time steps we here save information at these distinct steps.
+:::
+
+The `sol` object now contains information on the system dynamics (contained in `sol.u`) at different times (contained in `sol.t`).
+
+We can plot this using
+
+```{julia}
+plot(sol, labels=["S" "I" "R"])
+```
+
+# Part 1: Understanding priors
+
+## What is a prior?
+
+A **prior** represents what we believe about parameters **before** seeing any data. It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
+
+In our SIR model:
+- $R_0 \sim \text{Uniform}(1, 100)$: We believe $R_0$ could be anywhere from 1 to 100, with all values equally likely
+- $D_\mathrm{inf} \sim \text{Uniform}(0.1, 30)$: We believe infectious periods from 0.1 to 30 days are equally plausible
+
+Let's explore what these priors mean through simulation:
+
+```{julia}
+# Define our priors as Distribution objects
+R_0_prior = Uniform(1.0, 100.0)
+D_inf_prior = Uniform(0.1, 30.0)
+
+# Sample from priors many times
+n_samples = 1000
+R_0_samples = rand(R_0_prior, n_samples)
+D_inf_samples = rand(D_inf_prior, n_samples)
+
+println(
+    "R_0 prior samples - mean: ", round(mean(R_0_samples), digits = 2), 
+    ", range: ", round(minimum(R_0_samples), digits = 2), " to ",
+    round(maximum(R_0_samples), digits = 2)
+)
+println(
+    "D_inf prior samples - mean: ", round(mean(D_inf_samples), digits = 2), 
+    ", range: ", round(minimum(D_inf_samples), digits = 2), " to ",
+    round(maximum(D_inf_samples), digits = 2)
+)
+```
+
+```{julia}
+# Visualize our priors
+p1 = histogram(
+    R_0_samples, title = "R_0 Prior", xlabel = "R_0", ylabel = "Frequency",
+    alpha = 0.7, label = "Uniform(1, 100)"
+)
+p2 = histogram(
+    D_inf_samples, title = "D_inf Prior", xlabel = "D_inf (days)",
+    ylabel = "Frequency", alpha = 0.7, label = "Uniform(0.1, 30)"
+)
+plot(p1, p2, layout = (1,2))
+```
+
+::: {.callout-note collapse = "true"}
+### Coming from R?
+You might be familiar with different functions for calculating probability densities (e.g., `dnorm()`) or generate random numbers (e.g. `rnorm()` for generating random numbers for given probability distributions.
+In Julia we can use the interface provided by [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) to define the probability distribution and then calculate probability densities or generate random variates:
+```julia
+## define normal distribution with mean 3 and standard deviation 0.1
+dist = Normal(3, 0.1)
+## generate 10 random numbers from this distribution
+Rand(dist, 10)
+## calculate the (logged) probability distribution at x = 2
+logdpf(dist, 2)
+```
+
+The equivalent R code would be
+```{r eval = FALSE}
+rnorm(10, 3, 0.1)
+dnorm(2, 3, 0.1)
+```
+:::
+
+## Prior predictive simulation
+
+An important question is: **What trajectories do our priors represent?** 
+Let's find out by simulating epidemics using random draws from our priors:
+
+```{julia}
+# Prepare plot where we'll add the individual trajectories
+p = plot(
+    title = "Prior Predictive Trajectories",
+    xlabel = "Time", ylabel = "Infected"
+)
+
+ntraj = 20
+
+for i in 1:ntraj
+    R_0 = R_0_samples[i]
+    D_inf = D_inf_samples[i]
+
+    prob = ODEProblem(
+        sir_ode!, init_state, (t0, tend), [R_0, D_inf]
+    )
+    sol = solve(prob)
+    plot!(p, sol, alpha = 0.6, label = "", color = :grey, idxs = (0, 2))
+end
+
+plot!(p)
+```
+
+::: {.callout-note collapse = "true"}
+### How did we tell Julia to plot just the number of infected?
+The `plot()` commands now contain an argument `idxs`, which allows us to choose what to plot.
+This uses the [plot recipe for differential equations](https://docs.sciml.ai/DiffEqDocs/stable/basics/plot).
+Index 0 corresponds to the time variable, and any indices >0 to the variables of the differential equations.
+In our case, we specify `0, 2`, that is we plot time (on the x axis) against the second variable, I (on the y axis).
+:::
+
+**Take 2 minutes**: Look at these trajectories.
+Do they seem reasonable? Are there any that look unrealistic? 
+
+Some questions to consider:
+
+- Do any grow too fast or too slow?
+- Are the peak sizes reasonable for a population of 1000?
+- Do any last too long or too short?
+
+This is **prior predictive checking** - a crucial step to validate that our priors make sense.
+
+## Choosing different priors
+
+What if we had different beliefs?
+Let's try more informative (i.e., narrower) priors:
+
+```{julia}
+# More informative priors based on epidemiological knowledge
+R_0_informed = Normal(2.5, 0.8)  # Most respiratory diseases have R_0 around 2-3
+D_inf_informed = Gamma(2, 1)     # Infectious period likely 1-4 days for common infections
+
+# Sample and visualize
+R_0_informed_samples = rand(R_0_informed, 1000)
+D_inf_informed_samples = rand(D_inf_informed, 1000)
+
+p1 = histogram(
+    R_0_samples, title = "Flat Prior", xlabel = "R_0", alpha = 0.7,
+    label = "Uniform(1, 100)"
+)
+histogram!(p1, R_0_informed_samples, alpha = 0.7, label = "Normal(2.5, 0.8)")
+
+p2 = histogram(
+    D_inf_samples, title = "Flat Prior", xlabel = "D_inf", alpha = 0.7,
+    label = "Uniform(0.1, 30)"
+)
+histogram!(p2, D_inf_informed_samples, alpha = 0.7, label = "Gamma(2, 1)")
+
+plot(p1, p2, layout = (1,2))
+```
+
+```{julia}
+# Compare epidemic predictions
+p = plot(
+    title = "Prior Predictive: Flat vs Informed",
+    xlabel = "Time", ylabel = "Infected"
+)
+
+# Flat priors (gray)
+for i in 1:10
+    R_0 = R_0_samples[i]
+    D_inf = D_inf_samples[i]
+
+    prob = ODEProblem(
+        sir_ode!, init_state, (t0, tend), [R_0, D_inf]
+    )
+    sol = solve(prob)
+    plot!(p, sol, alpha = 0.6, label = "", color = :gray, idxs = (0, 2))
+end
+
+# Informed priors (blue)
+for i in 1:10
+    R_0 = R_0_informed_samples[i]
+    D_inf = D_inf_informed_samples[i]
+
+    prob = ODEProblem(
+        sir_ode!, init_state, (t0, tend), [R_0, D_inf]
+    )
+    sol = solve(prob)
+    plot!(p, sol, alpha = 0.6, label = "", color = :blue, idxs = (0, 2))
+end
+
+plot!(p)
+```
+
+**Key insight**: Priors determine what kinds of epidemics our model considers plausible before seeing data.
+
+## Evaluating prior densities
+
+So far we've been *sampling* from our priors to understand what they represent.
+But for Bayesian inference, we also need to *evaluate* how probable specific parameter values are under our priors.
+
+Let's define some specific parameter combinations to explore throughout our analysis:
+
+```{julia}
+# Parameter combinations we'll explore throughout our analysis
+test_params = [
+    (R_0 = 1.1, D_inf = 2.0),
+    (R_0 = 1.5, D_inf = 2.0),
+    (R_0 = 2.5, D_inf = 2.0),
+    (R_0 = 4.0, D_inf = 2.0),
+    (R_0 = 2.5, D_inf = 1.0),
+    (R_0 = 2.5, D_inf = 4.0)
+]
+
+# Calculate prior densities for both flat and informed priors
+log_priors_flat = []
+log_priors_informed = []
+
+println("Flat vs Informed prior log-densities:")
+for theta in test_params
+    # Flat priors
+    flat_prior = logpdf(Uniform(1, 100), theta.R_0) + logpdf(Uniform(0.1, 30), theta.D_inf)
+    push!(log_priors_flat, flat_prior)
+
+    # Informed priors
+    informed_prior = logpdf(Normal(2.5, 0.8), theta.R_0) + logpdf(Gamma(2, 1), theta.D_inf)
+    push!(log_priors_informed, informed_prior)
+
+    println(
+        "R_0 = $(theta.R_0), D_inf = $(theta.D_inf): ",
+        "Flat = $(round(flat_prior, digits = 1)), ",
+        "Informed = $(round(informed_prior, digits = 1))"
+    )
+end
+```
+
+**Key insights**:
+
+- For **uniform priors**, all parameter values within the valid range have the same log-density
+- For **informed priors**, values closer to our beliefs (R_0≈2.5, D_inf≈2) have higher densities
+- The informed prior "penalises" parameter values that are far from our expectations
+
+# Part 2: Understanding the likelihood
+
+## What is a likelihood?
+
+The **likelihood** quantifies how probable our observed data is, given specific parameter values.
+It asks: "If the parameters were X, how likely would we be to see the data we actually observed?"
+
+The predictive prior trajectories we looked at earlier were purely a function of the model and its specification.
+The likelihood, on the other hand, is about comparing the model to data.
+Let's start by loading some observed epidemic data (we simulated these from the model but in principle this could be any data) representing the number of infectious individuals at different time points:
+
+```{julia}
+# Define data frame with epidemic  data
+epi1 = DataFrame(
+    time = 1:1:30, ## 30 data points
+    obs = [
+        3, 4, 11, 19, 38, 67, 112, 183, 210, 237, 182, 178, 154, 95, 68, 51,
+        30, 32, 18, 19, 9, 2, 2, 2, 0, 0, 1, 0, 0, 0
+    ]
+)
+
+println("Data overview:")
+first(epi1, 8)
+```
+
+We first visualise this data set.
+
+```{julia}
+# Visualise the observed data
+scatter(
+    epi1.time, epi1.obs, xlabel = "Time", ylabel = "Observed Cases", 
+    title = "Epidemic Data", label = "Observed", markersize = 4, color = :red
+)
+```
+
+This data was generated from an SIR model with $R_0 ≈ 2.5$ and $D_\mathrm{inf} = 2$ days.
+Let's see if we could have figured this out by exploring the likelihood.
+
+## Exploring likelihood through simulation
+
+The likelihood asks: "How probable is our observed data, given specific parameter values?"
+Let's explore this by trying the parameter values that we looked at before when evaluating priors:
+
+```{julia}
+# Calculate and store likelihood values for our test parameters
+log_likelihoods = []
+
+# Generate plot
+p = plot(title = "Model Fit Comparison", xlabel = "Time", ylabel = "Cases")
+
+# For each parameter set, calculate log-likelihood and plot
+for theta in test_params
+
+    R_0 = theta.R_0
+    D_inf = theta.D_inf
+
+    # Simulate from the model
+    prob = ODEProblem(
+        sir_ode!, init_state, (t0, tend), [R_0, D_inf]
+    )
+    sol = solve(prob, saveat = epi1.time)
+
+    # I compartment is second compartment
+    I = sol[2, :]
+    # assuming Poisson log-likelihood at each time point
+    loglik = [ Poisson(It) for It in I ]
+    # calculate total loglikelihood as sum of log likelihoods at each time point
+    total_loglik = sum(logpdf.(loglik, epi1.obs))
+    # store in vector
+    push!(log_likelihoods, total_loglik)
+
+    println(
+        "R_0 = $(R_0), D_inf = $(D_inf) → ",
+        "log-likelihood = $(round(total_loglik, digits = 1))"
+    )
+    plot!(
+        p, sol, idxs = (0, 2),
+        label = "R_0 = $(theta.R_0), D_inf = $(theta.D_inf)", linewidth = 2
+    )
+end
+
+scatter!(
+    p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black,
+    markershape = :circle
+)
+plot!(p)
+```
+
+**Take 5 minutes**: Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
+
+
+## Understanding the likelihood function
+
+Our likelihood assumes each observation follows a Poisson distribution around the true prevalence. Let's understand this:
+
+```{julia}
+# Pick one time point and explore the likelihood in detail
+time_point = 10
+theta_example = (R_0 = 2.5, D_inf = 2.0)
+prob = ODEProblem(
+    sir_ode!, init_state, (t0, tend), [theta_example.R_0, theta_example.D_inf]
+)
+sol = solve(prob, saveat = epi1.time)
+
+expected_cases = sol[2,:][time_point]
+observed_cases = epi1.obs[time_point]
+
+println("At time $(epi1.time[time_point]):")
+println("  Expected cases: $(round(expected_cases, digits=1))")
+println("  Observed cases: $observed_cases")
+
+# Show the Poisson distribution
+obs_dist = Poisson(expected_cases)
+possible_observations = 0:500
+probabilities = pdf.(obs_dist, possible_observations)
+
+p = plot(
+    possible_observations, probabilities,
+    title = "Likelihood for one data point", 
+    xlabel = "Possible observations", ylabel = "Probability", linewidth = 2
+)
+vline!(
+    p, [observed_cases], color = :red, linewidth = 3,
+    label = "Actual observation"
+)
+scatter!(
+    p, [observed_cases], [pdf(obs_dist, observed_cases)], color = :red,
+    markersize = 8, label = "Likelihood value"
+)
+```
+
+**Key insight**: The likelihood is highest when our model prediction matches the observation closely.
+
+::: {.callout-note title="Coming from R?"}
+In R, you would calculate Poisson log-likelihood as:
+```{r eval = FALSE}
+log_lik <- dpois(observed, lambda = expected, log=TRUE)
+```
+
+In Julia instead we have used with Distribution objects:
+```julia
+obs_dist = Poisson(expected)
+logpdf(obs_dist, observed)
+```
+
+This same `obs_dist` object can be used for random sampling (`rand(obs_dist)`) and other operations.
+:::
+
+# Part 3: Understanding the posterior
+
+## What is a posterior?
+
+The **posterior** combines our prior beliefs with the data evidence using **Bayes' theorem**:
+
+$$p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$$
+
+- $p(\theta|\text{data})$: **Posterior** - what we believe about parameters *after* seeing data
+- $p(\text{data}|\theta)$: **Likelihood** - how well parameters explain the data
+- $p(\theta)$: **Prior** - what we believed *before* seeing data
+
+In log space: $\log p(\theta|\text{data}) = \log p(\text{data}|\theta) + \log p(\theta) + \text{constant}$
+
+Let's combine our stored prior and likelihood values to calculate the posterior:
+
+```{julia}
+# Posterior = Prior + Likelihood (using our stored values)
+println("Posterior breakdown using flat priors:")
+for i in 1:length(test_params)
+    theta = test_params[i]
+    log_post_flat = log_priors_flat[i] + log_likelihoods[i]
+
+    println("R_0=$(theta.R_0), D_inf=$(theta.D_inf)")
+    println("  Prior: $(round(log_priors_flat[i], digits=1)), Likelihood: $(round(log_likelihoods[i], digits=1)), Posterior: $(round(log_post_flat, digits=1))")
+end
+```
+
+## How priors influence the posterior
+
+Let's see how the choice of prior affects our conclusions by comparing flat vs informed priors for all our test parameters:
+
+```{julia}
+# Compare flat vs informative priors using our stored values
+println("Flat vs Informed posterior comparison:")
+for i in 1:length(test_params)
+    theta = test_params[i]
+
+    # Calculate posteriors using stored values
+    log_post_flat = log_priors_flat[i] + log_likelihoods[i]
+    log_post_informed = log_priors_informed[i] + log_likelihoods[i]
+
+    println("R_0=$(theta.R_0), D_inf=$(theta.D_inf)")
+    println("  Flat posterior: $(round(log_post_flat, digits=1)), Informed posterior: $(round(log_post_informed, digits=1))")
+    println("  Difference: $(round(log_post_informed - log_post_flat, digits=1))")
+    println()
+end
+```
+
+**Key insight**: When we have strong prior beliefs that align with the data, the posterior gets a boost. When priors conflict with data, they pull the posterior away from the likelihood.
+
+# Systematic posterior exploration
+
+Now that we understand the components of Bayesian inference, let's systematically explore the posterior by trying many parameter combinations and calculating their log-posterior values manually.
+
+## Grid search to find the best parameters
+
+Let's systematically explore the posterior by calculating log-posterior values for a grid of parameter combinations:
+
+```{julia}
+# Define a finer grid for systematic exploration
+R_0_values = 1.5:0.2:4.0 # from 1.5 to 4.0 in steps of 0.2
+D_inf_values = 1.0:0.2:3.0 # from 1.0 to 3.0 in steps of 0.2
+
+# initialise empty variables
+best_log_posterior = -Inf
+best_params = nothing
+results = []
+
+println("Exploring posterior manually... (this may take a moment)")
+
+# Loop over grid
+for R_0 in R_0_values
+    for D_inf in D_inf_values
+        # Calculate prior log-density manually
+        log_prior = logpdf(Uniform(1, 100), R_0) +
+            logpdf(Uniform(0.1, 30), D_inf)
+
+        # Calculate likelihood manually by simulating the ODE
+        prob = ODEProblem(sir_ode!, init_state, (t0, tend), [R_0, D_inf])
+        sol = solve(prob, saveat = epi1.time)
+
+        # Calculate log-likelihood as sum of Poisson log-densities
+        I = sol[2, :]
+        # assuming Poisson log-likelihood at each time point
+        loglik = [ Poisson(It) for It in I ]
+        # calculate total loglikelihood as sum of log likelihoods
+        # at each time point
+        total_loglik = sum(logpdf.(loglik, epi1.obs))
+ 
+        # Calculate log-posterior manually
+        log_post = log_prior + total_loglik
+        push!(results, (R_0 = R_0, D_inf = D_inf, log_posterior = log_post))
+
+        # check if log_posterior is the new "best"
+        # (highest log-posterior density)
+        if log_post > best_log_posterior
+            best_log_posterior = log_post
+            best_params = (R_0 = R_0, D_inf = D_inf)
+        end
+    end
+end
+
+println(
+    "Best parameters found: ",
+    "R_0 = $(best_params.R_0), D_inf = $(best_params.D_inf)"
+)
+println("Best log-posterior: $(round(best_log_posterior, digits = 1))")
+```
+
+Is this the result you expected?
+
+Apart from finding the best parameters we can also use our results to visualise the whole posterior surface.
+
+```{julia}
+# Visualize the posterior surface
+R_0_grid = [r.R_0 for r in results]
+D_inf_grid = [r.D_inf for r in results]
+log_post_grid = [r.log_posterior for r in results]
+
+# Reshape for heatmap
+R_0_unique = unique(R_0_grid)
+D_inf_unique = unique(D_inf_grid)
+post_matrix = reshape(log_post_grid, length(R_0_unique), length(D_inf_unique))
+
+heatmap(
+    D_inf_unique, R_0_unique, post_matrix,
+    xlabel = "D_inf (days)", ylabel = "R_0",
+    title = "Log-Posterior Surface", color = :viridis
+)
+```
+
+What do you observe about the posterior surface?
+
+## The best fit
+
+So far we have only used the log-posterior to find the best-fitting set of parameters.
+However, even the best parameters  could still yield a bad fit to the data.
+In order to check this we visualise trajectories that correspond to the best parameters (with observation noise) and plot them together with the data:
+
+```{julia}
+predicted_trajectories = []
+for i in 1:10
+    # Simulate ODE manually with best parameters
+    prob = ODEProblem(sir_ode!, init_state, (t0, tend), [best_params.R_0, best_params.D_inf])
+    sol = solve(prob, saveat = epi1.time)
+
+    # Add Poisson observation noise to create realistic predictions
+    I = sol[2, :]
+    loglik = [ Poisson(It) for It in I ]
+    pred_data = rand.(loglik);
+
+    # store trajectory
+    push!(predicted_trajectories, pred_data)
+end
+
+# Plot the predicted trajectories
+p = plot(title = "Best Fit from Manual Simulation", xlabel = "Time", ylabel = "Cases")
+for pred in predicted_trajectories
+    plot!(p, epi1.time, pred, alpha = 0.3, color = :blue, label = "")
+end
+
+# Show the mean prediction
+mean_pred = mean(predicted_trajectories)
+plot!(p, epi1.time, mean_pred, linewidth = 3, color = :red,
+      label = "Mean prediction (R_0 = $(best_params.R_0), D_inf = $(best_params.D_inf))")
+
+scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
+plot!(p)
+```
+
+## Parameter uncertainty
+
+So far we have only considered the best fitting parameter values.
+Let's get a sense of parameter uncertainty by looking at all "reasonably good" parameter combinations:
+
+```{julia}
+# Define "reasonably good" as the top 10% of log posteriors
+threshold = quantile(log_post_grid, 0.9)
+good_results = filter(r -> r.log_posterior > threshold, results)
+
+println("Found $(length(good_results)) 'good' parameter combinations out of $(length(results)) total")
+
+# Plot posterior uncertainty
+p = plot(title = "Parameter Uncertainty", xlabel = "Time", ylabel = "Cases")
+
+for result in good_results[1:min(20, end)]  # Plot up to 20 trajectories
+    # Simulate ODE manually and add Poisson observation noise
+    prob = ODEProblem(sir_ode!, init_state, (t0, tend), [result.R_0, result.D_inf])
+    sol = solve(prob, saveat = epi1.time)
+
+    # Add Poisson observation noise to simulate realistic data
+    I = sol[2, :]
+    loglik = [ Poisson(It) for It in I ]
+    pred_data = rand.(loglik)
+    plot!(p, epi1.time, pred_data, alpha = 0.3, color = :blue, label = "")
+end
+
+# Highlight the best fit with manual simulation
+prob_best = ODEProblem(
+    sir_ode!, init_state, (t0, tend), [best_params.R_0, best_params.D_inf]
+)
+sol_best = solve(prob_best, saveat = epi1.time)
+I_best = sol_best[2, :]
+loglik_best = [ Poisson(It) for It in I_best ]
+best_pred = rand.(loglik_best)
+plot!(p, epi1.time, best_pred, alpha = 0.3, color = :red, label = "best")
+
+scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
+
+plot!(p)
+```
+
+**Take 5 minutes**: Does the real data look consistent with our simulated datasets? This is **posterior predictive checking** - a key model validation technique.
+
+# Why we need algorithmic approaches
+
+Through simulation, we've built intuition about:
+- **Priors**: Our beliefs before seeing data
+- **Likelihood**: How well parameters explain the data
+- **Posterior**: Combining beliefs with evidence
+- **Uncertainty**: Multiple parameter values are consistent with data
+
+But our manual approach has serious limitations:
+
+```{julia}
+# The curse of dimensionality
+n_params = [2, 3, 4, 5, 6, 10]
+n_values_per_param = 15  # Reasonable resolution
+
+println("Grid search scaling problems:")
+for n in n_params
+    total_evals = n_values_per_param^n
+    println("$(n) parameters: $(total_evals) evaluations")
+end
+```
+
+**Problems with manual exploration:**
+
+1. **Computational cost**: Grid search doesn't scale
+2. **Poor sampling**: We might miss important regions
+3. **No convergence guarantees**: How do we know when we've explored enough?
+4. **Inefficient**: We waste time in low-probability regions
+
+# Summary
+
+In this session, you learned:
+
+1. **Priors**: Express beliefs before seeing data, explored through simulation
+2. **Likelihood**: Quantifies how well parameters explain observed data
+3. **Posterior**: Combines priors and likelihood using Bayes' theorem
+4. **Manual exploration**: Grid search to find best parameters and understand uncertainty
+5. **Model checking**: Using simulation to validate model assumptions
+6. **Limitations**: Why manual approaches don't scale
+
+**Next session**: We'll learn how Markov Chain Monte Carlo (MCMC) algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how Turing.jl automates everything with state-of-the-art methods.
