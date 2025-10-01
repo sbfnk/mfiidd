@@ -8,7 +8,19 @@ engine: julia
 
 # Introduction
 
+This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
+We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms for doing so more efficiently in the next session.
+
 # Objectives
+
+The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition. We will use **Distributions.jl** for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+
+In this session, you will
+
+1. understand **priors**, **likelihood**, and **posterior** through simulation
+2. calculate posterior distributions through manual grid search
+3. manually explore the posterior by trying different parameter values
+4. understand why we need algorithmic approaches (setting up the next session)
 
 ::: {.callout-note collapse="true"}
 
@@ -45,18 +57,6 @@ Random.seed!(1234)
 ```
 
 :::
-
-The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition. We will use **Distributions.jl** for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
-
-In this session, you will
-
-1. understand **priors**, **likelihood**, and **posterior** through simulation
-2. calculate posterior distributions through manual grid search
-3. manually explore the posterior by trying different parameter values
-4. understand why we need algorithmic approaches (setting up the next session)
-
-The key insight: Bayesian inference is fundamentally about simulation and comparison. 
-We will do this manually first, then automate it later.
 
 # A deterministic SIR model in Julia
 
