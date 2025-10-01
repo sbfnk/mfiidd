@@ -1,0 +1,20 @@
+---
+title: "Model fitting and inference for infectious disease dynamics"
+site: distill::distill_website
+comments: false
+about:
+  template: jolla
+  links:
+    - icon: chat-fill
+      text: Dive into the course
+      href: mfiidd.julia/sessions/introduction-and-course-overview.html
+    - icon: github
+      text: Visit us on GitHub
+      href: https://github.com/sbfnk/mfiidd.julia
+---
+
+A course and living resource for learning about model fitting and inference for infectious disease dynamics.
+
+We invite anyone to use the materials here in their own teaching and learning. For questions and discussion of the course or its content, we welcome all users to the [Discussion board](https://github.com/sbfnk/mfiidd.julia/discussions). We welcome all forms of [contributions, additions and suggestions](https://github.com/sbfnk/mfiidd.julia/issues) for improving the materials. 
+
+All materials here are provided under the permissive [MIT License](https://github.com/sbfnk/mfiidd.julia/blob/main/LICENSE).
