@@ -772,12 +772,11 @@ for n in n_params
 end
 ```
 
-**Problems with manual exploration:**
+This shows that the **computational cost** of grid search, i.e. the number of simulations that we need to run, reaches very large numbers even at moderate levels of complexity.
 
-- **Computational cost**: Grid search doesn't scale
-- **Poor sampling**: We might miss important regions
-- **No convergence guarantees**: How do we know when we've explored enough?
-- **Inefficient**: We waste time in low-probability regions
+In addition, this kind of sampling is **wasteful**, because most parameter combinations will be far from the ones that lead to a good fit to the data.
+
+Lastly, it is difficult to establish whether the grid is fine enough (or important parameter regions might be in the "gaps"), and whether the limits of the grid are wide enough.
 
 # Summary
 
