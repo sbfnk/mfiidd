@@ -44,3 +44,6 @@ site_libs/
 **/*_files
 
 .quarto/
+
+/.quarto/
+**/*.quarto_ipynb
