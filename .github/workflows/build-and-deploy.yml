@@ -24,7 +24,8 @@ jobs:
       - uses: quarto-dev/quarto-actions/setup@v2
 
       - uses: julia-actions/setup-julia@v2
-        version: '1.11.7'
+        with:
+          version: '1.11.7'
 
       - name: Render site
         run: quarto render
