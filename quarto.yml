@@ -1,0 +1,35 @@
+project:
+  type: website
+  render:
+    - "*.qmd"
+
+website:
+  title: "MFIIDD"
+  site-url: https://sbfnk.github.io/mfiidd.julia/
+  repo-url: https://github.com/sbfnk/mfiidd.julia
+  repo-actions: [source, issue]
+  description: "Model fitting and inference for infectious disease dynamics"
+  body-footer: '<script data-goatcounter="https://mfidd.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>'
+  open-graph: true
+  favicon: nfidd-favicon.png
+  navbar:
+    left:
+      - sidebar:sessions
+    right:
+      - icon: github
+        href: https://github.com/sbfnk/mfiidd.julia
+  sidebar:
+    - id: sessions
+      title: "Sessions"
+      style: "docked"
+      contents: "sessions/*.qmd"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: solar
+    css: styles.css
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
