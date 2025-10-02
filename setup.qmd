@@ -1,0 +1,13 @@
+---
+title: Model fitting and inference for infectious disease dynamics
+author: by Sebastian Funk, Anton Camacho, Helen Johnson, Amanda Minter, Kathleen O'Reilly and Nicholas Davies
+output:
+  html_document:
+    toc: false
+---
+
+# Required software
+* [Julia](http://julialang.org) is used as the main programming language. Please [install](https://julialang.org/install/) at least version: 1.11.7.
+* [Visual Studio Code](https://code.visualstudio.com/) (optional) is a popular graphic user interface (GUI).
+
+If you are not familiar with **Julia**, we recommend reading at least chapter 3 of the [Julia Data Science](https://juliadatascience.io/) book or a similar introductory resource.

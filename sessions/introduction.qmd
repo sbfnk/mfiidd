@@ -13,7 +13,8 @@ We will build intuition by manually calculating priors, likelihoods, and posteri
 
 # Objectives
 
-The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition. We will use **Distributions.jl** for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
+We will use **Distributions.jl** for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
 
 In this session, you will
 
@@ -180,15 +181,15 @@ plot(sol, labels=["S" "I" "R"])
 A **prior** represents what we believe about parameters **before** seeing any data. It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
 
 In our SIR model:
-- $R_0 \sim \text{Uniform}(1, 100)$: We believe $R_0$ could be anywhere from 1 to 100, with all values equally likely
-- $D_\mathrm{inf} \sim \text{Uniform}(0.1, 30)$: We believe infectious periods from 0.1 to 30 days are equally plausible
+- $R_0 \sim \text{Uniform}(1, 20)$: We believe $R_0$ could be anywhere from 1 to 20, with all values equally likely
+- $D_\mathrm{inf} \sim \text{Uniform}(1, 14)$: We believe infectious periods from 1 to 14 days are equally plausible
 
 Let's explore what these priors mean through simulation:
 
 ```{julia}
 # Define our priors as Distribution objects
-R_0_prior = Uniform(1.0, 100.0)
-D_inf_prior = Uniform(0.1, 30.0)
+R_0_prior = Uniform(1.0, 20.0)
+D_inf_prior = Uniform(1.0, 14.0)
 
 # Sample from priors many times
 n_samples = 1000
@@ -211,11 +212,11 @@ println(
 # Visualize our priors
 p1 = histogram(
     R_0_samples, title = "R_0 Prior", xlabel = "R_0", ylabel = "Frequency",
-    alpha = 0.7, label = "Uniform(1, 100)"
+    alpha = 0.7, label = "Uniform(1, 20)"
 )
 p2 = histogram(
     D_inf_samples, title = "D_inf Prior", xlabel = "D_inf (days)",
-    ylabel = "Frequency", alpha = 0.7, label = "Uniform(0.1, 30)"
+    ylabel = "Frequency", alpha = 0.7, label = "Uniform(1, 14)"
 )
 plot(p1, p2, layout = (1,2))
 ```
@@ -303,13 +304,13 @@ D_inf_informed_samples = rand(D_inf_informed, 1000)
 
 p1 = histogram(
     R_0_samples, title = "Flat Prior", xlabel = "R_0", alpha = 0.7,
-    label = "Uniform(1, 100)"
+    label = "Uniform(1, 20)"
 )
 histogram!(p1, R_0_informed_samples, alpha = 0.7, label = "Normal(2.5, 0.8)")
 
 p2 = histogram(
     D_inf_samples, title = "Flat Prior", xlabel = "D_inf", alpha = 0.7,
-    label = "Uniform(0.1, 30)"
+    label = "Uniform(1, 14)"
 )
 histogram!(p2, D_inf_informed_samples, alpha = 0.7, label = "Gamma(2, 1)")
 
@@ -377,7 +378,7 @@ log_priors_informed = []
 println("Flat vs Informed prior log-densities:")
 for theta in test_params
     # Flat priors
-    flat_prior = logpdf(Uniform(1, 100), theta.R_0) + logpdf(Uniform(0.1, 30), theta.D_inf)
+    flat_prior = logpdf(Uniform(1, 20), theta.R_0) + logpdf(Uniform(1, 14), theta.D_inf)
     push!(log_priors_flat, flat_prior)
 
     # Informed priors
@@ -392,11 +393,13 @@ for theta in test_params
 end
 ```
 
-**Key insights**:
+::: {.callout-tip title="Learning points"}
 
 - For **uniform priors**, all parameter values within the valid range have the same log-density
 - For **informed priors**, values closer to our beliefs (R_0≈2.5, D_inf≈2) have higher densities
 - The informed prior "penalises" parameter values that are far from our expectations
+
+:::
 
 # Part 2: Understanding the likelihood
 
@@ -621,8 +624,8 @@ println("Exploring posterior manually... (this may take a moment)")
 for R_0 in R_0_values
     for D_inf in D_inf_values
         # Calculate prior log-density manually
-        log_prior = logpdf(Uniform(1, 100), R_0) +
-            logpdf(Uniform(0.1, 30), D_inf)
+        log_prior = logpdf(Uniform(1, 20), R_0) +
+            logpdf(Uniform(1, 14), D_inf)
 
         # Calculate likelihood manually by simulating the ODE
         prob = ODEProblem(sir_ode!, init_state, (t0, tend), [R_0, D_inf])
@@ -727,14 +730,19 @@ Let's get a sense of parameter uncertainty by looking at all "reasonably good" p
 threshold = quantile(log_post_grid, 0.9)
 good_results = filter(r -> r.log_posterior > threshold, results)
 
-println("Found $(length(good_results)) 'good' parameter combinations out of $(length(results)) total")
+println(
+    "Found $(length(good_results)) 'good' parameter combinations out of ",
+    "$(length(results)) total"
+)
 
 # Plot posterior uncertainty
 p = plot(title = "Parameter Uncertainty", xlabel = "Time", ylabel = "Cases")
 
 for result in good_results[1:min(20, end)]  # Plot up to 20 trajectories
     # Simulate ODE manually and add Poisson observation noise
-    prob = ODEProblem(sir_ode!, init_state, (t0, tend), [result.R_0, result.D_inf])
+    prob = ODEProblem(
+        sir_ode!, init_state, (t0, tend), [result.R_0, result.D_inf]
+    )
     sol = solve(prob, saveat = epi1.time)
 
     # Add Poisson observation noise to simulate realistic data
@@ -754,7 +762,9 @@ loglik_best = [ Poisson(It) for It in I_best ]
 best_pred = rand.(loglik_best)
 plot!(p, epi1.time, best_pred, alpha = 0.3, color = :red, label = "best")
 
-scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
+scatter!(
+    p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black
+)
 
 plot!(p)
 ```
