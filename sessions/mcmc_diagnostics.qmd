@@ -1,0 +1,620 @@
+---
+title: "MCMC Diagnostics"
+format: html
+engine: julia
+---
+
+[Lecture slides](slides/mcmc_diagnostics_slides.pdf)
+
+# Introduction
+
+In the previous session, you learned how MCMC algorithms explore posterior distributions by taking random walks through parameter space.
+You implemented Metropolis-Hastings yourself and saw how Turing.jl's NUTS algorithm automates everything with gradient-based sampling.
+But there's a critical question we haven't yet fully addressed: How do you know if the inference procedure has worked?
+
+MCMC algorithms don't come with guarantees.
+A chain will always to give you posterior samples, but it could be stuck exploring only part of the space, still burning in, or mixing so slowly that your "samples" are nearly duplicates and not good representations of the true posterior distributions, which MCMC will only be guaranteed to represent in the limit of infinite number of samples.
+Using unreliable MCMC output leads to incorrect inference - wrong parameter estimates, overconfident intervals, and bad scientific conclusions.
+
+This session teaches you how to diagnose MCMC chains systematically.
+You will learn to spot problems visually with trace plots, quantify convergence with R̂ and effective sample size, and understand when your posterior samples are trustworthy.
+These diagnostic skills are essential for any serious Bayesian analysis.
+
+# Objectives
+
+In this session, you will learn how to assess whether your MCMC chains have converged and whether your posterior samples are reliable.
+This is an important component of trustworthy Bayesian analysis.
+
+You will learn to:
+
+1. **Visually diagnose** chains using trace plots and other visualizations
+2. **Calculate quantitative diagnostics** like R̂ and effective sample size
+3. **Identify common problems** and how to fix them
+4. **Use Turing.jl's built-in diagnostics** for automated checking
+5. **Apply best practices** for robust MCMC in practice
+
+::: {.callout-note collapse = "true"}
+
+# Setup
+
+```{julia}
+#| echo: false
+using Pkg
+# Activate the project root (one level up from sessions/)
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
+```
+
+## Source file
+
+The source file of this session is located at `sessions/mcmc_diagnostics.qmd`.
+
+## Load libraries
+
+```{julia}
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DifferentialEquations ## for differential equations
+using DataFrames ## for data frames
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using Turing ## for probabilistic programming and MCMC
+using MCMCChains ## for MCMC diagnostics
+using StatsBase ## for autocorrelation
+```
+
+## Initialisation
+
+We set a random seed for reproducibility.
+Setting this ensures that you should get exactly the same results on your computer as we do.
+
+```{julia}
+Random.seed!(12345)
+```
+
+## Load data and model from previous session
+
+We'll use the same SIR model and epidemic data from previous sessions:
+
+```{julia}
+#| output: false
+
+# Define ODE function
+function sir_ode!(du, u, p, t)
+    S, I, R = u
+    R_0, D_inf = p
+    N = S + I + R
+
+    β = R_0 / D_inf
+    ν = 1 / D_inf
+
+    du[1] = -β * S * I / N  # dS/dt
+    du[2] = β * S * I / N - ν * I  # dI/dt
+    du[3] = ν * I  # dR/dt
+end
+
+# Initial state and time range
+init_state = [999, 1, 0]
+t0, tend = (0, 30)
+
+# Epidemic data
+epi1 = DataFrame(
+    time = 1:1:30,
+    obs = [
+        1, 3, 4, 11, 19, 38, 67, 112, 183, 210, 237, 182, 178, 154, 95, 68, 51,
+        30, 32, 18, 19, 9, 2, 2, 2, 0, 0, 1, 0, 0
+    ]
+)
+
+# Define our SIR model in Turing.jl (same as MCMC session)
+@model function sir_model(obs, init_state, times)
+    # Priors
+    R_0 ~ Uniform(1.0, 20.0)
+    D_inf ~ Uniform(1.0, 14.0)
+
+    # Simulate ODE
+    prob = ODEProblem(sir_ode!, init_state, (times[1], times[end]), [R_0, D_inf])
+    sol = solve(prob, saveat = times)
+
+    # Likelihood
+    I = sol[2, :]
+    for i in 1:length(obs)
+        # Use max to handle tiny numerical errors from automatic differentiation
+        obs[i] ~ Poisson(max(I[i], 0.0))
+    end
+end
+
+# Create model instance
+model = sir_model(epi1.obs, init_state, epi1.time)
+```
+
+:::
+
+# Visual diagnostics
+
+## 1. Trace plots: The most important diagnostic
+
+Trace plots show parameter values over iterations. They should look like [hairy caterpillars](figures/hairy_caterpillar.jpg):
+
+```{julia}
+#| output: false
+# Good chain: well-mixing NUTS
+chain_good = sample(model, NUTS(), 2000)
+```
+
+```{julia}
+plot(
+    chain_good[:R_0], title = "Good Chain: R_0", xlabel = "Iteration",
+    ylabel = "R_0", linewidth = 1
+)
+```
+
+```{julia}
+# For comparison, let's look at the other parameter too
+p1 = plot(
+    chain_good[:R_0], title = "R_0 Trace", xlabel = "Iteration",
+    ylabel = "R_0", linewidth = 1
+)
+p2 = plot(
+    chain_good[:D_inf], title = "D_inf Trace", xlabel = "Iteration",
+    ylabel = "D_inf", linewidth = 1
+)
+
+plot(p1, p2, layout = (2, 1), size = (800, 600))
+```
+
+The features that you'll want to look out for in trace plots are:
+
+- **Good mixing**: Chain moves freely around parameter space
+- **Stationarity**: No obvious trends or drifts
+- **Fat hairy caterpillar**: Rapid exploration of the posterior
+
+The kind of features to avoid are:
+
+- **Poor mixing**: Chain gets stuck in regions
+- **Trends**: Chain still climbing/descending
+- **Thin worm**: Chain not exploring enough
+
+## 2. Running averages
+
+Running averages should stabilise if the chain has converged:
+
+```{julia}
+function running_mean(x)
+    return [mean(x[1:i]) for i in 1:length(x)]
+end
+
+R_0_samples = vec(chain_good[:R_0])
+p1 = plot(
+    running_mean(R_0_samples), title = "Running Mean: R_0",
+    xlabel = "Iteration", ylabel = "Running Mean R_0", linewidth = 2
+)
+hline!(
+    p1, [mean(R_0_samples)], color = :red, linestyle = :dash,
+    label = "Final mean"
+)
+
+D_inf_samples = vec(chain_good[:D_inf])
+p2 = plot(
+    running_mean(D_inf_samples), title = "Running Mean: D_inf",
+    xlabel = "Iteration", ylabel = "Running Mean D_inf", linewidth = 2
+)
+hline!(
+    p2, [mean(D_inf_samples)], color = :red, linestyle = :dash,
+    label = "Final mean"
+)
+
+plot(p1, p2, layout = (2, 1))
+```
+
+## 3. Autocorrelation
+
+MCMC samples are correlated. Good chains have autocorrelation that decays quickly:
+
+```{julia}
+function autocorr_plot(chain, param_name; max_lag = 100)
+    samples = Array(chain[param_name])  # Convert to plain array
+    lags = 0:max_lag
+    # autocor from StatsBase expects a vector and returns scalar for each lag
+    autocorrs = [autocor(samples, [lag])[1] for lag in lags]
+
+    plot(
+        lags, autocorrs, title = "Autocorrelation: $param_name",
+        xlabel = "Lag", ylabel = "Autocorrelation", linewidth = 2
+    )
+    hline!([0], color = :gray, linestyle = :dash, label = "")
+    hline!(
+        [-0.05, 0.05], color = :red, linestyle = :dash, label = "±5% threshold"
+    )
+end
+
+p1 = autocorr_plot(chain_good, :R_0)
+p2 = autocorr_plot(chain_good, :D_inf)
+
+plot(p1, p2, layout = (2, 1), size = (800, 600))
+```
+
+We can see that autocorrelation drops quickly to near zero and both parameters show good mixing. 
+After ~20-30 MCMC steps, samples are essentially independent
+
+## 4. Burn-in and warmup
+
+MCMC chains often start from arbitrary initial values and need time to "find" the high-probability regions of the posterior.
+Samples from this initial exploration phase (called "burn-in") are discarded because they don't represent the target distribution.
+
+Modern samplers like NUTS have **automatic warmup periods** where they adapt the step size to achieve good acceptance rates, learn the geometry of the posterior and explore to find typical parameter values.
+
+In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total - 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations. The returned chain contains only the 2000 post-warmup samples.
+
+With NUTS, you typically don't need to manually discard burn-in samples. The warmup is automatic and adaptive. However, you should still check trace plots to ensure the chain has converged - if you see trends even after warmup, you may need longer adaptation.
+
+# Quantitative diagnostics
+
+## 1. R̂ statistic (Gelman-Rubin diagnostic)
+
+R̂ compares within-chain and between-chain variance. It should be < 1.1 (ideally < 1.01):
+
+```{julia}
+#| output: false
+# Run multiple chains for R̂ calculation (sequentially for reproducibility)
+# Try with explicit initialization to see if that helps
+init_params = [Dict(:R_0 => 2.0, :D_inf => 2.0) for _ in 1:4]
+chain_multi = sample(
+    model, NUTS(), MCMCSerial(), 2000, 4; init_params = init_params
+)
+```
+
+```{julia}
+# Check what each individual chain found
+println("Individual chain summaries:")
+for i in 1:4
+    chain_i = chain_multi[:, :, i]
+    r0_mean = mean(chain_i[:R_0])
+    dinf_mean = mean(chain_i[:D_inf])
+    println(
+        "  Chain $i: R_0 = $(round(r0_mean, digits = 2)), ",
+        "D_inf = $(round(dinf_mean, digits = 2))"
+    )
+end
+
+# Calculate R̂
+println("\nR̂ values:")
+rhat_values = DataFrame(rhat(chain_multi))
+for row in eachrow(rhat_values)
+    param = row.parameters
+    value = row.rhat
+    status = value < 1.1 ? "✓ good" : "✗ bad"
+    println("  $param: $(round(value, digits = 3)) $status")
+end
+logjoint(model, chain_multi)
+```
+
+```{julia}
+# Visualize multiple chains
+plot(chain_multi)
+```
+
+## 2. Effective Sample Size (ESS)
+
+ESS tells you how many independent samples your correlated MCMC samples are equivalent to:
+
+```{julia}
+ess_values = DataFrame(ess(chain_multi))
+n_samples = length(chain_multi)
+
+println("Effective Sample Size:")
+for row in eachrow(ess_values)
+    param = row.parameters
+    value = row.ess
+    efficiency = value / n_samples * 100
+    status = value > 100 ? "good" : "bad"  # Rule of thumb: ESS > 100
+    println(
+        "  $param: $(round(value, digits = 0)) / $n_samples ",
+        "($(round(efficiency, digits = 1))%) $status"
+    )
+end
+```
+
+ESS interpretation:
+
+- **ESS ≈ N**: Very efficient, little autocorrelation
+- **ESS << N**: High autocorrelation, need more samples
+- **ESS < 100**: Generally insufficient for reliable inference
+
+## 3. Monte Carlo Standard Error (MCSE)
+
+MCSE quantifies uncertainty in your posterior estimates due to finite sampling:
+
+```{julia}
+mcse_values = DataFrame(mcse(chain_multi))
+posterior_means = DataFrame(mean(chain_multi))
+
+println("Posterior means ± MCSE:")
+for row in eachrow(mcse_values)
+    param = row.parameters
+    mcse_val = row.mcse
+    # Get mean for this parameter
+    mean_val = posterior_means[posterior_means.parameters .== param, :mean][1]
+    rel_error = mcse_val / abs(mean_val) * 100
+    println(
+        "  $param: $(round(mean_val, digits = 3)) ± ",
+        "$(round(mcse_val, digits = 4)) ",
+        "($(round(rel_error, digits = 2))% relative error)"
+    )
+end
+```
+
+# Common problems and solutions
+
+## Problem 1: Poor mixing (chain gets stuck)
+
+**Common causes:**
+
+- **Algorithm too slow**: Basic samplers get stuck in regions
+- **Poor step size**: Proposals too small or too large
+- **Difficult geometry**: Highly correlated parameters, narrow ridges
+- **Multimodality**: Chain trapped in one mode
+
+**Solutions:**
+
+1. **Use better algorithms**: NUTS (which we're using!) is usually excellent
+2. **Run longer**: Increase number of samples if mixing is just slow
+3. **Reparameterize**: Transform parameters to improve geometry
+4. **Multiple chains**: Run several chains to detect stuck chains
+
+For modern gradient-based samplers like NUTS, poor mixing is rare if:
+- Your model is specified correctly
+- The posterior is reasonably well-behaved
+- You're using appropriate priors
+
+## Problem 2: Divergent transitions (for HMC/NUTS)
+
+NUTS can have "divergent transitions" when it encounters difficult geometry:
+
+```{julia}
+# Check for divergent transitions
+if haskey(chain_good.info, :divergent_transitions)
+    n_divergent = sum(chain_good.info[:divergent_transitions])
+    println("Divergent transitions: $n_divergent / $(length(chain_good))")
+    if n_divergent > 0
+        println("Consider increasing adapt_delta or reparameterizing")
+    else
+        println("No divergent transitions")
+    end
+end
+```
+
+## Problem 3: Multi-modal posteriors
+
+Sometimes posteriors have multiple peaks, and chains might get trapped in one mode.
+Running multiple chains with different starting points helps detect this - if chains converge to different modes, R̂ will be high.
+
+**Solutions for multimodal posteriors:**
+1. **Run multiple chains** with different starting points
+2. **Use more advanced samplers** (parallel tempering, etc.)
+3. **Check R̂**: Will be high if chains are in different modes
+
+::: {.callout-note title = "Example: Detecting multimodality" collapse = "true"}
+
+Here's an artificial example with two modes to show how multiple chains help:
+
+```{julia}
+# Create a artificial multimodal example
+@model function multimodal_example()
+    x ~ Normal(0, 5)  # Wide prior
+
+    # Likelihood with two modes
+    mode1_loglik = logpdf(Normal(-2, 0.5), x)
+    mode2_loglik = logpdf(Normal(2, 0.5), x)
+    Turing.@addlogprob! log(0.5 * exp(mode1_loglik) + 0.5 * exp(mode2_loglik))
+end
+```
+
+```{julia}
+#| output: false
+# Single chain might miss one mode
+chain_single = sample(multimodal_example(), NUTS(), 1000)
+
+# Multiple chains more likely to find both modes
+chains_multi = [sample(multimodal_example(), NUTS(), 1000) for _ in 1:4]
+```
+
+```{julia}
+p = plot(title = "Multimodal Posterior")
+for (i, chain) in enumerate(chains_multi)
+    density!(p, chain[:x], alpha = 0.7, label = "Chain $i")
+end
+plot!(p)
+```
+
+Different chains find different modes, which would show up as high R̂ values.
+
+:::
+
+## Posterior predictive checks
+
+Convergence diagnostics tell you if the **algorithm** worked.
+Posterior predictive checks tell you if the **model** makes sense.
+
+**Why check predictions?** Even if MCMC converged perfectly, your model might still be wrong.
+The model could be mis-specified, missing important features, or based on incorrect assumptions. Posterior predictive checks reveal whether your model actually generates data that looks like what you observed.
+
+```{julia}
+# Generate predictions from the posterior
+# Use missing values to tell Turing to generate new observations
+predictions = predict(sir_model(fill(missing, length(epi1.obs)), init_state, epi1.time), chain_multi)
+
+# Plot posterior predictive samples
+p = plot(title = "Posterior Predictive Check", xlabel = "Time", ylabel = "Cases")
+
+# Plot multiple posterior predictive samples
+for i in 1:50
+    # Extract predictions for each time point
+    pred_obs = [predictions[Symbol("obs[$j]")][i, 1] for j in 1:length(epi1.obs)]
+    plot!(p, epi1.time, pred_obs, alpha = 0.3, color = :lightblue, label = "")
+end
+
+# Add real data
+scatter!(p, epi1.time, epi1.obs, label = "Real data", markersize = 4, color = :red)
+plot!(p)
+```
+
+::: {.callout-note title = "Understanding the Julia code for generating predictions" collapse = "true"}
+
+**What's happening here?**
+
+1. **`fill(missing, length(epi1.obs))`** creates `[missing, missing, ..., missing]` (30 times)
+   - This tells Turing: "I want you to generate 30 new observations, not use the original data"
+
+2. **`predict(sir_model(...), chain_multi)`** uses parameters from the posterior chain to simulate new data
+   - For each MCMC sample: takes R₀ and D_inf from the chain → solves ODE → samples new obs from Poisson
+
+3. **The result** is stored with keys like `Symbol("obs[1]")`, `Symbol("obs[2]")`, etc.
+   - We extract these to plot: `predictions[Symbol("obs[$j]")][i, 1]`
+
+:::
+
+
+Do the simulated epidemics (blue lines) look similar to the real data (red points)?
+They should capture the timing, peak size, and overall shape.
+If they don't, your model needs improvement - no amount of MCMC will fix a fundamentally wrong model.
+
+## The complete workflow
+
+1. **Run multiple chains** (at least 4)
+2. **Check trace plots** visually
+3. **Calculate R̂ and ESS**
+4. **Check for divergences** (NUTS)
+5. **Do posterior predictive checks**
+6. **Re-run if needed** with more samples or different settings
+
+# Advanced diagnostics
+
+## Split-R̂ 
+
+Modern R̂ splits each chain in half for more robust diagnostics:
+
+```{julia}
+# This is what rhat() actually computes - split chains for better diagnostics
+rhat_split = DataFrame(rhat(chain_multi))
+println("Split-R̂ values (recommended):")
+for row in eachrow(rhat_split)
+    println("  $(row.parameters): $(round(row.rhat, digits = 4))")
+end
+```
+
+## Bulk and tail ESS
+
+Turing.jl provides different ESS measures:
+
+```{julia}
+# Different types of ESS
+ess_bulk = DataFrame(ess(chain_multi, kind = :bulk))    # Central part of distribution
+ess_tail = DataFrame(ess(chain_multi, kind = :tail))    # Tails of distribution
+
+println("Bulk ESS (central posterior):")
+for row in eachrow(ess_bulk)
+    println("  $(row.parameters): $(round(row.ess, digits = 0))")
+end
+
+println("\nTail ESS (posterior tails):")
+for row in eachrow(ess_tail)
+    println("  $(row.parameters): $(round(row.ess, digits = 0))")
+end
+```
+
+## Energy diagnostics (for HMC/NUTS)
+
+NUTS uses Hamiltonian dynamics. Energy plots help diagnose geometric problems:
+
+```{julia}
+# Energy diagnostic plot
+if haskey(chain_good.info, :energy)
+    energy = chain_good.info[:energy]
+    histogram(energy, title = "Energy Distribution", xlabel = "Energy", ylabel = "Frequency", alpha = 0.7)
+end
+```
+
+# Troubleshooting guide
+
+| Problem | Symptoms | Solutions |
+|---------|----------|-----------|
+| **Poor mixing** | Trace plots show trends, low ESS | Use NUTS, tune proposals, longer runs |
+| **Multimodality** | High R̂, different chain means | Multiple chains, better initialization |
+| **Divergences** | NUTS warnings, biased sampling | Increase `adapt_delta`, reparameterize |
+| **Slow convergence** | High autocorrelation, low ESS | Better algorithm, longer runs, reparameterize |
+| **Non-stationarity** | Trending trace plots | Longer warmup, check model specification |
+
+# Practical example: Debugging a problematic model
+
+Let's create and diagnose a problematic model:
+
+```{julia}
+# Poorly specified model with correlations and poor scaling
+@model function problematic_model()
+    # Poor scaling: one parameter much larger than others
+    R_0 ~ Normal(0, 100)     # Wrong scale
+    D_inf ~ Normal(0, 0.01)  # Very tight
+
+    # Add some correlation structure to make it harder
+    x1 ~ Normal(R_0, 1)
+    x2 ~ Normal(R_0, 1)
+
+    # Some fake observations
+    for i in 1:10
+        0.0 ~ Normal(x1 + x2 - 2*R_0, 0.1)
+    end
+end
+```
+
+```{julia}
+#| output: false
+# This model will have problems
+chain_problematic = sample(problematic_model(), NUTS(), 1000)
+```
+
+```{julia}
+# Diagnose it
+println("R̂ values:")
+display(DataFrame(rhat(chain_problematic)))
+
+println("\nESS values:")
+display(DataFrame(ess(chain_problematic)))
+```
+
+```{julia}
+# Look at the trace plots
+plot(chain_problematic)
+```
+
+**How to fix problematic models:**
+
+1. **Reparameterize**: Use centered parameterizations
+2. **Better priors**: Match scales of parameters
+3. **Longer adaptation**: Increase warmup period
+4. **Check model**: Maybe the model specification is wrong
+
+# Summary
+
+In this session, you learned:
+
+1. **Visual diagnostics**: Trace plots, running averages, autocorrelation
+2. **Quantitative measures**: R̂, ESS, MCSE
+3. **Common problems**: Poor mixing, divergences, multimodality
+4. **Best practices**: Multi-chain workflow, systematic checking
+5. **Troubleshooting**: How to fix common MCMC problems
+
+::: {.callout-tip title = "Learning points"}
+
+- **Always check convergence** - never trust MCMC without diagnostics
+- **Multiple chains** are essential for robust inference
+- **R̂ < 1.1 and ESS > 100** are minimum requirements
+- **NUTS is usually better** than basic Metropolis-Hastings
+- **When in doubt, run longer** and use more chains
+
+Remember: MCMC is a powerful tool, but it only works if you use it correctly.
+Diagnostics aren't optional - they're essential for trustworthy Bayesian analysis.
+
+:::
+
+**Next steps**: With reliable MCMC diagnostics in hand, you're ready to tackle more complex models and real-world Bayesian analyses

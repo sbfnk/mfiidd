@@ -1,0 +1,563 @@
+---
+title: "Markov Chain Monte Carlo (MCMC) sampling"
+format: html
+engine: julia
+---
+
+[Lecture slides: PowerPoint](slides/mcmc_slides1.pptx) / [PDF](slides/mcmc_slides1.pdf)
+
+# Introduction
+
+In the previous session, you learned Bayesian inference through manual calculations - computing priors, likelihoods, and posteriors and exploring the posterior distribution using grid search. 
+This approach introduced you to the core components of conducting inference, but it also exposed a fundamental problem: grid search doesn't scale.
+
+This session introduces Markov Chain Monte Carlo (MCMC), the algorithmic solution that makes Bayesian inference practical for real problems.
+Rather than exhaustively searching parameter space, MCMC intelligently explores it by taking random walks that spend more time in high-probability regions.
+
+You'll build understanding by coding a simple MCMC algorithm yourself, then see how modern tools like Turing.jl automate everything with state-of-the-art methods.
+By the end, you'll understand both what MCMC does under the hood and how to use it effectively in practice.
+
+# Objectives
+
+The aim of this session is to learn how to sample from posterior distributions using MCMC.
+By building the algorithm yourself first, you'll understand what modern tools like Turing.jl do under the hood.
+
+In this session, you will:
+
+1. Implement the Metropolis-Hastings MCMC algorithm and apply it to a simple problem
+1. Experience the challenges of using MCMC: proposal tuning and mixing
+1. See how Turing.jl automates Metropolis-Hastings for you
+1. Learn why NUTS is the modern upgrade that solves some of the problems with Metropolis-Hastings
+1. Apply NUTS to conduct Bayesian inference on the SIR model
+
+::: {.callout-note collapse = "true"}
+
+# Setup
+
+```{julia}
+#| echo: false
+using Pkg
+# Activate the project root (one level up from sessions/)
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
+```
+
+## Source file
+
+The source file of this session is located at `sessions/mcmc.qmd`.
+
+## Load libraries
+
+```{julia}
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DifferentialEquations ## for differential equations
+using DataFrames ## for data frames
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using Turing ## for probabilistic programming and MCMC
+using MCMCChains ## for MCMC diagnostics
+```
+
+## Initialisation
+
+We set a random seed for reproducibility.
+Setting this ensures that you should get exactly the same results on your computer as we do.
+
+```{julia}
+Random.seed!(1234)
+```
+
+## Load data and model from previous session
+
+We'll use the same SIR model and epidemic data from the introduction session:
+
+```{julia}
+# Define ODE function
+function sir_ode!(du, u, p, t)
+    S, I, R = u
+    R_0, D_inf = p
+    N = S + I + R
+
+    β = R_0 / D_inf
+    ν = 1 / D_inf
+
+    du[1] = -β * S * I / N  # dS/dt
+    du[2] = β * S * I / N - ν * I  # dI/dt
+    du[3] = ν * I  # dR/dt
+end
+
+# Initial state and time range
+init_state = [999, 1, 0]
+t0, tend = (0, 30)
+
+# Epidemic data
+epi1 = DataFrame(
+    time = 1:1:30,
+    obs = [
+        1, 3, 4, 11, 19, 38, 67, 112, 183, 210, 237, 182, 178, 154, 95, 68, 51,
+        30, 32, 18, 19, 9, 2, 2, 2, 0, 0, 1, 0, 0
+    ]
+)
+```
+
+:::
+
+# From manual exploration to algorithmic sampling
+
+In the previous session, we manually explored the posterior by trying different parameter combinations.
+This worked for our simple SIR model with 2 parameters, but we also saw that the number of combinations to explore can be prohibitive.
+
+Instead of trying all combinations, Markov chain Monte Carlo works in the following way:
+
+1. **Start somewhere** in parameter space
+2. **Propose a small move** to nearby parameters
+3. **Accept or reject** the move based on how much better/worse the posterior is
+4. **Repeat** many times to build up a sample
+
+This is the **Metropolis-Hastings algorithm** - let's implement it ourselves!
+
+## Metropolis-Hastings for a simple case
+
+Let's start by sampling from a simple 1D Normal distribution to understand the algorithm:
+
+```{julia}
+# Target distribution: Normal(5, 2)
+target_mean = 5.0
+target_std = 2.0
+target_dist = Normal(target_mean, target_std)
+
+# Helper function to evaluate log-density of target
+function eval_log_density(x)
+    return logpdf(target_dist, x)
+end
+
+# Simple Metropolis-Hastings sampler
+function metropolis_hastings_1d(log_density_fn, n_samples, initial_value,
+                                proposal_std)
+    # Initialise sample vector
+    samples = Float64[]
+    # current_x tracks the state of the chain
+    # initially, set to given initial value
+    current_x = initial_value
+    # Evaluate log probability at the initial value
+    current_log_prob = log_density_fn(current_x)
+    # Track number of acceptances
+    n_accepted = 0
+    
+    for i in 1:n_samples
+        # Propose new state
+        proposal_x = current_x + randn() * proposal_std
+        # Evaluate log probability at target
+        proposal_log_prob = log_density_fn(proposal_x)
+        
+        # Calculate acceptance probability (in log space)
+        # Note: This is the Metropolis ratio (symmetric proposal)
+        # Full Metropolis-Hastings would include proposal ratio q(x|x')/q(x'|x)
+        # But Normal proposal is symmetric, so this ratio = 1 and cancels out
+        log_alpha = proposal_log_prob - current_log_prob
+        alpha = exp(log_alpha)
+
+        # Accept or reject
+        if rand() < alpha
+            current_x = proposal_x
+            current_log_prob = proposal_log_prob
+            n_accepted += 1
+        end # if reject, current_x stays what it is
+        
+        push!(samples, current_x)
+    end
+    
+    acceptance_rate = n_accepted / n_samples
+    return samples, acceptance_rate
+end
+
+# Test our sampler
+samples_mh, acceptance_rate = metropolis_hastings_1d(
+    eval_log_density, 5000, 0.0, 1.0
+)
+
+println("Acceptance rate: $(round(acceptance_rate * 100, digits = 1))%")
+println("Sample mean: $(round(mean(samples_mh), digits = 2)) (true: $(target_mean))")
+println("Sample std: $(round(std(samples_mh), digits = 2)) (true: $(target_std))")
+```
+
+::: {.callout-note title = "Coming from R?" collapse = "true"}
+
+In R, you would implement the this code like this:
+
+```r
+# Target distribution: Normal(5, 2)
+target_mean = 5.0
+target_std = 2.0
+target_dist = dnorm
+
+# Function to evaluate log-density of target
+eval_log_density <- function(x) {
+  target_dist(x, mean = target_mean, sd = target_std, log = TRUE)
+}
+
+# Metropolis-Hastings sampler
+metropolis_hastings_1d <- function(log_density_fn, n_samples,
+                                   initial_value, proposal_std) {
+  # Initialise sample vector
+  samples <- numeric(n_samples)
+  # current_x tracks the state of the chain
+  # initially, set to given initial value
+  current_x <- initial_value
+  # Evaluate log probability at the initial value
+  current_log_prob <- log_target_fn(current_x)
+  # Track number of acceptances
+  n_accepted <- 0
+
+  for (i in 1:n_samples) {
+    # Propose new state
+    proposal_x <- current_x + rnorm(1, mean = 0, sd = proposal_std)
+    # Evaluate log probability at target
+    proposal_log_prob <- log_target_fn(proposal_x)
+
+    # Calculate acceptance probability (in log space)
+    # Note: This is the Metropolis ratio (symmetric proposal)
+    # Full Metropolis-Hastings would include proposal ratio q(x|x')/q(x'|x)
+    # But Normal proposal is symmetric, so this ratio = 1 and cancels out
+    log_alpha <- proposal_log_prob - current_log_prob
+    alpha <- exp(log_alpha)
+
+    # Accept or reject
+    if (runif(1) < alpha) {
+      current_x <- proposal_x
+      current_log_prob <- proposal_log_prob
+      n_accepted <- n_accepted + 1
+    } # if reject, current_x stays what it is
+
+    samples[i] <- current_x
+  }
+
+  acceptance_rate <- n_accepted / n_samples
+  list(samples = samples, acceptance_rate = acceptance_rate)
+}
+
+# Test the sampler
+result <- metropolis_hastings_1d(eval_log_density, 5000, 0.0, 1.0)
+cat(sprintf("Acceptance rate: %.1f%%\n", result$acceptance_rate * 100))
+cat(sprintf("Sample mean: %.2f (true: 5.0)\n", mean(result$samples)))
+cat(sprintf("Sample std: %.2f (true: 2.0)\n", sd(result$samples)))
+```
+
+:::
+
+```{julia}
+# Visualize the results
+p1 = plot(
+    samples_mh[1:1000], title = "Trace Plot (first 1000 samples)", 
+    xlabel = "Iteration", ylabel = "x", linewidth = 1
+)
+hline!(p1, [target_mean], color = :red, linewidth = 2, label = "True mean")
+
+p2 = histogram(
+    samples_mh[1001:end], normalize = :pdf, alpha = 0.7, 
+    title = "Sampled Distribution", xlabel = "x", ylabel = "Density",
+    label = "MCMC samples"
+)
+
+# Overlay true distribution
+x_range = range(-5, 15, length = 100)
+plot!(
+    p2, x_range, pdf.(target_dist, x_range), linewidth = 3, color = :red,
+    label = "True distribution"
+)
+
+plot(p1, p2, layout = (2, 1), size = (800, 600))
+```
+
+## The general principle: MCMC as a universal random number generator
+
+What we just built solves a fundamental problem in computational statistics:
+
+**The problem**: Given a probability distribution where we can *evaluate* the density at any point, how do we *generate* random samples from it?
+
+**Why this matters**: Many useful probability distributions don't have simple sampling algorithms:
+
+- **Easy distributions**: Normal (`randn()`) and Uniform (`rand()`) have built-in samplers
+- **Complex distributions**: Posteriors, mixtures, custom models - no simple formula exists
+
+MCMC solves this by only requiring that we can *evaluate* the log-probability at any point. We used a Normal distribution above (even though we could just use `randn()`!) to demonstrate this general principle.
+
+::: {.callout-tip title = "How does randn() actually work?" collapse = "true"}
+
+Even "simple" distributions like the Normal don't have a direct sampling formula. When you call `randn()` in Julia or `rnorm()` in R, the computer uses transformation methods:
+
+**Common approaches:**
+
+1. **Box-Muller transform**: Convert two uniform random numbers to two normal random numbers
+   ```julia
+   # Simplified version
+   u1, u2 = rand(), rand()
+   z1 = sqrt(-2 * log(u1)) * cos(2π * u2)
+   z2 = sqrt(-2 * log(u1)) * sin(2π * u2)
+   # z1 and z2 are standard normal
+   ```
+
+2. **Inverse CDF method**: Transform uniform → normal via inverse cumulative distribution function
+3. **Ziggurat algorithm**: Fast, more complex method (what Julia actually uses)
+
+Even "easy" distributions require clever tricks. 
+For complex posteriors with correlations, ODEs, and constraints, no such formula exists, and we need a method like MCMC.
+:::
+
+The posterior distribution is just another probability distribution.
+We can evaluate it at any point: `log_posterior(θ) = log_prior(θ) + log_likelihood(θ|data)`.
+Because of this, MCMC can sample from it.
+The samples give us everything we need from inference:
+  - **Visualization**: Plot the distribution shape
+  - **Summaries**: Mean, median, credible intervals
+  - **Forward simulation**: Use samples with proper parameter correlations preserved
+
+When we apply MCMC to the SIR model later, we will be doing exactly the same thing as we did here for the Normal example - just with a more complex probability distribution that happens to be a Bayesian posterior. 
+MCMC doesn't "know" about Bayesian inference; it just knows how to sample from distributions where we can evaluate the density.
+
+## Understanding proposal distributions
+
+The choice of proposal standard deviation is crucial:
+
+```{julia}
+# Test different proposal standard deviations
+proposal_stds = [0.1, 0.5, 1.0, 5.0, 10.0, 50.0]
+results = []
+
+for prop_std in proposal_stds
+    samples, acc_rate = metropolis_hastings_1d(eval_log_density, 5000, 0.0, prop_std)
+    push!(results, (std = prop_std, samples = samples, acc_rate = acc_rate))
+end
+
+# Print acceptance rates
+println("Acceptance rates for different proposal std:")
+for result in results
+    println(
+        "  Proposal std = $(result.std): ",
+        "$(round(result.acc_rate*100, digits = 1))%"
+    )
+end
+
+# Plot trace plots for different proposal stds
+plots = []
+for (i, result) in enumerate(results)
+    p = plot(
+        result.samples,
+        title = "Prop. std = $(result.std), " *
+            "Acc = $(round(result.acc_rate*100, digits = 1))%", 
+        xlabel = "Iteration", ylabel = "x", linewidth = 1, ylim = (-5, 15)
+    )
+    hline!(p, [target_mean], color = :red, linewidth = 2, label = "")
+    push!(plots, p)
+end
+
+plot(plots..., layout = (length(plots), 1), size = (800, 1000))
+```
+
+::: {.callout-tip title = "Learning points"}
+- **Too small proposals** → High acceptance, but slow exploration
+- **Too large proposals** → Low acceptance, wasted computation
+- **Optimal**: ~23% acceptance rate for random walk Metropolis
+:::
+
+In our simple case of the normal distribution but for more complicated distributions such as posterior distributions of complex models with multiple parameters finding a good proposal distributions is not straightforward.
+This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
+
+# Automating MCMC with Turing.jl
+
+Now that you understand how MCMC works internally, let's see how Turing.jl automates everything you just coded.
+
+## Turing.jl on the Normal distribution
+
+First, let's use Turing.jl to sample from the exact same Normal distribution you just coded manually:
+
+```{julia}
+#| output: false
+
+# Define the same Normal(5, 2) distribution in Turing
+@model function normal_model()
+    x ~ Normal(5.0, 2.0)
+end
+```
+
+```{julia}
+#| output: false
+# Sample using Metropolis-Hastings (normal proposals with std 10.0)
+chain_normal_mh = sample(normal_model(), MH([10.0;;]), 50000)
+```
+
+```{julia}
+# Compare to your manual implementation
+println("Manual M-H:")
+println("  Mean: $(round(mean(samples_mh), digits = 2))")
+println("  Std: $(round(std(samples_mh), digits = 2))")
+println("\nTuring.jl M-H:")
+describe(chain_normal_mh)
+```
+
+```{julia}
+# Visualize - same result!
+p1 = histogram(
+    samples_mh, normalize = :pdf, alpha = 0.7,
+    title = "Manual M-H", xlabel = "x", ylabel = "Density", label = "Manual"
+)
+p2 = histogram(
+    chain_normal_mh[:x], normalize = :pdf, alpha = 0.7,
+    title = "Turing M-H", xlabel = "x", ylabel = "Density", label = "Turing"
+)
+plot(p1, p2, layout = (1, 2), size = (800, 300))
+```
+
+Turing.jl did exactly what we coded earlier, but in a single call to the `sample()` function.
+
+## Applying Turing.jl to the SIR model
+
+Turing.jl uses the `@model` macro to define Bayesian models.
+This is the same structure we've been using manually - priors, simulation, and likelihood - but now in a form that Turing can automatically sample from:
+
+```{julia}
+# Define our SIR model in Turing.jl
+@model function sir_model(obs, init_state, times)
+    # Priors (same as our manual approach)
+    R_0 ~ Uniform(1.0, 20.0)
+    D_inf ~ Uniform(1.0, 14.0)
+
+    # Simulate ODE (same as manual approach)
+    prob = ODEProblem(sir_ode!, init_state, (times[1], times[end]), [R_0, D_inf])
+    sol = solve(prob, saveat = times)
+
+    # Likelihood (Poisson observation model of prevalence)
+    I = sol[2, :]
+    for i in 1:length(obs)
+        obs[i] ~ Poisson(max(I[i], 0.0))
+    end
+end
+
+# Create model instance
+#| output: false
+
+model = sir_model(epi1.obs, init_state, epi1.time)
+```
+
+## Sample the SIR model with Metropolis-Hastings
+
+Now let's use the Metropolis-Hastings algorithm on our epidemiological model:
+
+```{julia}
+#| output: false
+# Same Metropolis-Hastings algorithm, but automated
+chain_mh = sample(model, MH([1.0 0.0; 0.0 1.0]), 5000)
+```
+
+```{julia}
+println("Turing.jl Metropolis-Hastings results:")
+describe(chain_mh)
+```
+
+```{julia}
+# Visualize
+plot(
+    chain_mh[:R_0], title = "Turing MH: R_0 Trace", xlabel = "Iteration",
+    ylabel = "R_0", linewidth = 1
+)
+```
+
+**Take 5 minutes**. Look at the trace.
+Can you improve mixing?
+
+## NUTS - A gradient-based upgrade
+
+For models where we can compute gradients (like our ODE model), NUTS (No U-Turn Sampler) offers better efficiency:
+
+```{julia}
+#| output: false
+# Modern gradient-based MCMC
+chain_nuts = sample(model, NUTS(), 2000)
+```
+
+```{julia}
+println("NUTS results:")
+describe(chain_nuts)
+```
+
+```{julia}
+# Compare Metropolis-Hastings vs NUTS
+p1 = plot(
+    chain_mh[:R_0], title = "Metropolis-Hastings: R_0", xlabel = "Iteration",
+    ylabel = "R_0", linewidth = 1, legend = false
+)
+p2 = plot(
+    chain_nuts[:R_0], title = "NUTS: R_0", xlabel = "Iteration",
+    ylabel = "R_0", linewidth = 1, legend = false
+)
+
+p3 = plot(
+    chain_mh[:D_inf], title = "Metropolis-Hastings: D_inf",
+    xlabel = "Iteration", ylabel = "D_inf", linewidth = 1, legend = false
+)
+p4 = plot(
+    chain_nuts[:D_inf], title = "NUTS: D_inf", xlabel = "Iteration",
+    ylabel = "D_inf", linewidth = 1, legend = false
+)
+
+plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
+```
+
+Notice that:
+
+- NUTS mixes better (explores parameter space more efficiently)
+- NUTS needs fewer samples for same quality
+- NUTS had automatic warmup (no manual burn-in needed)
+
+**What NUTS gives you automatically:**
+
+1. **No tuning required**: Automatically adapts step size and mass matrix during warmup
+2. **Efficient exploration**: Uses gradients to navigate parameter space intelligently
+3. **Automatic warmup**: Built-in adaptation period (no manual burn-in decisions)
+4. **Better convergence**: Typically needs far fewer samples than Metropolis-Hastings
+
+```{julia}
+# Built-in convergence diagnostics
+using MCMCChains
+summarystats(chain_nuts)
+```
+
+# Posterior analysis with Turing.jl
+
+Now we can analyse the posterior distribution:
+
+```{julia}
+# Parameter correlations
+corner_plot = corner(chain_nuts, [:R_0, :D_inf])
+```
+
+```{julia}
+# Credible intervals
+quantile(chain_nuts[:R_0], [0.025, 0.25, 0.5, 0.75, 0.975])
+```
+
+These summaries give us point estimates and uncertainty, but there's a crucial question: **should we trust these results?** The next session (MCMC Diagnostics) teaches you how to check whether your chains converged and whether your model makes sense.
+
+# Summary
+
+In this session, you learned:
+
+1. **Why MCMC**: Grid search doesn't scale to high dimensions
+2. **The basics**: Metropolis-Hastings algorithm and MCMC
+3. **The challenges**: Proposal tuning, mixing
+4. **Automation**: How Turing.jl implements the same algorithms (MH → NUTS)
+5. **Modern MCMC**: Why NUTS solves the tuning and efficiency problems
+6. **Practical workflow**: Using Turing.jl for real Bayesian inference
+
+::: {.callout-tip title = "Learning points"}
+
+- **MCMC is a universal sampler**: It works for any distribution where you can evaluate density
+- **Metropolis-Hastings** is simple and robust but requires tuning of proposal distributions
+- **Turing.jl automates** the mechanics of MCMC and other inference methods
+- **NUTS** is more efficient when gradients are available (e.g., deterministic models)
+- **The Bayesian workflow**: Define model → Choose sampler → Analyse samples
+
+:::
+
+**Next session**: MCMC diagnostics - how to tell if your chains have converged and your results are trustworthy!
