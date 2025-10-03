@@ -84,7 +84,7 @@ where $\beta=R_0/D_\mathrm{inf}$ and $\nu = 1/D_\mathrm{inf}$.
 To use this model in Julia we first define a function that represents the ODEs:
 
 ```{julia}
-#| include: false
+#| output: false
 
 # Define ODE function
 function sir_ode!(du, u, p, t)
@@ -181,6 +181,7 @@ plot(sol, labels=["S" "I" "R"])
 A **prior** represents what we believe about parameters **before** seeing any data. It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
 
 In our SIR model:
+
 - $R_0 \sim \text{Uniform}(1, 20)$: We believe $R_0$ could be anywhere from 1 to 20, with all values equally likely
 - $D_\mathrm{inf} \sim \text{Uniform}(1, 14)$: We believe infectious periods from 1 to 14 days are equally plausible
 
