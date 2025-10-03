@@ -242,9 +242,9 @@ After ~20-30 MCMC steps, samples are essentially independent
 MCMC chains often start from arbitrary initial values and need time to "find" the high-probability regions of the posterior.
 Samples from this initial exploration phase (called "burn-in") are discarded because they don't represent the target distribution.
 
-Modern samplers like NUTS have **automatic warmup periods** where they adapt the step size to achieve good acceptance rates, learn the geometry of the posterior and explore to find typical parameter values.
+Modern samplers like NUTS have automatic warmup periods where they adapt the step size to achieve good acceptance rates, learn the geometry of the posterior and explore to find typical parameter values.
 
-In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total - 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations. The returned chain contains only the 2000 post-warmup samples.
+In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total: 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations. The returned chain contains only the 2000 post-warmup samples.
 
 With NUTS, you typically don't need to manually discard burn-in samples. The warmup is automatic and adaptive. However, you should still check trace plots to ensure the chain has converged - if you see trends even after warmup, you may need longer adaptation.
 
@@ -256,12 +256,8 @@ R̂ compares within-chain and between-chain variance. It should be < 1.1 (ideall
 
 ```{julia}
 #| output: false
-# Run multiple chains for R̂ calculation (sequentially for reproducibility)
-# Try with explicit initialization to see if that helps
-init_params = [Dict(:R_0 => 2.0, :D_inf => 2.0) for _ in 1:4]
-chain_multi = sample(
-    model, NUTS(), MCMCSerial(), 2000, 4; init_params = init_params
-)
+# Run multiple chains for R̂ calculation
+chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, 4)
 ```
 
 ```{julia}
@@ -283,10 +279,9 @@ rhat_values = DataFrame(rhat(chain_multi))
 for row in eachrow(rhat_values)
     param = row.parameters
     value = row.rhat
-    status = value < 1.1 ? "✓ good" : "✗ bad"
+    status = value < 1.1 ? "good" : "bad"
     println("  $param: $(round(value, digits = 3)) $status")
 end
-logjoint(model, chain_multi)
 ```
 
 ```{julia}
@@ -460,8 +455,6 @@ plot!(p)
 ```
 
 ::: {.callout-note title = "Understanding the Julia code for generating predictions" collapse = "true"}
-
-**What's happening here?**
 
 1. **`fill(missing, length(epi1.obs))`** creates `[missing, missing, ..., missing]` (30 times)
    - This tells Turing: "I want you to generate 30 new observations, not use the original data"
