@@ -535,7 +535,7 @@ scatter!(
 
 **Key insight**: The likelihood is highest when our model prediction matches the observation closely.
 
-::: {.callout-note title="Coming from R?"}
+::: {.callout-note title="Coming from R?" collapse = TRUE}
 In R, you would calculate Poisson log-likelihood as:
 ```{r eval = FALSE}
 log_lik <- dpois(observed, lambda = expected, log=TRUE)
