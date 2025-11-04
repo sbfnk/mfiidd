@@ -6,12 +6,12 @@ engine: julia
 
 # Objectives
 
-The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC). As you saw in the lecture, fitting a model with a likelihood approach requires:
+The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC).
+As you saw in the lecture, fitting a model with a likelihood approach requires you to explore the parameter space efficiently and to evaluate the likelihood at a given parameter.
 
-* To explore the parameter space efficiently
-* To evaluate the likelihood at a given parameter
-
-In the previous session on MCMC, you have used Metropolis-Hastings to explore the parameter space and evaluated the likelihood for deterministic models. In order to fit a stochastic model, we can still use MH to explore the parameter space efficiently but we need to use a new method to evaluate the likelihood. This new method is called a particle filter.
+In the previous session on MCMC, you have used Metropolis-Hastings to explore the parameter space and evaluated the likelihood for deterministic models.
+In order to fit a stochastic model, we can still use MH to explore the parameter space efficiently but we need to use a new method to evaluate the likelihood.
+This new method is called a particle filter.
 
 In this session you will:
 
@@ -68,7 +68,11 @@ Random.seed!(1234)
 
 # The SEIT4L stochastic model
 
-First, let's define the SEIT4L stochastic model using the Gillespie algorithm. Julia's `JumpProcesses.jl` (part of `DifferentialEquations.jl`) provides excellent support for stochastic simulation:
+In the previous session, you defined Turing `@model` functions for SEITL and SEIT4L that work for both simulation and inference.
+In this session, we'll use the same pattern with SEIT4L to demonstrate particle MCMC.
+
+First, let's define the SEIT4L stochastic model using the Gillespie algorithm.
+Julia's `JumpProcesses.jl` (part of `DifferentialEquations.jl`) provides excellent support for stochastic simulation:
 
 ```{julia}
 """
@@ -200,40 +204,18 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
-Notice the high variability between realizations. This is demographic stochasticity in action.
+Notice the high variability between realizations.
+This is demographic stochasticity in action.
 
 # Particle MCMC with Turing.jl
 
-Turing.jl provides built-in support for particle MCMC through `AdvancedPS.jl`. There are two main approaches:
+Turing.jl provides built-in support for particle MCMC through the `AdvancedPS.jl` package.
+We will use the Particle Gibbs (PG) sampler, which jointly samples parameters and state trajectories.
+This is particularly useful for models like SEIT4L with high-dimensional state spaces (9 state variables over 60 time points) as it avoids particle degeneracy by maintaining a reference trajectory.
+An alternative is Particle Marginal Metropolis-Hastings (PMMH), which uses a bootstrap particle filter but can suffer from degeneracy when particles have negligible weight.
 
-1. **Particle Marginal Metropolis-Hastings (PMMH)**: Uses a bootstrap particle filter to estimate the likelihood at each MCMC step
-2. **Particle Gibbs (PG)**: A more sophisticated algorithm that jointly samples parameters and state trajectories
-
-## Bootstrap particle filter vs Particle Gibbs
-
-**Bootstrap particle filter (PMMH approach):**
-- Simpler conceptually: just use particle filter to estimate likelihood
-- Treats state trajectory as a nuisance that we integrate out
-- Can suffer from particle degeneracy (all particles have negligible weight)
-- Good when you only care about parameter estimates
-
-**Particle Gibbs:**
-- Jointly samples parameters AND state trajectories
-- Maintains a "reference trajectory" to prevent particle degeneracy
-- More efficient mixing in MCMC (especially for high-dimensional state spaces)
-- Gives you both parameter posteriors and filtered trajectories
-
-For our SEIT4L model with 9 state variables over 60 time points, **Particle Gibbs is generally better** because it avoids degeneracy and provides richer inference. However, both are available in Turing:
-
-```julia
-# Option 1: Particle Gibbs (recommended)
-sample(model, PG(n_particles), iterations)
-
-# Option 2: Particle Marginal Metropolis-Hastings
-sample(model, PMMH(n_particles), iterations)
-```
-
-Let's use Particle Gibbs for this session:
+To define a model for particle MCMC in Turing.jl, we specify the priors and the stochastic simulation just as we would for a deterministic model.
+The Particle Gibbs sampler then handles the particle filtering automatically:
 
 ```{julia}
 """
@@ -304,13 +286,11 @@ density(chain_pmcmc, size = (800, 600))
 
 ::: {.callout-warning}
 
-Running pMCMC is computationally expensive! The Particle Gibbs sampler needs to run multiple stochastic simulations at each MCMC iteration. With 1000 MCMC iterations and 20 particles, this means 20,000+ stochastic model simulations.
+Running pMCMC is computationally expensive! The Particle Gibbs sampler needs to run multiple stochastic simulations at each MCMC iteration.
+With 1000 MCMC iterations and 20 particles, this means 20,000+ stochastic model simulations.
 
-For production use:
-- Run multiple chains in parallel using `MCMCThreads()`: `sample(model, PG(50), MCMCThreads(), 2000, 4)`
-- Use more particles (50-100) for better likelihood estimates
-- Run longer chains (5,000-10,000+ iterations) for convergence
-- Particle Gibbs adapts automatically, no need for manual tuning
+For production use, you should run multiple chains in parallel using `MCMCThreads()` (e.g. `sample(model, PG(50), MCMCThreads(), 2000, 4)`), use more particles (50-100) for better likelihood estimates, and run longer chains (5,000-10,000+ iterations) for convergence.
+Fortunately, Particle Gibbs adapts automatically, so there's no need for manual tuning.
 
 :::
 
@@ -397,181 +377,44 @@ plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
 
 __What differences do you notice between the deterministic and stochastic fits?__
 
-For the Tristan da Cunha outbreak with only 284 individuals, demographic stochasticity plays a significant role. The stochastic model typically shows:
-
-- Wider posterior distributions (more uncertainty)
-- Different point estimates for some parameters
-- Better capture of the irregularity in the data
-
+For the Tristan da Cunha outbreak with only 284 individuals, demographic stochasticity plays a significant role.
+The stochastic model typically shows wider posterior distributions (more uncertainty), different point estimates for some parameters, and better capture of the irregularity in the data.
 However, the deterministic model is much faster to fit (NUTS vs particle filter) and often provides similar qualitative insights.
 
-::: {.callout-note title="Understanding particle filters" collapse="true"}
+::: {.callout-note title="How particle filters work"}
 
-## How particle filters work
+A particle filter estimates the likelihood $P(\text{data}|\theta)$ for a stochastic model by simulating multiple trajectories (particles) through the system.
+At each observation time:
 
-A particle filter estimates the likelihood $P(\text{data}|\theta)$ for a stochastic model by:
+1. Particles are propagated forward using the stochastic model
+2. Each particle is weighted according to how well it matches the observed data
+3. Particles with low weights are discarded and replaced by resampling from high-weight particles
 
-1. **Initialize**: Start with $N$ particles, each a possible initial state
-2. **For each observation time**:
-   - **Propagate**: Simulate each particle forward using the stochastic model
-   - **Weight**: Assign weights based on how well particles match the observation
-   - **Resample**: Keep high-weight particles, discard low-weight ones
-3. **Return**: Log-likelihood is the sum of log-mean-weights across all time points
+The key insight is that particles represent the distribution of possible trajectories that could have generated the observed data, given the parameters.
+The likelihood is computed from the particle weights across all observation times.
 
-The key insight is that particles represent the **distribution of possible trajectories** that could have generated the observed data, given the parameters.
-
-## Implementing a basic particle filter
-
-Here's a basic particle filter implementation for educational purposes:
-
-```{julia}
-#| eval: false
-function particle_filter(model_func, θ, init_state, data, n_particles)
-    n_obs = nrow(data)
-    times = data.time
-
-    # Initialize particles
-    particles = []
-    weights = ones(n_particles) / n_particles
-
-    for i in 1:n_particles
-        times_init = [0.0, times[1]]
-        traj = model_func(θ, init_state, times_init)
-        push!(particles, traj)
-    end
-
-    log_like = 0.0
-
-    # Loop over observation times
-    for t_idx in 1:n_obs
-        # Resample particles according to weights
-        if t_idx > 1
-            indices = sample(1:n_particles, Weights(weights), n_particles)
-            particles = particles[indices]
-            weights = ones(n_particles) / n_particles
-        end
-
-        # Propagate and weight particles
-        new_weights = zeros(n_particles)
-
-        for p_idx in 1:n_particles
-            # Propagate particle
-            if t_idx < n_obs
-                times_segment = [times[t_idx], times[t_idx + 1]]
-                current_state = Dict(
-                    :S => particles[p_idx].S[end],
-                    :E => particles[p_idx].E[end],
-                    :I => particles[p_idx].I[end],
-                    :T1 => particles[p_idx].T1[end],
-                    :T2 => particles[p_idx].T2[end],
-                    :T3 => particles[p_idx].T3[end],
-                    :T4 => particles[p_idx].T4[end],
-                    :L => particles[p_idx].L[end]
-                )
-                traj_new = model_func(θ, current_state, times_segment)
-                particles[p_idx] = traj_new
-            end
-
-            # Weight particle
-            predicted_inc = particles[p_idx].Inc[end]
-            observed = data.obs[t_idx]
-            λ = max(θ[:ρ] * predicted_inc, 1e-10)
-            new_weights[p_idx] = pdf(Poisson(λ), observed)
-        end
-
-        # Normalize weights and accumulate log-likelihood
-        weight_sum = sum(new_weights)
-        if weight_sum == 0.0
-            return -Inf
-        end
-        weights = new_weights / weight_sum
-        log_like += log(weight_sum / n_particles)
-    end
-
-    return log_like
-end
-```
-
-You can test this implementation and explore how changing the number of particles affects the likelihood estimate:
-
-```{julia}
-#| eval: false
-# Try different particle counts
-for n_p in [10, 20, 50, 100]
-    ll = particle_filter(simulate_seit4l_stochastic, θ, init_state, flu_tdc, n_p)
-    println("$n_p particles: ll = $(round(ll, digits=2))")
-end
-```
+Turing.jl's `AdvancedPS.jl` package implements sophisticated particle filtering algorithms (including Particle Gibbs) automatically, so you don't need to code your own.
 
 :::
 
-# Calibrating the number of particles
+# Choosing the number of particles
 
 A key question in particle MCMC is: how many particles do we need?
 
-Too few particles → noisy likelihood estimates → poor MCMC mixing
-
-Too many particles → wasted computation
+- **Too few particles** → noisy likelihood estimates → poor MCMC mixing
+- **Too many particles** → wasted computation
 
 The goal is to find the minimum number of particles that gives stable likelihood estimates.
 
-```{julia}
-#| eval: false
-"""
-Calibrate particle count by measuring variance in likelihood estimates.
-"""
-function calibrate_particle_count(model_func, θ, init_state, data;
-                                   n_replicates=10,
-                                   particle_counts=[10, 20, 50, 100])
-    results = DataFrame(n_particles=Int[], mean_ll=Float64[], std_ll=Float64[], cv=Float64[])
+**Practical guidelines:**
 
-    for n_p in particle_counts
-        lls = zeros(n_replicates)
+1. **Start small**: Try 10-20 particles for initial exploratory runs
+2. **Check mixing**: Look at trace plots - if they look very noisy or get stuck, increase particle count
+3. **Production runs**: Use 50-100 particles for final inference
+4. **Rule of thumb**: The variance in log-likelihood estimates should decrease as you add particles. When it plateaus, you have enough.
 
-        # Simplified likelihood: average over trajectories
-        for rep in 1:n_replicates
-            ll_total = 0.0
-            for p in 1:n_p
-                traj = model_func(θ, init_state, 0.0:1.0:59.0)
-                ll = 0.0
-                for i in 1:nrow(data)
-                    λ = max(θ[:ρ] * traj.Inc[i], 1e-10)
-                    ll += logpdf(Poisson(λ), data.obs[i])
-                end
-                ll_total += ll
-            end
-            lls[rep] = ll_total / n_p
-        end
-
-        mean_ll = mean(lls)
-        std_ll = std(lls)
-        cv = abs(std_ll / mean_ll)
-
-        push!(results, (n_p, mean_ll, std_ll, cv))
-        println("n = $n_p: mean = $(round(mean_ll, digits=2)), std = $(round(std_ll, digits=2)), CV = $(round(cv, digits=4))")
-    end
-
-    return results
-end
-
-# Run calibration (this takes a few minutes)
-# Note: This is computationally intensive - consider running with fewer replicates
-calib_results = calibrate_particle_count(
-    simulate_seit4l_stochastic, θ, init_state, flu_tdc,
-    n_replicates=10, particle_counts=[10, 20, 50, 100]
-)
-```
-
-```{julia}
-#| eval: false
-# Plot calibration results
-plot(calib_results.n_particles, calib_results.std_ll,
-     xlabel = "Number of particles", ylabel = "Std dev of log-likelihood",
-     label = "", marker = :circle, linewidth = 2,
-     title = "Particle Filter Calibration")
-```
-
-A reasonable threshold is to choose the number of particles where the coefficient of variation (CV) drops below 0.05 or where the standard deviation plateaus.
+For this dataset (60 observations, 284 individuals), 20-50 particles is typically sufficient.
+You can experiment with different particle counts and observe the effect on posterior estimates and MCMC efficiency.
 
 # Going further
 
@@ -591,26 +434,24 @@ summarystats(chain_multi)
 
 ## Filtered trajectories
 
-The Particle Gibbs sampler automatically maintains filtered trajectories (i.e. state trajectories that are consistent with the observations). You can extract these from the chain to visualize posterior-consistent epidemic trajectories.
+The Particle Gibbs sampler automatically maintains filtered trajectories (i.e. state trajectories that are consistent with the observations).
+You can extract these from the chain to visualize posterior-consistent epidemic trajectories.
 
 ## Advanced particle filtering
 
-Turing.jl's `AdvancedPS.jl` provides several particle filtering algorithms:
-
-- **PG (Particle Gibbs)**: What we used. Samples both parameters and trajectories jointly. Best for complex state spaces.
-- **PMMH (Particle Marginal Metropolis-Hastings)**: Uses bootstrap particle filter. Simpler but can suffer from degeneracy. Good for simple models or when you don't need state trajectories.
-- **SMC (Sequential Monte Carlo)**: For parameter estimation without MCMC. Can be faster but requires careful tuning.
-
-**When to use what:**
-- Start with **PG** for most epidemiological models (it's more robust)
-- Try **PMMH** if PG is too slow and you only need parameter estimates
-- Use **SMC** for quick exploratory analysis or when MCMC mixing is poor
+Turing.jl's `AdvancedPS.jl` provides several particle filtering algorithms.
+We used Particle Gibbs (PG), which samples both parameters and trajectories jointly and works best for complex state spaces.
+An alternative is Particle Marginal Metropolis-Hastings (PMMH), which uses a bootstrap particle filter and is simpler but can suffer from degeneracy.
+It's a good choice for simple models or when you don't need state trajectories.
+For parameter estimation without MCMC, Sequential Monte Carlo (SMC) can be faster but requires careful tuning and is useful for quick exploratory analysis or when MCMC mixing is poor.
 
 See the [AdvancedPS.jl documentation](https://github.com/TuringLang/AdvancedPS.jl) for details.
 
 ## SMC²
 
-SMC² (SMC squared) uses Sequential Monte Carlo for both parameters and state trajectories, avoiding MCMC entirely. This can be more efficient for complex models but requires more careful tuning. Turing.jl supports this through the `SMC` sampler.
+SMC² (SMC squared) uses Sequential Monte Carlo for both parameters and state trajectories, avoiding MCMC entirely.
+This can be more efficient for complex models but requires more careful tuning.
+Turing.jl supports this through the `SMC` sampler.
 
 # References
 
