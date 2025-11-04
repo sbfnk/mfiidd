@@ -18,11 +18,17 @@ Pkg.activate(project_root)
 
 This session will focus on modelling rather than fitting (don't worry, we will come back to fitting on the next session). __The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL.__ We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.
 
-As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971. __Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.__ For instance, even if the distribution of the infectious period is the same for all islanders, some islanders will stay infectious longer than others just by chance and might therefore produce more secondary cases. This phenomenon is called *demographic stochasticity* and it could have played a significant role in the dynamics of the epidemic on Tristan da Cunha.
+As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971.
+__Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.__
+For instance, even if the distribution of the infectious period is the same for all islanders, some islanders will stay infectious longer than others just by chance and might therefore produce more secondary cases.
+This phenomenon is called *demographic stochasticity* and it could have played a significant role in the dynamics of the epidemic on Tristan da Cunha.
 
-Unsurprisingly, to account for demographic stochasticity we need a stochastic model. However, as you will see in this session and the following, __simulating and fitting a stochastic model is much more computationally costly than doing so for a deterministic model__. This is why it is important to understand when and why you need to use stochastic or deterministic models. In fact, we hope that by the end of the day you'll be convinced that both approaches are complementary.
+Unsurprisingly, to account for demographic stochasticity we need a stochastic model.
+However, as you will see in this session and the following, __simulating and fitting a stochastic model is much more computationally costly than doing so for a deterministic model___.
+This is why it is important to understand when and why you need to use stochastic or deterministic models.
+In fact, we hope that by the end of the day you'll be convinced that both approaches are complementary.
 
-Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you __how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution__.
+Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you __how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution___.
 
 In brief, in this session you will:
 
@@ -44,6 +50,7 @@ using JumpProcesses ## for stochastic simulation (Gillespie algorithm)
 using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
+using Turing ## for probabilistic programming and MCMC
 using CSV ## for CSV file reading
 ```
 
@@ -63,11 +70,22 @@ But first of all, let's have a look at the data.
 
 ![](../Rmd/external_fig/import/TdC.png)
 
-[Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean. It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas. Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island. __These ships were often the cause of introduction of new diseases into the population.__ As for influenza, no outbreak had been reported since an epidemic of A/H1N1 in 1954. In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.
+[Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean.
+It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas.
+Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island.
+__These ships were often the cause of introduction of new diseases into the population__.
+As for influenza, no outbreak had been reported since an epidemic of A/H1N1 in 1954.
+In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.
 
-On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha. __Three of them had developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing.__ Various family gatherings welcomed their disembarkation and in the ensuing days an epidemic started to spread rapidly throughout the whole island population. __After three weeks of propagation, while the epidemic was declining, some islanders developed second episodes of illness and a second peak of cases was recorded.__ The epidemic faded out after this second wave and lasted a total of 59 days. Despite the lack of virological data, serological evidence indicates that all episodes of illness were due to influenza A/H3N2.
+On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha.
+__Three of them had developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing__.
+Various family gatherings welcomed their disembarkation and in the ensuing days an epidemic started to spread rapidly throughout the whole island population.
+After three weeks of propagation, while the epidemic was declining, some islanders developed second episodes of illness and a second peak of cases was recorded.
+The epidemic faded out after this second wave and lasted a total of 59 days.
+Despite the lack of virological data, serological evidence indicates that all episodes of illness were due to influenza A/H3N2.
 
-Among the 284 islanders, 273 (96%) experienced at least one episode of illness and 92 (32%) experienced two, which is remarkable for influenza. Unfortunately, __only 312 of the 365 attacks (85%) are known to within a single day of accuracy__ and constitute the dataset reported by [Mantle & Tyrrell in 1973](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2130434/).
+Among the 284 islanders, 273 (96%) experienced at least one episode of illness and 92 (32%) experienced two, which is remarkable for influenza.
+Unfortunately, __only 312 of the 365 attacks (85%) are known to within a single day of accuracy__ and constitute the dataset reported by [Mantle & Tyrrell in 1973](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2130434/).
 
 The dataset of daily incidence can be loaded and plotted as follows:
 
@@ -91,7 +109,8 @@ scatter(
 
 # SEITL model
 
-One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, __some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain__ that was still circulating. This can be modelled as follows:
+One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, __some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain__ that was still circulating.
+This can be modelled as follows:
 
 ![The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability $\alpha$ to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S).
 ](../Rmd/external_fig/import/SEITL.jpg)
@@ -120,15 +139,16 @@ $$
 
 where $\beta=R_0/D_\mathrm{inf}$, $\epsilon=1/D_\mathrm{lat}$, $\nu = 1/D_\mathrm{inf}$, $\tau=1/D_\mathrm{imm}$ and $N = S + E + I + L + T$ is constant.
 
-It can be shown that __there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model__. In that sense, the deterministic equations are a description of the stochastic model, too.
+It can be shown that __there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model__.
+In that sense, the deterministic equations are a description of the stochastic model, too.
 
 In order to fit the SEITL model to the Tristan da Cunha dataset we need to add one state variable and one parameter to the model:
 
-* __The dataset represents daily incidence counts:__ we need to create a $6^\mathrm{th}$ state variable - called $\mathrm{Inc}$ - to track the daily number of new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable:
+* __The dataset represents daily incidence counts__: we need to create a $6^\mathrm{th}$ state variable - called $\mathrm{Inc}$ - to track the daily number of new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable:
 $$
 \frac{d\mathrm{Inc}}{dt} = \epsilon E
 $$
-* __The dataset is incomplete:__ only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate $\rho$. Since this reporting rate is unknown (we can only presume that it should be below 85% due to reporting errors) we will include it as an additional parameter.
+* __The dataset is incomplete__: only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate $\rho$. Since this reporting rate is unknown (we can only presume that it should be below 85% due to reporting errors) we will include it as an additional parameter.
 
 ## Parameter values and initial state
 
@@ -137,13 +157,15 @@ Based on the description of the outbreak above and the information below found i
 1. The $R_0$ of influenza is commonly estimated to be around 2. However, it can be significantly larger in close-knit communities with exceptional contact configurations.
 2. Both the average latent and infectious periods for influenza have been estimated around 2 days each.
 3. The down-regulation of the cellular response is completed on average 15 days after symptom onset.
-4. Serological surveys have shown that the seroconversion rate to influenza (probability of developing antibodies) is around 80%. However, it is likely that __not__ all seroconverted individuals acquire a long-term protective against reinfection.
+4. Serological surveys have shown that the seroconversion rate to influenza (probability of developing antibodies) is around 80%. However, it is likely that not all seroconverted individuals acquire a long-term protective against reinfection.
 5. Between 20 and 30% of the infections with influenza are asymptomatic.
 6. There is very limited cross-immunity between influenza viruses A/H1N1 and A/H3N2.
 
 # Deterministic vs Stochastic simulations
 
-Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters. This will give you the opportunity to compare the deterministic and stochastic model. We suggest to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way.
+Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters.
+This will give you the opportunity to compare the deterministic and stochastic model.
+We suggest to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way.
 
 ## Deterministic simulations
 
@@ -214,6 +236,38 @@ function simulate_seitl_deterministic(θ, init_state, times)
 
     return df
 end
+
+"""
+Turing model for SEITL - enables both simulation and inference.
+When obs=missing, use for prior predictive simulation.
+When obs=data, use for inference (in later sessions).
+"""
+@model function seitl_model(times, init_state, obs=missing)
+    # Priors
+    R_0 ~ Uniform(1.0, 50.0)
+    D_lat ~ Uniform(0.1, 10.0)
+    D_inf ~ Uniform(0.1, 15.0)
+    α ~ Uniform(0.0, 1.0)
+    D_imm ~ Uniform(1.0, 50.0)
+    ρ ~ Uniform(0.0, 1.0)
+
+    # Create parameter dictionary
+    θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
+             :α => α, :D_imm => D_imm, :ρ => ρ)
+
+    # Simulate trajectory
+    traj = simulate_seitl_deterministic(θ, init_state, times)
+
+    # Likelihood (if observations provided)
+    if !ismissing(obs)
+        for i in 1:length(obs)
+            λ = max(ρ * traj.Inc[i], 1e-10)
+            obs[i] ~ Poisson(λ)
+        end
+    end
+
+    return traj
+end
 ```
 
 Now let's try some parameter values based on the literature:
@@ -277,7 +331,8 @@ plot(
 )
 ```
 
-Note that although the simulation of the trajectory is deterministic, the observation process is stochastic (Poisson with reporting rate $\rho$). You can generate multiple observation replicates:
+Note that although the simulation of the trajectory is deterministic, the observation process is stochastic (Poisson with reporting rate $\rho$).
+You can generate multiple observation replicates:
 
 ```{julia}
 """
@@ -304,13 +359,57 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
-__Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$. For which values of $R_0$ and $\alpha$ do you get a decent fit?
+### Using Turing for simulation
 
-You should find that it is hard to capture all the data-points with the deterministic model. We will now test if this can be better reproduced with a stochastic model which explicitly accounts for the discrete nature of individuals.
+You've just seen how to simulate the model by directly calling the simulation function with specific parameter values.
+However, since we've defined a Turing `@model`, we can also sample from the prior predictive distribution.
+This is useful when we want to explore the range of behaviors the model can produce before seeing any data.
+
+```{julia}
+# Sample from the prior predictive distribution
+# This samples parameter values from the priors and simulates trajectories
+
+# Generate 5 trajectories by sampling parameters from priors
+p = plot(title = "Prior Predictive Simulations",
+         xlabel = "Time (days)", ylabel = "Cases")
+
+for i in 1:5
+    # Sample parameters from priors
+    R_0 = rand(Uniform(1.0, 50.0))
+    D_lat = rand(Uniform(0.1, 10.0))
+    D_inf = rand(Uniform(0.1, 15.0))
+    α = rand(Uniform(0.0, 1.0))
+    D_imm = rand(Uniform(1.0, 50.0))
+    ρ = rand(Uniform(0.0, 1.0))
+
+    θ_prior = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
+                   :α => α, :D_imm => D_imm, :ρ => ρ)
+
+    # Simulate trajectory with sampled parameters
+    traj = simulate_seitl_deterministic(θ_prior, init_state_guess, times)
+
+    plot!(p, traj.time, traj.Inc, alpha = 0.5, label = "")
+end
+
+scatter!(p, flu_tdc.time, flu_tdc.obs,
+         label = "Observed data", markersize = 4, color = :red)
+
+plot!(p)
+```
+
+Notice how the same `@model` definition can be used for both simulation (here) and inference (in the next session on pMCMC).
+This unified approach means you only need to write the model once.
+
+__Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$.
+For which values of $R_0$ and $\alpha$ do you get a decent fit?
+
+You should find that it is hard to capture all the data-points with the deterministic model.
+We will now test if this can be better reproduced with a stochastic model which explicitly accounts for the discrete nature of individuals.
 
 ## Stochastic simulations
 
-For stochastic simulation, we need to implement the model using the Gillespie algorithm (stochastic simulation algorithm). The model has the following transitions:
+For stochastic simulation, we need to implement the model using the Gillespie algorithm (stochastic simulation algorithm).
+The model has the following transitions:
 
 | Transition | Rate | Effect |
 |------------|------|--------|
@@ -395,6 +494,37 @@ function simulate_seitl_stochastic(θ, init_state, times)
 
     return df
 end
+
+"""
+Turing model for stochastic SEITL - enables both simulation and inference.
+This version uses the Gillespie algorithm for demographic stochasticity.
+"""
+@model function seitl_stochastic_model(times, init_state, obs=missing)
+    # Priors
+    R_0 ~ Uniform(1.0, 50.0)
+    D_lat ~ Uniform(0.1, 10.0)
+    D_inf ~ Uniform(0.1, 15.0)
+    α ~ Uniform(0.0, 1.0)
+    D_imm ~ Uniform(1.0, 50.0)
+    ρ ~ Uniform(0.0, 1.0)
+
+    # Create parameter dictionary
+    θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
+             :α => α, :D_imm => D_imm, :ρ => ρ)
+
+    # Simulate stochastic trajectory
+    traj = simulate_seitl_stochastic(θ, init_state, times)
+
+    # Likelihood (if observations provided)
+    if !ismissing(obs)
+        for i in 1:length(obs)
+            λ = max(ρ * traj.Inc[i], 1e-10)
+            obs[i] ~ Poisson(λ)
+        end
+    end
+
+    return traj
+end
 ```
 
 Now let's run stochastic simulations with the same parameters:
@@ -435,6 +565,25 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
+::: {.callout-tip}
+## Using Turing for stochastic simulation
+
+Just like with the deterministic model, you can use the Turing `@model` definition for stochastic simulation:
+
+```julia
+# Sample from the stochastic model
+stoch_model = seitl_stochastic_model(times, init_state_guess, missing)
+stoch_sample = rand(stoch_model)
+stoch_traj = stoch_sample.traj
+
+# Plot
+plot(stoch_traj.time, stoch_traj.Inc, label = "Stochastic simulation", linewidth = 2)
+scatter!(flu_tdc.time, flu_tdc.obs, label = "Observed data", color = :red)
+```
+
+The same model definition will be used for particle MCMC inference in the next session!
+:::
+
 __Take about 10 minutes to explore the dynamics of the stochastic SEITL model.__
 
 __What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?__
@@ -443,9 +592,11 @@ Now, let's try to make this model a bit more realistic.
 
 # Exponential vs Erlang distributions
 
-So far, we have assumed that the time spent in each compartment follows an [exponential distribution](http://en.wikipedia.org/wiki/Exponential_distribution), because by assuming transitions happen at constant rates we have implied that the process is [memoryless](http://en.wikipedia.org/wiki/Memorylessness). __Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response.__
+So far, we have assumed that the time spent in each compartment follows an [exponential distribution](http://en.wikipedia.org/wiki/Exponential_distribution), because by assuming transitions happen at constant rates we have implied that the process is [memoryless](http://en.wikipedia.org/wiki/Memorylessness).
+Although mathematically convenient, this property is not realistic for many biological processes such as the contraction of the cellular response.
 
-In order to include a memory effect, it is common practice to replace the exponential distribution by an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution). This distribution is parametrised by its mean $m$ and shape $k$ and can be modelled by $k$ consecutive sub-stages, each being exponentially distributed with mean $m/k$.
+In order to include a memory effect, it is common practice to replace the exponential distribution by an [Erlang distribution](http://en.wikipedia.org/wiki/Erlang_distribution).
+This distribution is parametrised by its mean $m$ and shape $k$ and can be modelled by $k$ consecutive sub-stages, each being exponentially distributed with mean $m/k$.
 
 As illustrated below the flexibility of the Erlang distribution ranges from the exponential ($k=1$) to Gaussian-like ($k>>1$) distributions.
 
@@ -540,11 +691,44 @@ function simulate_seit4l_deterministic(θ, init_state, times)
 
     return df
 end
+
+"""
+Turing model for SEIT4L - enables both simulation and inference.
+This version uses an Erlang-4 distribution for the T compartment.
+"""
+@model function seit4l_model(times, init_state, obs=missing)
+    # Priors
+    R_0 ~ Uniform(1.0, 50.0)
+    D_lat ~ Uniform(0.1, 10.0)
+    D_inf ~ Uniform(0.1, 15.0)
+    α ~ Uniform(0.0, 1.0)
+    D_imm ~ Uniform(1.0, 50.0)
+    ρ ~ Uniform(0.0, 1.0)
+
+    # Create parameter dictionary
+    θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
+             :α => α, :D_imm => D_imm, :ρ => ρ)
+
+    # Simulate trajectory
+    traj = simulate_seit4l_deterministic(θ, init_state, times)
+
+    # Likelihood (if observations provided)
+    if !ismissing(obs)
+        for i in 1:length(obs)
+            λ = max(ρ * traj.Inc[i], 1e-10)
+            obs[i] ~ Poisson(λ)
+        end
+    end
+
+    return traj
+end
 ```
 
 __Take 5 minutes to have a look at the functions above and make sure you understand how the Erlang distribution for the $T$ compartment is coded.__
 
-Now, compare the dynamics of the SEITL and SEIT4L model. Use your best guess from the previous section for the parameters. Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the initial state of SEIT4L accordingly.
+Now, compare the dynamics of the SEITL and SEIT4L model.
+Use your best guess from the previous section for the parameters.
+Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the initial state of SEIT4L accordingly.
 
 ```{julia}
 # Initial state for SEIT4L (need to split T into 4 stages)
@@ -590,6 +774,39 @@ plot!(p)
 __Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution for the $T$ compartment?__
 
 In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.
+
+::: {.callout-note}
+## From simulation to inference: the unified Turing approach
+
+Throughout this session, you've defined models using the `@model` macro with the pattern:
+
+```julia
+@model function my_model(times, init_state, obs=missing)
+    # 1. Define priors
+    R_0 ~ Uniform(1.0, 50.0)
+    # ... other parameters
+
+    # 2. Simulate trajectory
+    traj = simulate_function(θ, init_state, times)
+
+    # 3. Likelihood (if data provided)
+    if !ismissing(obs)
+        for i in 1:length(obs)
+            obs[i] ~ Poisson(λ[i])
+        end
+    end
+
+    return traj
+end
+```
+
+This unified structure enables both:
+- **Simulation** (this session): Call `rand(my_model(times, init_state, missing))` to sample from the prior predictive distribution
+- **Inference** (next session): Call `sample(my_model(times, init_state, data), PG(50), 1000)` to fit parameters to data using particle MCMC
+
+You write the model once and use it for both purposes.
+This is the power of probabilistic programming!
+:::
 
 # Going further
 
