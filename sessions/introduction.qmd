@@ -67,7 +67,9 @@ Random.seed!(1234)
 
 # A deterministic SIR model in Julia
 
-We'll work with a simple deterministic SIR model. The model has two parameters: the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$. The model equations are:
+We'll work with a simple deterministic SIR model.
+The model has two parameters: the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$.
+The model equations are:
 
 $$
 \begin{cases}
@@ -178,7 +180,8 @@ plot(sol, labels=["S" "I" "R"])
 
 ## What is a prior?
 
-A **prior** represents what we believe about parameters **before** seeing any data. It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
+A **prior** represents what we believe about parameters **before** seeing any data.
+It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
 
 In our SIR model:
 
@@ -495,7 +498,8 @@ plot!(p)
 
 ## Understanding the likelihood function
 
-Our likelihood assumes each observation follows a Poisson distribution around the true prevalence. Let's understand this:
+Our likelihood assumes each observation follows a Poisson distribution around the true prevalence.
+Let's understand this:
 
 ```{julia}
 # Pick one time point and explore the likelihood in detail
