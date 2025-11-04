@@ -90,8 +90,11 @@ Unfortunately, __only 312 of the 365 attacks (85%) are known to within a single 
 The dataset of daily incidence can be loaded and plotted as follows:
 
 ```{julia}
-# Load Tristan da Cunha data from CSV
-flu_tdc = CSV.read("../data/flu_tdc_1971.csv", DataFrame)
+# Load Tristan da Cunha data from local file
+# Alternatively, you can load directly from GitHub:
+# flu_tdc_url = "https://raw.githubusercontent.com/sbfnk/mfiidd.julia/main/data/flu_tdc_1971.csv"
+# flu_tdc = CSV.read(download(flu_tdc_url), DataFrame)
+flu_tdc = CSV.read(joinpath(@__DIR__, "..", "data", "flu_tdc_1971.csv"), DataFrame)
 
 # Display first few rows
 first(flu_tdc, 6)
