@@ -1,7 +1,10 @@
 [deps]
+AdvancedPS = "576499cb-2369-40b2-a588-c64705576edc"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+JumpProcesses = "ccbc3e58-028d-4f4c-8cd5-9ae44345cda5"
 LanguageServer = "2b0e0bc5-e4fd-59b4-8912-456d1b03d8d7"
 MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
