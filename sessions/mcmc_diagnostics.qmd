@@ -134,7 +134,8 @@ model = sir_model(epi1.obs, init_state, epi1.time)
 
 ## 1. Trace plots: The most important diagnostic
 
-Trace plots show parameter values over iterations. They should look like [hairy caterpillars](figures/hairy_caterpillar.jpg):
+Trace plots show parameter values over iterations.
+They should look like [hairy caterpillars](figures/hairy_caterpillar.jpg):
 
 ```{julia}
 #| output: false
@@ -209,7 +210,8 @@ plot(p1, p2, layout = (2, 1))
 
 ## 3. Autocorrelation
 
-MCMC samples are correlated. Good chains have autocorrelation that decays quickly:
+MCMC samples are correlated.
+Good chains have autocorrelation that decays quickly:
 
 ```{julia}
 function autocorr_plot(chain, param_name; max_lag = 100)
@@ -244,15 +246,19 @@ Samples from this initial exploration phase (called "burn-in") are discarded bec
 
 Modern samplers like NUTS have automatic warmup periods where they adapt the step size to achieve good acceptance rates, learn the geometry of the posterior and explore to find typical parameter values.
 
-In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total: 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations. The returned chain contains only the 2000 post-warmup samples.
+In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total: 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations.
+The returned chain contains only the 2000 post-warmup samples.
 
-With NUTS, you typically don't need to manually discard burn-in samples. The warmup is automatic and adaptive. However, you should still check trace plots to ensure the chain has converged - if you see trends even after warmup, you may need longer adaptation.
+With NUTS, you typically don't need to manually discard burn-in samples.
+The warmup is automatic and adaptive.
+However, you should still check trace plots to ensure the chain has converged - if you see trends even after warmup, you may need longer adaptation.
 
 # Quantitative diagnostics
 
 ## 1. R̂ statistic (Gelman-Rubin diagnostic)
 
-R̂ compares within-chain and between-chain variance. It should be < 1.1 (ideally < 1.01):
+R̂ compares within-chain and between-chain variance.
+It should be < 1.1 (ideally < 1.01):
 
 ```{julia}
 #| output: false
@@ -432,7 +438,8 @@ Convergence diagnostics tell you if the **algorithm** worked.
 Posterior predictive checks tell you if the **model** makes sense.
 
 **Why check predictions?** Even if MCMC converged perfectly, your model might still be wrong.
-The model could be mis-specified, missing important features, or based on incorrect assumptions. Posterior predictive checks reveal whether your model actually generates data that looks like what you observed.
+The model could be mis-specified, missing important features, or based on incorrect assumptions.
+Posterior predictive checks reveal whether your model actually generates data that looks like what you observed.
 
 ```{julia}
 # Generate predictions from the posterior
@@ -518,7 +525,8 @@ end
 
 ## Energy diagnostics (for HMC/NUTS)
 
-NUTS uses Hamiltonian dynamics. Energy plots help diagnose geometric problems:
+NUTS uses Hamiltonian dynamics.
+Energy plots help diagnose geometric problems:
 
 ```{julia}
 # Energy diagnostic plot

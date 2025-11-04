@@ -281,11 +281,13 @@ What we just built solves a fundamental problem in computational statistics:
 - **Easy distributions**: Normal (`randn()`) and Uniform (`rand()`) have built-in samplers
 - **Complex distributions**: Posteriors, mixtures, custom models - no simple formula exists
 
-MCMC solves this by only requiring that we can *evaluate* the log-probability at any point. We used a Normal distribution above (even though we could just use `randn()`!) to demonstrate this general principle.
+MCMC solves this by only requiring that we can *evaluate* the log-probability at any point.
+We used a Normal distribution above (even though we could just use `randn()`!) to demonstrate this general principle.
 
 ::: {.callout-tip title = "How does randn() actually work?" collapse = "true"}
 
-Even "simple" distributions like the Normal don't have a direct sampling formula. When you call `randn()` in Julia or `rnorm()` in R, the computer uses transformation methods:
+Even "simple" distributions like the Normal don't have a direct sampling formula.
+When you call `randn()` in Julia or `rnorm()` in R, the computer uses transformation methods:
 
 **Common approaches:**
 
@@ -463,7 +465,8 @@ plot(
 )
 ```
 
-**Take 5 minutes**. Look at the trace.
+**Take 5 minutes**.
+Look at the trace.
 Can you improve mixing?
 
 ## NUTS - A gradient-based upgrade
