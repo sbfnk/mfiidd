@@ -163,12 +163,12 @@ end
 Let's visualize a few stochastic realizations to see the variability:
 
 ```{julia}
-# Load Tristan da Cunha data from local file
-using CSV
+# Load Tristan da Cunha data using the datadir() function from the DrWatson package
+using CSV, DrWatson
 # Alternatively, you can load directly from GitHub:
 # flu_tdc_url = "https://raw.githubusercontent.com/sbfnk/mfiidd.julia/main/data/flu_tdc_1971.csv"
 # flu_tdc = CSV.read(download(flu_tdc_url), DataFrame)
-flu_tdc = CSV.read(joinpath(@__DIR__, "..", "data", "flu_tdc_1971.csv"), DataFrame)
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 
 # Parameters (reasonable values from literature)
 θ = Dict(
