@@ -137,9 +137,9 @@ function simulate_seit4l_stochastic(θ, init_state, times)
     end
 
     jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper(), saveat=times)
+    sol = solve(jump_prob, SSAStepper(), saveat=times, save_everystep=false)
 
-    # Convert to DataFrame
+    # Convert to DataFrame - aggregate incidence by day
     state_names = [:S, :E, :I, :T1, :T2, :T3, :T4, :L, :Inc_cumulative]
     sol_matrix = reduce(hcat, sol.u)'
     df = DataFrame(sol_matrix, state_names)
