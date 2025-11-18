@@ -2,6 +2,7 @@
 title: "Markov Chain Monte Carlo (MCMC) sampling"
 format: html
 engine: julia
+order: 2
 ---
 
 [Lecture slides: PowerPoint](slides/mcmc_slides1.pptx) / [PDF](slides/mcmc_slides1.pdf)

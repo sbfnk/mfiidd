@@ -2,6 +2,7 @@
 title: "Modelling interlude: Tristan da Cunha outbreak & the SEITL model"
 format: html
 engine: julia
+order: 4
 ---
 
 ```{julia}
