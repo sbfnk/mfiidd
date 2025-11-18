@@ -368,24 +368,18 @@ This is useful when we want to explore the range of behaviors the model can prod
 # Sample from the prior predictive distribution
 # This samples parameter values from the priors and simulates trajectories
 
-# Generate 5 trajectories by sampling parameters from priors
+# Generate 5 trajectories using the Turing model
+# When obs=missing, the model samples parameters from priors and simulates
 p = plot(title = "Prior Predictive Simulations",
          xlabel = "Time (days)", ylabel = "Cases")
 
 for i in 1:5
-    # Sample parameters from priors
-    R_0 = rand(Uniform(1.0, 50.0))
-    D_lat = rand(Uniform(0.1, 10.0))
-    D_inf = rand(Uniform(0.1, 15.0))
-    α = rand(Uniform(0.0, 1.0))
-    D_imm = rand(Uniform(1.0, 50.0))
-    ρ = rand(Uniform(0.0, 1.0))
+    # Sample from the model (parameters + trajectory)
+    model = seitl_model(times, init_state_guess, missing)
+    sample = rand(model)
 
-    θ_prior = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
-                   :α => α, :D_imm => D_imm, :ρ => ρ)
-
-    # Simulate trajectory with sampled parameters
-    traj = simulate_seitl_deterministic(θ_prior, init_state_guess, times)
+    # Extract the simulated trajectory
+    traj = sample.traj
 
     plot!(p, traj.time, traj.Inc, alpha = 0.5, label = "")
 end
@@ -474,9 +468,9 @@ function simulate_seitl_stochastic(θ, init_state, times)
     end
 
     jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper(), saveat=times)
+    sol = solve(jump_prob, SSAStepper(), saveat=times, save_everystep=false)
 
-    # Convert to DataFrame
+    # Convert to DataFrame - aggregate incidence by day
     state_names = [:S, :E, :I, :T, :L, :Inc_cumulative]
     sol_matrix = reduce(hcat, sol.u)'
     df = DataFrame(sol_matrix, state_names)
@@ -542,7 +536,8 @@ plot!(p)
 Run multiple stochastic replicates to see variability:
 
 ```{julia}
-# Generate multiple stochastic trajectories
+# Generate multiple stochastic trajectories with the same parameters
+# This shows the variability from demographic stochasticity
 p = plot(title = "SEITL Model: 50 Stochastic Replicates",
          xlabel = "Time (days)", ylabel = "Cases")
 
@@ -558,23 +553,9 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
-::: {.callout-tip}
-## Using Turing for stochastic simulation
-
-Just like with the deterministic model, you can use the Turing `@model` definition for stochastic simulation:
-
-```julia
-# Sample from the stochastic model
-stoch_model = seitl_stochastic_model(times, init_state_guess, missing)
-stoch_sample = rand(stoch_model)
-stoch_traj = stoch_sample.traj
-
-# Plot
-plot(stoch_traj.time, stoch_traj.Inc, label = "Stochastic simulation", linewidth = 2)
-scatter!(flu_tdc.time, flu_tdc.obs, label = "Observed data", color = :red)
-```
-
-The same model definition will be used for particle MCMC inference in the next session!
+::: {.callout-note}
+Just like with the deterministic model, you can use the Turing `@model` for prior predictive checks by sampling parameters from priors.
+The same `@model` definitions will be used for particle MCMC inference in the next session, demonstrating the unified approach.
 :::
 
 __Take about 10 minutes to explore the dynamics of the stochastic SEITL model.__
