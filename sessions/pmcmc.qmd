@@ -139,20 +139,11 @@ function simulate_seit4l_stochastic(θ, init_state, times)
     jump_prob = JumpProblem(prob, Direct(), jumps...)
     sol = solve(jump_prob, SSAStepper(), saveat=times)
 
-    # Convert to DataFrame manually
-    n_times = length(sol.t)
-    df = DataFrame(
-        S = [sol[i][1] for i in 1:n_times],
-        E = [sol[i][2] for i in 1:n_times],
-        I = [sol[i][3] for i in 1:n_times],
-        T1 = [sol[i][4] for i in 1:n_times],
-        T2 = [sol[i][5] for i in 1:n_times],
-        T3 = [sol[i][6] for i in 1:n_times],
-        T4 = [sol[i][7] for i in 1:n_times],
-        L = [sol[i][8] for i in 1:n_times],
-        Inc_cumulative = [sol[i][9] for i in 1:n_times],
-        time = sol.t
-    )
+    # Convert to DataFrame
+    state_names = [:S, :E, :I, :T1, :T2, :T3, :T4, :L, :Inc_cumulative]
+    sol_matrix = reduce(hcat, sol.u)'
+    df = DataFrame(sol_matrix, state_names)
+    df[!, :time] = sol.t
 
     # Convert cumulative incidence to daily incidence
     df[!, :Inc] = [0.0; diff(df.Inc_cumulative)]
