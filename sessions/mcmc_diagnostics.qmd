@@ -2,6 +2,7 @@
 title: "MCMC Diagnostics"
 format: html
 engine: julia
+order: 3
 ---
 
 [Lecture slides](slides/mcmc_diagnostics_slides.pdf)
