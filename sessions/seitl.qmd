@@ -470,16 +470,20 @@ function simulate_seitl_stochastic(θ, init_state, times)
     end
 
     jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper(), saveat=times)
+    sol = solve(jump_prob, SSAStepper())
 
-    # Convert to DataFrame - aggregate incidence by day
-    state_names = [:S, :E, :I, :T, :L, :Inc_cumulative]
-    sol_matrix = reduce(hcat, sol.u)'
-    df = DataFrame(sol_matrix, state_names)
-    df[!, :time] = sol.t
+    # Aggregate incidence by day
+    # Use interpolation to get cumulative incidence at each time point
+    Inc_cumulative_at_times = [sol(t)[6] for t in times]
 
-    # Convert cumulative incidence to daily incidence
-    df[!, :Inc] = [0.0; diff(df.Inc_cumulative)]
+    # Convert cumulative to daily incidence
+    Inc_daily = [0.0; diff(Inc_cumulative_at_times)]
+
+    # Get other state variables at the requested times
+    state_matrix = reduce(hcat, [sol(t)[1:5] for t in times])'
+    df = DataFrame(state_matrix, [:S, :E, :I, :T, :L])
+    df[!, :time] = times
+    df[!, :Inc] = Inc_daily
 
     return df
 end
