@@ -125,11 +125,14 @@ function simulate_seit4l_stochastic(θ, init_state, times)
     prob = DiscreteProblem(u0, (times[1], times[end]))
 
     # Create jump processes
-    jumps = []
+    # We need to create separate affect! functions for each jump to avoid closure issues
+    jumps = ConstantRateJump[]
     for i in 1:size(stoich, 1)
+        # Capture the stoichiometry row for this specific jump
+        stoich_row = stoich[i, :]
         affect! = function(integrator)
             for j in 1:length(integrator.u)
-                integrator.u[j] += stoich[i, j]
+                integrator.u[j] += stoich_row[j]
             end
         end
         rate(u, p, t) = rate_func(u, p, t)[i]
@@ -137,13 +140,17 @@ function simulate_seit4l_stochastic(θ, init_state, times)
     end
 
     jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper(), saveat=times, save_everystep=false)
+    sol = solve(jump_prob, SSAStepper())
 
-    # Convert to DataFrame - aggregate incidence by day
+    # Extract solution at requested time points
+    # sol(t) interpolates the solution at time t
     state_names = [:S, :E, :I, :T1, :T2, :T3, :T4, :L, :Inc_cumulative]
-    sol_matrix = reduce(hcat, sol.u)'
+
+    # Evaluate solution at requested times
+    sol_at_times = [sol(t) for t in times]
+    sol_matrix = reduce(hcat, sol_at_times)'
     df = DataFrame(sol_matrix, state_names)
-    df[!, :time] = sol.t
+    df[!, :time] = collect(times)
 
     # Convert cumulative incidence to daily incidence
     df[!, :Inc] = [0.0; diff(df.Inc_cumulative)]
