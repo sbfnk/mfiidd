@@ -374,12 +374,14 @@ p = plot(title = "Prior Predictive Simulations",
          xlabel = "Time (days)", ylabel = "Cases")
 
 for i in 1:5
-    # Sample from the model (parameters + trajectory)
+    # Sample parameters from priors
     model = seitl_model(times, init_state_guess, missing)
-    sample = rand(model)
+    params = rand(model)
 
-    # Extract the simulated trajectory
-    traj = sample.traj
+    # Create parameter dictionary and simulate
+    θ = Dict(:R_0 => params.R_0, :D_lat => params.D_lat, :D_inf => params.D_inf,
+             :α => params.α, :D_imm => params.D_imm, :ρ => params.ρ)
+    traj = simulate_seitl_deterministic(θ, init_state_guess, times)
 
     plot!(p, traj.time, traj.Inc, alpha = 0.5, label = "")
 end
