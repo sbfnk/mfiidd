@@ -468,7 +468,7 @@ function simulate_seitl_stochastic(θ, init_state, times)
     end
 
     jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper(), saveat=times, save_everystep=false)
+    sol = solve(jump_prob, SSAStepper(), saveat=times)
 
     # Convert to DataFrame - aggregate incidence by day
     state_names = [:S, :E, :I, :T, :L, :Inc_cumulative]
