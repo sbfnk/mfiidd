@@ -1,0 +1,512 @@
+---
+title: "Universal Differential Equations: Learning Unknown Mechanisms"
+subtitle: "Combining mechanistic models with machine learning - good luck to us!"
+format: html
+---
+
+# Introduction
+
+Throughout this course, we've assumed we know the functional form of disease transmission:
+
+$$\beta \cdot \frac{S \cdot I}{N}$$
+
+But what if we don't? What if:
+- **Transmission depends on behavior changes** we can't model explicitly
+- **Environmental factors** play an unknown role
+- **Contact patterns** are more complex than mass action
+- **Interventions** have effects we don't fully understand
+
+**Universal Differential Equations (UDEs)** offer a radical solution: **Let the data tell us the functional form!**
+
+## The UDE approach
+
+Keep the **known** epidemiological structure:
+```
+dS/dt = -transmission(S, I, t)  # ← Learn this part!
+dE/dt = +transmission(S, I, t) - σ * E
+dI/dt = +σ * E - γ * I
+...
+```
+
+Replace unknown functions with **neural networks**:
+```
+transmission(S, I, t) = NeuralNetwork([I/N, t]) * S/N
+```
+
+## Learning objectives
+
+By the end of this session, you will:
+
+1. Understand when and why to use UDEs
+2. Implement a simple UDE for epidemic modeling
+3. Regularize neural networks for sparse data (~60 points)
+4. Compare UDE vs fixed transmission assumptions
+5. Appreciate the challenges ("good luck to us!")
+
+**Warning**: This is cutting-edge research! Expect:
+- ✅ Cool concepts and elegant code
+- ⚠️ Hyperparameter tuning required
+- ❌ Not always better than simple models
+- 🎓 Great learning experience even when it doesn't work perfectly!
+
+# Setup
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+```
+
+```{julia}
+using DifferentialEquations
+using Distributions
+using DataFrames
+using CSV
+using Plots
+using Random
+using LinearAlgebra
+using DrWatson
+using Lux  # Modern neural network framework
+using ComponentArrays
+using Optimization
+using OptimizationOptimisers
+using OptimizationOptimJL
+using Zygote
+
+Random.seed!(1234)
+```
+
+# Load Tristan da Cunha data
+
+```{julia}
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+
+scatter(
+    flu_tdc.time, flu_tdc.obs,
+    xlabel = "Time (days)", ylabel = "Daily incidence",
+    label = "Observed cases", markersize = 4, color = :red,
+    title = "Tristan da Cunha 1971: Can we learn β(t)?",
+    legend = :topright
+)
+```
+
+**Challenge**: With only ~60 data points, can we learn a time-varying transmission rate?
+
+# Baseline: SIR with constant β
+
+First, let's establish what a constant transmission rate gives us:
+
+```{julia}
+"""
+Standard SIR model with constant transmission.
+"""
+function sir_constant_beta(du, u, p, t)
+    S, I, R = u
+    β, γ = p
+    N = S + I + R
+
+    du[1] = -β * S * I / N
+    du[2] = β * S * I / N - γ * I
+    du[3] = γ * I
+end
+
+# Fit by eye (we'd use MCMC in reality, but we'll keep this quick)
+β_guess = 0.5
+γ_guess = 0.4
+u0 = [270.0, 3.0, 0.0]
+tspan = (0.0, Float64(maximum(flu_tdc.time)))
+times = Float64.(flu_tdc.time)
+
+prob_constant = ODEProblem(sir_constant_beta, u0, tspan, [β_guess, γ_guess])
+sol_constant = solve(prob_constant, Tsit5(), saveat=times)
+
+# Extract incidence
+S_values = [sol_constant(t)[1] for t in times]
+incidence_constant = [0.0; -diff(S_values)]
+
+# Plot
+plot(times, incidence_constant, label="Constant β", linewidth=2)
+scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
+         markersize=4, color=:red,
+         xlabel="Time (days)", ylabel="Cases",
+         title="Baseline: Can we do better?")
+```
+
+**Question**: The fit isn't perfect. Could a time-varying β(t) do better?
+
+# UDE Approach: Learn β(t) with Neural Network
+
+## Step 1: Define the neural network
+
+We'll use a **small** network - remember, we only have 60 data points!
+
+```{julia}
+# Network architecture: 2 inputs → 16 hidden → 8 hidden → 1 output
+# Total parameters: ~150 (small enough for 60 data points)
+
+rng = Random.default_rng()
+Random.seed!(rng, 1234)
+
+# Define network structure
+nn_architecture = Chain(
+    Dense(2 => 16, tanh),      # Input: [I/N, t/tmax]
+    Dense(16 => 8, tanh),
+    Dense(8 => 1, softplus)     # Output: β > 0 (softplus ensures positivity)
+)
+
+# Initialize parameters
+p_nn, st_nn = Lux.setup(rng, nn_architecture)
+p_nn = ComponentArray(p_nn)  # Convert to ComponentArray for optimization
+
+println("Neural network parameters: ", length(p_nn))
+println("Data points: ", length(flu_tdc.obs))
+println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data points per parameter")
+```
+
+**Critical**: With ~0.4 data points per parameter, we're in the **high risk overfitting zone**!
+We'll need **strong regularization**.
+
+## Step 2: Define UDE with learned β(t)
+
+```{julia}
+"""
+SIR model where β is learned by neural network.
+β = NN([I/N, t/tmax]) predicts transmission rate.
+"""
+function sir_ude!(du, u, p, t)
+    S, I, R = u
+    N = S + I + R
+    γ = p.γ  # Keep recovery rate fixed (known from literature)
+
+    # Neural network predicts β(t, I)
+    # Inputs: prevalence (I/N) and normalized time (t/tmax)
+    tmax = p.tmax
+    nn_input = [I/N, t/tmax]
+
+    # Evaluate neural network
+    β_learned, _ = nn_architecture(nn_input, p.nn_params, st_nn)
+    β = β_learned[1]  # Extract scalar
+
+    # Standard SIR dynamics with learned β
+    du[1] = -β * S * I / N
+    du[2] = β * S * I / N - γ * I
+    du[3] = γ * I
+end
+```
+
+## Step 3: Prediction and loss function
+
+```{julia}
+"""
+Predict incidence using current UDE parameters.
+"""
+function predict_ude(p_all)
+    # Solve ODE with current parameters
+    prob_ude = ODEProblem(sir_ude!, u0, tspan, p_all)
+    sol_ude = solve(prob_ude, Tsit5(), saveat=times,
+                   sensealg=InterpolatingAdjoint(autojacvec=ZygoteVJP()))
+
+    # Extract incidence
+    if sol_ude.retcode != :Success
+        return fill(NaN, length(times))
+    end
+
+    S_pred = [sol_ude(t)[1] for t in times]
+    incidence_pred = [0.0; -diff(S_pred)]
+
+    return incidence_pred
+end
+
+"""
+Loss function with HEAVY regularization for sparse data.
+"""
+function loss_ude(p_all)
+    pred = predict_ude(p_all)
+
+    # Data fit term: sum of squared errors
+    data_loss = sum((pred .- flu_tdc.obs).^2)
+
+    # REGULARIZATION (critical for 60 data points!)
+
+    # 1. L2 penalty on NN weights (prevent large weights)
+    l2_penalty = 1e-4 * sum(abs2, p_all.nn_params)
+
+    # 2. Smoothness: penalize rapid changes in β(t)
+    # Sample β at many time points and penalize differences
+    t_sample = range(0.0, p_all.tmax, length=50)
+    β_samples = []
+    for t in t_sample
+        I_sample = 10.0  # Representative I value
+        input = [I_sample / 273.0, t / p_all.tmax]
+        β_val, _ = nn_architecture(input, p_all.nn_params, st_nn)
+        push!(β_samples, β_val[1])
+    end
+    smoothness_penalty = 1e-3 * sum(abs2, diff(β_samples))
+
+    # 3. Bounded β: penalize if β > 2.0 (biologically unrealistic)
+    bound_penalty = 1e-2 * sum(max.(β_samples .- 2.0, 0.0).^2)
+
+    total_loss = data_loss + l2_penalty + smoothness_penalty + bound_penalty
+
+    return total_loss
+end
+```
+
+**Note the regularization weights** (1e-4, 1e-3, 1e-2): These are **critical** hyperparameters!
+- Too weak → overfitting
+- Too strong → underfitting
+- Just right → "good luck to us!" 😄
+
+## Step 4: Train the UDE
+
+This is where the magic (and pain) happens:
+
+```{julia}
+# Combine all parameters
+p_all = ComponentArray(
+    nn_params = p_nn,
+    γ = γ_guess,
+    tmax = maximum(times)
+)
+
+println("Starting UDE training...")
+println("This may take a few minutes...")
+println("="^60)
+
+# Initial loss
+println("Initial loss: ", round(loss_ude(p_all), digits=2))
+
+# Stage 1: Adam optimizer (exploration)
+println("\nStage 1: Adam optimization (1000 iterations)")
+opt_func = OptimizationFunction((x, p) -> loss_ude(x), Optimization.AutoZygote())
+opt_prob = OptimizationProblem(opt_func, p_all)
+
+@time result_adam = solve(opt_prob, Adam(0.01), maxiters=1000,
+                          callback = (state, l) -> begin
+                              if state.iter % 100 == 0
+                                  println("  Iter $(state.iter): loss = $(round(l, digits=2))")
+                              end
+                              return false
+                          end)
+
+println("\nAfter Adam: loss = ", round(result_adam.objective, digits=2))
+
+# Stage 2: LBFGS (refinement)
+println("\nStage 2: LBFGS optimization (200 iterations)")
+opt_prob2 = remake(opt_prob, u0=result_adam.u)
+@time result_lbfgs = solve(opt_prob2, LBFGS(), maxiters=200,
+                           callback = (state, l) -> begin
+                               if state.iter % 20 == 0
+                                   println("  Iter $(state.iter): loss = $(round(l, digits=2))")
+                               end
+                               return false
+                           end)
+
+println("\n" * "="^60)
+println("Final loss: ", round(result_lbfgs.objective, digits=2))
+println("Training complete!")
+
+p_trained = result_lbfgs.u
+```
+
+**Expected behavior**:
+- Loss should decrease (but may plateau)
+- Training takes 2-5 minutes
+- Final loss may still be higher than you'd like (60 points is tough!)
+
+## Step 5: Compare results
+
+```{julia}
+# Get UDE predictions
+pred_ude = predict_ude(p_trained)
+
+# Plot comparison
+plot(times, incidence_constant, label="Constant β", linewidth=2,
+     xlabel="Time (days)", ylabel="Cases",
+     title="UDE vs Constant β")
+plot!(times, pred_ude, label="UDE (learned β)", linewidth=2)
+scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
+         markersize=4, color=:red)
+```
+
+**Question**: Did the UDE fit better? Or did it just overfit?
+
+## Step 6: Visualize learned β(t)
+
+The coolest part - what did the network learn?
+
+```{julia}
+# Extract learned β(t) for representative I values
+t_plot = range(0.0, maximum(times), length=100)
+I_representative = 50.0  # Mid-epidemic prevalence
+
+β_learned_over_time = []
+for t in t_plot
+    input = [I_representative / 273.0, t / maximum(times)]
+    β_val, _ = nn_architecture(input, p_trained.nn_params, st_nn)
+    push!(β_learned_over_time, β_val[1])
+end
+
+# Plot
+plot(t_plot, β_learned_over_time,
+     label="Learned β(t)", linewidth=2,
+     xlabel="Time (days)", ylabel="β",
+     title="What the Neural Network Learned")
+hline!([β_guess], label="Constant β baseline", linestyle=:dash)
+```
+
+**Interpretation**:
+- If β(t) is roughly constant → UDE confirms simple model
+- If β(t) varies smoothly → Might capture real behavioral changes
+- If β(t) is erratic → Probably overfitting!
+
+# The "Good Luck to Us!" Section
+
+## Why is this hard?
+
+1. **Small dataset** (60 points) vs **many parameters** (150)
+2. **Identifiability**: Many β(t) curves could fit the data
+3. **Regularization tuning**: Finding the right penalties is an art
+4. **Initialization**: Different random seeds → different solutions
+5. **ODE stiffness**: Training can be numerically unstable
+
+## Common failure modes
+
+### Overfitting
+```julia
+# If your loss is very low but predictions look crazy → overfitting
+# Solution: Increase regularization (1e-3 → 1e-2)
+```
+
+### Underfitting
+```julia
+# If UDE ≈ constant β → network learned nothing
+# Solution: Decrease regularization (1e-3 → 1e-4)
+#           Or increase network capacity
+```
+
+### NaN explosion
+```julia
+# If you get NaN errors → numerical instability
+# Solution: Reduce learning rate (0.01 → 0.001)
+#           Add gradient clipping
+#           Use more robust ODE solver
+```
+
+## Sensitivity to hyperparameters
+
+Let's test if our solution is robust:
+
+```{julia}
+# Try different regularization strengths
+println("\nTesting regularization sensitivity:")
+println("(This will take a while...)")
+
+for reg_scale in [0.5, 1.0, 2.0]
+    println("\nRegularization scale: $reg_scale×")
+
+    # Modify loss function (simplified for demonstration)
+    function loss_test(p)
+        pred = predict_ude(p)
+        data_loss = sum((pred .- flu_tdc.obs).^2)
+        l2_pen = (1e-4 * reg_scale) * sum(abs2, p.nn_params)
+        return data_loss + l2_pen
+    end
+
+    opt_func_test = OptimizationFunction((x, p) -> loss_test(x), Optimization.AutoZygote())
+    opt_prob_test = OptimizationProblem(opt_func_test, p_all)
+    result_test = solve(opt_prob_test, Adam(0.01), maxiters=500)
+
+    println("  Final loss: ", round(result_test.objective, digits=2))
+end
+```
+
+**If results vary wildly** → Model is unstable (not unusual with 60 points!)
+
+# When to use UDEs
+
+## Use UDEs when:
+
+✅ You have **mechanistic knowledge** about structure (compartments)
+✅ But **unknown functional forms** (transmission, observation process)
+✅ You have **moderate-to-large datasets** (ideally 100s-1000s of points)
+✅ You're willing to **experiment** and **tune hyperparameters**
+✅ **Exploratory analysis** - discovering unknown mechanisms
+
+## Don't use UDEs when:
+
+❌ Simple parametric models work fine (Occam's razor!)
+❌ Very small datasets (<50 points) without strong regularization
+❌ You need **interpretable** parameters for publication
+❌ Computational resources are limited (training is expensive)
+❌ Real-time inference needed (MCMC may be faster per dataset)
+
+# Comparison with other approaches
+
+| Method | Flexibility | Interpretability | Data needs | Computational cost |
+|--------|-------------|------------------|------------|-------------------|
+| **Constant β** | Low | High | Low (10-50 points) | Very low |
+| **Time-varying β with splines** | Medium | Medium | Medium (50-200) | Low |
+| **GP for β(t)** | Medium | High | Medium (50-200) | Medium |
+| **UDE** | High | Low | High (100-1000+) | High |
+
+**For TdC data (60 points)**: GPs or splines likely better than UDEs!
+
+# Real success stories
+
+UDEs work well when:
+
+1. **Large spatiotemporal datasets**: COVID-19 with daily data from 100+ locations
+2. **High-frequency measurements**: Lab experiments with measurements every hour
+3. **Known structure, unknown details**: Chemical reactions, climate models
+4. **Discovery research**: Finding unknown mechanisms (not just fitting)
+
+# Exercises
+
+1. **Network size**: Try smaller (8→4→1) and larger (32→16→1) networks. How does data fit change? Overfitting?
+
+2. **Regularization tuning**: Systematically vary regularization weights. Plot loss surface. Find optimal balance.
+
+3. **Input features**: Try different NN inputs:
+   - Just time: β(t)
+   - Just prevalence: β(I/N)
+   - Both: β(I/N, t)
+   - Add S/N: β(S/N, I/N, t)
+
+   Which works best?
+
+4. **Synthetic data test**: Generate data with known β(t) = β₀ * (1 + 0.3*sin(2πt/20)). Can UDE recover it?
+
+5. **Ensemble uncertainty**: Train 10 UDEs with different random seeds. Plot ensemble of β(t) curves. How variable are they?
+
+# Summary
+
+**What we learned**:
+1. UDEs combine mechanistic structure with learned functions
+2. Small datasets (60 points) make UDE training very challenging
+3. **Heavy regularization** is essential for sparse data
+4. Results are sensitive to hyperparameters ("good luck!")
+5. Simpler methods (GPs, splines) often better for small datasets
+
+**Key insight**: UDEs are powerful but not magic. They work best when:
+- You have the right problem (unknown mechanisms)
+- You have enough data (100s-1000s of points)
+- You're willing to experiment and tune
+
+**Honest conclusion**: For the Tristan da Cunha dataset, a GP-based time-varying β(t) is probably more appropriate than a UDE. But learning to think about hybrid models (mechanistic + ML) is valuable regardless!
+
+# Next steps
+
+Now that you've seen modern inference methods (variational inference, UDEs), you understand:
+- **When to use traditional methods** (MCMC, fixed models)
+- **When to use fast approximations** (VI, mean-field)
+- **When to use hybrid approaches** (UDEs, GPs)
+
+The best modelers know **all** the tools and choose wisely!
+
+# References
+
+- Rackauckas et al. (2020). "Universal Differential Equations for Scientific Machine Learning." arXiv:2001.04385
+- Dandekar et al. (2020). "Neural ODE vs Conventional ODE in COVID-19 Forecasting." NeurIPS Workshop
+- Rackauckas et al. (2021). "Generalized Physics-Informed Learning Through Language-Wide Differentiable Programming."
+- DiffEqFlux.jl documentation: https://docs.sciml.ai/DiffEqFlux/
+- SciML tutorials: https://docs.sciml.ai/Overview/stable/showcase/missing_physics/
