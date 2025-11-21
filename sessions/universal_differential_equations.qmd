@@ -2,6 +2,7 @@
 title: "Universal Differential Equations: Learning Unknown Mechanisms"
 subtitle: "Combining mechanistic models with machine learning - good luck to us!"
 format: html
+engine: julia
 ---
 
 # Introduction
