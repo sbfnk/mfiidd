@@ -2,6 +2,7 @@
 title: "Variational Inference: Speed vs Accuracy"
 subtitle: "Fast approximate Bayesian inference with normalizing flows"
 format: html
+engine: julia
 ---
 
 # Introduction

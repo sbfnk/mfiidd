@@ -2,6 +2,7 @@
 title: "Observation Models and Distance Metrics"
 subtitle: "Understanding the bridge between likelihood-based and likelihood-free inference"
 format: html
+engine: julia
 ---
 
 # Introduction
