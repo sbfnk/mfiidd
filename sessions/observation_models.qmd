@@ -1,0 +1,681 @@
+---
+title: "Observation Models and Distance Metrics"
+subtitle: "Understanding the bridge between likelihood-based and likelihood-free inference"
+format: html
+---
+
+# Introduction
+
+So far in this course, we've used **likelihood functions** to connect our mathematical models to observed data. For example, we've assumed that observed case counts follow a Poisson distribution:
+
+$$\text{obs}_t \sim \text{Poisson}(\rho \cdot I_t)$$
+
+But this raises important questions:
+- **Why Poisson?** Is this mechanistically justified?
+- **What if we use Negative Binomial instead?** How much does it matter?
+- **Are we doing statistics or just curve fitting?**
+
+In this session, we'll explore these questions and discover that the distinction between "likelihood-based" and "likelihood-free" inference is less sharp than it initially appears.
+
+## Learning objectives
+
+By the end of this session, you will be able to:
+
+1. Critically evaluate observation model choices (Poisson, Negative Binomial, etc.)
+2. Understand negative log-likelihood as an implicit distance metric
+3. Implement Approximate Bayesian Computation (ABC) as an explicit alternative
+4. Compare likelihood-based and distance-based inference approaches
+5. Make informed choices about observation models for your own research
+
+# Setup
+
+```{julia}
+using Pkg
+Pkg.activate(".")
+```
+
+```{julia}
+using DifferentialEquations
+using Distributions
+using DataFrames
+using CSV
+using Plots
+using StatsPlots
+using Turing
+using MCMCChains
+using Random
+using LinearAlgebra
+using DrWatson
+
+Random.seed!(1234)
+```
+
+# Load Tristan da Cunha data
+
+We'll use the same influenza outbreak data from 1971:
+
+```{julia}
+# Load data
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+
+# Plot
+scatter(
+    flu_tdc.time, flu_tdc.obs,
+    xlabel = "Time (days)", ylabel = "Daily incidence",
+    label = "Observed cases", markersize = 4, color = :red,
+    title = "Tristan da Cunha 1971 Influenza Outbreak",
+    legend = :topright
+)
+```
+
+We have `{julia} length(flu_tdc.time)` daily observations of case counts.
+
+# Simple SIR model for comparison
+
+For this session, let's use a simpler SIR model to make the concepts clearer:
+
+```{julia}
+"""
+Simple SIR model for pedagogical purposes.
+"""
+function simulate_sir(θ, init_state, times)
+    R_0, D_inf = θ[:R_0], θ[:D_inf]
+    β = R_0 / D_inf
+    γ = 1.0 / D_inf
+
+    function sir_ode!(du, u, p, t)
+        S, I, R = u
+        N = S + I + R
+
+        du[1] = -β * S * I / N
+        du[2] = β * S * I / N - γ * I
+        du[3] = γ * I
+    end
+
+    u0 = [init_state[:S], init_state[:I], init_state[:R]]
+    prob = ODEProblem(sir_ode!, u0, (times[1], times[end]), nothing)
+    sol = solve(prob, Tsit5(), saveat=times)
+
+    # Extract incidence (new infections per day)
+    S_values = [sol(t)[1] for t in times]
+    incidence = [0.0; -diff(S_values)]
+
+    return DataFrame(time=times, S=S_values,
+                     I=[sol(t)[2] for t in times],
+                     R=[sol(t)[3] for t in times],
+                     Inc=incidence)
+end
+```
+
+```{julia}
+# Try some parameters
+times = flu_tdc.time
+θ_test = Dict(:R_0 => 10.0, :D_inf => 2.5)
+init_test = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
+
+traj_test = simulate_sir(θ_test, init_test, times)
+
+# Plot
+plot(traj_test.time, traj_test.Inc,
+     label="Predicted incidence", linewidth=2, color=:blue)
+scatter!(flu_tdc.time, flu_tdc.obs,
+         label="Observed cases", markersize=4, color=:red,
+         xlabel="Time (days)", ylabel="Cases",
+         title="SIR Model vs Observed Data")
+```
+
+Not a perfect fit, but good enough for illustration!
+
+# Approach 1: Poisson Likelihood (Traditional)
+
+## The standard approach
+
+This is what we've been doing throughout the course:
+
+```{julia}
+@model function sir_poisson(times, init_state, obs=missing)
+    # Priors
+    R_0 ~ Uniform(1.0, 20.0)
+    D_inf ~ Uniform(1.0, 10.0)
+    ρ ~ Uniform(0.1, 1.0)  # Reporting rate
+
+    # Simulate
+    θ = Dict(:R_0 => R_0, :D_inf => D_inf)
+    traj = simulate_sir(θ, init_state, times)
+
+    # Likelihood: Poisson observation model
+    if !ismissing(obs)
+        for i in 1:length(obs)
+            λ = max(ρ * traj.Inc[i], 1e-10)
+            obs[i] ~ Poisson(λ)
+        end
+    end
+
+    return traj
+end
+```
+
+Let's fit this model:
+
+```{julia}
+# Fit with NUTS
+model_poisson = sir_poisson(times, init_test, flu_tdc.obs)
+chain_poisson = sample(model_poisson, NUTS(0.65), 1000, progress=true)
+```
+
+```{julia}
+# Plot posteriors
+plot(chain_poisson[[:R_0, :D_inf, :ρ]], size=(900, 600))
+```
+
+```{julia}
+# Summary statistics
+summarystats(chain_poisson)
+```
+
+## What does Poisson assume?
+
+The Poisson distribution has a key property: **variance = mean**
+
+```{julia}
+# Illustrate Poisson assumption
+λ_values = [5, 20, 50]
+p = plot(title="Poisson Distribution: Variance = Mean",
+         xlabel="Count", ylabel="Probability")
+
+for λ in λ_values
+    dist = Poisson(λ)
+    x_range = max(0, λ-20):min(λ+20, λ*2)
+    plot!(p, x_range, [pdf(dist, x) for x in x_range],
+          label="λ=$λ (σ²=$λ)", linewidth=2)
+end
+p
+```
+
+**Question**: Is this assumption justified for epidemic data?
+- Under-reporting might be systematic (not random)
+- Behavioral changes might create clustering
+- Surveillance quality might vary over time
+
+# Approach 2: Negative Binomial Likelihood (Pragmatic)
+
+## Adding overdispersion
+
+When Poisson doesn't fit well (variance > mean), we often use Negative Binomial:
+
+$$\text{obs}_t \sim \text{NegativeBinomial}(\mu_t, \phi)$$
+
+where:
+- $\mu_t = \rho \cdot I_t$ (mean)
+- $\phi$ controls overdispersion (variance = $\mu + \mu^2/\phi$)
+
+```{julia}
+@model function sir_negbin(times, init_state, obs=missing)
+    # Priors
+    R_0 ~ Uniform(1.0, 20.0)
+    D_inf ~ Uniform(1.0, 10.0)
+    ρ ~ Uniform(0.1, 1.0)
+    φ ~ Exponential(10.0)  # Overdispersion parameter
+
+    # Simulate
+    θ = Dict(:R_0 => R_0, :D_inf => D_inf)
+    traj = simulate_sir(θ, init_state, times)
+
+    # Likelihood: Negative Binomial observation model
+    if !ismissing(obs)
+        for i in 1:length(obs)
+            μ = max(ρ * traj.Inc[i], 1e-10)
+            obs[i] ~ NegativeBinomial(μ, φ)
+        end
+    end
+
+    return traj
+end
+```
+
+**Honest question**: Why Negative Binomial?
+- **Mechanistic justification**: Weak (no clear biological process)
+- **Empirical justification**: Fits better than Poisson
+- **Convenience**: Easy to compute, works with MCMC
+
+**Is this really different from choosing a distance metric?**
+
+# Interlude: Likelihood as Distance
+
+## The key insight
+
+The negative log-likelihood is actually a **distance function** between observed and predicted data!
+
+$$\text{Distance} = -\log p(\text{obs} | \text{predicted})$$
+
+Let's see what distance each likelihood implies:
+
+```{julia}
+# Compare different observation models as distance functions
+obs_val = 10.0
+predicted_range = 1.0:0.5:20.0
+
+# Poisson: -log P(obs | λ)
+poisson_distance = [-logpdf(Poisson(λ), obs_val) for λ in predicted_range]
+
+# Negative Binomial with different φ
+negbin_distance_phi5 = [-logpdf(NegativeBinomial(λ, 5.0), obs_val) for λ in predicted_range]
+negbin_distance_phi20 = [-logpdf(NegativeBinomial(λ, 20.0), obs_val) for λ in predicted_range]
+
+# Gaussian (for comparison)
+gaussian_distance = [-logpdf(Normal(λ, 3.0), obs_val) for λ in predicted_range]
+
+# Plot
+plot(predicted_range, poisson_distance,
+     label="Poisson", linewidth=2,
+     xlabel="Predicted value", ylabel="-log(likelihood)",
+     title="Different Likelihoods as Distance Functions (obs=10)",
+     legend=:topright)
+plot!(predicted_range, negbin_distance_phi5,
+      label="NegBin(φ=5)", linewidth=2)
+plot!(predicted_range, negbin_distance_phi20,
+      label="NegBin(φ=20)", linewidth=2)
+plot!(predicted_range, gaussian_distance,
+      label="Gaussian(σ=3)", linewidth=2, linestyle=:dash)
+```
+
+**Observation**: Different likelihoods are just different ways of measuring distance!
+
+- **Poisson**: Penalizes deviations inversely proportional to predicted value
+- **Negative Binomial**: Similar but allows more flexibility (overdispersion)
+- **Gaussian**: Constant penalty regardless of scale
+
+# Approach 3: Approximate Bayesian Computation (Explicit Distance)
+
+## ABC: Making the distance explicit
+
+Instead of choosing a parametric likelihood, ABC directly chooses:
+1. **Summary statistics**: What features of the data matter?
+2. **Distance metric**: How do we measure similarity?
+3. **Threshold**: How close is "close enough"?
+
+Let's implement a simple ABC rejection sampler from scratch:
+
+```{julia}
+"""
+Simple ABC rejection sampler.
+Samples from prior, simulates data, accepts if distance < threshold.
+"""
+function abc_rejection(prior_sampler, simulator, distance_fn, observed_data,
+                      threshold, n_samples)
+    samples = []
+    n_attempts = 0
+    max_attempts = n_samples * 1000  # Give up after many attempts
+
+    while length(samples) < n_samples && n_attempts < max_attempts
+        n_attempts += 1
+
+        # Sample from prior
+        θ = prior_sampler()
+
+        # Simulate data
+        simulated_data = simulator(θ)
+
+        # Compute distance
+        d = distance_fn(simulated_data, observed_data)
+
+        # Accept if close enough
+        if d < threshold
+            push!(samples, θ)
+        end
+    end
+
+    acceptance_rate = length(samples) / n_attempts
+    println("Acceptance rate: $(round(acceptance_rate * 100, digits=2))%")
+    println("Attempts needed: $n_attempts")
+
+    return samples
+end
+```
+
+Now let's define the components:
+
+```{julia}
+# Prior sampler
+function sample_from_prior()
+    R_0 = rand(Uniform(1.0, 20.0))
+    D_inf = rand(Uniform(1.0, 10.0))
+    ρ = rand(Uniform(0.1, 1.0))
+    return [R_0, D_inf, ρ]
+end
+
+# Simulator
+function simulate_sir_abc(params)
+    R_0, D_inf, ρ = params
+    θ = Dict(:R_0 => R_0, :D_inf => D_inf)
+    traj = simulate_sir(θ, init_test, times)
+    return ρ .* traj.Inc
+end
+
+# Distance functions
+distance_L1(sim, obs) = sum(abs.(sim .- obs))
+
+function distance_L2(sim, obs)
+    return sqrt(sum((sim .- obs).^2))
+end
+
+function distance_weighted(sim, obs)
+    # Weight by 1/observation (similar to Poisson variance structure)
+    weights = 1.0 ./ (obs .+ 1.0)
+    return sum(weights .* abs.(sim .- obs))
+end
+
+# Observed data
+observed_data = flu_tdc.obs
+```
+
+Run ABC with L1 distance:
+
+```{julia}
+# Start with a relaxed threshold to get some samples
+threshold = 200.0  # Adjust based on data scale
+
+println("Running ABC rejection sampler...")
+abc_samples = abc_rejection(
+    sample_from_prior,
+    simulate_sir_abc,
+    distance_L1,
+    observed_data,
+    threshold,
+    1000  # Target number of samples
+)
+
+println("\nObtained $(length(abc_samples)) samples")
+```
+
+```{julia}
+# Extract parameters
+if length(abc_samples) > 0
+    abc_df = DataFrame(
+        R_0 = [s[1] for s in abc_samples],
+        D_inf = [s[2] for s in abc_samples],
+        ρ = [s[3] for s in abc_samples]
+    )
+
+    # Plot ABC results
+    histogram(abc_df.R_0, bins=30, alpha=0.6,
+              label="ABC (L1 distance)",
+              xlabel="R_0", ylabel="Frequency",
+              title="ABC Posterior Distribution for R_0")
+else
+    println("No samples accepted - threshold too strict!")
+end
+```
+
+## Compare distance metrics
+
+Let's see how different distance functions give different results:
+
+```{julia}
+# Test on a candidate parameter set
+test_params = [10.0, 2.5, 0.8]
+test_sim = simulate_sir_abc(test_params)
+
+println("Distance metrics for test parameters:")
+println("  L1: ", round(distance_L1(test_sim, observed_data), digits=2))
+println("  L2: ", round(distance_L2(test_sim, observed_data), digits=2))
+println("  Weighted: ", round(distance_weighted(test_sim, observed_data), digits=2))
+```
+
+**Key insight**: Choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood!
+
+## ABC-SMC: Sequential Monte Carlo ABC
+
+The rejection sampler is inefficient. ABC-SMC is 20-50× more efficient:
+
+```{julia}
+"""
+Simple ABC-SMC implementation.
+Uses sequence of decreasing thresholds with resampling.
+"""
+function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
+                thresholds, n_particles)
+
+    particles = []
+    weights = ones(n_particles) ./ n_particles
+
+    for (t_idx, threshold) in enumerate(thresholds)
+        println("\nGeneration $t_idx: threshold = $threshold")
+        new_particles = []
+
+        if t_idx == 1
+            # First generation: sample from prior
+            for i in 1:n_particles
+                while true
+                    θ = prior_sampler()
+                    sim = simulator(θ)
+                    d = distance_fn(sim, observed_data)
+                    if d < threshold
+                        push!(new_particles, θ)
+                        break
+                    end
+                end
+            end
+        else
+            # Later generations: perturb from previous
+            for i in 1:n_particles
+                while true
+                    # Sample from previous generation (weighted)
+                    idx = sample(1:length(particles), Weights(weights))
+                    θ_old = particles[idx]
+
+                    # Perturb (simple Gaussian perturbation)
+                    θ_new = θ_old .+ randn(length(θ_old)) .* 0.1 .* θ_old
+
+                    # Check bounds (reject if outside prior)
+                    if θ_new[1] < 1.0 || θ_new[1] > 20.0 continue end
+                    if θ_new[2] < 1.0 || θ_new[2] > 10.0 continue end
+                    if θ_new[3] < 0.1 || θ_new[3] > 1.0 continue end
+
+                    # Simulate and check distance
+                    sim = simulator(θ_new)
+                    d = distance_fn(sim, observed_data)
+                    if d < threshold
+                        push!(new_particles, θ_new)
+                        break
+                    end
+                end
+            end
+        end
+
+        particles = new_particles
+        weights = ones(n_particles) ./ n_particles  # Uniform weights (simplified)
+
+        println("  Mean R_0: ", round(mean([p[1] for p in particles]), digits=2))
+    end
+
+    return particles
+end
+```
+
+```{julia}
+# Run ABC-SMC with decreasing thresholds
+println("Running ABC-SMC...")
+thresholds = [300.0, 200.0, 150.0, 100.0]  # Adaptive sequence
+
+abc_smc_samples = abc_smc(
+    sample_from_prior,
+    simulate_sir_abc,
+    distance_L1,
+    observed_data,
+    thresholds,
+    500  # Number of particles
+)
+
+abc_smc_df = DataFrame(
+    R_0 = [s[1] for s in abc_smc_samples],
+    D_inf = [s[2] for s in abc_smc_samples],
+    ρ = [s[3] for s in abc_smc_samples]
+)
+```
+
+**Note**: This is a simplified ABC-SMC. Production implementations (like ApproxBayes.jl or GpABC.jl) have adaptive thresholds, better perturbation kernels, and importance weighting.
+
+# Comparison: What's really different?
+
+## Summary of approaches
+
+| Approach | What you specify | What's arbitrary | Computational cost |
+|----------|------------------|------------------|-------------------|
+| **Poisson likelihood** | Parametric distribution | Why Poisson? | Fast (MCMC) |
+| **NegBin likelihood** | Parametric + overdispersion | Why NegBin? | Fast (MCMC) |
+| **ABC (L1)** | Distance metric | Why L1? | Slow (many simulations) |
+| **ABC (weighted)** | Distance + weights | Why these weights? | Slow (many simulations) |
+
+## Do they give similar results?
+
+Let's compare the posteriors:
+
+```{julia}
+# Extract MCMC results
+mcmc_df = DataFrame(chain_poisson)
+
+# Plot comparison
+p1 = histogram(mcmc_df.R_0, bins=30, alpha=0.5,
+               label="Poisson", normalize=:pdf)
+histogram!(p1, abc_df.R_0, bins=30, alpha=0.5,
+           label="ABC (L1)", normalize=:pdf,
+           xlabel="R_0", ylabel="Density",
+           title="Posterior Comparison: R_0")
+
+p2 = histogram(mcmc_df.D_inf, bins=30, alpha=0.5,
+               label="Poisson", normalize=:pdf)
+histogram!(p2, abc_df.D_inf, bins=30, alpha=0.5,
+           label="ABC (L1)", normalize=:pdf,
+           xlabel="D_inf", ylabel="Density",
+           title="Posterior Comparison: D_inf")
+
+plot(p1, p2, layout=(1, 2), size=(900, 400))
+```
+
+**Discussion**: Are the posteriors similar or different? What does this tell us about the observation model choice?
+
+# When does it matter?
+
+## Sensitivity analysis
+
+The choice between Poisson, NegBin, and ABC matters most when:
+
+1. **Outliers**: Extreme observations far from predictions
+2. **Tail behavior**: Rare events (very low or very high counts)
+3. **Overdispersion**: Systematic variance > mean in data
+4. **Model misspecification**: When the mechanistic model is wrong
+
+Let's test sensitivity to outliers:
+
+```{julia}
+# Create synthetic data with and without outliers
+function test_sensitivity(add_outlier=false)
+    # True parameters
+    true_params = [10.0, 2.5, 0.8]
+    true_data = simulate_and_summarize(true_params)
+
+    # Add noise
+    noisy_data = true_data .+ randn(length(true_data)) .* 2.0
+    noisy_data = max.(noisy_data, 0.0)  # No negative cases
+
+    # Add outlier if requested
+    if add_outlier
+        noisy_data[30] += 30.0  # Artificial spike
+    end
+
+    return noisy_data
+end
+
+# Test with and without outlier
+data_clean = test_sensitivity(false)
+data_outlier = test_sensitivity(true)
+
+# Plot
+plot(times, data_clean, label="Clean data", linewidth=2)
+plot!(times, data_outlier, label="Data with outlier", linewidth=2,
+      xlabel="Time", ylabel="Cases",
+      title="Effect of Outliers on Observation Data")
+```
+
+**Exercise for students**: Fit both datasets with Poisson and ABC. Which is more robust to the outlier?
+
+# The philosophical question
+
+## Is there a "correct" observation model?
+
+**No!** There are only:
+
+1. **More or less mechanistically motivated** choices
+   - E.g., modeling test sensitivity explicitly vs using NegBin
+
+2. **More or less flexible** choices
+   - Poisson (rigid) → NegBin (flexible) → ABC (very flexible)
+
+3. **More or less computationally convenient** choices
+   - MCMC with parametric likelihood (fast)
+   - ABC (slow but general)
+
+## Practical advice
+
+**When to use parametric likelihoods (Poisson/NegBin)**:
+- You have a tractable likelihood function
+- You want efficient inference (MCMC with gradients)
+- The parametric family is flexible enough
+- You're comfortable with the implicit distance metric
+
+**When to use ABC/likelihood-free**:
+- Likelihood is truly intractable (stochastic models, agent-based models)
+- You want to make your distance metric explicit
+- You care more about specific summary statistics than full data
+- You want robustness to model misspecification
+
+**Best practice**:
+- Try multiple observation models (Poisson, NegBin, ABC with different distances)
+- Check if scientific conclusions change
+- If they don't → observation model choice doesn't matter much
+- If they do → you've learned something about what features of the data drive inference!
+
+# Summary
+
+In this session, we've learned:
+
+1. **Parametric likelihoods are pragmatic choices**, not mechanistic truths
+2. **Negative log-likelihood is a distance function** - choosing Poisson vs NegBin is choosing how to measure fit
+3. **ABC makes distance metrics explicit** - but the choice is still somewhat arbitrary
+4. **The distinction between "likelihood-based" and "likelihood-free" is blurrier than it appears**
+5. **Sensitivity analysis** is crucial - test if your conclusions depend on observation model choice
+
+## Looking forward
+
+This philosophical foundation prepares us for modern inference methods:
+- **Variational inference**: Trading accuracy for speed
+- **Neural posterior estimation**: Learning p(θ|data) directly
+- **Universal differential equations**: Learning unknown functions
+
+In all cases, we're making pragmatic choices about how to connect models to data. Being explicit about these choices makes us better scientists!
+
+# Exercises
+
+1. **Implement Gaussian likelihood**: Add a `sir_gaussian` model with Normal observation errors. Compare posteriors to Poisson and NegBin.
+
+2. **Custom ABC distance**: Define a distance function that only uses (a) total cases and (b) peak timing. How do posteriors change?
+
+3. **Overdispersion detector**: Compute variance/mean ratio for TdC data. Does this justify using NegBin over Poisson?
+
+4. **Outlier robustness**: Add artificial outliers to the data. Compare posterior estimates under Poisson (sensitive) vs ABC with robust distance metric.
+
+5. **Summary statistics**: Instead of using all daily counts, use summary statistics: total cases, peak time, peak height. Implement ABC with these summaries.
+
+# References
+
+- Wood, S.N. (2010). Statistical inference for noisy nonlinear ecological dynamic systems. *Nature* 466, 1102-1104.
+- Marin, J.-M. et al. (2012). Approximate Bayesian computational methods. *Statistics and Computing* 22, 1167-1180.
+- Cranmer, K. et al. (2020). The frontier of simulation-based inference. *PNAS* 117(48), 30055-30062.
+
+# Next session
+
+Now that we understand the connection between likelihoods and distances, we're ready to explore truly modern methods that go beyond both traditional likelihoods and simple ABC:
+- **Universal Differential Equations**: Learning unknown mechanisms
+- **Variational Inference**: Fast approximate posteriors
+- **Neural density estimation**: Likelihood-free with neural networks
