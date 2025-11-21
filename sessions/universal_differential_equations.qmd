@@ -72,6 +72,8 @@ using Optimization
 using OptimizationOptimisers
 using OptimizationOptimJL
 using Zygote
+using SciMLSensitivity  # For ZygoteVJP
+using Optimisers  # For Adam optimizer
 
 Random.seed!(1234)
 ```
