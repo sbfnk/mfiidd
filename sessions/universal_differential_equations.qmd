@@ -53,11 +53,15 @@ By the end of this session, you will:
 # Setup
 
 ```{julia}
+#| echo: false
+#| include: false
+
 using Pkg
 project_root = joinpath(@__DIR__, "..")
 Pkg.activate(project_root)
-Pkg.instantiate()
+```
 
+```{julia}
 using DifferentialEquations
 using Distributions
 using DataFrames
