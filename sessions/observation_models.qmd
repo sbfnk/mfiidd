@@ -228,7 +228,8 @@ where:
     if !ismissing(obs)
         for i in 1:length(obs)
             μ = max(ρ * traj.Inc[i], 1e-10)
-            obs[i] ~ NegativeBinomial(μ, φ)
+            # NegativeBinomial(r, p) where r=φ, p=φ/(φ+μ)
+            obs[i] ~ NegativeBinomial(φ, φ/(φ+μ))
         end
     end
 
@@ -261,9 +262,10 @@ predicted_range = 1.0:0.5:20.0
 # Poisson: -log P(obs | λ)
 poisson_distance = [-logpdf(Poisson(λ), obs_val) for λ in predicted_range]
 
-# Negative Binomial with different φ
-negbin_distance_phi5 = [-logpdf(NegativeBinomial(λ, 5.0), obs_val) for λ in predicted_range]
-negbin_distance_phi20 = [-logpdf(NegativeBinomial(λ, 20.0), obs_val) for λ in predicted_range]
+# Negative Binomial with different φ (convert to r,p parametrization)
+# NegativeBinomial(r, p) where r=φ, p=φ/(φ+μ)
+negbin_distance_phi5 = [-logpdf(NegativeBinomial(5.0, 5.0/(5.0+λ)), obs_val) for λ in predicted_range]
+negbin_distance_phi20 = [-logpdf(NegativeBinomial(20.0, 20.0/(20.0+λ)), obs_val) for λ in predicted_range]
 
 # Gaussian (for comparison)
 gaussian_distance = [-logpdf(Normal(λ, 3.0), obs_val) for λ in predicted_range]
@@ -572,6 +574,14 @@ The choice between Poisson, NegBin, and ABC matters most when:
 Let's test sensitivity to outliers:
 
 ```{julia}
+# Helper function to simulate and return incidence
+function simulate_and_summarize(params)
+    R_0, D_inf, ρ = params
+    θ = Dict(:R_0 => R_0, :D_inf => D_inf)
+    traj = simulate_sir(θ, init_test, times)
+    return ρ .* traj.Inc
+end
+
 # Create synthetic data with and without outliers
 function test_sensitivity(add_outlier=false)
     # True parameters
