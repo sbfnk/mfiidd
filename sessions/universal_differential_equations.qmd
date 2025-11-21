@@ -287,7 +287,7 @@ println("\nStage 1: Adam optimization (1000 iterations)")
 opt_func = OptimizationFunction((x, p) -> loss_ude(x), Optimization.AutoZygote())
 opt_prob = OptimizationProblem(opt_func, p_all)
 
-@time result_adam = solve(opt_prob, Adam(0.01), maxiters=1000,
+@time result_adam = solve(opt_prob, Optimisers.Adam(0.01), maxiters=1000,
                           callback = (state, l) -> begin
                               if state.iter % 100 == 0
                                   println("  Iter $(state.iter): loss = $(round(l, digits=2))")
@@ -421,7 +421,7 @@ for reg_scale in [0.5, 1.0, 2.0]
 
     opt_func_test = OptimizationFunction((x, p) -> loss_test(x), Optimization.AutoZygote())
     opt_prob_test = OptimizationProblem(opt_func_test, p_all)
-    result_test = solve(opt_prob_test, Adam(0.01), maxiters=500)
+    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=500)
 
     println("  Final loss: ", round(result_test.objective, digits=2))
 end
