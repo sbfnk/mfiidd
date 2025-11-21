@@ -47,6 +47,7 @@ using MCMCChains
 using Random
 using LinearAlgebra
 using DrWatson
+using StatsBase  # For Weights in ABC-SMC
 
 Random.seed!(1234)
 ```
