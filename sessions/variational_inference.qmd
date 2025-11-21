@@ -31,7 +31,8 @@ By the end of this session, you will be able to:
 
 ```{julia}
 using Pkg
-Pkg.activate(".")
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
 Pkg.instantiate()
 
 using DifferentialEquations
