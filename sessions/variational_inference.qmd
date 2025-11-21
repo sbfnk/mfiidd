@@ -76,11 +76,10 @@ SIR model for variational inference demonstrations.
 """
 function simulate_sir(θ, init_state, times)
     R_0, D_inf = θ[:R_0], θ[:D_inf]
-    β = R_0 / D_inf
-    γ = 1.0 / D_inf
 
     function sir_ode!(du, u, p, t)
         S, I, R = u
+        β, γ = p
         N = S + I + R
 
         du[1] = -β * S * I / N
@@ -88,8 +87,10 @@ function simulate_sir(θ, init_state, times)
         du[3] = γ * I
     end
 
+    β = R_0 / D_inf
+    γ = 1.0 / D_inf
     u0 = [init_state[:S], init_state[:I], init_state[:R]]
-    prob = ODEProblem(sir_ode!, u0, (times[1], times[end]), nothing)
+    prob = ODEProblem(sir_ode!, u0, (times[1], times[end]), [β, γ])
     sol = solve(prob, Tsit5(), saveat=times)
 
     # Extract incidence
