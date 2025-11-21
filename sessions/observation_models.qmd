@@ -33,9 +33,8 @@ By the end of this session, you will be able to:
 ```{julia}
 using Pkg
 Pkg.activate(".")
-```
+Pkg.instantiate()
 
-```{julia}
 using DifferentialEquations
 using Distributions
 using DataFrames

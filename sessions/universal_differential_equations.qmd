@@ -55,9 +55,8 @@ By the end of this session, you will:
 ```{julia}
 using Pkg
 Pkg.activate(".")
-```
+Pkg.instantiate()
 
-```{julia}
 using DifferentialEquations
 using Distributions
 using DataFrames
