@@ -265,13 +265,18 @@ end
 
 This is where the magic (and pain) happens:
 
-::: {.callout-warning}
-**This block is computationally expensive (~5-10 minutes).**
-It's disabled in CI builds but students can run it locally by removing the `eval: false` line.
+::: {.callout-note}
+## Demo vs Full Training
+
+**This shows a quick demo** (20 iterations) to verify the code works.
+
+For real results, students should run the full training locally:
+- Change `maxiters=20` → `maxiters=500` (Adam)
+- Change `maxiters=10` → `maxiters=100` (LBFGS)
+- Takes ~5-10 minutes total
 :::
 
 ```{julia}
-#| eval: false
 # Combine all parameters
 p_all = ComponentArray(
     nn_params = p_nn,
@@ -279,21 +284,21 @@ p_all = ComponentArray(
     tmax = maximum(times)
 )
 
-println("Starting UDE training...")
-println("This may take a few minutes...")
+println("Starting UDE training (DEMO VERSION - 30 total iterations)...")
+println("For real training, increase maxiters to 500 and 100")
 println("="^60)
 
 # Initial loss
 println("Initial loss: ", round(loss_ude(p_all), digits=2))
 
-# Stage 1: Adam optimizer (exploration)
-println("\nStage 1: Adam optimization (500 iterations)")
+# Stage 1: Adam optimizer (exploration) - DEMO: only 20 iterations
+println("\nStage 1: Adam optimization (20 iterations - DEMO)")
 opt_func = OptimizationFunction((x, p) -> loss_ude(x), Optimization.AutoZygote())
 opt_prob = OptimizationProblem(opt_func, p_all)
 
-@time result_adam = solve(opt_prob, Optimisers.Adam(0.01), maxiters=500,
+@time result_adam = solve(opt_prob, Optimisers.Adam(0.01), maxiters=20,
                           callback = (state, l) -> begin
-                              if state.iter % 50 == 0
+                              if state.iter % 5 == 0
                                   println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                               end
                               return false
@@ -301,12 +306,12 @@ opt_prob = OptimizationProblem(opt_func, p_all)
 
 println("\nAfter Adam: loss = ", round(result_adam.objective, digits=2))
 
-# Stage 2: LBFGS (refinement)
-println("\nStage 2: LBFGS optimization (100 iterations)")
+# Stage 2: LBFGS (refinement) - DEMO: only 10 iterations
+println("\nStage 2: LBFGS optimization (10 iterations - DEMO)")
 opt_prob2 = remake(opt_prob, u0=result_adam.u)
-@time result_lbfgs = solve(opt_prob2, LBFGS(), maxiters=100,
+@time result_lbfgs = solve(opt_prob2, LBFGS(), maxiters=10,
                            callback = (state, l) -> begin
-                               if state.iter % 10 == 0
+                               if state.iter % 5 == 0
                                    println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                                end
                                return false
@@ -314,20 +319,20 @@ opt_prob2 = remake(opt_prob, u0=result_adam.u)
 
 println("\n" * "="^60)
 println("Final loss: ", round(result_lbfgs.objective, digits=2))
-println("Training complete!")
+println("Training complete! (NOTE: This was demo version - increase iterations for real results)")
 
 p_trained = result_lbfgs.u
 ```
 
-**Expected behavior**:
-- Loss should decrease (but may plateau)
-- Training takes 2-5 minutes
+**Expected behavior** (with full training):
+- Loss should decrease significantly (from ~100000 to ~1000-5000)
+- Full training takes 5-10 minutes with 500+100 iterations
+- Demo version shows the code works but won't converge fully
 - Final loss may still be higher than you'd like (60 points is tough!)
 
 ## Step 5: Compare results
 
 ```{julia}
-#| eval: false
 # Get UDE predictions
 pred_ude = predict_ude(p_trained)
 
@@ -347,7 +352,6 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 The coolest part - what did the network learn?
 
 ```{julia}
-#| eval: false
 # Extract learned β(t) for representative I values
 t_plot = range(0.0, maximum(times), length=100)
 I_representative = 50.0  # Mid-epidemic prevalence
