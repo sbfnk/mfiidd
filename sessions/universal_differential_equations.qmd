@@ -265,7 +265,13 @@ end
 
 This is where the magic (and pain) happens:
 
+::: {.callout-warning}
+**This block is computationally expensive (~5-10 minutes).**
+It's disabled in CI builds but students can run it locally by removing the `eval: false` line.
+:::
+
 ```{julia}
+#| eval: false
 # Combine all parameters
 p_all = ComponentArray(
     nn_params = p_nn,
@@ -321,6 +327,7 @@ p_trained = result_lbfgs.u
 ## Step 5: Compare results
 
 ```{julia}
+#| eval: false
 # Get UDE predictions
 pred_ude = predict_ude(p_trained)
 
