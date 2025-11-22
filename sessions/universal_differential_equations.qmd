@@ -265,18 +265,19 @@ end
 
 This is where the magic (and pain) happens:
 
-::: {.callout-note}
-## Demo vs Full Training
+::: {.callout-warning}
+## Computationally Expensive
 
-**This shows a quick demo** (20 iterations) to verify the code works.
+**This training block is disabled in CI builds** to avoid timeouts.
 
-For real results, students should run the full training locally:
-- Change `maxiters=20` → `maxiters=500` (Adam)
-- Change `maxiters=10` → `maxiters=100` (LBFGS)
+Students can run it locally by removing the `#| eval: false` line. For full training:
+- Use `maxiters=500` (Adam) and `maxiters=100` (LBFGS)
 - Takes ~5-10 minutes total
+- For a quick test, use smaller iterations (50 and 20)
 :::
 
 ```{julia}
+#| eval: false
 # Combine all parameters
 p_all = ComponentArray(
     nn_params = p_nn,
@@ -333,6 +334,7 @@ p_trained = result_lbfgs.u
 ## Step 5: Compare results
 
 ```{julia}
+#| eval: false
 # Get UDE predictions
 pred_ude = predict_ude(p_trained)
 
@@ -352,6 +354,7 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 The coolest part - what did the network learn?
 
 ```{julia}
+#| eval: false
 # Extract learned β(t) for representative I values
 t_plot = range(0.0, maximum(times), length=100)
 I_representative = 50.0  # Mid-epidemic prevalence
@@ -420,10 +423,11 @@ Let's test if our solution is robust by trying different regularization strength
 For thorough analysis, students should run all three tests with more iterations (change `maxiters=15` → `200`).
 :::
 
-**Test 1: Lower regularization (0.5×) - Demo version**
+**Test 1: Lower regularization (0.5×)**
 
 ```{julia}
-println("Testing regularization scale: 0.5× (DEMO - 15 iterations)")
+#| eval: false
+println("Testing regularization scale: 0.5×")
 
 # Modify loss function - less regularization
 function loss_test_low(p)
