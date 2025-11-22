@@ -209,15 +209,15 @@ Predict incidence using current UDE parameters.
 function predict_ude(p_all)
     # Solve ODE with current parameters
     prob_ude = ODEProblem(sir_ude!, u0, tspan, p_all)
-    sol_ude = solve(prob_ude, Tsit5(), saveat=times,
-                   sensealg=InterpolatingAdjoint(autojacvec=ZygoteVJP()))
+    sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false,
+                   sensealg=SensitivityADPassThrough())
 
     # Extract incidence
     if sol_ude.retcode != :Success
         return fill(NaN, length(times))
     end
 
-    S_pred = [sol_ude(t)[1] for t in times]
+    S_pred = [sol_ude.u[i][1] for i in 1:length(times)]
     incidence_pred = [0.0; -diff(S_pred)]
 
     return incidence_pred
