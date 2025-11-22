@@ -347,6 +347,7 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 The coolest part - what did the network learn?
 
 ```{julia}
+#| eval: false
 # Extract learned β(t) for representative I values
 t_plot = range(0.0, maximum(times), length=100)
 I_representative = 50.0  # Mid-epidemic prevalence
