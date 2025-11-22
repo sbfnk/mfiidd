@@ -283,13 +283,13 @@ println("="^60)
 println("Initial loss: ", round(loss_ude(p_all), digits=2))
 
 # Stage 1: Adam optimizer (exploration)
-println("\nStage 1: Adam optimization (1000 iterations)")
+println("\nStage 1: Adam optimization (500 iterations)")
 opt_func = OptimizationFunction((x, p) -> loss_ude(x), Optimization.AutoZygote())
 opt_prob = OptimizationProblem(opt_func, p_all)
 
-@time result_adam = solve(opt_prob, Optimisers.Adam(0.01), maxiters=1000,
+@time result_adam = solve(opt_prob, Optimisers.Adam(0.01), maxiters=500,
                           callback = (state, l) -> begin
-                              if state.iter % 100 == 0
+                              if state.iter % 50 == 0
                                   println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                               end
                               return false
@@ -298,11 +298,11 @@ opt_prob = OptimizationProblem(opt_func, p_all)
 println("\nAfter Adam: loss = ", round(result_adam.objective, digits=2))
 
 # Stage 2: LBFGS (refinement)
-println("\nStage 2: LBFGS optimization (200 iterations)")
+println("\nStage 2: LBFGS optimization (100 iterations)")
 opt_prob2 = remake(opt_prob, u0=result_adam.u)
-@time result_lbfgs = solve(opt_prob2, LBFGS(), maxiters=200,
+@time result_lbfgs = solve(opt_prob2, LBFGS(), maxiters=100,
                            callback = (state, l) -> begin
-                               if state.iter % 20 == 0
+                               if state.iter % 10 == 0
                                    println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                                end
                                return false
@@ -401,30 +401,90 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 
 ## Sensitivity to hyperparameters
 
-Let's test if our solution is robust:
+Let's test if our solution is robust by trying different regularization strengths.
+
+::: {.callout-note}
+These blocks are computationally expensive (~5 minutes each).
+Feel free to run just one or skip them entirely. They're here to demonstrate hyperparameter sensitivity.
+:::
+
+**Test 1: Lower regularization (0.5×)**
 
 ```{julia}
-# Try different regularization strengths
-println("\nTesting regularization sensitivity:")
-println("(This will take a while...)")
+#| eval: false
+println("Testing regularization scale: 0.5×")
 
-for reg_scale in [0.5, 1.0, 2.0]
-    println("\nRegularization scale: $reg_scale×")
-
-    # Modify loss function (simplified for demonstration)
-    function loss_test(p)
-        pred = predict_ude(p)
-        data_loss = sum((pred .- flu_tdc.obs).^2)
-        l2_pen = (1e-4 * reg_scale) * sum(abs2, p.nn_params)
-        return data_loss + l2_pen
-    end
-
-    opt_func_test = OptimizationFunction((x, p) -> loss_test(x), Optimization.AutoZygote())
-    opt_prob_test = OptimizationProblem(opt_func_test, p_all)
-    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=500)
-
-    println("  Final loss: ", round(result_test.objective, digits=2))
+# Modify loss function
+function loss_test_low(p)
+    pred = predict_ude(p)
+    data_loss = sum((pred .- flu_tdc.obs).^2)
+    l2_pen = (1e-4 * 0.5) * sum(abs2, p.nn_params)
+    return data_loss + l2_pen
 end
+
+opt_func_test = OptimizationFunction((x, p) -> loss_test_low(x), Optimization.AutoZygote())
+opt_prob_test = OptimizationProblem(opt_func_test, p_all)
+result_test_low = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=200,
+                        callback = (state, l) -> begin
+                            if state.iter % 50 == 0
+                                println("  Iter $(state.iter): loss = $(round(l, digits=2))")
+                            end
+                            return false
+                        end)
+
+println("Final loss (0.5×): ", round(result_test_low.objective, digits=2))
+```
+
+**Test 2: Baseline regularization (1.0×)**
+
+```{julia}
+#| eval: false
+println("Testing regularization scale: 1.0×")
+
+function loss_test_baseline(p)
+    pred = predict_ude(p)
+    data_loss = sum((pred .- flu_tdc.obs).^2)
+    l2_pen = (1e-4 * 1.0) * sum(abs2, p.nn_params)
+    return data_loss + l2_pen
+end
+
+opt_func_test = OptimizationFunction((x, p) -> loss_test_baseline(x), Optimization.AutoZygote())
+opt_prob_test = OptimizationProblem(opt_func_test, p_all)
+result_test_baseline = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=200,
+                             callback = (state, l) -> begin
+                                 if state.iter % 50 == 0
+                                     println("  Iter $(state.iter): loss = $(round(l, digits=2))")
+                                 end
+                                 return false
+                             end)
+
+println("Final loss (1.0×): ", round(result_test_baseline.objective, digits=2))
+```
+
+**Test 3: Higher regularization (2.0×)**
+
+```{julia}
+#| eval: false
+println("Testing regularization scale: 2.0×")
+
+function loss_test_high(p)
+    pred = predict_ude(p)
+    data_loss = sum((pred .- flu_tdc.obs).^2)
+    l2_pen = (1e-4 * 2.0) * sum(abs2, p.nn_params)
+    return data_loss + l2_pen
+end
+
+opt_func_test = OptimizationFunction((x, p) -> loss_test_high(x), Optimization.AutoZygote())
+opt_prob_test = OptimizationProblem(opt_func_test, p_all)
+result_test_high = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=200,
+                         callback = (state, l) -> begin
+                             if state.iter % 50 == 0
+                                 println("  Iter $(state.iter): loss = $(round(l, digits=2))")
+                             end
+                             return false
+                         end)
+
+println("Final loss (2.0×): ", round(result_test_high.objective, digits=2))
 ```
 
 **If results vary wildly** → Model is unstable (not unusual with 60 points!)
