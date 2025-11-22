@@ -209,8 +209,7 @@ Predict incidence using current UDE parameters.
 function predict_ude(p_all)
     # Solve ODE with current parameters
     prob_ude = ODEProblem(sir_ude!, u0, tspan, p_all)
-    sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false,
-                   sensealg=SensitivityADPassThrough())
+    sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false)
 
     # Extract incidence
     if sol_ude.retcode != :Success
