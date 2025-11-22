@@ -413,17 +413,19 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 Let's test if our solution is robust by trying different regularization strengths.
 
 ::: {.callout-note}
-These blocks are computationally expensive (~5 minutes each).
-Feel free to run just one or skip them entirely. They're here to demonstrate hyperparameter sensitivity.
+## Quick Demo
+
+**Test 1 shows a quick demo** (15 iterations) to demonstrate sensitivity testing.
+
+For thorough analysis, students should run all three tests with more iterations (change `maxiters=15` → `200`).
 :::
 
-**Test 1: Lower regularization (0.5×)**
+**Test 1: Lower regularization (0.5×) - Demo version**
 
 ```{julia}
-#| eval: false
-println("Testing regularization scale: 0.5×")
+println("Testing regularization scale: 0.5× (DEMO - 15 iterations)")
 
-# Modify loss function
+# Modify loss function - less regularization
 function loss_test_low(p)
     pred = predict_ude(p)
     data_loss = sum((pred .- flu_tdc.obs).^2)
@@ -433,15 +435,16 @@ end
 
 opt_func_test = OptimizationFunction((x, p) -> loss_test_low(x), Optimization.AutoZygote())
 opt_prob_test = OptimizationProblem(opt_func_test, p_all)
-result_test_low = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=200,
+result_test_low = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=15,
                         callback = (state, l) -> begin
-                            if state.iter % 50 == 0
+                            if state.iter % 5 == 0
                                 println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                             end
                             return false
                         end)
 
 println("Final loss (0.5×): ", round(result_test_low.objective, digits=2))
+println("(To see sensitivity, compare with tests 2 and 3 below)")
 ```
 
 **Test 2: Baseline regularization (1.0×)**
