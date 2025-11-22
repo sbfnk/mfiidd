@@ -239,13 +239,12 @@ function loss_ude(p_all)
     # 2. Smoothness: penalize rapid changes in β(t)
     # Sample β at many time points and penalize differences
     t_sample = range(0.0, p_all.tmax, length=50)
-    β_samples = []
-    for t in t_sample
-        I_sample = 10.0  # Representative I value
+    I_sample = 10.0  # Representative I value
+    β_samples = [begin
         input = [I_sample / 273.0, t / p_all.tmax]
         β_val, _ = nn_architecture(input, p_all.nn_params, st_nn)
-        push!(β_samples, β_val[1])
-    end
+        β_val[1]
+    end for t in t_sample]
     smoothness_penalty = 1e-3 * sum(abs2, diff(β_samples))
 
     # 3. Bounded β: penalize if β > 2.0 (biologically unrealistic)
