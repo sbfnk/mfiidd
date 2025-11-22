@@ -352,12 +352,11 @@ The coolest part - what did the network learn?
 t_plot = range(0.0, maximum(times), length=100)
 I_representative = 50.0  # Mid-epidemic prevalence
 
-β_learned_over_time = []
-for t in t_plot
+β_learned_over_time = [begin
     input = [I_representative / 273.0, t / maximum(times)]
     β_val, _ = nn_architecture(input, p_trained.nn_params, st_nn)
-    push!(β_learned_over_time, β_val[1])
-end
+    β_val[1]
+end for t in t_plot]
 
 # Plot
 plot(t_plot, β_learned_over_time,
