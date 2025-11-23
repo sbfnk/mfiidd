@@ -51,7 +51,6 @@ using MCMCChains
 using Random
 using LinearAlgebra
 using DrWatson
-using Bijectors
 
 Random.seed!(1234)
 ```
@@ -336,17 +335,16 @@ Turing's `Bijectors.jl` provides building blocks:
 - **Coupling**: Affine coupling layers (like RealNVP)
 
 ```{julia}
-# Import Bijectors for custom flows
-using Bijectors
-
-# Note: Building custom flows with Bijectors is advanced
+# Note: Building custom flows with packages like Bijectors is advanced.
 # For now, we'll demonstrate the concept with full-rank VI,
-# which is already a significant improvement over mean-field
+# which is already a significant improvement over mean-field.
 
-# Future extensions could use:
-# - Planar flows: stack of PlanarLayer transformations
-# - Radial flows: stack of RadialLayer transformations
-# - Coupling flows: more complex architectures
+# Future extensions could use advanced flow libraries:
+# - Bijectors.jl: Planar flows, radial flows, coupling layers
+# - DiffEqFlux.jl: Continuous normalizing flows (FFJORD)
+# - Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
+
+# For this course, full-rank VI provides a good balance of flexibility and ease of use!
 ```
 
 **Note**: Full custom flow implementation with Bijectors is quite involved. For production use, consider:
