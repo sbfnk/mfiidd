@@ -145,7 +145,7 @@ Let's start with the gold standard to establish a baseline:
 
 ```{julia}
 println("Running MCMC with NUTS...")
-@time chain_mcmc = sample(model, NUTS(0.65), 1000, progress=true)
+@time chain_mcmc = sample(model, NUTS(0.65), 500, progress=false)
 ```
 
 ```{julia}
@@ -194,7 +194,7 @@ $$q(R_0, D_{\text{inf}}, \rho) = \mathcal{N}(\mu_1, \sigma_1^2) \times \mathcal{
 ```{julia}
 println("\nRunning Mean-Field ADVI...")
 @time begin
-    advi_mf = ADVI(10, 10_000)  # 10 samples per iteration, 10k iterations
+    advi_mf = ADVI(10, 5_000)  # 10 samples per iteration, 5k iterations
     q_mf = vi(model, advi_mf)
 end
 ```
@@ -258,7 +258,7 @@ This allows VI to capture correlations between parameters!
 ```{julia}
 println("\nRunning Full-Rank ADVI...")
 @time begin
-    advi_full = ADVI(10, 15_000)
+    advi_full = ADVI(10, 10_000)
     # Use Turing's meanfield to initialize, then construct full-rank
     q_full = vi(model, advi_full, Variational.FullRankGaussian;
                 optimizer=Variational.DecayedADAGrad(1e-2))
@@ -389,7 +389,14 @@ println("  ρ: mean = ", round(mean(vi_full_df.ρ), digits=2),
 ## Speed comparison
 
 ```{julia}
+#| eval: false
+#| echo: true
+
 # Benchmark (rough timing)
+# NOTE: This block is disabled to save computation time in CI.
+# The timing comparisons above already demonstrate the speed differences.
+# To run benchmarks locally, set eval: true
+
 println("\n" * "="^60)
 println("Computational Cost Comparison:")
 println("="^60)
