@@ -5,7 +5,7 @@ engine: julia
 order: 5
 ---
 
-# Objectives
+# Introduction
 
 The aim of this session is to learn how you can fit a stochastic model using the particle MCMC Metropolis-Hastings algorithm (pMCMC).
 As you saw in the lecture, fitting a model with a likelihood approach requires you to explore the parameter space efficiently and to evaluate the likelihood at a given parameter.
@@ -13,6 +13,8 @@ As you saw in the lecture, fitting a model with a likelihood approach requires y
 In the previous session on MCMC, you have used Metropolis-Hastings to explore the parameter space and evaluated the likelihood for deterministic models.
 In order to fit a stochastic model, we can still use MH to explore the parameter space efficiently but we need to use a new method to evaluate the likelihood.
 This new method is called a particle filter.
+
+# Objectives
 
 In this session you will:
 
