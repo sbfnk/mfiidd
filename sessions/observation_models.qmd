@@ -12,9 +12,10 @@ So far in this course, we've used **likelihood functions** to connect our mathem
 $$\text{obs}_t \sim \text{Poisson}(\rho \cdot I_t)$$
 
 But this raises important questions:
-- **Why Poisson?** Is this mechanistically justified?
-- **What if we use Negative Binomial instead?** How much does it matter?
-- **Are we doing statistics or just curve fitting?**
+
+- Why Poisson? Is this mechanistically justified?
+- What if we use Negative Binomial instead? How much does it matter?
+- Are we doing statistics or just curve fitting?
 
 In this session, we'll explore these questions and discover that the distinction between "likelihood-based" and "likelihood-free" inference is less sharp than it initially appears.
 
@@ -28,16 +29,22 @@ By the end of this session, you will be able to:
 4. Compare likelihood-based and distance-based inference approaches
 5. Make informed choices about observation models for your own research
 
+::: {.callout-note collapse="true"}
+
 # Setup
 
 ```{julia}
 #| echo: false
-#| include: false
-
 using Pkg
 project_root = joinpath(@__DIR__, "..")
 Pkg.activate(project_root)
 ```
+
+## Source file
+
+The source file of this session is located at `sessions/observation_models.qmd`.
+
+## Load libraries
 
 ```{julia}
 using DifferentialEquations
@@ -52,9 +59,17 @@ using Random
 using LinearAlgebra
 using DrWatson
 using StatsBase  # For Weights in ABC-SMC
+```
 
+## Initialisation
+
+We set a random seed for reproducibility.
+
+```{julia}
 Random.seed!(1234)
 ```
+
+:::
 
 # Load Tristan da Cunha data
 
@@ -200,6 +215,7 @@ p
 ```
 
 **Question**: Is this assumption justified for epidemic data?
+
 - Under-reporting might be systematic (not random)
 - Behavioral changes might create clustering
 - Surveillance quality might vary over time
@@ -213,6 +229,7 @@ When Poisson doesn't fit well (variance > mean), we often use Negative Binomial:
 $$\text{obs}_t \sim \text{NegativeBinomial}(\mu_t, \phi)$$
 
 where:
+
 - $\mu_t = \rho \cdot I_t$ (mean)
 - $\phi$ controls overdispersion (variance = $\mu + \mu^2/\phi$)
 
@@ -242,9 +259,10 @@ end
 ```
 
 **Honest question**: Why Negative Binomial?
-- **Mechanistic justification**: Weak (no clear biological process)
-- **Empirical justification**: Fits better than Poisson
-- **Convenience**: Easy to compute, works with MCMC
+
+- Mechanistic justification: Weak (no clear biological process)
+- Empirical justification: Fits better than Poisson
+- Convenience: Easy to compute, works with MCMC
 
 **Is this really different from choosing a distance metric?**
 
@@ -290,9 +308,9 @@ plot!(predicted_range, gaussian_distance,
 
 **Observation**: Different likelihoods are just different ways of measuring distance!
 
-- **Poisson**: Penalizes deviations inversely proportional to predicted value
-- **Negative Binomial**: Similar but allows more flexibility (overdispersion)
-- **Gaussian**: Constant penalty regardless of scale
+- Poisson: Penalizes deviations inversely proportional to predicted value
+- Negative Binomial: Similar but allows more flexibility (overdispersion)
+- Gaussian: Constant penalty regardless of scale
 
 # Approach 3: Approximate Bayesian Computation (Explicit Distance)
 
@@ -636,18 +654,21 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
 ## Practical advice
 
 **When to use parametric likelihoods (Poisson/NegBin)**:
+
 - You have a tractable likelihood function
 - You want efficient inference (MCMC with gradients)
 - The parametric family is flexible enough
 - You're comfortable with the implicit distance metric
 
 **When to use ABC/likelihood-free**:
+
 - Likelihood is truly intractable (stochastic models, agent-based models)
 - You want to make your distance metric explicit
 - You care more about specific summary statistics than full data
 - You want robustness to model misspecification
 
 **Best practice**:
+
 - Try multiple observation models (Poisson, NegBin, ABC with different distances)
 - Check if scientific conclusions change
 - If they don't → observation model choice doesn't matter much
@@ -666,9 +687,10 @@ In this session, we've learned:
 ## Looking forward
 
 This philosophical foundation prepares us for modern inference methods:
-- **Variational inference**: Trading accuracy for speed
-- **Neural posterior estimation**: Learning p(θ|data) directly
-- **Universal differential equations**: Learning unknown functions
+
+- Variational inference: Trading accuracy for speed
+- Neural posterior estimation: Learning p(θ|data) directly
+- Universal differential equations: Learning unknown functions
 
 In all cases, we're making pragmatic choices about how to connect models to data. Being explicit about these choices makes us better scientists!
 
@@ -693,6 +715,7 @@ In all cases, we're making pragmatic choices about how to connect models to data
 # Next session
 
 Now that we understand the connection between likelihoods and distances, we're ready to explore truly modern methods that go beyond both traditional likelihoods and simple ABC:
-- **Universal Differential Equations**: Learning unknown mechanisms
-- **Variational Inference**: Fast approximate posteriors
-- **Neural density estimation**: Likelihood-free with neural networks
+
+- Universal Differential Equations: Learning unknown mechanisms
+- Variational Inference: Fast approximate posteriors
+- Neural density estimation: Likelihood-free with neural networks
