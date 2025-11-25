@@ -28,11 +28,11 @@ This is an important component of trustworthy Bayesian analysis.
 
 You will learn to:
 
-1. **Visually diagnose** chains using trace plots and other visualizations
-2. **Calculate quantitative diagnostics** like R̂ and effective sample size
-3. **Identify common problems** and how to fix them
-4. **Use Turing.jl's built-in diagnostics** for automated checking
-5. **Apply best practices** for robust MCMC in practice
+1. Visually diagnose chains using trace plots and other visualizations
+2. Calculate quantitative diagnostics like R̂ and effective sample size
+3. Identify common problems and how to fix them
+4. Use Turing.jl's built-in diagnostics for automated checking
+5. Apply best practices for robust MCMC in practice
 
 ::: {.callout-note collapse = "true"}
 
@@ -136,7 +136,7 @@ model = sir_model(epi1.obs, init_state, epi1.time)
 ## 1. Trace plots: The most important diagnostic
 
 Trace plots show parameter values over iterations.
-They should look like [hairy caterpillars](figures/hairy_caterpillar.jpg):
+They should look like [hairy caterpillars](../Rmd/external_fig/import/hairy_caterpillar.jpg):
 
 ```{julia}
 #| output: false
