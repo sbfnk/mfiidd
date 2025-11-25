@@ -29,7 +29,7 @@ However, as you will see in this session and the following, __simulating and fit
 This is why it is important to understand when and why you need to use stochastic or deterministic models.
 In fact, we hope that by the end of the day you'll be convinced that both approaches are complementary.
 
-Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you __how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution___.
+Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you __how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution__.
 
 In brief, in this session you will:
 
