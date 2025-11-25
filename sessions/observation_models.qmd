@@ -182,7 +182,7 @@ Let's fit this model:
 ```{julia}
 # Fit with NUTS
 model_poisson = sir_poisson(times, init_test, flu_tdc.obs)
-chain_poisson = sample(model_poisson, NUTS(0.65), 1000, progress=true)
+chain_poisson = sample(model_poisson, NUTS(0.65), 500, progress=false)
 ```
 
 ```{julia}
@@ -400,7 +400,7 @@ Run ABC with L1 distance:
 
 ```{julia}
 # Start with a relaxed threshold to get some samples
-threshold = 200.0  # Adjust based on data scale
+threshold = 300.0  # Relaxed for faster acceptance
 
 println("Running ABC rejection sampler...")
 abc_samples = abc_rejection(
@@ -409,7 +409,7 @@ abc_samples = abc_rejection(
     distance_L1,
     observed_data,
     threshold,
-    500  # Target number of samples
+    200  # Target number of samples
 )
 
 println("\nObtained $(length(abc_samples)) samples")
@@ -523,7 +523,7 @@ end
 ```{julia}
 # Run ABC-SMC with decreasing thresholds
 println("Running ABC-SMC...")
-thresholds = [300.0, 200.0, 150.0]  # Decreasing threshold sequence
+thresholds = [400.0, 300.0, 250.0]  # Decreasing threshold sequence
 
 abc_smc_samples = abc_smc(
     sample_from_prior,
@@ -531,7 +531,7 @@ abc_smc_samples = abc_smc(
     distance_L1,
     observed_data,
     thresholds,
-    200  # Number of particles
+    100  # Number of particles
 )
 
 abc_smc_df = DataFrame(
