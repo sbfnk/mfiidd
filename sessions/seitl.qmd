@@ -5,33 +5,25 @@ engine: julia
 order: 4
 ---
 
-```{julia}
-#| echo: false
-#| include: false
+# Introduction
 
-using Pkg
-# Activate the project root (one level up from sessions/)
-project_root = joinpath(@__DIR__, "..")
-Pkg.activate(project_root)
-```
-
-# Objectives
-
-This session will focus on modelling rather than fitting (don't worry, we will come back to fitting on the next session). __The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL.__ We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.
+This session will focus on modelling rather than fitting (don't worry, we will come back to fitting on the next session). The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL. We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.
 
 As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971.
-__Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.__
+Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.
 For instance, even if the distribution of the infectious period is the same for all islanders, some islanders will stay infectious longer than others just by chance and might therefore produce more secondary cases.
 This phenomenon is called *demographic stochasticity* and it could have played a significant role in the dynamics of the epidemic on Tristan da Cunha.
 
 Unsurprisingly, to account for demographic stochasticity we need a stochastic model.
-However, as you will see in this session and the following, __simulating and fitting a stochastic model is much more computationally costly than doing so for a deterministic model___.
+However, as you will see in this session and the following, simulating and fitting a stochastic model is much more computationally costly than doing so for a deterministic model.
 This is why it is important to understand when and why you need to use stochastic or deterministic models.
 In fact, we hope that by the end of the day you'll be convinced that both approaches are complementary.
 
-Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you __how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution__.
+Finally, because this session is devoted to modelling rather than fitting, we thought it was useful to show you how you can make your model biologically more realistic by using distributions for the time spent in each compartment that are more realistic than the exponential distribution.
 
-In brief, in this session you will:
+# Objectives
+
+In this session you will:
 
 1. Familiarise yourselves with the structure of the SEITL model and try to guess its parameter values from the literature.
 2. Compare deterministic and stochastic simulations in order to explore the role of demographic stochasticity in the dynamics of the SEITL model.
@@ -40,6 +32,18 @@ In brief, in this session you will:
 ::: {.callout-note collapse="true"}
 
 # Setup
+
+```{julia}
+#| echo: false
+using Pkg
+# Activate the project root (one level up from sessions/)
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
+```
+
+## Source file
+
+The source file of this session is located at `sessions/seitl.qmd`.
 
 ## Load libraries
 
@@ -74,19 +78,19 @@ But first of all, let's have a look at the data.
 [Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean.
 It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas.
 Whereas the internal contacts were typical of close-knit village communities, contacts with the outside world were infrequent and mostly due to fishing vessels that occasionally took passengers to or from the island.
-__These ships were often the cause of introduction of new diseases into the population__.
+These ships were often the cause of introduction of new diseases into the population.
 As for influenza, no outbreak had been reported since an epidemic of A/H1N1 in 1954.
 In this context of a small population with limited immunity against influenza, an unusual epidemic occurred in 1971, 3 years after the global emergence of the new subtype A/H3N2.
 
 On August 13, a ship returning from Cape Town landed five islanders on Tristan da Cunha.
-__Three of them had developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing__.
+Three of them had developed acute respiratory disease during the 8-day voyage and the other two presented similar symptoms immediately after landing.
 Various family gatherings welcomed their disembarkation and in the ensuing days an epidemic started to spread rapidly throughout the whole island population.
 After three weeks of propagation, while the epidemic was declining, some islanders developed second episodes of illness and a second peak of cases was recorded.
 The epidemic faded out after this second wave and lasted a total of 59 days.
 Despite the lack of virological data, serological evidence indicates that all episodes of illness were due to influenza A/H3N2.
 
 Among the 284 islanders, 273 (96%) experienced at least one episode of illness and 92 (32%) experienced two, which is remarkable for influenza.
-Unfortunately, __only 312 of the 365 attacks (85%) are known to within a single day of accuracy__ and constitute the dataset reported by [Mantle & Tyrrell in 1973](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2130434/).
+Unfortunately, only 312 of the 365 attacks (85%) are known to within a single day of accuracy and constitute the dataset reported by [Mantle & Tyrrell in 1973](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2130434/).
 
 The dataset of daily incidence can be loaded and plotted as follows:
 
@@ -114,7 +118,7 @@ scatter(
 
 # SEITL model
 
-One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, __some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain__ that was still circulating.
+One possible explanation for the rapid influenza reinfections reported during this two-wave outbreak is that following recovery from a first infection, some islanders did not develop long-term protective immunity and remained fully susceptible to reinfection by the same influenza strain that was still circulating.
 This can be modelled as follows:
 
 ![The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability $\alpha$ to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S).
@@ -144,16 +148,16 @@ $$
 
 where $\beta=R_0/D_\mathrm{inf}$, $\epsilon=1/D_\mathrm{lat}$, $\nu = 1/D_\mathrm{inf}$, $\tau=1/D_\mathrm{imm}$ and $N = S + E + I + L + T$ is constant.
 
-It can be shown that __there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model__.
+It can be shown that there is an analogy between the deterministic equations and the algorithm that performs stochastic simulations of the model.
 In that sense, the deterministic equations are a description of the stochastic model, too.
 
 In order to fit the SEITL model to the Tristan da Cunha dataset we need to add one state variable and one parameter to the model:
 
-* __The dataset represents daily incidence counts__: we need to create a $6^\mathrm{th}$ state variable - called $\mathrm{Inc}$ - to track the daily number of new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable:
+* The dataset represents daily incidence counts: we need to create a $6^\mathrm{th}$ state variable - called $\mathrm{Inc}$ - to track the daily number of new cases. Assuming that new cases are reported when they become symptomatic and infectious, we have the following equation for the new state variable:
 $$
 \frac{d\mathrm{Inc}}{dt} = \epsilon E
 $$
-* __The dataset is incomplete__: only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate $\rho$. Since this reporting rate is unknown (we can only presume that it should be below 85% due to reporting errors) we will include it as an additional parameter.
+* The dataset is incomplete: only 85% of the cases were reported. In addition, we need to account for potential under-reporting of asymptomatic cases. We assume that the data were reported according to a Poisson process with reporting rate $\rho$. Since this reporting rate is unknown (we can only presume that it should be below 85% due to reporting errors) we will include it as an additional parameter.
 
 ## Parameter values and initial state
 
@@ -395,7 +399,7 @@ plot!(p)
 Notice how the same `@model` definition can be used for both simulation (here) and inference (in the next session on pMCMC).
 This unified approach means you only need to write the model once.
 
-__Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values.__ In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$.
+Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$.
 For which values of $R_0$ and $\alpha$ do you get a decent fit?
 
 You should find that it is hard to capture all the data-points with the deterministic model.
@@ -564,9 +568,9 @@ Just like with the deterministic model, you can use the Turing `@model` for prio
 The same `@model` definitions will be used for particle MCMC inference in the next session, demonstrating the unified approach.
 :::
 
-__Take about 10 minutes to explore the dynamics of the stochastic SEITL model.__
+Take about 10 minutes to explore the dynamics of the stochastic SEITL model.
 
-__What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?__
+What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?
 
 Now, let's try to make this model a bit more realistic.
 
@@ -695,7 +699,7 @@ This version uses an Erlang-4 distribution for the T compartment.
 end
 ```
 
-__Take 5 minutes to have a look at the functions above and make sure you understand how the Erlang distribution for the $T$ compartment is coded.__
+Take 5 minutes to have a look at the functions above and make sure you understand how the Erlang distribution for the $T$ compartment is coded.
 
 Now, compare the dynamics of the SEITL and SEIT4L model.
 Use your best guess from the previous section for the parameters.
@@ -742,7 +746,7 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
-__Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution for the $T$ compartment?__
+Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution for the $T$ compartment?
 
 In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.
 
