@@ -523,7 +523,7 @@ end
 ```{julia}
 # Run ABC-SMC with decreasing thresholds
 println("Running ABC-SMC...")
-thresholds = [300.0, 200.0, 150.0]  # Fewer generations for speed
+thresholds = [300.0, 200.0, 150.0]  # Decreasing threshold sequence
 
 abc_smc_samples = abc_smc(
     sample_from_prior,
@@ -531,7 +531,7 @@ abc_smc_samples = abc_smc(
     distance_L1,
     observed_data,
     thresholds,
-    200  # Fewer particles for speed
+    200  # Number of particles
 )
 
 abc_smc_df = DataFrame(
