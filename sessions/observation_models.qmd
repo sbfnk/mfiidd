@@ -409,7 +409,7 @@ abc_samples = abc_rejection(
     distance_L1,
     observed_data,
     threshold,
-    1000  # Target number of samples
+    500  # Target number of samples
 )
 
 println("\nObtained $(length(abc_samples)) samples")
@@ -523,7 +523,7 @@ end
 ```{julia}
 # Run ABC-SMC with decreasing thresholds
 println("Running ABC-SMC...")
-thresholds = [300.0, 200.0, 150.0, 100.0]  # Adaptive sequence
+thresholds = [300.0, 200.0, 150.0]  # Fewer generations for speed
 
 abc_smc_samples = abc_smc(
     sample_from_prior,
@@ -531,7 +531,7 @@ abc_smc_samples = abc_smc(
     distance_L1,
     observed_data,
     thresholds,
-    500  # Number of particles
+    200  # Fewer particles for speed
 )
 
 abc_smc_df = DataFrame(
