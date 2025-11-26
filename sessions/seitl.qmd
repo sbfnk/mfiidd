@@ -57,6 +57,7 @@ using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
 using CSV ## for CSV file reading
+using DrWatson
 ```
 
 ## Initialisation
@@ -95,11 +96,7 @@ Unfortunately, only 312 of the 365 attacks (85%) are known to within a single da
 The dataset of daily incidence can be loaded and plotted as follows:
 
 ```{julia}
-# Load Tristan da Cunha data using the datadir() function from the DrWatson package
-# Alternatively, you can load directly from GitHub:
-# flu_tdc_url = "https://raw.githubusercontent.com/sbfnk/mfiidd.julia/main/data/flu_tdc_1971.csv"
-# flu_tdc = CSV.read(download(flu_tdc_url), DataFrame)
-using DrWatson
+# Load Tristan da Cunha data
 flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 
 # Display first few rows
