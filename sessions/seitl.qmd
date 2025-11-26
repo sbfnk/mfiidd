@@ -97,7 +97,10 @@ The dataset of daily incidence can be loaded and plotted as follows:
 
 ```{julia}
 # Load Tristan da Cunha data
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+# Alternatively, you can load directly from GitHub:
+# flu_tdc_url = "https://raw.githubusercontent.com/sbfnk/mfiidd.julia/main/data/flu_tdc_1971.csv"
+# flu_tdc = CSV.read(download(flu_tdc_url), DataFrame)
+flu_tdc = CSV.read(joinpath(project_root, "data", "flu_tdc_1971.csv"), DataFrame)
 
 # Display first few rows
 first(flu_tdc, 6)
