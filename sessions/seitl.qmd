@@ -37,7 +37,7 @@ In this session you will:
 #| echo: false
 using Pkg
 # Activate the project root (one level up from sessions/)
-project_root = abspath(joinpath(@__DIR__, ".."))
+project_root = joinpath(@__DIR__, "..")
 Pkg.activate(project_root)
 ```
 
