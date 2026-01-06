@@ -3,6 +3,9 @@ project:
   render:
     - "*.qmd"
 
+execute:
+  freeze: auto
+
 website:
   title: "MFIIDD"
   site-url: https://sbfnk.github.io/mfiidd.julia/
