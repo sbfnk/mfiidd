@@ -7,48 +7,48 @@ engine: julia
 
 # Introduction
 
+## The mystery of the second wave
+
+Recall the Tristan da Cunha 1971 influenza outbreak. When we first examined this data, we noticed something puzzling: after the initial outbreak subsided around day 15, cases re-emerged around day 25-35. A standard SIR model with constant transmission produces only a single peak.
+
+We discussed possible explanations:
+
+- **Behavioral relaxation**: People resumed normal contact patterns after the first wave
+- **Waning vigilance**: Initial precautions (isolation, reduced gatherings) were abandoned
+- **Population structure**: Different groups (households, age groups) infected at different times
+- **Incomplete isolation**: Some infected individuals weren't fully isolated
+
+But which explanation is correct? And what transmission pattern would actually produce the observed dynamics?
+
+## From hypothesis to discovery
+
 Throughout this course, we've assumed we know the functional form of disease transmission:
 
 $$\beta \cdot \frac{S \cdot I}{N}$$
 
-But what if we don't? What if:
-- **Transmission depends on behavior changes** we can't model explicitly
-- **Environmental factors** play an unknown role
-- **Contact patterns** are more complex than mass action
-- **Interventions** have effects we don't fully understand
-
-**Universal Differential Equations (UDEs)** offer a radical solution: **Let the data tell us the functional form!**
-
-## The UDE approach
+**Universal Differential Equations (UDEs)** offer a different approach: instead of proposing mechanisms and testing them, we can **learn** what transmission function is consistent with the data, while respecting biological constraints.
 
 Keep the **known** epidemiological structure:
 ```
-dS/dt = -transmission(S, I, t)  # ← Learn this part!
-dE/dt = +transmission(S, I, t) - σ * E
-dI/dt = +σ * E - γ * I
-...
+dS/dt = -β(t) * S * I / N   # ← Learn β(t) from data!
+dI/dt = +β(t) * S * I / N - γ * I
+dR/dt = +γ * I
 ```
 
-Replace unknown functions with **neural networks**:
+Replace the unknown β with a **neural network** that respects constraints:
 ```
-transmission(S, I, t) = NeuralNetwork([I/N, t]) * S/N
+β(t) = NeuralNetwork([I/N, t])  # Must be positive, bounded
 ```
 
 ## Learning objectives
 
 By the end of this session, you will:
 
-1. Understand when and why to use UDEs
-2. Implement a simple UDE for epidemic modeling
-3. Regularize neural networks for sparse data (~60 points)
-4. Compare UDE vs fixed transmission assumptions
-5. Appreciate the practical challenges of UDEs
-
-**Warning**: This is cutting-edge research! Expect:
-- ✅ Cool concepts and elegant code
-- ⚠️ Hyperparameter tuning required
-- ❌ Not always better than simple models
-- 🎓 Great learning experience even when it doesn't work perfectly!
+1. Use UDEs to **discover** transmission patterns from data
+2. Apply appropriate likelihood functions (Poisson) for count data
+3. Interpret learned β(t) in terms of possible mechanisms
+4. Understand when UDEs are useful vs. when simpler models suffice
+5. Appreciate the challenges of learning from sparse data (~60 points)
 
 # Setup
 
@@ -88,12 +88,19 @@ scatter(
     flu_tdc.time, flu_tdc.obs,
     xlabel = "Time (days)", ylabel = "Daily incidence",
     label = "Observed cases", markersize = 4, color = :red,
-    title = "Tristan da Cunha 1971: Can we learn β(t)?",
+    title = "Tristan da Cunha 1971: Two waves?",
     legend = :topright
 )
+vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave?")
 ```
 
-**Challenge**: With only ~60 data points, can we learn a time-varying transmission rate?
+Notice the two distinct periods of transmission:
+
+- **First wave** (days 4-12): Sharp peak reaching ~47 cases/day
+- **Trough** (days 13-24): Near-zero transmission
+- **Second wave** (days 25-35): Smaller resurgence, peak ~12 cases/day
+
+**Question**: What transmission pattern β(t) would produce this? Can we learn it from the data?
 
 # Baseline: SIR with constant β
 
@@ -218,23 +225,40 @@ function predict_ude(p_all)
 end
 
 """
-Loss function with regularization for sparse data.
-Note: Uses (p, _) signature for Optimization.jl compatibility.
+Loss function using Poisson negative log-likelihood.
+
+Recall from our observation models session: choosing a likelihood is really
+choosing a distance metric! The Poisson NLL weights residuals differently than SSE:
+
+- SSE: All residuals contribute equally → dominated by peak (large counts)
+- Poisson NLL: Penalizes relative errors → small counts matter more
+
+This isn't about Poisson being "correct" - it's a pragmatic choice that forces
+the model to explain the second wave (where counts are small but nonzero).
 """
 function loss_ude(p_all, _)
     pred = predict_ude(p_all)
 
-    # Data fit term: sum of squared errors
-    data_loss = sum((pred .- flu_tdc.obs).^2)
+    # Poisson negative log-likelihood
+    # NLL = sum(λ - y*log(λ)) where λ = predicted, y = observed
+    # Add small ε to avoid log(0)
+    ε = 1e-6
+    obs = flu_tdc.obs
+    nll = sum(pred .- obs .* log.(pred .+ ε))
 
-    # L2 penalty on NN weights (prevent large weights)
+    # L2 penalty on NN weights
     l2_penalty = 1e-4 * sum(abs2, p_all.nn_params)
 
-    return data_loss + l2_penalty
+    return nll + l2_penalty
 end
 ```
 
-**Note**: The L2 regularization weight (1e-4) helps prevent overfitting to noise.
+**Why does the loss function matter?** As we learned in the observation models session, different likelihoods are really different distance metrics:
+
+- **SSE**: A residual of 10 at the peak (expected ~40) counts the same as at the tail (expected ~2)
+- **Poisson NLL**: Penalizes predicting 0 when cases occur - forces the model to explain the second wave
+
+This isn't about Poisson being "mechanistically correct" (it's not!) - it's about choosing a distance that cares about small counts.
 
 ## Step 4: Train the UDE
 
@@ -295,11 +319,11 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
          markersize=4, color=:red)
 ```
 
-**Question**: Did the UDE fit better? Or did it just overfit?
+**Key question**: Does the UDE capture the second wave? Look at the fit around days 25-35.
 
 ## Step 6: Visualize learned β(t)
 
-The coolest part - what did the network learn?
+The key output - what transmission pattern did the network learn?
 
 ```{julia}
 # Extract learned β(t) for representative I values
@@ -312,18 +336,28 @@ I_representative = 50.0  # Mid-epidemic prevalence
     β_val[1]
 end for t in t_plot]
 
-# Plot
+# Plot with wave markers
 plot(t_plot, β_learned_over_time,
      label="Learned β(t)", linewidth=2,
      xlabel="Time (days)", ylabel="β",
-     title="What the Neural Network Learned")
+     title="Learned Transmission Rate",
+     legend=:topright)
 hline!([β_guess], label="Constant β baseline", linestyle=:dash)
+vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-**Interpretation**:
-- If β(t) is roughly constant → UDE confirms simple model
-- If β(t) varies smoothly → Might capture real behavioral changes
-- If β(t) is erratic → Probably overfitting!
+**Interpreting the learned β(t)**:
+
+If β(t) shows a **dip followed by recovery** around days 15-25, this is consistent with:
+
+- **Behavioral relaxation**: Initial caution (isolation, reduced gatherings) followed by return to normal behavior
+- The model "discovered" that transmission must increase again to explain the second wave
+
+If β(t) is **roughly constant**, the Poisson likelihood wasn't enough to force learning the second wave pattern - we might need:
+
+- More training iterations
+- Less regularization
+- A larger network
 
 # Practical Challenges
 
@@ -362,83 +396,41 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 
 Let's test if our solution is robust by trying different regularization strengths.
 
-**Test 1: Lower regularization (0.5×)**
-
 ```{julia}
-println("Testing regularization scale: 0.5×")
-
-# Modify loss function - less regularization
-function loss_test_low(p, _)
-    pred = predict_ude(p)
-    data_loss = sum((pred .- flu_tdc.obs).^2)
-    l2_pen = (1e-4 * 0.5) * sum(abs2, p.nn_params)
-    return data_loss + l2_pen
+# Helper for Poisson NLL with varying regularization
+function make_loss(reg_scale)
+    return function(p, _)
+        pred = predict_ude(p)
+        ε = 1e-6
+        obs = flu_tdc.obs
+        nll = sum(pred .- obs .* log.(pred .+ ε))
+        l2_pen = (1e-4 * reg_scale) * sum(abs2, p.nn_params)
+        return nll + l2_pen
+    end
 end
 
-opt_func_test = OptimizationFunction(loss_test_low, Optimization.AutoForwardDiff())
-opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
-result_test_low = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
+# Test different regularization scales
+for (name, scale) in [("0.5×", 0.5), ("1.0×", 1.0), ("2.0×", 2.0)]
+    println("Testing regularization scale: $name")
+    loss_fn = make_loss(scale)
+    opt_func_test = OptimizationFunction(loss_fn, Optimization.AutoForwardDiff())
+    opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
+    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
                         callback = (state, l) -> begin
-                            if state.iter % 10 == 0
+                            if state.iter % 25 == 0
                                 println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                             end
                             return false
                         end)
-
-println("Final loss (0.5×): ", round(result_test_low.objective, digits=2))
-```
-
-**Test 2: Baseline regularization (1.0×)**
-
-```{julia}
-println("Testing regularization scale: 1.0×")
-
-function loss_test_baseline(p, _)
-    pred = predict_ude(p)
-    data_loss = sum((pred .- flu_tdc.obs).^2)
-    l2_pen = (1e-4 * 1.0) * sum(abs2, p.nn_params)
-    return data_loss + l2_pen
+    println("Final loss ($name): ", round(result_test.objective, digits=2), "\n")
 end
-
-opt_func_test = OptimizationFunction(loss_test_baseline, Optimization.AutoForwardDiff())
-opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
-result_test_baseline = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
-                             callback = (state, l) -> begin
-                                 if state.iter % 10 == 0
-                                     println("  Iter $(state.iter): loss = $(round(l, digits=2))")
-                                 end
-                                 return false
-                             end)
-
-println("Final loss (1.0×): ", round(result_test_baseline.objective, digits=2))
 ```
 
-**Test 3: Higher regularization (2.0×)**
+**Interpreting sensitivity results**:
 
-```{julia}
-println("Testing regularization scale: 2.0×")
-
-function loss_test_high(p, _)
-    pred = predict_ude(p)
-    data_loss = sum((pred .- flu_tdc.obs).^2)
-    l2_pen = (1e-4 * 2.0) * sum(abs2, p.nn_params)
-    return data_loss + l2_pen
-end
-
-opt_func_test = OptimizationFunction(loss_test_high, Optimization.AutoForwardDiff())
-opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
-result_test_high = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
-                         callback = (state, l) -> begin
-                             if state.iter % 10 == 0
-                                 println("  Iter $(state.iter): loss = $(round(l, digits=2))")
-                             end
-                             return false
-                         end)
-
-println("Final loss (2.0×): ", round(result_test_high.objective, digits=2))
-```
-
-**If results vary wildly** → Model is unstable (not unusual with 60 points!)
+- If lower regularization gives much better fit → model may need more flexibility to capture the second wave
+- If results are similar across scales → solution is robust
+- If results vary wildly → model is unstable (common with 60 points!)
 
 # When to use UDEs
 
@@ -498,19 +490,28 @@ UDEs work well when:
 
 # Summary
 
-**What we learned**:
-1. UDEs combine mechanistic structure with learned functions
-2. Small datasets (60 points) make UDE training very challenging
-3. **Heavy regularization** is essential for sparse data
-4. Results are sensitive to hyperparameters
-5. Simpler methods (GPs, splines) often better for small datasets
+**What we learned about UDEs**:
 
-**Key insight**: UDEs are powerful but not magic. They work best when:
-- You have the right problem (unknown mechanisms)
-- You have enough data (100s-1000s of points)
-- You're willing to experiment and tune
+1. UDEs can **discover** transmission patterns consistent with data while respecting biological constraints
+2. The **loss function matters**: Poisson likelihood forces the model to explain all cases, including the second wave
+3. Small datasets (60 points) make learning challenging - regularization prevents overfitting but may also prevent discovering complex patterns
+4. Learned β(t) can suggest mechanisms (e.g., behavioral relaxation) but doesn't prove them
 
-**Honest conclusion**: For the Tristan da Cunha dataset, a GP-based time-varying β(t) is probably more appropriate than a UDE. But learning to think about hybrid models (mechanistic + ML) is valuable regardless!
+**What we learned about the second wave**:
+
+If the UDE learned a β(t) that increases around days 20-25:
+
+- This is consistent with **behavioral relaxation** after the first wave
+- The population may have resumed normal contact patterns
+- This is **hypothesis generation**, not proof - we'd need independent evidence
+
+**Key insight**: UDEs are tools for **discovery under constraints**. They work best when:
+
+- You have mechanistic knowledge to constrain the model
+- You use appropriate likelihoods (Poisson for counts)
+- You interpret results as hypotheses, not conclusions
+
+**For the Tristan da Cunha data**: The two-wave pattern remains partially mysterious. A UDE with Poisson likelihood may suggest behavioral mechanisms, but with 60 points, conclusions are tentative. This is exactly the kind of exploratory analysis UDEs are designed for!
 
 # Next steps
 
