@@ -24,7 +24,15 @@ website:
     - id: sessions
       title: "Sessions"
       style: "docked"
-      contents: "sessions/*.qmd"
+      contents:
+        - sessions/introduction.qmd
+        - sessions/mcmc.qmd
+        - sessions/mcmc_diagnostics.qmd
+        - sessions/observation_models.qmd
+        - sessions/seitl.qmd
+        - sessions/pmcmc.qmd
+        - sessions/variational_inference.qmd
+        - sessions/universal_differential_equations.qmd
 
 format:
   html:
