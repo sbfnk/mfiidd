@@ -1,6 +1,6 @@
 ---
 title: "Universal Differential Equations: Learning Unknown Mechanisms"
-subtitle: "Combining mechanistic models with machine learning - good luck to us!"
+subtitle: "Combining mechanistic models with machine learning"
 format: html
 engine: julia
 ---
@@ -42,7 +42,7 @@ By the end of this session, you will:
 2. Implement a simple UDE for epidemic modeling
 3. Regularize neural networks for sparse data (~60 points)
 4. Compare UDE vs fixed transmission assumptions
-5. Appreciate the challenges ("good luck to us!")
+5. Appreciate the practical challenges of UDEs
 
 **Warning**: This is cutting-edge research! Expect:
 - ✅ Cool concepts and elegant code
@@ -74,8 +74,6 @@ using Lux  # Modern neural network framework
 using ComponentArrays
 using Optimization
 using OptimizationOptimisers
-using OptimizationOptimJL
-using Zygote
 using Optimisers  # For Adam optimizer
 
 Random.seed!(1234)
@@ -146,16 +144,15 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 We'll use a **small** network - remember, we only have 60 data points!
 
 ```{julia}
-# Network architecture: 2 inputs → 16 hidden → 8 hidden → 1 output
-# Total parameters: ~150 (small enough for 60 data points)
+# Network architecture: 2 inputs → 8 hidden → 1 output
+# Total parameters: ~33 (keeps training fast)
 
 rng = Random.default_rng()
 Random.seed!(rng, 1234)
 
-# Define network structure
+# Define network structure - small for fast ForwardDiff autodiff
 nn_architecture = Chain(
-    Dense(2 => 16, tanh),      # Input: [I/N, t/tmax]
-    Dense(16 => 8, tanh),
+    Dense(2 => 8, tanh),       # Input: [I/N, t/tmax]
     Dense(8 => 1, softplus)     # Output: β > 0 (softplus ensures positivity)
 )
 
@@ -168,8 +165,7 @@ println("Data points: ", length(flu_tdc.obs))
 println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data points per parameter")
 ```
 
-**Critical**: With ~0.4 data points per parameter, we're in the **high risk overfitting zone**!
-We'll need **strong regularization**.
+**Critical**: Even with ~1.8 data points per parameter, regularization is still important to prevent overfitting!
 
 ## Step 2: Define UDE with learned β(t)
 
@@ -222,61 +218,30 @@ function predict_ude(p_all)
 end
 
 """
-Loss function with HEAVY regularization for sparse data.
+Loss function with regularization for sparse data.
+Note: Uses (p, _) signature for Optimization.jl compatibility.
 """
-function loss_ude(p_all)
+function loss_ude(p_all, _)
     pred = predict_ude(p_all)
 
     # Data fit term: sum of squared errors
     data_loss = sum((pred .- flu_tdc.obs).^2)
 
-    # REGULARIZATION (critical for 60 data points!)
-
-    # 1. L2 penalty on NN weights (prevent large weights)
+    # L2 penalty on NN weights (prevent large weights)
     l2_penalty = 1e-4 * sum(abs2, p_all.nn_params)
 
-    # 2. Smoothness: penalize rapid changes in β(t)
-    # Sample β at many time points and penalize differences
-    t_sample = range(0.0, p_all.tmax, length=50)
-    I_sample = 10.0  # Representative I value
-    β_samples = [begin
-        input = [I_sample / 273.0, t / p_all.tmax]
-        β_val, _ = nn_architecture(input, p_all.nn_params, st_nn)
-        β_val[1]
-    end for t in t_sample]
-    smoothness_penalty = 1e-3 * sum(abs2, diff(β_samples))
-
-    # 3. Bounded β: penalize if β > 2.0 (biologically unrealistic)
-    bound_penalty = 1e-2 * sum(max.(β_samples .- 2.0, 0.0).^2)
-
-    total_loss = data_loss + l2_penalty + smoothness_penalty + bound_penalty
-
-    return total_loss
+    return data_loss + l2_penalty
 end
 ```
 
-**Note the regularization weights** (1e-4, 1e-3, 1e-2): These are **critical** hyperparameters!
-- Too weak → overfitting
-- Too strong → underfitting
-- Just right → "good luck to us!" 😄
+**Note**: The L2 regularization weight (1e-4) helps prevent overfitting to noise.
 
 ## Step 4: Train the UDE
 
-This is where the magic (and pain) happens:
-
-::: {.callout-warning}
-## Computationally Expensive
-
-**This training block is disabled in CI builds** to avoid timeouts.
-
-Students can run it locally by removing the `#| eval: false` line. For full training:
-- Use `maxiters=500` (Adam) and `maxiters=100` (LBFGS)
-- Takes ~5-10 minutes total
-- For a quick test, use smaller iterations (50 and 20)
-:::
+This is where the magic happens. We use **ForwardDiff** for automatic differentiation,
+which is fast for small parameter counts like our 33-parameter network.
 
 ```{julia}
-#| eval: false
 # Combine all parameters
 p_all = ComponentArray(
     nn_params = p_nn,
@@ -284,56 +249,40 @@ p_all = ComponentArray(
     tmax = maximum(times)
 )
 
-println("Starting UDE training (DEMO VERSION - 30 total iterations)...")
-println("For real training, increase maxiters to 500 and 100")
+println("Starting UDE training...")
 println("="^60)
 
 # Initial loss
-println("Initial loss: ", round(loss_ude(p_all), digits=2))
+println("Initial loss: ", round(loss_ude(p_all, nothing), digits=2))
 
-# Stage 1: Adam optimizer (exploration) - DEMO: only 20 iterations
-println("\nStage 1: Adam optimization (20 iterations - DEMO)")
-opt_func = OptimizationFunction((x, p) -> loss_ude(x), Optimization.AutoZygote())
-opt_prob = OptimizationProblem(opt_func, p_all)
+# Use ForwardDiff for fast automatic differentiation
+opt_func = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
+opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 
-@time result_adam = solve(opt_prob, Optimisers.Adam(0.01), maxiters=20,
-                          callback = (state, l) -> begin
-                              if state.iter % 5 == 0
-                                  println("  Iter $(state.iter): loss = $(round(l, digits=2))")
-                              end
-                              return false
-                          end)
-
-println("\nAfter Adam: loss = ", round(result_adam.objective, digits=2))
-
-# Stage 2: LBFGS (refinement) - DEMO: only 10 iterations
-println("\nStage 2: LBFGS optimization (10 iterations - DEMO)")
-opt_prob2 = remake(opt_prob, u0=result_adam.u)
-@time result_lbfgs = solve(opt_prob2, LBFGS(), maxiters=10,
-                           callback = (state, l) -> begin
-                               if state.iter % 5 == 0
-                                   println("  Iter $(state.iter): loss = $(round(l, digits=2))")
-                               end
-                               return false
-                           end)
+# Adam optimizer - works well for neural network training
+println("\nTraining with Adam optimizer (100 iterations)...")
+@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=100,
+                     callback = (state, l) -> begin
+                         if state.iter % 20 == 0
+                             println("  Iter $(state.iter): loss = $(round(l, digits=2))")
+                         end
+                         return false
+                     end)
 
 println("\n" * "="^60)
-println("Final loss: ", round(result_lbfgs.objective, digits=2))
-println("Training complete! (NOTE: This was demo version - increase iterations for real results)")
+println("Final loss: ", round(result.objective, digits=2))
 
-p_trained = result_lbfgs.u
+p_trained = result.u
 ```
 
-**Expected behavior** (with full training):
-- Loss should decrease significantly (from ~100000 to ~1000-5000)
-- Full training takes 5-10 minutes with 500+100 iterations
-- Demo version shows the code works but won't converge fully
-- Final loss may still be higher than you'd like (60 points is tough!)
+**Expected behavior**:
+- Loss should decrease from ~100000 to ~1000-2000
+- Training takes only a few seconds with ForwardDiff
+- The small network (33 parameters) is fast to optimize
 
 ## Step 5: Compare results
 
 ```{julia}
-#| eval: false
 # Get UDE predictions
 pred_ude = predict_ude(p_trained)
 
@@ -353,7 +302,6 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 The coolest part - what did the network learn?
 
 ```{julia}
-#| eval: false
 # Extract learned β(t) for representative I values
 t_plot = range(0.0, maximum(times), length=100)
 I_representative = 50.0  # Mid-epidemic prevalence
@@ -377,11 +325,11 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 - If β(t) varies smoothly → Might capture real behavioral changes
 - If β(t) is erratic → Probably overfitting!
 
-# The "Good Luck to Us!" Section
+# Practical Challenges
 
 ## Why is this hard?
 
-1. **Small dataset** (60 points) vs **many parameters** (150)
+1. **Small dataset** (60 points) vs **many parameters** (33)
 2. **Identifiability**: Many β(t) curves could fit the data
 3. **Regularization tuning**: Finding the right penalties is an art
 4. **Initialization**: Different random seeds → different solutions
@@ -414,60 +362,49 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 
 Let's test if our solution is robust by trying different regularization strengths.
 
-::: {.callout-note}
-## Quick Demo
-
-**Test 1 shows a quick demo** (15 iterations) to demonstrate sensitivity testing.
-
-For thorough analysis, students should run all three tests with more iterations (change `maxiters=15` → `200`).
-:::
-
 **Test 1: Lower regularization (0.5×)**
 
 ```{julia}
-#| eval: false
 println("Testing regularization scale: 0.5×")
 
 # Modify loss function - less regularization
-function loss_test_low(p)
+function loss_test_low(p, _)
     pred = predict_ude(p)
     data_loss = sum((pred .- flu_tdc.obs).^2)
     l2_pen = (1e-4 * 0.5) * sum(abs2, p.nn_params)
     return data_loss + l2_pen
 end
 
-opt_func_test = OptimizationFunction((x, p) -> loss_test_low(x), Optimization.AutoZygote())
-opt_prob_test = OptimizationProblem(opt_func_test, p_all)
-result_test_low = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=15,
+opt_func_test = OptimizationFunction(loss_test_low, Optimization.AutoForwardDiff())
+opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
+result_test_low = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
                         callback = (state, l) -> begin
-                            if state.iter % 5 == 0
+                            if state.iter % 10 == 0
                                 println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                             end
                             return false
                         end)
 
 println("Final loss (0.5×): ", round(result_test_low.objective, digits=2))
-println("(To see sensitivity, compare with tests 2 and 3 below)")
 ```
 
 **Test 2: Baseline regularization (1.0×)**
 
 ```{julia}
-#| eval: false
 println("Testing regularization scale: 1.0×")
 
-function loss_test_baseline(p)
+function loss_test_baseline(p, _)
     pred = predict_ude(p)
     data_loss = sum((pred .- flu_tdc.obs).^2)
     l2_pen = (1e-4 * 1.0) * sum(abs2, p.nn_params)
     return data_loss + l2_pen
 end
 
-opt_func_test = OptimizationFunction((x, p) -> loss_test_baseline(x), Optimization.AutoZygote())
-opt_prob_test = OptimizationProblem(opt_func_test, p_all)
-result_test_baseline = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=200,
+opt_func_test = OptimizationFunction(loss_test_baseline, Optimization.AutoForwardDiff())
+opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
+result_test_baseline = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
                              callback = (state, l) -> begin
-                                 if state.iter % 50 == 0
+                                 if state.iter % 10 == 0
                                      println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                                  end
                                  return false
@@ -479,21 +416,20 @@ println("Final loss (1.0×): ", round(result_test_baseline.objective, digits=2))
 **Test 3: Higher regularization (2.0×)**
 
 ```{julia}
-#| eval: false
 println("Testing regularization scale: 2.0×")
 
-function loss_test_high(p)
+function loss_test_high(p, _)
     pred = predict_ude(p)
     data_loss = sum((pred .- flu_tdc.obs).^2)
     l2_pen = (1e-4 * 2.0) * sum(abs2, p.nn_params)
     return data_loss + l2_pen
 end
 
-opt_func_test = OptimizationFunction((x, p) -> loss_test_high(x), Optimization.AutoZygote())
-opt_prob_test = OptimizationProblem(opt_func_test, p_all)
-result_test_high = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=200,
+opt_func_test = OptimizationFunction(loss_test_high, Optimization.AutoForwardDiff())
+opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
+result_test_high = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=50,
                          callback = (state, l) -> begin
-                             if state.iter % 50 == 0
+                             if state.iter % 10 == 0
                                  println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                              end
                              return false
@@ -544,7 +480,7 @@ UDEs work well when:
 
 # Exercises
 
-1. **Network size**: Try smaller (8→4→1) and larger (32→16→1) networks. How does data fit change? Overfitting?
+1. **Network size**: Try smaller (4→1) and larger (16→8→1) networks. How does data fit change? Overfitting?
 
 2. **Regularization tuning**: Systematically vary regularization weights. Plot loss surface. Find optimal balance.
 
@@ -566,7 +502,7 @@ UDEs work well when:
 1. UDEs combine mechanistic structure with learned functions
 2. Small datasets (60 points) make UDE training very challenging
 3. **Heavy regularization** is essential for sparse data
-4. Results are sensitive to hyperparameters ("good luck!")
+4. Results are sensitive to hyperparameters
 5. Simpler methods (GPs, splines) often better for small datasets
 
 **Key insight**: UDEs are powerful but not magic. They work best when:
