@@ -300,6 +300,7 @@ p_trained = result.u
 ```
 
 **Expected behavior**:
+
 - Loss should decrease from ~100000 to ~1000-2000
 - Training takes only a few seconds with ForwardDiff
 - The small network (33 parameters) is fast to optimize
@@ -543,6 +544,7 @@ If the UDE learned a β(t) that increases around days 20-25:
 # Next steps
 
 Now that you've seen modern inference methods (variational inference, UDEs), you understand:
+
 - **When to use traditional methods** (MCMC, fixed models)
 - **When to use fast approximations** (VI, mean-field)
 - **When to use hybrid approaches** (UDEs, GPs)
