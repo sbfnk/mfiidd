@@ -46,11 +46,13 @@ using CSV
 using Plots
 using StatsPlots
 using Turing
-using Turing.Variational
+using Turing.Variational: vi, q_meanfield_gaussian, q_fullrank_gaussian
+using ADTypes: AutoForwardDiff
 using MCMCChains
 using Random
 using LinearAlgebra
 using DrWatson
+using Statistics: mean, std, cor
 
 Random.seed!(1234)
 ```
@@ -191,31 +193,20 @@ $$q(R_0, D_{\text{inf}}, \rho) = \mathcal{N}(\mu_1, \sigma_1^2) \times \mathcal{
 (After transforming to unconstrained space)
 
 ```{julia}
-#| eval: false
-#| echo: true
-
-# NOTE: This block is disabled due to numerical stability issues in CI.
-# The ADVI optimizer can encounter domain errors when variance parameters
-# go negative during gradient descent. This is a known issue with ADVI.
-# To run locally, set eval: true above.
-
-println("\nRunning Mean-Field ADVI...")
-@time begin
-    advi_mf = ADVI(10, 5_000)  # 10 samples per iteration, 5k iterations
-    q_mf = vi(model, advi_mf)
-end
+println("\nRunning Mean-Field VI...")
+q_init_mf = q_meanfield_gaussian(model)
+@time q_mf, stats_mf = vi(model, q_init_mf, 500; adtype=AutoForwardDiff())
+println("Final ELBO: ", round(stats_mf[end].elbo, digits=2))
 ```
 
 **Much faster!** But is it accurate?
 
 ```{julia}
-#| eval: false
-#| echo: true
-
 # Sample from variational approximation
 samples_vi_mf = rand(q_mf, 10_000)
 
 # Convert to DataFrame for comparison
+# Note: samples are in unconstrained space, need to transform back
 vi_mf_df = DataFrame(
     R_0 = samples_vi_mf[1, :],
     D_inf = samples_vi_mf[2, :],
@@ -223,12 +214,12 @@ vi_mf_df = DataFrame(
 )
 
 # Plot comparison
-p1 = histogram(chain_mcmc[:R_0], bins=30, alpha=0.5, normalize=:pdf,
+p1 = histogram(vec(chain_mcmc[:R_0]), bins=30, alpha=0.5, normalize=:pdf,
                label="MCMC", xlabel="R_0", ylabel="Density")
 histogram!(p1, vi_mf_df.R_0, bins=30, alpha=0.5, normalize=:pdf,
            label="VI (mean-field)")
 
-p2 = histogram(chain_mcmc[:D_inf], bins=30, alpha=0.5, normalize=:pdf,
+p2 = histogram(vec(chain_mcmc[:D_inf]), bins=30, alpha=0.5, normalize=:pdf,
                label="MCMC", xlabel="D_inf", ylabel="Density")
 histogram!(p2, vi_mf_df.D_inf, bins=30, alpha=0.5, normalize=:pdf,
            label="VI (mean-field)")
@@ -242,12 +233,9 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 Mean-field assumes parameters are **independent**. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often **correlated**!
 
 ```{julia}
-#| eval: false
-#| echo: true
-
 # Check correlation in MCMC samples
 println("MCMC correlation (R_0, D_inf): ",
-        round(cor(chain_mcmc[:R_0], chain_mcmc[:D_inf]), digits=3))
+        round(cor(vec(chain_mcmc[:R_0]), vec(chain_mcmc[:D_inf])), digits=3))
 
 # Mean-field VI forces correlation to 0
 println("VI mean-field correlation (R_0, D_inf): ",
@@ -269,26 +257,13 @@ where $\Sigma$ is a full covariance matrix.
 This allows VI to capture correlations between parameters!
 
 ```{julia}
-#| eval: false
-#| echo: true
-
-# NOTE: This block is disabled due to numerical stability issues in CI.
-# Similar to mean-field VI, full-rank ADVI can encounter domain errors.
-# To run locally, set eval: true above.
-
-println("\nRunning Full-Rank ADVI...")
-@time begin
-    advi_full = ADVI(10, 10_000)
-    # Use Turing's meanfield to initialize, then construct full-rank
-    q_full = vi(model, advi_full, Variational.FullRankGaussian;
-                optimizer=Variational.DecayedADAGrad(1e-2))
-end
+println("\nRunning Full-Rank VI...")
+q_init_full = q_fullrank_gaussian(model)
+@time q_full, stats_full = vi(model, q_init_full, 500; adtype=AutoForwardDiff())
+println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 ```
 
 ```{julia}
-#| eval: false
-#| echo: true
-
 # Sample from full-rank approximation
 samples_vi_full = rand(q_full, 10_000)
 
@@ -306,11 +281,8 @@ println("VI full-rank correlation (R_0, D_inf): ",
 **Better!** Now VI captures parameter correlations.
 
 ```{julia}
-#| eval: false
-#| echo: true
-
 # Scatter plot comparison
-p1 = scatter(chain_mcmc[:R_0], chain_mcmc[:D_inf],
+p1 = scatter(vec(chain_mcmc[:R_0]), vec(chain_mcmc[:D_inf]),
              alpha=0.3, label="MCMC", markersize=2,
              xlabel="R_0", ylabel="D_inf",
              title="MCMC: Captures Correlation")
@@ -387,9 +359,6 @@ For this course, full-rank VI provides a good balance of flexibility and ease of
 Let's compare posterior means and standard deviations:
 
 ```{julia}
-#| eval: false
-#| echo: true
-
 # Extract summaries
 mcmc_summary = summarystats(chain_mcmc)
 println("MCMC Summary:")
