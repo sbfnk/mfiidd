@@ -369,6 +369,33 @@ If β(t) is **roughly constant**, the Poisson likelihood wasn't enough to force 
 4. **Initialization**: Different random seeds → different solutions
 5. **ODE stiffness**: Training can be numerically unstable
 
+## The deeper issue: structural constraints
+
+If the fit is imperfect even with Poisson loss and tuned hyperparameters, this tells us something important: **maybe time-varying β isn't the full story**.
+
+Consider what happens during the trough (days 13-21):
+
+- Cases drop to near-zero (0-5 per day)
+- In SIR, if I→0, then dI/dt→0 *regardless* of β(t)
+- You can't restart an epidemic with no infectious people!
+
+The neural network can only learn β(t), but the **SIR structure itself** constrains what's possible:
+
+1. **S only decreases**: Once recovered, people are immune forever
+2. **The trough problem**: Even infinite β can't help if I≈0
+3. **No memory**: The model has no way to "store" infection for later
+
+**What would we need to truly capture two waves?**
+
+- **SEIR model**: Exposed period sustains transmission chains (smoldering)
+- **SIRS model**: Waning immunity allows reinfection
+- **Two-population model**: Different mixing groups, delayed introduction
+- **Learn γ(t) too**: Time-varying recovery might help
+
+This is a key insight about hybrid models: **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
+
+An imperfect fit isn't failure—it's the model telling us: *"I can't explain this data with just time-varying transmission. The mechanism you're looking for might require different structure."*
+
 ## Common failure modes
 
 ### Overfitting
