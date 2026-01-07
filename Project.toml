@@ -1,5 +1,7 @@
 [deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 AdvancedPS = "576499cb-2369-40b2-a588-c64705576edc"
+AdvancedVI = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
