@@ -7,15 +7,16 @@ engine: julia
 
 # Introduction
 
-So far in this course, we've used **Markov Chain Monte Carlo (MCMC)** for Bayesian inference. MCMC is the gold standard - it's asymptotically exact and provides reliable uncertainty quantification. But it has a key limitation: **it's slow**.
+So far in this course, we've used Markov Chain Monte Carlo (MCMC) for Bayesian inference. MCMC is asymptotically exact and provides reliable uncertainty quantification. But it has a key limitation: it's slow.
 
 For a single dataset with a simple model, MCMC takes minutes to hours. But what if we need:
-- **Real-time forecasting**: Update predictions as new data arrives every hour
-- **Many datasets**: Analyze hundreds of outbreaks from different locations
-- **High-dimensional models**: Age-stratified models with 50+ parameters
-- **Rapid prototyping**: Quickly explore many model variants
 
-This is where **variational inference (VI)** comes in. VI trades some accuracy for dramatic speed improvements - often 10-100× faster than MCMC.
+- Real-time forecasting: Update predictions as new data arrives every hour
+- Many datasets: Analyze hundreds of outbreaks from different locations
+- High-dimensional models: Age-stratified models with 50+ parameters
+- Rapid prototyping: Quickly explore many model variants
+
+This is where variational inference (VI) comes in. VI trades some accuracy for dramatic speed improvements - often 10-100× faster than MCMC.
 
 ## Learning objectives
 
@@ -142,7 +143,7 @@ model = sir_model(times, init_state, flu_tdc.obs)
 
 # Baseline: MCMC with NUTS
 
-Let's start with the gold standard to establish a baseline:
+Let's start with full MCMC to establish a baseline:
 
 ```{julia}
 println("Running MCMC with NUTS...")
@@ -159,7 +160,7 @@ plot(chain_mcmc[[:R_0, :D_inf, :ρ]], size=(900, 600))
 summarystats(chain_mcmc)
 ```
 
-**Note the time**: MCMC takes several minutes (varies by hardware).
+Note the time: MCMC takes several minutes (varies by hardware).
 
 # Approach 1: Mean-Field Variational Inference
 
@@ -167,7 +168,7 @@ summarystats(chain_mcmc)
 
 Instead of sampling from the true posterior $p(\theta | \text{data})$, VI finds a simpler approximation $q(\theta)$ that's "close" to the true posterior.
 
-**Key idea**: Turn inference into an optimization problem!
+The key idea is to turn inference into an optimization problem:
 
 1. Choose a family of simple distributions $q(\theta)$ (e.g., Gaussian)
 2. Find the $q$ that minimizes distance to true posterior
@@ -175,7 +176,7 @@ Instead of sampling from the true posterior $p(\theta | \text{data})$, VI finds 
 
 ## The ELBO objective
 
-VI maximizes the **Evidence Lower Bound (ELBO)**:
+VI maximizes the Evidence Lower Bound (ELBO):
 
 $$\text{ELBO}(q) = \mathbb{E}_{q}[\log p(\text{data}, \theta)] - \mathbb{E}_{q}[\log q(\theta)]$$
 
@@ -183,7 +184,7 @@ This is equivalent to minimizing KL divergence: $\text{KL}(q || p)$
 
 ## Mean-field approximation
 
-The simplest VI assumes parameters are **independent**:
+The simplest VI assumes parameters are independent:
 
 $$q(\theta) = q(\theta_1) \times q(\theta_2) \times \cdots \times q(\theta_n)$$
 
@@ -195,11 +196,11 @@ $$q(R_0, D_{\text{inf}}, \rho) = \mathcal{N}(\mu_1, \sigma_1^2) \times \mathcal{
 ```{julia}
 println("\nRunning Mean-Field VI...")
 q_init_mf = q_meanfield_gaussian(model)
-@time q_mf, stats_mf = vi(model, q_init_mf, 500; adtype=AutoForwardDiff())
+@time q_mf, stats_mf = vi(model, q_init_mf, 500; adtype=AutoForwardDiff(), show_progress=false)
 println("Final ELBO: ", round(stats_mf[end].elbo, digits=2))
 ```
 
-**Much faster!** But is it accurate?
+Much faster! But is it accurate?
 
 ```{julia}
 # Sample from variational approximation
@@ -230,7 +231,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are **independent**. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often **correlated**!
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often correlated!
 
 ```{julia}
 # Check correlation in MCMC samples
@@ -242,13 +243,13 @@ println("VI mean-field correlation (R_0, D_inf): ",
         round(cor(vi_mf_df.R_0, vi_mf_df.D_inf), digits=3))
 ```
 
-**Problem**: Mean-field can't capture parameter correlations!
+The problem: mean-field can't capture parameter correlations!
 
 # Approach 2: Full-Rank Gaussian VI
 
 ## Capturing correlations
 
-Instead of diagonal covariance, use **full covariance matrix**:
+Instead of diagonal covariance, use a full covariance matrix:
 
 $$q(\theta) = \mathcal{N}(\mu, \Sigma)$$
 
@@ -259,7 +260,7 @@ This allows VI to capture correlations between parameters!
 ```{julia}
 println("\nRunning Full-Rank VI...")
 q_init_full = q_fullrank_gaussian(model)
-@time q_full, stats_full = vi(model, q_init_full, 500; adtype=AutoForwardDiff())
+@time q_full, stats_full = vi(model, q_init_full, 500; adtype=AutoForwardDiff(), show_progress=false)
 println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 ```
 
@@ -278,7 +279,7 @@ println("VI full-rank correlation (R_0, D_inf): ",
         round(cor(vi_full_df.R_0, vi_full_df.D_inf), digits=3))
 ```
 
-**Better!** Now VI captures parameter correlations.
+Now VI captures parameter correlations.
 
 ```{julia}
 # Scatter plot comparison
@@ -304,12 +305,13 @@ plot(p1, p2, p3, layout=(1, 3), size=(1200, 400))
 
 ## Beyond Gaussian approximations
 
-Both mean-field and full-rank VI assume the posterior is **Gaussian**. But what if it's:
-- **Multimodal**: Multiple peaks
-- **Skewed**: Asymmetric
-- **Heavy-tailed**: Fat tails
+Both mean-field and full-rank VI assume the posterior is Gaussian. But what if it's:
 
-**Normalizing flows** use neural networks to create more flexible approximations!
+- Multimodal: Multiple peaks
+- Skewed: Asymmetric
+- Heavy-tailed: Fat tails
+
+Normalizing flows use neural networks to create more flexible approximations.
 
 ## How flows work
 
@@ -321,36 +323,22 @@ $$z_2 = f_2(z_1)$$
 $$\vdots$$
 $$\theta = f_K(z_{K-1})$$
 
-Each $f_k$ is an invertible function (often a neural network layer).
+Each $f_k$ is an invertible function (often a neural network layer). This allows flows to approximate complex, non-Gaussian posteriors.
 
-**Advantage**: Can approximate complex, non-Gaussian posteriors!
-
-## Flow types available in Turing
+## Flow types
 
 Turing's `Bijectors.jl` provides building blocks:
 
-- **PlanarLayer**: Linear transformation with tanh nonlinearity
-- **RadialLayer**: Radial expansion/contraction
-- **Coupling**: Affine coupling layers (like RealNVP)
+- PlanarLayer: Linear transformation with tanh nonlinearity
+- RadialLayer: Radial expansion/contraction
+- Coupling: Affine coupling layers (like RealNVP)
 
-```{julia}
-# Note: Building custom flows with packages like Bijectors is advanced.
-# For now, we'll demonstrate the concept with full-rank VI,
-# which is already a significant improvement over mean-field.
+Full custom flow implementation with Bijectors is quite involved and beyond the scope of this course. For production use, consider:
 
-# Future extensions could use advanced flow libraries:
-# - Bijectors.jl: Planar flows, radial flows, coupling layers
-# - DiffEqFlux.jl: Continuous normalizing flows (FFJORD)
-# - Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
+- DiffEqFlux.jl: Continuous normalizing flows (FFJORD)
+- Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
 
-# For this course, full-rank VI provides a good balance of flexibility and ease of use!
-```
-
-**Note**: Full custom flow implementation with Bijectors is quite involved. For production use, consider:
-- **DiffEqFlux.jl**: Continuous normalizing flows (FFJORD)
-- **Python's `sbi` package** via PythonCall.jl: Mature neural flow implementations
-
-For this course, full-rank VI provides a good balance of flexibility and ease of use!
+For this course, full-rank VI provides a good balance of flexibility and ease of use. The key insight is that flows exist as a more flexible option when Gaussian approximations are insufficient.
 
 # Comparison: MCMC vs VI
 
@@ -385,109 +373,76 @@ println("  ρ: mean = ", round(mean(vi_full_df.ρ), digits=2),
 
 ## Speed comparison
 
-```{julia}
-#| eval: false
-#| echo: true
+Based on the timing above, we typically see:
 
-# Benchmark (rough timing)
-# NOTE: This block is disabled to save computation time in CI.
-# The timing comparisons above already demonstrate the speed differences.
-# To run benchmarks locally, set eval: true
+- MCMC (500 samples): 2-5 minutes
+- Mean-field VI (500 iterations): 10-30 seconds (10-20× faster)
+- Full-rank VI (500 iterations): 20-60 seconds (5-10× faster)
 
-println("\n" * "="^60)
-println("Computational Cost Comparison:")
-println("="^60)
-
-# MCMC
-println("\nMCMC (NUTS, 1000 samples):")
-@time chain_mcmc_timed = sample(model, NUTS(0.65), 1000, progress=false)
-
-# Mean-field VI
-println("\nMean-Field VI (10k iterations):")
-@time q_mf_timed = vi(model, ADVI(10, 10_000))
-
-# Full-rank VI
-println("\nFull-Rank VI (15k iterations):")
-@time q_full_timed = vi(model, ADVI(10, 15_000), Variational.FullRankGaussian;
-                        optimizer=Variational.DecayedADAGrad(1e-2))
-```
-
-**Typical results**:
-- MCMC: 2-5 minutes
-- Mean-field VI: 10-30 seconds (10-20× faster)
-- Full-rank VI: 20-60 seconds (5-10× faster)
+The speedup becomes even more dramatic with larger models or more samples.
 
 ## Trade-offs summary
 
 | Method | Speed | Accuracy | Correlations | Multimodal | Use Case |
 |--------|-------|----------|--------------|------------|----------|
-| **MCMC** | Slow (minutes-hours) | Gold standard | Yes | Yes | Final analysis, publications |
-| **Mean-field VI** | Very fast (seconds) | Approximate | No | No | Quick exploration, many datasets |
-| **Full-rank VI** | Fast (seconds) | Better | Yes | No | Real-time forecasting, good enough |
-| **Normalizing flows** | Fast (after training) | Best VI | Yes | Yes | Complex posteriors, amortized inference |
+| MCMC | Slow (minutes-hours) | Exact (asymptotically) | Yes | Yes | Final analysis, publications |
+| Mean-field VI | Very fast (seconds) | Approximate | No | No | Quick exploration, many datasets |
+| Full-rank VI | Fast (seconds) | Better | Yes | No | Real-time forecasting |
+| Normalizing flows | Fast (after training) | Best VI | Yes | Yes | Complex posteriors |
 
 # When to use each method
 
 ## Use MCMC when:
 
-- You need **gold standard accuracy** for publication
-- You have **time** (single dataset, offline analysis)
-- Posterior may be **multimodal or complex**
-- You need **reliable uncertainty quantification**
-- Problem is **low-to-moderate dimensional** (<50 parameters)
+- You need exact inference for publication
+- You have time (single dataset, offline analysis)
+- Posterior may be multimodal or complex
+- You need reliable uncertainty quantification
+- Problem is low-to-moderate dimensional (<50 parameters)
 
 ## Use Mean-Field VI when:
 
-- You need **extremely fast** approximate inference
-- Parameters are **roughly independent**
-- You're doing **exploratory analysis** or prototyping
-- You need to analyze **many datasets** quickly
+- You need extremely fast approximate inference
+- Parameters are roughly independent
+- You're doing exploratory analysis or prototyping
+- You need to analyze many datasets quickly
 - Rough uncertainty estimates are sufficient
 
 ## Use Full-Rank VI when:
 
-- You need **fast inference** but parameters are **correlated**
-- **Real-time forecasting** or operational deployment
-- **Good enough** accuracy (within 10-20% of MCMC)
+- You need fast inference but parameters are correlated
+- Real-time forecasting or operational deployment
+- "Good enough" accuracy (within 10-20% of MCMC)
 - Moderate dimensional problems (10-50 parameters)
 
 ## Use Normalizing Flows when:
 
-- Posterior is **highly non-Gaussian** (skewed, multimodal)
-- You need to analyze **many similar datasets** (amortized inference)
+- Posterior is highly non-Gaussian (skewed, multimodal)
+- You need to analyze many similar datasets (amortized inference)
 - Gaussian VI fails to capture posterior complexity
-- You have **GPU resources** for training
+- You have GPU resources for training
 - Advanced research applications
 
 # Practical workflow
 
 ## Recommended strategy
 
-1. **Start with mean-field VI**: Quick exploration, check if model runs
-2. **Run MCMC on subset**: Validate on small dataset or fewer iterations
-3. **Compare VI and MCMC**: Are they similar?
-   - If yes → **use full-rank VI** for production (much faster)
-   - If no → posterior is complex, **stick with MCMC**
-4. **Periodic MCMC checks**: Re-run MCMC weekly/monthly to validate VI
+1. Start with mean-field VI: Quick exploration, check if model runs
+2. Run MCMC on subset: Validate on small dataset or fewer iterations
+3. Compare VI and MCMC: Are they similar?
+   - If yes → use full-rank VI for production (much faster)
+   - If no → posterior is complex, stick with MCMC
+4. Periodic MCMC checks: Re-run MCMC weekly/monthly to validate VI
 
 ## Example: Real-time epidemic forecasting
 
-```julia
-# Day 1: Initial analysis with MCMC (take your time)
-chain_baseline = sample(model_day1, NUTS(), 2000)
+In a real-time setting, the workflow might look like:
 
-# Day 2-30: Daily updates with VI (fast!)
-for day in 2:30
-    model_new = update_model(day)
-    q_today = vi(model_new, ADVI(10, 10_000), FullRankGaussian)
-    forecast = generate_forecast(q_today)
-    publish_forecast(forecast)
-end
+- Day 1: Initial analysis with MCMC (take your time, establish baseline)
+- Days 2-30: Daily updates with VI (fast, operational)
+- Day 31: Validate VI results against fresh MCMC run
 
-# Day 31: Validate VI with MCMC
-chain_validation = sample(model_day31, NUTS(), 2000)
-compare_with_vi(chain_validation, q_today)
-```
+This hybrid approach gives you the speed of VI for daily operations while periodically checking against the more accurate MCMC.
 
 # Exercises
 
@@ -521,13 +476,12 @@ VI is not a replacement for MCMC - it's a complementary tool that enables applic
 
 # Next session: Universal Differential Equations
 
-Now that we can do fast inference, let's tackle a harder problem: **What if we don't know the functional form of disease transmission?**
+Now that we can do fast inference, let's tackle a harder problem: What if we don't know the functional form of disease transmission?
 
 Universal Differential Equations combine:
-- **Known epidemiological structure** (compartments, transitions)
-- **Unknown mechanisms learned from data** (neural networks for β(t, I, ...))
 
-Get ready for: "Learning unknown transmission mechanisms - good luck to us!" 😄
+- Known epidemiological structure (compartments, transitions)
+- Unknown mechanisms learned from data (neural networks for β(t, I, ...))
 
 # References
 
