@@ -1,6 +1,6 @@
 ---
 title: "Variational Inference: Speed vs Accuracy"
-subtitle: "Fast approximate Bayesian inference with normalizing flows"
+subtitle: "Fast approximate Bayesian inference for real-time applications"
 format: html
 engine: julia
 ---
@@ -24,9 +24,9 @@ By the end of this session, you will be able to:
 
 1. Understand the variational inference framework and ELBO optimization
 2. Implement mean-field and full-rank Gaussian approximations
-3. Use normalizing flows for more flexible posterior approximations
-4. Compare VI and MCMC trade-offs (speed vs accuracy)
-5. Choose appropriate inference methods for different scenarios
+3. Compare VI and MCMC trade-offs (speed vs accuracy)
+4. Choose appropriate inference methods for different scenarios
+5. Apply VI to real-time forecasting workflows
 
 # Setup
 
@@ -301,45 +301,6 @@ p3 = scatter(vi_full_df.R_0, vi_full_df.D_inf,
 plot(p1, p2, p3, layout=(1, 3), size=(1200, 400))
 ```
 
-# Approach 3: Normalizing Flows (Advanced)
-
-## Beyond Gaussian approximations
-
-Both mean-field and full-rank VI assume the posterior is Gaussian. But what if it's:
-
-- Multimodal: Multiple peaks
-- Skewed: Asymmetric
-- Heavy-tailed: Fat tails
-
-Normalizing flows use neural networks to create more flexible approximations.
-
-## How flows work
-
-A normalizing flow transforms a simple base distribution (e.g., Gaussian) through a series of invertible transformations:
-
-$$z_0 \sim \mathcal{N}(0, I)$$
-$$z_1 = f_1(z_0)$$
-$$z_2 = f_2(z_1)$$
-$$\vdots$$
-$$\theta = f_K(z_{K-1})$$
-
-Each $f_k$ is an invertible function (often a neural network layer). This allows flows to approximate complex, non-Gaussian posteriors.
-
-## Flow types
-
-Turing's `Bijectors.jl` provides building blocks:
-
-- PlanarLayer: Linear transformation with tanh nonlinearity
-- RadialLayer: Radial expansion/contraction
-- Coupling: Affine coupling layers (like RealNVP)
-
-Full custom flow implementation with Bijectors is quite involved and beyond the scope of this course. For production use, consider:
-
-- DiffEqFlux.jl: Continuous normalizing flows (FFJORD)
-- Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
-
-For this course, full-rank VI provides a good balance of flexibility and ease of use. The key insight is that flows exist as a more flexible option when Gaussian approximations are insufficient.
-
 # Comparison: MCMC vs VI
 
 ## Quantitative comparison
@@ -383,12 +344,11 @@ The speedup becomes even more dramatic with larger models or more samples.
 
 ## Trade-offs summary
 
-| Method | Speed | Accuracy | Correlations | Multimodal | Use Case |
-|--------|-------|----------|--------------|------------|----------|
-| MCMC | Slow (minutes-hours) | Exact (asymptotically) | Yes | Yes | Final analysis, publications |
-| Mean-field VI | Very fast (seconds) | Approximate | No | No | Quick exploration, many datasets |
-| Full-rank VI | Fast (seconds) | Better | Yes | No | Real-time forecasting |
-| Normalizing flows | Fast (after training) | Best VI | Yes | Yes | Complex posteriors |
+| Method | Speed | Accuracy | Correlations | Use Case |
+|--------|-------|----------|--------------|----------|
+| MCMC | Slow (minutes-hours) | Exact (asymptotically) | Yes | Final analysis, publications |
+| Mean-field VI | Very fast (seconds) | Approximate | No | Quick exploration, many datasets |
+| Full-rank VI | Fast (seconds) | Better | Yes | Real-time forecasting |
 
 # When to use each method
 
@@ -415,14 +375,6 @@ The speedup becomes even more dramatic with larger models or more samples.
 - "Good enough" accuracy (within 10-20% of MCMC)
 - Moderate dimensional problems (10-50 parameters)
 
-## Use Normalizing Flows when:
-
-- Posterior is highly non-Gaussian (skewed, multimodal)
-- You need to analyze many similar datasets (amortized inference)
-- Gaussian VI fails to capture posterior complexity
-- You have GPU resources for training
-- Advanced research applications
-
 # Practical workflow
 
 ## Recommended strategy
@@ -436,13 +388,47 @@ The speedup becomes even more dramatic with larger models or more samples.
 
 ## Example: Real-time epidemic forecasting
 
-In a real-time setting, the workflow might look like:
+Let's simulate a real-time scenario where new data arrives daily. We'll compare how long it takes to update our estimates with MCMC vs VI.
 
-- Day 1: Initial analysis with MCMC (take your time, establish baseline)
-- Days 2-30: Daily updates with VI (fast, operational)
-- Day 31: Validate VI results against fresh MCMC run
+```{julia}
+# Simulate "streaming" data: fit with increasing amounts of data
+days_to_test = [10, 15, 20]  # Fit at day 10, 15, 20
 
-This hybrid approach gives you the speed of VI for daily operations while periodically checking against the more accurate MCMC.
+mcmc_times = Float64[]
+vi_times = Float64[]
+
+for max_day in days_to_test
+    # Subset data up to this day
+    data_subset = flu_tdc[flu_tdc.time .<= max_day, :]
+    times_subset = data_subset.time
+    obs_subset = data_subset.obs
+
+    # Create model for this data subset
+    model_subset = sir_model(times_subset, init_state, obs_subset)
+
+    # Time MCMC (fewer samples for speed)
+    t_mcmc = @elapsed sample(model_subset, NUTS(0.65), 100, progress=false)
+    push!(mcmc_times, t_mcmc)
+
+    # Time VI
+    q_init = q_meanfield_gaussian(model_subset)
+    t_vi = @elapsed vi(model_subset, q_init, 200; adtype=AutoForwardDiff(), show_progress=false)
+    push!(vi_times, t_vi)
+end
+
+# Display results
+println("Real-time update comparison (seconds):")
+println("="^50)
+println("Day\t\tMCMC (100 samples)\tVI (200 iter)")
+println("-"^50)
+for (i, day) in enumerate(days_to_test)
+    println("Day $day:\t\t$(round(mcmc_times[i], digits=1))s\t\t\t$(round(vi_times[i], digits=1))s")
+end
+println("-"^50)
+println("Speedup:\t$(round(mean(mcmc_times) / mean(vi_times), digits=1))× faster with VI")
+```
+
+This demonstrates the key advantage of VI: when you need to update estimates frequently (e.g., daily during an outbreak), the cumulative time savings are substantial.
 
 # Exercises
 
@@ -463,25 +449,44 @@ In this session, we learned:
 1. **Variational inference** trades accuracy for speed (10-100× faster than MCMC)
 2. **Mean-field VI** assumes independence - fast but can miss correlations
 3. **Full-rank VI** captures correlations - good balance for most applications
-4. **Normalizing flows** use neural networks for flexible approximations
-5. **Practical workflow**: Start with VI for exploration, validate with MCMC
+4. **Practical workflow**: Start with VI for exploration, validate with MCMC
 
 ## Key takeaways
 
 ✅ **Use VI for**: Rapid prototyping, real-time systems, many datasets
-✅ **Use MCMC for**: Publication-quality analysis, complex posteriors, gold standard
+✅ **Use MCMC for**: Publication-quality analysis, complex posteriors
 ✅ **Hybrid approach**: VI for daily operations, periodic MCMC validation
 
 VI is not a replacement for MCMC - it's a complementary tool that enables applications where MCMC is too slow!
 
-# Next session: Universal Differential Equations
+# Going further
 
-Now that we can do fast inference, let's tackle a harder problem: What if we don't know the functional form of disease transmission?
+## Normalizing flows
 
-Universal Differential Equations combine:
+Both mean-field and full-rank VI assume the posterior is Gaussian. But what if the posterior is:
 
-- Known epidemiological structure (compartments, transitions)
-- Unknown mechanisms learned from data (neural networks for β(t, I, ...))
+- Multimodal: Multiple peaks
+- Skewed: Asymmetric
+- Heavy-tailed: Fat tails
+
+Normalizing flows use neural networks to create more flexible approximations. A flow transforms a simple base distribution (e.g., Gaussian) through a series of invertible transformations:
+
+$$z_0 \sim \mathcal{N}(0, I) \rightarrow z_1 = f_1(z_0) \rightarrow \cdots \rightarrow \theta = f_K(z_{K-1})$$
+
+Each $f_k$ is an invertible function (often a neural network layer), allowing flows to approximate complex, non-Gaussian posteriors.
+
+Turing's `Bijectors.jl` provides building blocks (PlanarLayer, RadialLayer, Coupling layers), but implementation is more involved than Gaussian VI. For production use, consider:
+
+- DiffEqFlux.jl: Continuous normalizing flows (FFJORD)
+- Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
+
+## Amortized inference
+
+When analyzing many similar datasets, you can train a neural network to directly predict posterior parameters from data - no optimization at inference time. This is especially useful for:
+
+- Simulation-based inference
+- Real-time applications with strict latency requirements
+- Analyzing thousands of similar datasets
 
 # References
 
