@@ -12,7 +12,7 @@ So far in this course, we've used Markov Chain Monte Carlo (MCMC) for Bayesian i
 For a single dataset with a simple model, MCMC takes minutes to hours. But what if we need:
 
 - Real-time forecasting: Update predictions as new data arrives every hour
-- Many datasets: Analyze hundreds of outbreaks from different locations
+- Many datasets: Analyse hundreds of outbreaks from different locations
 - High-dimensional models: Age-stratified models with 50+ parameters
 - Rapid prototyping: Quickly explore many model variants
 
@@ -22,7 +22,7 @@ This is where variational inference (VI) comes in. VI trades some accuracy for d
 
 By the end of this session, you will be able to:
 
-1. Understand the variational inference framework and ELBO optimization
+1. Understand the variational inference framework and ELBO optimisation
 2. Implement mean-field and full-rank Gaussian approximations
 3. Compare VI and MCMC trade-offs (speed vs accuracy)
 4. Choose appropriate inference methods for different scenarios
@@ -168,19 +168,19 @@ Note the time: MCMC takes several minutes (varies by hardware).
 
 Instead of sampling from the true posterior $p(\theta | \text{data})$, VI finds a simpler approximation $q(\theta)$ that's "close" to the true posterior.
 
-The key idea is to turn inference into an optimization problem:
+The key idea is to turn inference into an optimisation problem:
 
 1. Choose a family of simple distributions $q(\theta)$ (e.g., Gaussian)
-2. Find the $q$ that minimizes distance to true posterior
+2. Find the $q$ that minimises distance to true posterior
 3. Use gradient descent instead of MCMC sampling
 
 ## The ELBO objective
 
-VI maximizes the Evidence Lower Bound (ELBO):
+VI maximises the Evidence Lower Bound (ELBO):
 
 $$\text{ELBO}(q) = \mathbb{E}_{q}[\log p(\text{data}, \theta)] - \mathbb{E}_{q}[\log q(\theta)]$$
 
-This is equivalent to minimizing KL divergence: $\text{KL}(q || p)$
+This is equivalent to minimising KL divergence: $\text{KL}(q || p)$
 
 ## Mean-field approximation
 
@@ -365,7 +365,7 @@ The speedup becomes even more dramatic with larger models or more samples.
 - You need extremely fast approximate inference
 - Parameters are roughly independent
 - You're doing exploratory analysis or prototyping
-- You need to analyze many datasets quickly
+- You need to analyse many datasets quickly
 - Rough uncertainty estimates are sufficient
 
 ## Use Full-Rank VI when:
@@ -434,11 +434,11 @@ This demonstrates the key advantage of VI: when you need to update estimates fre
 
 1. **VI Sensitivity**: Run VI with different numbers of iterations (1k, 5k, 10k, 20k). How does accuracy improve? When do returns diminish?
 
-2. **Initialization matters**: Try different random seeds. Does VI give consistent results? Compare with MCMC stability.
+2. **Initialisation matters**: Try different random seeds. Does VI give consistent results? Compare with MCMC stability.
 
 3. **Complex posteriors**: Create a bimodal likelihood (simulate data from two different R_0 values). Can VI capture both modes?
 
-4. **Amortized inference**: Generate 10 synthetic outbreak datasets. Time MCMC vs VI for analyzing all 10. What's the total speedup?
+4. **Amortised inference**: Generate 10 synthetic outbreak datasets. Time MCMC vs VI for analysing all 10. What's the total speedup?
 
 5. **ELBO monitoring**: Modify the VI code to track and plot ELBO over iterations. Is it still improving at 10k iterations?
 
@@ -461,7 +461,7 @@ VI is not a replacement for MCMC - it's a complementary tool that enables applic
 
 # Going further
 
-## Normalizing flows
+## Normalising flows
 
 Both mean-field and full-rank VI assume the posterior is Gaussian. But what if the posterior is:
 
@@ -469,7 +469,7 @@ Both mean-field and full-rank VI assume the posterior is Gaussian. But what if t
 - Skewed: Asymmetric
 - Heavy-tailed: Fat tails
 
-Normalizing flows use neural networks to create more flexible approximations. A flow transforms a simple base distribution (e.g., Gaussian) through a series of invertible transformations:
+Normalising flows use neural networks to create more flexible approximations. A flow transforms a simple base distribution (e.g., Gaussian) through a series of invertible transformations:
 
 $$z_0 \sim \mathcal{N}(0, I) \rightarrow z_1 = f_1(z_0) \rightarrow \cdots \rightarrow \theta = f_K(z_{K-1})$$
 
@@ -477,16 +477,16 @@ Each $f_k$ is an invertible function (often a neural network layer), allowing fl
 
 Turing's `Bijectors.jl` provides building blocks (PlanarLayer, RadialLayer, Coupling layers), but implementation is more involved than Gaussian VI. For production use, consider:
 
-- DiffEqFlux.jl: Continuous normalizing flows (FFJORD)
+- DiffEqFlux.jl: Continuous normalising flows (FFJORD)
 - Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
 
-## Amortized inference
+## Amortised inference
 
-When analyzing many similar datasets, you can train a neural network to directly predict posterior parameters from data - no optimization at inference time. This is especially useful for:
+When analysing many similar datasets, you can train a neural network to directly predict posterior parameters from data - no optimisation at inference time. This is especially useful for:
 
 - Simulation-based inference
 - Real-time applications with strict latency requirements
-- Analyzing thousands of similar datasets
+- Analysing thousands of similar datasets
 
 # References
 
