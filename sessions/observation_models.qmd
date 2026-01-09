@@ -468,24 +468,24 @@ function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
 
     for (t_idx, threshold) in enumerate(thresholds)
         println("\nGeneration $t_idx: threshold = $threshold")
-        new_particles = []
+        new_particles = Vector{Vector{Float64}}(undef, n_particles)
 
         if t_idx == 1
-            # First generation: sample from prior
-            for i in 1:n_particles
+            # First generation: sample from prior (parallelised)
+            Threads.@threads for i in 1:n_particles
                 while true
                     θ = prior_sampler()
                     sim = simulator(θ)
                     d = distance_fn(sim, observed_data)
                     if d < threshold
-                        push!(new_particles, θ)
+                        new_particles[i] = θ
                         break
                     end
                 end
             end
         else
-            # Later generations: perturb from previous
-            for i in 1:n_particles
+            # Later generations: perturb from previous (parallelised)
+            Threads.@threads for i in 1:n_particles
                 while true
                     # Sample from previous generation (weighted)
                     idx = sample(1:length(particles), Weights(weights))
@@ -503,14 +503,14 @@ function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
                     sim = simulator(θ_new)
                     d = distance_fn(sim, observed_data)
                     if d < threshold
-                        push!(new_particles, θ_new)
+                        new_particles[i] = θ_new
                         break
                     end
                 end
             end
         end
 
-        particles = new_particles
+        particles = collect(new_particles)
         weights = ones(n_particles) ./ n_particles  # Uniform weights (simplified)
 
         println("  Mean R_0: ", round(mean([p[1] for p in particles]), digits=2))
@@ -694,17 +694,37 @@ This philosophical foundation prepares us for modern inference methods:
 
 In all cases, we're making pragmatic choices about how to connect models to data. Being explicit about these choices makes us better scientists!
 
-# Exercises
+# Going further
 
-1. **Implement Gaussian likelihood**: Add a `sir_gaussian` model with Normal observation errors. Compare posteriors to Poisson and NegBin.
+## Summary statistics for ABC
 
-2. **Custom ABC distance**: Define a distance function that only uses (a) total cases and (b) peak timing. How do posteriors change?
+Instead of comparing full time series, ABC often works better with carefully chosen summary statistics. For epidemic data, useful summaries include:
 
-3. **Overdispersion detector**: Compute variance/mean ratio for TdC data. Does this justify using NegBin over Poisson?
+- **Total cases**: Sum of all observations
+- **Peak timing**: Day with maximum incidence
+- **Peak height**: Maximum daily incidence
+- **Growth rate**: Initial doubling time or exponential growth rate
+- **Final size**: Cumulative attack rate
 
-4. **Outlier robustness**: Add artificial outliers to the data. Compare posterior estimates under Poisson (sensitive) vs ABC with robust distance metric.
+Using fewer, well-chosen summaries can make ABC more robust to noise and model misspecification.
 
-5. **Summary statistics**: Instead of using all daily counts, use summary statistics: total cases, peak time, peak height. Implement ABC with these summaries.
+## Alternative observation models
+
+The choice of observation model affects inference more than many researchers realise. Consider exploring:
+
+- **Gaussian likelihood**: Appropriate when counts are large and approximately symmetric
+- **Zero-inflated models**: When surveillance systems miss entire days
+- **Reporting delay models**: When cases are reported with variable lag
+
+Computing the variance/mean ratio in your data can help diagnose whether Poisson (ratio ≈ 1) or Negative Binomial (ratio > 1) is more appropriate.
+
+## Robust distance metrics
+
+For ABC with outliers or model misspecification, consider robust distances:
+
+- **Median absolute deviation** instead of mean squared error
+- **Quantile-based distances** that down-weight extreme values
+- **Feature-based distances** that focus on epidemiologically meaningful patterns
 
 # References
 

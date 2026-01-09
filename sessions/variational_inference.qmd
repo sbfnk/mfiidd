@@ -413,18 +413,6 @@ println("Time saved with VI: $(round((cumulative_mcmc - cumulative_vi) / 60, dig
 
 This is why VI matters for operational forecasting: when you need to update estimates frequently, the cumulative time savings are substantial.
 
-# Exercises
-
-1. **VI Sensitivity**: Run VI with different numbers of iterations (1k, 5k, 10k, 20k). How does accuracy improve? When do returns diminish?
-
-2. **Initialisation matters**: Try different random seeds. Does VI give consistent results? Compare with MCMC stability.
-
-3. **Complex posteriors**: Create a bimodal likelihood (simulate data from two different R_0 values). Can VI capture both modes?
-
-4. **Amortised inference**: Generate 10 synthetic outbreak datasets. Time MCMC vs VI for analysing all 10. What's the total speedup?
-
-5. **ELBO monitoring**: Modify the VI code to track and plot ELBO over iterations. Is it still improving at 10k iterations?
-
 # Summary
 
 In this session, we learned:

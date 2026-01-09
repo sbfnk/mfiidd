@@ -498,23 +498,37 @@ UDEs work well when:
 3. **Known structure, unknown details**: Chemical reactions, climate models
 4. **Discovery research**: Finding unknown mechanisms (not just fitting)
 
-# Exercises
+# Going further
 
-1. **Network size**: Try smaller (4→1) and larger (16→8→1) networks. How does data fit change? Overfitting?
+## Network architecture choices
 
-2. **Regularization tuning**: Systematically vary regularization weights. Plot loss surface. Find optimal balance.
+The neural network architecture affects what patterns can be learned:
 
-3. **Input features**: Try different NN inputs:
-   - Just time: β(t)
-   - Just prevalence: β(I/N)
-   - Both: β(I/N, t)
-   - Add S/N: β(S/N, I/N, t)
+- **Smaller networks** (e.g., 4→1) may underfit complex dynamics but are more interpretable
+- **Larger networks** (e.g., 16→8→1) can capture more complexity but risk overfitting with limited data
+- **Input features** matter: β(t) learns time-dependent patterns, β(I/N) learns prevalence-dependent patterns, β(I/N, t) can learn both
 
-   Which works best?
+Try different architectures to understand what your data can support.
 
-4. **Synthetic data test**: Generate data with known β(t) = β₀ * (1 + 0.3*sin(2πt/20)). Can UDE recover it?
+## Ensemble uncertainty
 
-5. **Ensemble uncertainty**: Train 10 UDEs with different random seeds. Plot ensemble of β(t) curves. How variable are they?
+A single UDE gives a point estimate. For uncertainty quantification:
+
+1. Train multiple UDEs with different random seeds
+2. Plot the ensemble of learned β(t) curves
+3. Where curves agree → robust finding
+4. Where curves diverge → insufficient data to constrain
+
+This ensemble approach is particularly important for scientific claims about mechanisms.
+
+## Validation with synthetic data
+
+Before trusting UDE discoveries on real data, test on synthetic data where you know the truth:
+
+1. Generate data with a known β(t), e.g., β(t) = β₀ × (1 + 0.3 sin(2πt/20))
+2. Train UDE on this synthetic data
+3. Compare learned β(t) to the true function
+4. If the UDE can't recover known patterns, be cautious about interpreting patterns from real data
 
 # Summary
 
