@@ -35,12 +35,12 @@ This repository contains course materials for "Model fitting and inference for i
 - **Website Generation**: Quarto for Julia code blocks, RMarkdown for legacy content
 
 ### Model Framework
-The course uses a modern Bayesian approach for epidemiological models:
-- **`FitModel` struct**: Contains name, state variables, parameters, `Distribution` objects for priors, simulation and likelihood functions
-- **Turing.jl integration**: Direct translation to `@model` functions for MCMC sampling
-- **Distribution objects**: Elegant prior specification using `Distributions.jl` (e.g., `Uniform(1.0, 100.0)`, `Normal(2.5, 0.5)`)
-- **Likelihood patterns**: Using `~` syntax compatible with Turing.jl (e.g., `obs[i] ~ Poisson(expected_cases[i])`)
+The course uses Turing.jl for Bayesian inference:
+- **Turing.jl `@model` functions**: Define models with priors and likelihoods inline
+- **Distribution objects**: Prior specification using `Distributions.jl` (e.g., `Uniform(1.0, 100.0)`, `Normal(2.5, 0.5)`)
+- **Likelihood patterns**: Using `~` syntax (e.g., `obs[i] ~ Poisson(expected_cases[i])`)
 - **MCMC sampling**: Built-in support for NUTS, HMC, and other modern samplers
+- **Variational inference**: Fast approximate inference with `Turing.Variational`
 
 ## Common Development Commands
 
@@ -68,23 +68,17 @@ julia --project=. -e "using Pkg; Pkg.instantiate()"
 - Development dependencies include LanguageServer and Revise for interactive development
 
 ### Julia Code Structure
-- **src/FitModels.jl**: Core epidemiological modeling framework with Turing.jl integration
-  - `FitModel` struct with `Distribution` objects for priors
-  - `@model` functions for Turing.jl compatibility
-  - Functions: `log_prior()`, `log_likelihood()`, `log_posterior()`, `sample_posterior()`
-  - Visualization: `plot_trajectory()`, `plot_fit()`, `plot_posterior_predictive()`
-- **src/SampleData.jl**: Sample epidemic datasets and model loading functions
-- **qmd/**: Quarto documents demonstrating Bayesian workflows with Julia
-- **test_julia_code.jl**: Comprehensive tests including Turing.jl integration
+- **sessions/**: Quarto documents (`.qmd`) with Julia code blocks for each teaching session
+- **data/**: CSV data files (e.g., `flu_tdc_1971.csv` for Tristan da Cunha outbreak)
+- **_freeze/**: Cached execution results for Quarto rendering
 
 ### Working with Course Materials
-- **Modern Bayesian workflow**: Prior specification → MCMC sampling → Posterior analysis
-- **Elegant syntax**: Use `Distribution` objects directly (e.g., `R_0 ~ Uniform(1.0, 100.0)`)
-- **MCMC sampling**: `chain = sample_posterior(model, data, init_state, n_samples=1000)`
+- **Bayesian workflow**: Prior specification → MCMC sampling → Posterior analysis
+- **Syntax**: Use Turing's `@model` macro with `~` for priors and likelihoods
+- **MCMC sampling**: `chain = sample(model, NUTS(), n_samples)`
+- **VI sampling**: `q, stats = vi(model, q_init, n_iter)`
 - **Diagnostics**: Use `StatsPlots.jl` for trace plots, density plots, and convergence checks
-- **Posterior predictive checks**: Built-in functions for model validation
-- Course data loaded via `load_models()` and `load_epi_data()` functions
-- Use `include("../src/FitModels.jl")` to load the full Bayesian modeling framework
+- **Data**: Load with `CSV.read(datadir("filename.csv"), DataFrame)`
 
 ## Development Notes
 
