@@ -370,10 +370,10 @@ The speedup becomes even more dramatic with larger models or more samples.
 
 ## Use Full-Rank VI when:
 
-- You need fast inference but parameters are correlated
-- Real-time forecasting or operational deployment
-- "Good enough" accuracy (within 10-20% of MCMC)
-- Moderate dimensional problems (10-50 parameters)
+- Speed is essential and MCMC is too slow (real-time systems)
+- Parameters are correlated (otherwise mean-field is fine)
+- You've validated that VI and MCMC give similar results
+- "Good enough" accuracy is acceptable (within 10-20% of MCMC)
 
 # Practical workflow
 
@@ -382,9 +382,9 @@ The speedup becomes even more dramatic with larger models or more samples.
 1. Start with mean-field VI: Quick exploration, check if model runs
 2. Run MCMC on subset: Validate on small dataset or fewer iterations
 3. Compare VI and MCMC: Are they similar?
-   - If yes → use full-rank VI for production (much faster)
-   - If no → posterior is complex, stick with MCMC
-4. Periodic MCMC checks: Re-run MCMC weekly/monthly to validate VI
+   - If yes and speed is critical → VI is acceptable for operational use
+   - If time allows → use MCMC for final analysis (more reliable)
+4. For real-time systems using VI: Periodic MCMC checks to validate
 
 ## Example: Real-time epidemic forecasting
 
