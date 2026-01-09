@@ -264,7 +264,10 @@ It should be < 1.1 (ideally < 1.01):
 ```{julia}
 #| output: false
 # Run multiple chains for R̂ calculation
-chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, 4)
+# Detect available threads to avoid overwhelming CI systems
+n_chains = max(2, min(4, Threads.nthreads()))
+println("Running $n_chains chains in parallel ($(Threads.nthreads()) threads available)")
+chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, n_chains)
 ```
 
 ```{julia}
