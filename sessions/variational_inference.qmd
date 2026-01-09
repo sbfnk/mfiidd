@@ -147,7 +147,8 @@ Let's start with full MCMC to establish a baseline:
 
 ```{julia}
 println("Running MCMC with NUTS...")
-@time chain_mcmc = sample(model, NUTS(0.65), 500, progress=false)
+t_mcmc = @elapsed chain_mcmc = sample(model, NUTS(0.65), 500, progress=false)
+println("MCMC time: $(round(t_mcmc, digits=1)) seconds")
 ```
 
 ```{julia}
@@ -196,7 +197,8 @@ $$q(R_0, D_{\text{inf}}, \rho) = \mathcal{N}(\mu_1, \sigma_1^2) \times \mathcal{
 ```{julia}
 println("\nRunning Mean-Field VI...")
 q_init_mf = q_meanfield_gaussian(model)
-@time q_mf, stats_mf = vi(model, q_init_mf, 500; adtype=AutoForwardDiff(), show_progress=false)
+t_vi_mf = @elapsed (q_mf, stats_mf) = vi(model, q_init_mf, 500; adtype=AutoForwardDiff(), show_progress=false)
+println("Mean-field VI time: $(round(t_vi_mf, digits=1)) seconds")
 println("Final ELBO: ", round(stats_mf[end].elbo, digits=2))
 ```
 
@@ -260,7 +262,8 @@ This allows VI to capture correlations between parameters!
 ```{julia}
 println("\nRunning Full-Rank VI...")
 q_init_full = q_fullrank_gaussian(model)
-@time q_full, stats_full = vi(model, q_init_full, 500; adtype=AutoForwardDiff(), show_progress=false)
+t_vi_full = @elapsed (q_full, stats_full) = vi(model, q_init_full, 500; adtype=AutoForwardDiff(), show_progress=false)
+println("Full-rank VI time: $(round(t_vi_full, digits=1)) seconds")
 println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 ```
 
@@ -334,11 +337,16 @@ println("  ρ: mean = ", round(mean(vi_full_df.ρ), digits=2),
 
 ## Speed comparison
 
-Based on the timing above, we typically see:
-
-- MCMC (500 samples): 2-5 minutes
-- Mean-field VI (500 iterations): 10-30 seconds (10-20× faster)
-- Full-rank VI (500 iterations): 20-60 seconds (5-10× faster)
+```{julia}
+println("Speed comparison (from runs above):")
+println("="^50)
+println("MCMC (500 samples):      $(round(t_mcmc, digits=1)) seconds")
+println("Mean-field VI (500 iter): $(round(t_vi_mf, digits=1)) seconds")
+println("Full-rank VI (500 iter):  $(round(t_vi_full, digits=1)) seconds")
+println("="^50)
+println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
+println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
+```
 
 The speedup becomes even more dramatic with larger models or more samples.
 
@@ -372,8 +380,7 @@ The speedup becomes even more dramatic with larger models or more samples.
 
 - Speed is essential and MCMC is too slow (real-time systems)
 - Parameters are correlated (otherwise mean-field is fine)
-- You've validated that VI and MCMC give similar results
-- "Good enough" accuracy is acceptable (within 10-20% of MCMC)
+- You've validated that VI and MCMC give similar results for your problem
 
 # Practical workflow
 
@@ -388,47 +395,23 @@ The speedup becomes even more dramatic with larger models or more samples.
 
 ## Example: Real-time epidemic forecasting
 
-Let's simulate a real-time scenario where new data arrives daily. We'll compare how long it takes to update our estimates with MCMC vs VI.
+Consider a scenario where new data arrives daily during an outbreak. Using the speedups we measured above:
 
 ```{julia}
-# Simulate "streaming" data: fit with increasing amounts of data
-days_to_test = [10, 15, 20]  # Fit at day 10, 15, 20
+# Project cumulative time for 30 days of daily updates
+n_days = 30
+cumulative_mcmc = n_days * t_mcmc
+cumulative_vi = n_days * t_vi_mf
 
-mcmc_times = Float64[]
-vi_times = Float64[]
-
-for max_day in days_to_test
-    # Subset data up to this day
-    data_subset = flu_tdc[flu_tdc.time .<= max_day, :]
-    times_subset = data_subset.time
-    obs_subset = data_subset.obs
-
-    # Create model for this data subset
-    model_subset = sir_model(times_subset, init_state, obs_subset)
-
-    # Time MCMC (fewer samples for speed)
-    t_mcmc = @elapsed sample(model_subset, NUTS(0.65), 100, progress=false)
-    push!(mcmc_times, t_mcmc)
-
-    # Time VI
-    q_init = q_meanfield_gaussian(model_subset)
-    t_vi = @elapsed vi(model_subset, q_init, 200; adtype=AutoForwardDiff(), show_progress=false)
-    push!(vi_times, t_vi)
-end
-
-# Display results
-println("Real-time update comparison (seconds):")
+println("Cumulative time for $n_days daily updates:")
 println("="^50)
-println("Day\t\tMCMC (100 samples)\tVI (200 iter)")
-println("-"^50)
-for (i, day) in enumerate(days_to_test)
-    println("Day $day:\t\t$(round(mcmc_times[i], digits=1))s\t\t\t$(round(vi_times[i], digits=1))s")
-end
-println("-"^50)
-println("Speedup:\t$(round(mean(mcmc_times) / mean(vi_times), digits=1))× faster with VI")
+println("Using MCMC each day: $(round(cumulative_mcmc / 60, digits=1)) minutes")
+println("Using VI each day:   $(round(cumulative_vi / 60, digits=1)) minutes")
+println("="^50)
+println("Time saved with VI: $(round((cumulative_mcmc - cumulative_vi) / 60, digits=1)) minutes")
 ```
 
-This demonstrates the key advantage of VI: when you need to update estimates frequently (e.g., daily during an outbreak), the cumulative time savings are substantial.
+This is why VI matters for operational forecasting: when you need to update estimates frequently, the cumulative time savings are substantial.
 
 # Exercises
 
