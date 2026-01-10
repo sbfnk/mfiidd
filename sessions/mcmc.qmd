@@ -564,4 +564,11 @@ In this session, you learned:
 
 :::
 
-**Next session**: MCMC diagnostics - how to tell if your chains have converged and your results are trustworthy!
+# References
+
+- [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
+- Hoffman & Gelman (2014). [The No-U-Turn Sampler](https://jmlr.org/papers/v15/hoffman14a.html). *JMLR* 15, 1593-1623. (The NUTS algorithm)
+- Betancourt (2017). [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434). *arXiv*. (Excellent intuition for HMC/NUTS)
+- [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/stable/) - Chain analysis and diagnostics
+
+**Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd) - how to tell if your chains have converged and your results are trustworthy!

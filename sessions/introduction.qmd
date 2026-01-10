@@ -696,18 +696,16 @@ However, even the best parameters  could still yield a bad fit to the data.
 In order to check this we visualise trajectories that correspond to the best parameters (with observation noise) and plot them together with the data:
 
 ```{julia}
+# Simulate ODE once with best parameters (deterministic)
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), [best_params.R_0, best_params.D_inf])
+sol = solve(prob, saveat = epi1.time)
+I = sol[2, :]
+
+# Generate multiple realisations with Poisson observation noise
 predicted_trajectories = []
 for i in 1:10
-    # Simulate ODE manually with best parameters
-    prob = ODEProblem(sir_ode!, init_state, (t0, tend), [best_params.R_0, best_params.D_inf])
-    sol = solve(prob, saveat = epi1.time)
-
-    # Add Poisson observation noise to create realistic predictions
-    I = sol[2, :]
-    loglik = [ Poisson(It) for It in I ]
-    pred_data = rand.(loglik);
-
-    # store trajectory
+    # Only the observation noise is stochastic
+    pred_data = rand.(Poisson.(I))
     push!(predicted_trajectories, pred_data)
 end
 
@@ -811,4 +809,11 @@ In this session, you learned:
 5. **Model checking**: Using simulation to validate model assumptions
 6. **Limitations**: Why manual approaches don't scale
 
-**Next session**: We'll learn how Markov Chain Monte Carlo (MCMC) algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how Turing.jl automates everything with state-of-the-art methods.
+# References
+
+- [Distributions.jl documentation](https://juliastats.org/Distributions.jl/stable/) - Probability distributions in Julia
+- [DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/) - ODE solving in Julia
+- Gelman et al. (2013). [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/), 3rd ed. Chapman & Hall/CRC. (The classic reference)
+- McElreath (2020). [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/), 2nd ed. CRC Press. (Excellent introduction with simulation-based approach)
+
+**Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how Turing.jl automates everything with state-of-the-art methods.
