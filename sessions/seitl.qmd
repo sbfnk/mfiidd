@@ -783,6 +783,13 @@ You write the model once and use it for both purposes.
 This is the power of probabilistic programming!
 :::
 
+# References
+
+- Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002172). *PLOS Computational Biology* 7(7), e1002172. (The original SEITL model paper)
+- Mandereau & Cauchemez (1971). [Influenza epidemic on the island of Tristan da Cunha](https://pubmed.ncbi.nlm.nih.gov/4937545/). *Bulletin of the World Health Organization* 44, 493-498. (Original outbreak data)
+- [JumpProcesses.jl](https://docs.sciml.ai/JumpProcesses/stable/) - Stochastic simulation in Julia (Gillespie algorithm and more)
+- [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
+
 # Going further
 
 * Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](../Rmd/external_ref/poisson_obs.pdf) from Germán Rodríguez' [lecture notes on generalized linear models](https://grodri.github.io/glms/notes/).

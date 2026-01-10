@@ -40,6 +40,8 @@ Replace the unknown β with a **neural network** that respects constraints:
 β(t) = NeuralNetwork([I/N, t])  # Must be positive, bounded
 ```
 
+What does "replace β with a neural network" actually mean? Instead of writing `β = 0.5` (a fixed number) or even `β(t) = β₀ * (1 + sin(t))` (a parametric function we specify), we let the neural network *learn* the function from data. The network takes inputs (current prevalence, time) and outputs a transmission rate. During training, we adjust the network's internal weights so that the resulting epidemic trajectory matches observed data. The network is just a flexible function approximator - we're not assuming any particular form for how β varies, we're letting the data tell us.
+
 ## Learning objectives
 
 By the end of this session, you will:
@@ -70,7 +72,7 @@ using Plots
 using Random
 using LinearAlgebra
 using DrWatson
-using Lux  # Modern neural network framework
+using Lux  # Modern neural network framework (https://lux.csail.mit.edu/)
 using ComponentArrays
 using Optimization
 using OptimizationOptimisers
@@ -148,7 +150,7 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 
 ## Step 1: Define the neural network
 
-We'll use a **small** network - remember, we only have 60 data points!
+We'll use a small network - remember, we only have 60 data points!
 
 ```{julia}
 # Network architecture: 2 inputs → 8 hidden → 1 output
@@ -172,7 +174,17 @@ println("Data points: ", length(flu_tdc.obs))
 println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data points per parameter")
 ```
 
-**Critical**: Even with ~1.8 data points per parameter, regularization is still important to prevent overfitting!
+Let's unpack the architecture choices:
+
+- `Dense(2 => 8, tanh)`: A fully-connected layer taking 2 inputs and producing 8 outputs. The `tanh` activation function squashes values to [-1, 1], helping the network learn smooth, bounded functions. Why 8 hidden units? It's a balance: more units = more flexibility but more parameters to learn from limited data. With 60 data points, we keep the network small.
+
+- `Dense(8 => 1, softplus)`: The output layer produces a single value (β). The `softplus` activation (log(1 + exp(x))) ensures the output is always positive - essential since transmission rates can't be negative. Unlike ReLU which clips to zero, softplus is smooth everywhere, which helps gradient-based optimisation.
+
+- **Why 2 inputs?** We feed the network both prevalence (I/N) and normalised time (t/tmax). This lets β depend on both "how bad is the epidemic right now" and "what day is it" - capturing both behavioural responses to prevalence and time-dependent changes like weekends or policy changes.
+
+- **Parameter count**: The first layer has 2×8 weights + 8 biases = 24 parameters. The second has 8×1 weights + 1 bias = 9 parameters. Total: 33 parameters for 60 data points - roughly 2 data points per parameter, which is quite limited.
+
+Why does this matter? With so few data points per parameter, the network can easily memorise the training data (overfitting) rather than learning generalisable patterns. This is why regularisation is essential - it penalises complex solutions, pushing the network towards simpler β(t) curves.
 
 ## Step 2: Define UDE with learned β(t)
 
@@ -209,11 +221,9 @@ end
 Predict incidence using current UDE parameters.
 """
 function predict_ude(p_all)
-    # Solve ODE with current parameters
     prob_ude = ODEProblem(sir_ude!, u0, tspan, p_all)
     sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false)
 
-    # Extract incidence
     if sol_ude.retcode != :Success
         return fill(NaN, length(times))
     end
@@ -225,48 +235,40 @@ function predict_ude(p_all)
 end
 
 """
-Loss function using Poisson negative log-likelihood.
-
-Recall from our observation models session: choosing a likelihood is really
-choosing a distance metric! The Poisson NLL weights residuals differently than SSE:
-
-- SSE: All residuals contribute equally → dominated by peak (large counts)
-- Poisson NLL: Penalizes relative errors → small counts matter more
-
-This isn't about Poisson being "correct" - it's a pragmatic choice that forces
-the model to explain the second wave (where counts are small but nonzero).
+Loss function using Poisson negative log-likelihood with L2 regularisation.
 """
 function loss_ude(p_all, _)
     pred = predict_ude(p_all)
 
     # Poisson negative log-likelihood
-    # NLL = sum(λ - y*log(λ)) where λ = predicted, y = observed
-    # Add small ε to avoid log(0)
     ε = 1e-6
     obs = flu_tdc.obs
     nll = sum(pred .- obs .* log.(pred .+ ε))
 
-    # L2 penalty on NN weights
+    # L2 penalty on NN weights (regularisation)
     l2_penalty = 1e-4 * sum(abs2, p_all.nn_params)
 
     return nll + l2_penalty
 end
 ```
 
-**Why does the loss function matter?** As we learned in the observation models session, different likelihoods are really different distance metrics:
+The loss function has two components that deserve explanation.
 
-- **SSE**: A residual of 10 at the peak (expected ~40) counts the same as at the tail (expected ~2)
-- **Poisson NLL**: Penalizes predicting 0 when cases occur - forces the model to explain the second wave
+The first is the Poisson negative log-likelihood. As we learned in the [observation models session](observation_models.qmd), choosing a likelihood is really choosing a distance metric. Sum of squared errors (SSE) treats all residuals equally - a mismatch of 10 cases at the peak (expected ~40) counts the same as at the tail (expected ~2). Poisson NLL instead penalises *relative* errors, so predicting 0 when 5 cases occurred is heavily penalised. This forces the model to explain the second wave, where counts are small but non-zero.
 
-This isn't about Poisson being "mechanistically correct" (it's not!) - it's about choosing a distance that cares about small counts.
+The second component is L2 regularisation (also called weight decay or ridge penalty). This adds a penalty proportional to the sum of squared network weights: larger weights = higher penalty. Why does this help?
+
+- Large weights allow the network to produce rapidly-varying, complex functions
+- The penalty pushes weights towards zero, favouring simpler, smoother β(t) curves
+- With only 60 data points, without regularisation the network would memorise noise
+- The coefficient (1e-4) controls the strength: too high = β(t) becomes constant; too low = overfitting
 
 ## Step 4: Train the UDE
 
-This is where the magic happens. We use **ForwardDiff** for automatic differentiation,
-which is fast for small parameter counts like our 33-parameter network.
+Training means finding network weights that minimise the loss function. This requires computing gradients of the loss with respect to all 33 parameters - a task handled by automatic differentiation (autodiff).
 
 ```{julia}
-# Combine all parameters
+# Combine all parameters into a single object for optimisation
 p_all = ComponentArray(
     nn_params = p_nn,
     γ = γ_guess,
@@ -276,14 +278,14 @@ p_all = ComponentArray(
 println("Starting UDE training...")
 println("="^60)
 
-# Initial loss
+# Initial loss (before any training)
 println("Initial loss: ", round(loss_ude(p_all, nothing), digits=2))
 
-# Use ForwardDiff for fast automatic differentiation
+# Set up optimisation with ForwardDiff for gradient computation
 opt_func = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
 opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 
-# Adam optimizer - works well for neural network training
+# Train using Adam optimiser
 println("\nTraining with Adam optimizer (100 iterations)...")
 @time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=100,
                      callback = (state, l) -> begin
@@ -299,11 +301,13 @@ println("Final loss: ", round(result.objective, digits=2))
 p_trained = result.u
 ```
 
-**Expected behavior**:
+A few things to understand about this training process:
 
-- Loss should decrease from ~100000 to ~1000-2000
-- Training takes only a few seconds with ForwardDiff
-- The small network (33 parameters) is fast to optimize
+Automatic differentiation computes exact gradients of the loss with respect to parameters. We use [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/stable/), which works by propagating derivatives forward through computations. ForwardDiff is efficient when you have few parameters (like our 33) because its cost scales with parameter count. For networks with thousands of parameters, you'd use reverse-mode autodiff (like [Zygote.jl](https://fluxml.ai/Zygote.jl/stable/)) instead, which scales with output dimension rather than parameter count.
+
+**The Adam optimiser** is a gradient descent variant that adapts learning rates for each parameter and uses momentum to smooth updates. The learning rate (0.01) controls step size: too large and training becomes unstable; too small and convergence is slow. Adam is the workhorse of neural network training because it works well across many problems without much tuning.
+
+**What to expect**: The loss should decrease substantially (often by orders of magnitude). If it doesn't, something is wrong - perhaps the learning rate is too high (NaN errors) or too low (no progress), or the model structure can't fit the data.
 
 ## Step 5: Compare results
 
@@ -322,19 +326,30 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 
 **Key question**: Does the UDE capture the second wave? Look at the fit around days 25-35.
 
-## Step 6: Visualize learned β(t)
+## Step 6: Visualise learned β(t)
 
 The key output - what transmission pattern did the network learn?
 
 ```{julia}
-# Extract learned β(t) for representative I values
+# Create a time grid for plotting
 t_plot = range(0.0, maximum(times), length=100)
-I_representative = 50.0  # Mid-epidemic prevalence
 
+# We need to evaluate β at each time point
+# The network takes [I/N, t/tmax] as input
+# We use a representative prevalence value (mid-epidemic)
+I_representative = 50.0
+N_total = 273.0
+
+# Evaluate the network at each time point
 β_learned_over_time = [begin
-    input = [I_representative / 273.0, t / maximum(times)]
+    # Normalise inputs as the network expects
+    normalised_prevalence = I_representative / N_total
+    normalised_time = t / maximum(times)
+    input = [normalised_prevalence, normalised_time]
+
+    # Run the neural network forward
     β_val, _ = nn_architecture(input, p_trained.nn_params, st_nn)
-    β_val[1]
+    β_val[1]  # Extract scalar from 1-element array
 end for t in t_plot]
 
 # Plot with wave markers
@@ -347,28 +362,30 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-**Interpreting the learned β(t)**:
+Before interpreting this curve, look back at Step 5. How well does the UDE actually fit the data? With only 60 data points and strong regularisation, the fit may be imperfect - and that's informative! An imperfect fit tells us either that the model needs more flexibility, or (more interestingly) that the SIR structure itself can't capture the dynamics. We'll explore this in the next section.
 
-If β(t) shows a **dip followed by recovery** around days 15-25, this is consistent with:
+Interpreting the learned β(t):
 
-- **Behavioral relaxation**: Initial caution (isolation, reduced gatherings) followed by return to normal behavior
-- The model "discovered" that transmission must increase again to explain the second wave
+If β(t) shows a dip followed by recovery around days 15-25, this suggests the network learned that transmission must vary to explain both waves. This is consistent with behavioural relaxation - initial caution followed by return to normal contact patterns.
 
-If β(t) is **roughly constant**, the Poisson likelihood wasn't enough to force learning the second wave pattern - we might need:
+If β(t) is roughly constant, the network didn't find time-varying transmission useful. This might mean:
 
-- More training iterations
-- Less regularization
-- A larger network
+- The regularisation is too strong (try reducing the L2 penalty)
+- The network is too small (try more hidden units)
+- More training iterations are needed
+- Or genuinely: time-varying β isn't the right mechanism for this data
 
 # Practical Challenges
 
-## Why is this hard?
+Training UDEs is genuinely difficult, especially with limited data. Understanding why helps set realistic expectations.
 
-1. **Small dataset** (60 points) vs **many parameters** (33)
-2. **Identifiability**: Many β(t) curves could fit the data
-3. **Regularization tuning**: Finding the right penalties is an art
-4. **Initialization**: Different random seeds → different solutions
-5. **ODE stiffness**: Training can be numerically unstable
+The fundamental tension is between flexibility and data. Our network has 33 parameters and we have 60 data points - roughly 2 points per parameter. In classical statistics, you'd want at least 10-20 observations per parameter for reliable inference. With neural networks embedded in ODEs, the situation is even more constrained because the parameters interact nonlinearly through the differential equation.
+
+Identifiability is another challenge. Many different β(t) curves could produce similar epidemic trajectories. The data doesn't uniquely determine β(t) - there's a family of solutions. Regularisation helps by preferring simpler solutions, but the choice of regularisation strength is somewhat arbitrary.
+
+Initialisation matters because optimisation can get stuck in local minima. Different random seeds for the network weights lead to different solutions. Running multiple times and comparing results is good practice.
+
+Numerical stability can be problematic. The combination of ODE solving and gradient computation can produce NaN values if the optimiser takes steps that are too large, or if the ODE becomes stiff (rapidly changing dynamics requiring small time steps).
 
 ## The deeper issue: structural constraints
 
@@ -399,45 +416,31 @@ An imperfect fit isn't failure—it's the model telling us: *"I can't explain th
 
 ## Common failure modes
 
-### Overfitting
-```julia
-# If your loss is very low but predictions look crazy → overfitting
-# Solution: Increase regularization (1e-3 → 1e-2)
-```
+Overfitting occurs when the training loss becomes very low but the predictions look unrealistic - perhaps fitting noise or producing wildly oscillating β(t). The network has memorised the training data rather than learning the underlying pattern. The solution is to increase regularisation (e.g., change the L2 penalty from 1e-4 to 1e-3 or 1e-2).
 
-### Underfitting
-```julia
-# If UDE ≈ constant β → network learned nothing
-# Solution: Decrease regularization (1e-3 → 1e-4)
-#           Or increase network capacity
-```
+Underfitting is the opposite: the UDE behaves almost identically to constant β, meaning the network hasn't learned anything useful. The loss may still be high. Solutions include decreasing regularisation (1e-4 to 1e-5), increasing network capacity (more hidden units), or running more training iterations.
 
-### NaN explosion
-```julia
-# If you get NaN errors → numerical instability
-# Solution: Reduce learning rate (0.01 → 0.001)
-#           Add gradient clipping
-#           Use more robust ODE solver
-```
+NaN explosion happens when gradients become infinite, usually because the optimiser took too large a step that pushed the ODE into an unstable region. You'll see NaN values in the loss. Solutions include reducing the learning rate (0.01 to 0.001), using gradient clipping, or switching to a more robust ODE solver that handles stiff equations.
 
 ## Sensitivity to hyperparameters
 
-Let's test if our solution is robust by trying different regularization strengths.
+A robust solution shouldn't change dramatically with small changes to hyperparameters. Let's test this by varying the regularisation strength - a critical choice that trades off fitting the data (low regularisation) against preferring simple solutions (high regularisation).
 
 ```{julia}
-# Helper for Poisson NLL with varying regularization
+# Create loss functions with different regularisation strengths
 function make_loss(reg_scale)
     return function(p, _)
         pred = predict_ude(p)
         ε = 1e-6
         obs = flu_tdc.obs
         nll = sum(pred .- obs .* log.(pred .+ ε))
+        # Scale the base regularisation (1e-4) by the given factor
         l2_pen = (1e-4 * reg_scale) * sum(abs2, p.nn_params)
         return nll + l2_pen
     end
 end
 
-# Test different regularization scales
+# Test three regularisation scales: half, same, and double
 for (name, scale) in [("0.5×", 0.5), ("1.0×", 1.0), ("2.0×", 2.0)]
     println("Testing regularization scale: $name")
     loss_fn = make_loss(scale)
@@ -454,29 +457,32 @@ for (name, scale) in [("0.5×", 0.5), ("1.0×", 1.0), ("2.0×", 2.0)]
 end
 ```
 
-**Interpreting sensitivity results**:
+How to interpret these results:
 
-- If lower regularization gives much better fit → model may need more flexibility to capture the second wave
-- If results are similar across scales → solution is robust
-- If results vary wildly → model is unstable (common with 60 points!)
+If lower regularisation gives a substantially better fit, the model may need more flexibility to capture the second wave - the current regularisation might be suppressing useful complexity.
+
+If results are similar across scales, the solution is robust to this hyperparameter choice, which increases confidence in the findings.
+
+If results vary wildly (very different final losses or learned patterns), the model is sensitive to this choice - a warning sign that conclusions may not be reliable. This is common with small datasets like our 60 points.
 
 # When to use UDEs
 
+UDEs are powerful but not always appropriate. Here's guidance on when they add value.
+
 ## Use UDEs when:
 
-✅ You have **mechanistic knowledge** about structure (compartments)
-✅ But **unknown functional forms** (transmission, observation process)
-✅ You have **moderate-to-large datasets** (ideally 100s-1000s of points)
-✅ You're willing to **experiment** and **tune hyperparameters**
-✅ **Exploratory analysis** - discovering unknown mechanisms
+- You have mechanistic knowledge about structure (e.g., compartmental dynamics) but unknown functional forms (how transmission varies)
+- You have moderate-to-large datasets - ideally hundreds to thousands of data points
+- You're doing exploratory analysis to discover potential mechanisms
+- You're willing to experiment with hyperparameters and validate results carefully
 
 ## Don't use UDEs when:
 
-❌ Simple parametric models work fine (Occam's razor!)
-❌ Very small datasets (<50 points) without strong regularization
-❌ You need **interpretable** parameters for publication
-❌ Computational resources are limited (training is expensive)
-❌ Real-time inference needed (MCMC may be faster per dataset)
+- Simple parametric models fit the data adequately (prefer parsimony)
+- Your dataset is very small (under 50 points) unless you use strong regularisation
+- You need interpretable parameters for publication or policy
+- Computational resources are limited - training can be expensive
+- You need real-time inference - for a single dataset, MCMC may actually be faster
 
 # Comparison with other approaches
 
@@ -530,30 +536,45 @@ Before trusting UDE discoveries on real data, test on synthetic data where you k
 3. Compare learned β(t) to the true function
 4. If the UDE can't recover known patterns, be cautious about interpreting patterns from real data
 
+## Symbolic regression: interpretable discovery
+
+A major limitation of neural network UDEs is interpretability - you get a function that works, but you can't write down what it is. Symbolic regression addresses this by searching for *equations* rather than neural network weights.
+
+The idea: instead of learning that β(t) is "some neural network", discover that β(t) = β₀(1 + α·sin(ωt)) or β(t) = β₀·exp(-κI/N). The output is a human-readable formula that can be interpreted, published, and debated.
+
+Two main approaches exist:
+
+[SINDy (Sparse Identification of Nonlinear Dynamics)](https://www.pnas.org/doi/10.1073/pnas.1517384113) builds a library of candidate terms (polynomials, trigonometric functions, etc.) and uses sparse regression to find which terms are needed. It's fast and produces interpretable equations, but limited to the function library you define. In Julia, [DataDrivenDiffEq.jl](https://docs.sciml.ai/DataDrivenDiffEq/stable/) provides SINDy implementations.
+
+Genetic programming / symbolic regression evolves equations by combining mathematical operations, selecting those that fit well. Tools like [PySR](https://astroautomata.com/PySR/) (accessible from Julia via PythonCall) or [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) can discover surprising functional forms you wouldn't have thought to include in a library.
+
+The workflow often combines both approaches: first use a neural network UDE to confirm that a time-varying or state-dependent term improves fit, then apply symbolic regression to find an interpretable equation for that term.
+
+For policy applications, this matters. "Transmission increases when prevalence drops below 5%" is actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. Symbolic UDEs offer a path from discovery to interpretation.
+
 # Summary
 
-**What we learned about UDEs**:
+## What we learned about UDEs
 
-1. UDEs can **discover** transmission patterns consistent with data while respecting biological constraints
-2. The **loss function matters**: Poisson likelihood forces the model to explain all cases, including the second wave
-3. Small datasets (60 points) make learning challenging - regularization prevents overfitting but may also prevent discovering complex patterns
-4. Learned β(t) can suggest mechanisms (e.g., behavioral relaxation) but doesn't prove them
+UDEs can discover transmission patterns consistent with data while respecting biological constraints. The key is that we keep the known structure (SIR compartments) while learning the unknown parts (how β varies).
 
-**What we learned about the second wave**:
+The loss function matters significantly. Poisson likelihood forces the model to explain all cases including small counts in the second wave, whereas sum of squared errors would be dominated by the large first-wave peak.
 
-If the UDE learned a β(t) that increases around days 20-25:
+Small datasets make learning challenging. With 60 points, regularisation is essential to prevent overfitting - but strong regularisation may also prevent discovering genuinely complex patterns. This is an inherent trade-off.
 
-- This is consistent with **behavioral relaxation** after the first wave
-- The population may have resumed normal contact patterns
-- This is **hypothesis generation**, not proof - we'd need independent evidence
+Learned patterns suggest mechanisms but don't prove them. If β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation, but we'd need independent evidence to confirm this interpretation.
 
-**Key insight**: UDEs are tools for **discovery under constraints**. They work best when:
+## What we learned about the second wave
 
-- You have mechanistic knowledge to constrain the model
-- You use appropriate likelihoods (Poisson for counts)
-- You interpret results as hypotheses, not conclusions
+If the UDE learned a β(t) that dips then recovers, this suggests the population may have initially reduced contact (caution during the first wave) then resumed normal patterns. But this is hypothesis generation, not proof.
 
-**For the Tristan da Cunha data**: The two-wave pattern remains partially mysterious. A UDE with Poisson likelihood may suggest behavioral mechanisms, but with 60 points, conclusions are tentative. This is exactly the kind of exploratory analysis UDEs are designed for!
+An imperfect fit is itself informative - it may indicate that time-varying β within an SIR framework isn't sufficient, and we might need different model structure (SEIR, age structure, etc.) to fully explain the dynamics.
+
+## The bottom line
+
+UDEs are tools for discovery under constraints. They work best when you have mechanistic knowledge to constrain the model, use appropriate likelihoods, and interpret results as hypotheses rather than conclusions.
+
+For the Tristan da Cunha data with just 60 points, conclusions are necessarily tentative. This is exactly the kind of exploratory analysis UDEs are designed for - generating hypotheses about mechanisms that can then be tested with additional data or independent evidence.
 
 # Next steps
 
@@ -567,8 +588,9 @@ The best modelers know **all** the tools and choose wisely!
 
 # References
 
-- Rackauckas et al. (2020). "Universal Differential Equations for Scientific Machine Learning." arXiv:2001.04385
-- Dandekar et al. (2020). "Neural ODE vs Conventional ODE in COVID-19 Forecasting." NeurIPS Workshop
-- Rackauckas et al. (2021). "Generalized Physics-Informed Learning Through Language-Wide Differentiable Programming."
-- DiffEqFlux.jl documentation: https://docs.sciml.ai/DiffEqFlux/
-- SciML tutorials: https://docs.sciml.ai/Overview/stable/showcase/missing_physics/
+- Rackauckas et al. (2020). [Universal Differential Equations for Scientific Machine Learning](https://arxiv.org/abs/2001.04385). *arXiv:2001.04385*
+- Brunton et al. (2016). [Discovering governing equations from data by sparse identification of nonlinear dynamical systems](https://www.pnas.org/doi/10.1073/pnas.1517384113). *PNAS* 113(15), 3932-3937. (The original SINDy paper)
+- Cranmer et al. (2020). [Discovering Symbolic Models from Deep Learning with Inductive Biases](https://arxiv.org/abs/2006.11287). *NeurIPS*. (Symbolic regression from neural networks)
+- [DiffEqFlux.jl documentation](https://docs.sciml.ai/DiffEqFlux/stable/) - Neural ODEs and UDEs in Julia
+- [SciML tutorials on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) - Learning unknown terms in differential equations
+- [Lux.jl documentation](https://lux.csail.mit.edu/) - Modern neural network framework used in this session
