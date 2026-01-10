@@ -273,7 +273,7 @@ chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, n_chains)
 ```{julia}
 # Check what each individual chain found
 println("Individual chain summaries:")
-for i in 1:4
+for i in 1:n_chains
     chain_i = chain_multi[:, :, i]
     r0_mean = mean(chain_i[:R_0])
     dinf_mean = mean(chain_i[:D_inf])
