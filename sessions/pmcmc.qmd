@@ -459,7 +459,8 @@ Turing.jl supports this through the `SMC` sampler.
 
 # References
 
-- A [recent review](https://arxiv.org/abs/1703.02419) by Schön et al.
-- A [comprehensive textbook](https://www.springer.com/gb/book/9780387951461) by Doucet et al.
-- Another [review](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.117.1144) by Arulampalam et al.
-- [Turing.jl documentation](https://turinglang.org/dev/docs/using-turing/quick-start) for probabilistic programming in Julia
+- Andrieu et al. (2010). [Particle Markov chain Monte Carlo methods](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x). *JRSS B* 72(3), 269-342. (The original PMCMC paper)
+- Schön et al. (2018). [Probabilistic learning of nonlinear dynamical systems](https://arxiv.org/abs/1703.02419). *Annual Review of Control* 47, 393-404.
+- Doucet et al. (2001). [Sequential Monte Carlo Methods in Practice](https://www.springer.com/gp/book/9780387951461). Springer. (Comprehensive textbook)
+- Arulampalam et al. (2002). [A tutorial on particle filters](https://ieeexplore.ieee.org/document/978374). *IEEE Trans. Signal Processing* 50(2), 174-188.
+- [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia

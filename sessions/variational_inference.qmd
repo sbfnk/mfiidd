@@ -167,32 +167,42 @@ Note the time: MCMC takes several minutes (varies by hardware).
 
 ## What is variational inference?
 
-Instead of sampling from the true posterior $p(\theta | \text{data})$, VI finds a simpler approximation $q(\theta)$ that's "close" to the true posterior.
+MCMC works by drawing samples from the posterior distribution. This gives us exact results (in the limit), but requires many sequential steps as the sampler explores parameter space.
 
-The key idea is to turn inference into an optimisation problem:
+Variational inference takes a completely different approach: instead of sampling from the true posterior $p(\theta | \text{data})$, VI finds a simpler approximation $q(\theta)$ that's "close" to the true posterior.
 
-1. Choose a family of simple distributions $q(\theta)$ (e.g., Gaussian)
-2. Find the $q$ that minimises distance to true posterior
-3. Use gradient descent instead of MCMC sampling
+The key idea is to turn inference into an **optimisation problem**:
+
+1. **Choose a family** of simple distributions $q(\theta)$ (e.g., Gaussians)
+2. **Optimise parameters** of $q$ to make it as close as possible to the true posterior
+3. **Use gradient descent** instead of MCMC sampling
+
+Why is this faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence (which can take many thousands of iterations).
 
 ## The ELBO objective
 
-VI maximises the Evidence Lower Bound (ELBO):
+How do we measure "closeness" between $q(\theta)$ and the true posterior? VI uses the Kullback-Leibler (KL) divergence, which measures how much information is lost when we use $q$ to approximate the true posterior.
+
+Directly minimising KL divergence is intractable (we can't compute the true posterior!), but we can instead maximise an equivalent quantity called the **Evidence Lower Bound (ELBO)**:
 
 $$\text{ELBO}(q) = \mathbb{E}_{q}[\log p(\text{data}, \theta)] - \mathbb{E}_{q}[\log q(\theta)]$$
 
-This is equivalent to minimising KL divergence: $\text{KL}(q || p)$
+The first term rewards $q$ for placing probability mass where the joint distribution $p(\text{data}, \theta)$ is high. The second term (entropy of $q$) prevents $q$ from collapsing to a point estimate. Together, they push $q$ to approximate the posterior well.
+
+Maximising ELBO is equivalent to minimising $\text{KL}(q || p)$, and importantly, we can estimate the ELBO using samples from $q$ - no need to evaluate the intractable posterior directly.
 
 ## Mean-field approximation
 
-The simplest VI assumes parameters are independent:
+The simplest VI uses a **mean-field** approximation, which assumes all parameters are independent:
 
 $$q(\theta) = q(\theta_1) \times q(\theta_2) \times \cdots \times q(\theta_n)$$
 
-For our SIR model:
+For our SIR model with three parameters:
 $$q(R_0, D_{\text{inf}}, \rho) = \mathcal{N}(\mu_1, \sigma_1^2) \times \mathcal{N}(\mu_2, \sigma_2^2) \times \mathcal{N}(\mu_3, \sigma_3^2)$$
 
-(After transforming to unconstrained space)
+This factorisation means we only need to learn 6 numbers (3 means + 3 variances) instead of the full joint distribution. The optimisation becomes tractable, but we lose the ability to capture correlations between parameters.
+
+Note: The actual optimisation happens in unconstrained space (using log transforms for positive parameters, logit for bounded parameters), then samples are transformed back.
 
 ```{julia}
 println("\nRunning Mean-Field VI...")
@@ -233,7 +243,15 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often correlated!
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often **negatively correlated** in the posterior!
+
+Why does this correlation arise? Consider the SIR model dynamics:
+
+- The **transmission rate** $\beta = R_0 / D_{\text{inf}}$ determines how fast susceptibles become infected
+- If we increase $R_0$ while keeping $\beta$ roughly constant (to match observed epidemic speed), we must also increase $D_{\text{inf}}$
+- Conversely, a shorter infectious period requires a higher $R_0$ to produce the same transmission rate
+
+In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space - exactly the kind of correlation mean-field VI cannot capture.
 
 ```{julia}
 # Check correlation in MCMC samples
@@ -245,19 +263,30 @@ println("VI mean-field correlation (R_0, D_inf): ",
         round(cor(vi_mf_df.R_0, vi_mf_df.D_inf), digits=3))
 ```
 
-The problem: mean-field can't capture parameter correlations!
+The mean-field approximation forces this correlation to zero, which can lead to:
+
+- **Overconfident marginals**: Each parameter appears more certain than it really is
+- **Implausible joint samples**: Combinations that the true posterior considers unlikely
+- **Poor predictive performance**: Forward simulations may not match observed data well
 
 # Approach 2: Full-Rank Gaussian VI
 
 ## Capturing correlations
 
-Instead of diagonal covariance, use a full covariance matrix:
+The solution to the independence problem is to use a **full covariance matrix** instead of a diagonal one:
 
 $$q(\theta) = \mathcal{N}(\mu, \Sigma)$$
 
-where $\Sigma$ is a full covariance matrix.
+where $\Sigma$ is a full $n \times n$ covariance matrix (not just diagonal elements).
 
-This allows VI to capture correlations between parameters!
+For our 3-parameter model, this means:
+
+- **Mean-field**: 6 parameters (3 means + 3 variances)
+- **Full-rank**: 9 parameters (3 means + 6 unique covariance entries, since $\Sigma$ is symmetric)
+
+The additional parameters allow the approximation to capture correlations. The elliptical contours of a full Gaussian can be tilted and stretched to match the ridge-like structure of the true posterior.
+
+The trade-off: more parameters means more to optimise, so full-rank VI is slower than mean-field (though still much faster than MCMC). For high-dimensional problems, the covariance matrix grows as $O(n^2)$, which can become prohibitive - in those cases, low-rank approximations or structured covariances are used.
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
@@ -277,12 +306,12 @@ vi_full_df = DataFrame(
     ρ = samples_vi_full[3, :]
 )
 
-# Check correlation
+# Check correlation - should now be closer to MCMC
 println("VI full-rank correlation (R_0, D_inf): ",
         round(cor(vi_full_df.R_0, vi_full_df.D_inf), digits=3))
 ```
 
-Now VI captures parameter correlations.
+The full-rank approximation now captures the negative correlation between $R_0$ and $D_{\text{inf}}$, giving a much better approximation to the true posterior.
 
 ```{julia}
 # Scatter plot comparison
@@ -393,25 +422,19 @@ The speedup becomes even more dramatic with larger models or more samples.
    - If time allows → use MCMC for final analysis (more reliable)
 4. For real-time systems using VI: Periodic MCMC checks to validate
 
-## Example: Real-time epidemic forecasting
+## Why speed matters in practice
 
-Consider a scenario where new data arrives daily during an outbreak. Using the speedups we measured above:
+The speed comparisons above might seem academic for a single analysis - who cares if inference takes 30 seconds vs 5 minutes? But the difference becomes critical in operational settings:
 
-```{julia}
-# Project cumulative time for 30 days of daily updates
-n_days = 30
-cumulative_mcmc = n_days * t_mcmc
-cumulative_vi = n_days * t_vi_mf
+**Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. If each MCMC run takes 5 minutes, you can afford to wait. But if you're fitting models for 100 different regions, that's over 8 hours of compute time per update cycle. With VI, the same analysis might take under an hour.
 
-println("Cumulative time for $n_days daily updates:")
-println("="^50)
-println("Using MCMC each day: $(round(cumulative_mcmc / 60, digits=1)) minutes")
-println("Using VI each day:   $(round(cumulative_vi / 60, digits=1)) minutes")
-println("="^50)
-println("Time saved with VI: $(round((cumulative_mcmc - cumulative_vi) / 60, digits=1)) minutes")
-```
+**Model development and debugging**: When developing a new model, you'll run inference hundreds of times as you iterate on the specification, fix bugs, and tune priors. Fast iteration cycles (seconds vs minutes) dramatically accelerate development.
 
-This is why VI matters for operational forecasting: when you need to update estimates frequently, the cumulative time savings are substantial.
+**Sensitivity analyses**: Checking how results change with different priors, data subsets, or model variants requires many inference runs. VI makes comprehensive sensitivity analysis practical.
+
+**Ensemble forecasting**: Combining predictions from multiple models improves forecast accuracy. With VI, you can feasibly run 10-50 model variants; with MCMC, you might be limited to 2-3.
+
+The practical recommendation: validate VI against MCMC once (to ensure they give similar results for your problem), then use VI for operational workflows where speed matters.
 
 # Summary
 
@@ -446,10 +469,10 @@ $$z_0 \sim \mathcal{N}(0, I) \rightarrow z_1 = f_1(z_0) \rightarrow \cdots \righ
 
 Each $f_k$ is an invertible function (often a neural network layer), allowing flows to approximate complex, non-Gaussian posteriors.
 
-Turing's `Bijectors.jl` provides building blocks (PlanarLayer, RadialLayer, Coupling layers), but implementation is more involved than Gaussian VI. For production use, consider:
+[Bijectors.jl](https://turinglang.org/Bijectors.jl/stable/) provides building blocks (PlanarLayer, RadialLayer, Coupling layers), but implementation is more involved than Gaussian VI. For production use, consider:
 
-- DiffEqFlux.jl: Continuous normalising flows (FFJORD)
-- Python's `sbi` package via PythonCall.jl: Mature neural flow implementations
+- [DiffEqFlux.jl](https://docs.sciml.ai/DiffEqFlux/stable/): Continuous normalising flows (FFJORD)
+- Python's [sbi package](https://sbi-dev.github.io/sbi/) via PythonCall.jl: Mature neural flow implementations
 
 ## Amortised inference
 
@@ -461,7 +484,9 @@ When analysing many similar datasets, you can train a neural network to directly
 
 # References
 
-- Kucukelbir et al. (2017). "Automatic Differentiation Variational Inference." *JMLR* 18(14), 1-45.
-- Blei et al. (2017). "Variational Inference: A Review for Statisticians." *JASA* 112(518), 859-877.
-- Rezende & Mohamed (2015). "Variational Inference with Normalizing Flows." *ICML*.
-- Zhang et al. (2019). "Advances in Variational Inference." *TPAMI* 41(8), 2008-2026.
+- Kucukelbir et al. (2017). [Automatic Differentiation Variational Inference](https://jmlr.org/papers/v18/16-107.html). *JMLR* 18(14), 1-45.
+- Blei et al. (2017). [Variational Inference: A Review for Statisticians](https://arxiv.org/abs/1601.00670). *JASA* 112(518), 859-877. (Excellent introduction to VI)
+- Rezende & Mohamed (2015). [Variational Inference with Normalizing Flows](https://arxiv.org/abs/1505.05770). *ICML*.
+- Zhang et al. (2019). [Advances in Variational Inference](https://arxiv.org/abs/1711.05597). *TPAMI* 41(8), 2008-2026.
+- [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
+- [AdvancedVI.jl](https://turinglang.org/AdvancedVI.jl/stable/) - Variational inference algorithms for Turing

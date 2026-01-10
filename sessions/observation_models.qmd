@@ -728,9 +728,9 @@ For ABC with outliers or model misspecification, consider robust distances:
 
 # References
 
-- Wood, S.N. (2010). Statistical inference for noisy nonlinear ecological dynamic systems. *Nature* 466, 1102-1104.
-- Marin, J.-M. et al. (2012). Approximate Bayesian computational methods. *Statistics and Computing* 22, 1167-1180.
-- Cranmer, K. et al. (2020). The frontier of simulation-based inference. *PNAS* 117(48), 30055-30062.
+- Wood, S.N. (2010). [Statistical inference for noisy nonlinear ecological dynamic systems](https://www.nature.com/articles/nature09319). *Nature* 466, 1102-1104. (Synthetic likelihood approach)
+- Marin, J.-M. et al. (2012). [Approximate Bayesian computational methods](https://link.springer.com/article/10.1007/s11222-011-9288-2). *Statistics and Computing* 22, 1167-1180.
+- Cranmer, K. et al. (2020). [The frontier of simulation-based inference](https://www.pnas.org/doi/10.1073/pnas.1912789117). *PNAS* 117(48), 30055-30062. (Comprehensive review of modern likelihood-free methods)
 
 # Next session
 
