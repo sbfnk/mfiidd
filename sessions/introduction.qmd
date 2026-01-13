@@ -235,19 +235,21 @@ plot(p1, p2, layout = (1,2))
 ::: {.callout-note title="Coming from R?" collapse="true"}
 You might be familiar with different functions for calculating probability densities (e.g., `dnorm()`) or generate random numbers (e.g. `rnorm()`) for generating random numbers for given probability distributions.
 In Julia we can use the interface provided by [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) to define the probability distribution and then calculate probability densities or generate random variates:
+
 ```julia
 ## define normal distribution with mean 3 and standard deviation 0.1
 dist = Normal(3, 0.1)
 ## generate 10 random numbers from this distribution
-Rand(dist, 10)
-## calculate the (logged) probability distribution at x = 2
-logdpf(dist, 2)
+rand(dist, 10)
+## calculate the (logged) probability density at x = 2
+logpdf(dist, 2)
 ```
 
-The equivalent R code would be
+The equivalent R code would be:
+
 ```{r eval = FALSE}
 rnorm(10, 3, 0.1)
-dnorm(2, 3, 0.1)
+dnorm(2, 3, 0.1, log = TRUE)
 ```
 :::
 
@@ -563,11 +565,13 @@ scatter!(
 
 ::: {.callout-note title="Coming from R?" collapse="true"}
 In R, you would calculate Poisson log-likelihood as:
+
 ```{r eval = FALSE}
 log_lik <- dpois(observed, lambda = expected, log=TRUE)
 ```
 
 In Julia instead we have used with Distribution objects:
+
 ```julia
 obs_dist = Poisson(expected)
 logpdf(obs_dist, observed)
