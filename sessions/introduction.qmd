@@ -416,7 +416,7 @@ end
 ::: {.callout-tip title="Learning points"}
 
 - For **uniform priors**, all parameter values within the valid range have the same log-density
-- For **informed priors**, values closer to our beliefs (R_0≈2.5, D_inf≈2) have higher densities
+- For **informed priors**, values closer to our beliefs (here, R_0≈2.5, D_inf≈2) have higher densities
 - The informed prior "penalises" parameter values that are far from our expectations
 
 :::
