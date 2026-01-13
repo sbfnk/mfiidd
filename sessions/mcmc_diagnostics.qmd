@@ -657,4 +657,4 @@ Diagnostics aren't optional - they're essential for trustworthy Bayesian analysi
 - [MCMCChains.jl documentation](https://turinglang.org/MCMCChains.jl/stable/) - Chain diagnostics in Julia
 - [ArviZ](https://arviz-devs.github.io/arviz/) - Exploratory analysis of Bayesian models (Python, with Julia bindings via ArviZ.jl)
 
-**Next steps**: With reliable MCMC diagnostics in hand, you're ready to tackle more complex models and real-world Bayesian analyses
+**Next session**: With reliable MCMC diagnostics in hand, you're ready to tackle more complex models. In [Modelling interlude: Tristan da Cunha & SEITL](seitl.qmd), we'll introduce a real dataset and more realistic epidemic models that we'll use throughout the rest of the course.
