@@ -16,7 +16,7 @@ For a single dataset with a simple model, MCMC takes minutes to hours. But what 
 - High-dimensional models: Age-stratified models with 50+ parameters
 - Rapid prototyping: Quickly explore many model variants
 
-This is where variational inference (VI) comes in. VI trades some accuracy for dramatic speed improvements - often 10-100× faster than MCMC.
+This is where variational inference (VI) comes in. VI trades some accuracy for speed improvements - the gains depend on problem complexity, from modest speedups for simple models to orders of magnitude for large neural networks or models with many latent variables.
 
 ## Learning objectives
 
@@ -460,7 +460,7 @@ The practical recommendation: validate VI against MCMC once (to ensure they give
 
 In this session, we learned:
 
-1. **Variational inference** trades accuracy for speed (10-100× faster than MCMC)
+1. **Variational inference** trades accuracy for speed (gains scale with problem complexity)
 2. **Mean-field VI** assumes independence - fast but can miss correlations
 3. **Full-rank VI** captures correlations - good balance for most applications
 4. **Practical workflow**: Start with VI for exploration, validate with MCMC
