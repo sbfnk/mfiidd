@@ -758,7 +758,16 @@ plot!(p)
 
 Can you notice any differences? If so, which model seems to provide the best fit? Do you understand why the shape of the epidemic changes when you use the Erlang distribution for the $T$ compartment?
 
-In the next session, you will verify your intuition by using a statistical criterion to find which model fits the best the Tristan da Cunha outbreak.
+::: {.callout-note title="Model comparison: a preview"}
+We now have multiple mechanistic models that could explain the two-wave pattern:
+
+- **SEITL**: Exponential duration in T compartment (memoryless)
+- **SEIT4L**: Erlang-4 duration in T compartment (more realistic timing)
+
+Both encode the same biological hypothesis (temporary immunity followed by potential reinfection), but make different assumptions about the *distribution* of time spent in temporary immunity. The original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper compared these and other variants using information criteria (DIC) and found that SEIT4L provided a better fit.
+
+In the [next session on Particle MCMC](pmcmc.qmd), we'll fit both models to data and formally compare them using cross-validation.
+:::
 
 ::: {.callout-note}
 ## From simulation to inference: the unified Turing approach
@@ -787,15 +796,25 @@ end
 
 This unified structure enables both:
 - **Simulation** (this session): Call `rand(my_model(times, init_state, missing))` to sample from the prior predictive distribution
-- **Inference** (next session): Call `sample(my_model(times, init_state, data), PG(50), 1000)` to fit parameters to data using particle MCMC
+- **Inference** ([next session](pmcmc.qmd)): Call `sample(my_model(times, init_state, data), PG(50), 1000)` to fit parameters to data using particle MCMC
 
 You write the model once and use it for both purposes.
 This is the power of probabilistic programming!
 :::
 
+::: {.callout-tip title="Learning points"}
+
+- **Deterministic models** are fast but ignore individual-level randomness
+- **Stochastic models** capture demographic stochasticity, important for small populations
+- **Erlang distributions** provide more realistic compartment durations than exponential
+- **Same parameters, different dynamics**: stochastic models show variability even with fixed parameters
+- **Unified Turing models** work for both simulation and inference
+
+:::
+
 # References
 
-- Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002172). *PLOS Computational Biology* 7(7), e1002172. (The original SEITL model paper)
+- Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks: the role of the immune response](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381). *Proc. R. Soc. B* 278(1725), 3635-3643. (The original SEITL model paper - highly recommended!)
 - Mandereau & Cauchemez (1971). [Influenza epidemic on the island of Tristan da Cunha](https://pubmed.ncbi.nlm.nih.gov/4937545/). *Bulletin of the World Health Organization* 44, 493-498. (Original outbreak data)
 - [JumpProcesses.jl](https://docs.sciml.ai/JumpProcesses/stable/) - Stochastic simulation in Julia (Gillespie algorithm and more)
 - [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
