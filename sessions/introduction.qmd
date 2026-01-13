@@ -232,8 +232,7 @@ p2 = histogram(
 plot(p1, p2, layout = (1,2))
 ```
 
-::: {.callout-note collapse = "true"}
-### Coming from R?
+::: {.callout-note title="Coming from R?" collapse="true"}
 You might be familiar with different functions for calculating probability densities (e.g., `dnorm()`) or generate random numbers (e.g. `rnorm()`) for generating random numbers for given probability distributions.
 In Julia we can use the interface provided by [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) to define the probability distribution and then calculate probability densities or generate random variates:
 ```julia
@@ -562,7 +561,7 @@ scatter!(
 
 **Key insight**: The likelihood is highest when our model prediction matches the observation closely.
 
-::: {.callout-note title="Coming from R?" collapse = TRUE}
+::: {.callout-note title="Coming from R?" collapse="true"}
 In R, you would calculate Poisson log-likelihood as:
 ```{r eval = FALSE}
 log_lik <- dpois(observed, lambda = expected, log=TRUE)
