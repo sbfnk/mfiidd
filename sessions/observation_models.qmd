@@ -311,17 +311,18 @@ plot!(predicted_range, gaussian_distance,
       label="Gaussian(σ=3)", linewidth=2, linestyle=:dash)
 ```
 
-**Observation**: Different likelihoods are just different ways of measuring distance!
+What this reveals is that **different likelihoods are just different ways of measuring distance!**
 
 - Poisson: Penalizes deviations inversely proportional to predicted value
 - Negative Binomial: Similar but allows more flexibility (overdispersion)
 - Gaussian: Constant penalty regardless of scale
 
-# Approach 3: Approximate Bayesian Computation (Explicit Distance)
+# Approach 3: Approximate Bayesian Computation
 
 ## ABC: Making the distance explicit
 
 Instead of choosing a parametric likelihood, ABC directly chooses:
+
 1. **Summary statistics**: What features of the data matter?
 2. **Distance metric**: How do we measure similarity?
 3. **Threshold**: How close is "close enough"?
@@ -454,11 +455,19 @@ println("  L2: ", round(distance_L2(test_sim, observed_data), digits=2))
 println("  Weighted: ", round(distance_weighted(test_sim, observed_data), digits=2))
 ```
 
-Choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood.
+Notice that choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood.
 
 ## ABC-SMC: Sequential Monte Carlo ABC
 
-The rejection sampler is inefficient. ABC-SMC is 20-50× more efficient:
+The rejection sampler above is inefficient - most samples from the prior are rejected, wasting computation. ABC-SMC (Sequential Monte Carlo ABC) dramatically improves efficiency by gradually tightening the acceptance threshold across multiple generations.
+
+The key idea, introduced by [Toni et al. (2009)](https://pmc.ncbi.nlm.nih.gov/articles/PMC2658655/), is:
+
+1. **Start permissive**: Begin with a loose threshold that accepts many samples
+2. **Gradually tighten**: Reduce the threshold across generations
+3. **Reuse good samples**: Instead of sampling from the prior each time, perturb samples that passed the previous threshold
+
+This is much more efficient because particles that are already "close" to the data are refined, rather than searching blindly from the prior each time. Typical speedups are 20-50× compared to rejection sampling.
 
 ```{julia}
 """
@@ -546,9 +555,70 @@ abc_smc_df = DataFrame(
 )
 ```
 
-**Note**: This is a simplified ABC-SMC. Production implementations (like ApproxBayes.jl or GpABC.jl) have adaptive thresholds, better perturbation kernels, and importance weighting.
+**Note**: This is a simplified ABC-SMC. Production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) have adaptive thresholds, better perturbation kernels, and importance weighting.
 
-# Comparison: What's really different?
+## Comparing rejection ABC and ABC-SMC
+
+Let's see how the two approaches compare on our problem:
+
+```{julia}
+# Compare efficiency: how many simulations were needed?
+println("Comparison: Rejection ABC vs ABC-SMC")
+println("="^50)
+
+# Rejection ABC stats (from earlier run)
+rejection_samples = length(abc_samples)
+rejection_acceptance = rejection_samples / (rejection_samples * 1000 / 100)  # Rough estimate
+
+# ABC-SMC: n_particles × n_generations simulations (plus rejections within each)
+smc_generations = length(thresholds)
+smc_particles = 100
+
+println("Rejection ABC:")
+println("  Samples obtained: $rejection_samples")
+println("  Threshold used: 300.0")
+
+println("\nABC-SMC:")
+println("  Samples obtained: $(length(abc_smc_samples))")
+println("  Final threshold: $(thresholds[end])")
+println("  Generations: $smc_generations")
+```
+
+```{julia}
+# Compare posterior quality
+println("\nPosterior summaries:")
+println("="^50)
+
+println("Rejection ABC (threshold=300):")
+println("  R_0:   mean=$(round(mean(abc_df.R_0), digits=2)), std=$(round(std(abc_df.R_0), digits=2))")
+println("  D_inf: mean=$(round(mean(abc_df.D_inf), digits=2)), std=$(round(std(abc_df.D_inf), digits=2))")
+
+println("\nABC-SMC (final threshold=250):")
+println("  R_0:   mean=$(round(mean(abc_smc_df.R_0), digits=2)), std=$(round(std(abc_smc_df.R_0), digits=2))")
+println("  D_inf: mean=$(round(mean(abc_smc_df.D_inf), digits=2)), std=$(round(std(abc_smc_df.D_inf), digits=2))")
+```
+
+```{julia}
+# Visual comparison
+p1 = histogram(abc_df.R_0, bins=20, alpha=0.6, normalize=:pdf,
+               label="Rejection (ε=300)", xlabel="R_0", ylabel="Density")
+histogram!(p1, abc_smc_df.R_0, bins=20, alpha=0.6, normalize=:pdf,
+           label="ABC-SMC (ε=250)")
+
+p2 = histogram(abc_df.D_inf, bins=20, alpha=0.6, normalize=:pdf,
+               label="Rejection (ε=300)", xlabel="D_inf", ylabel="Density")
+histogram!(p2, abc_smc_df.D_inf, bins=20, alpha=0.6, normalize=:pdf,
+           label="ABC-SMC (ε=250)")
+
+plot(p1, p2, layout=(1, 2), size=(900, 400),
+     title=["R_0: Rejection vs SMC" "D_inf: Rejection vs SMC"])
+```
+
+We see that ABC-SMC achieves a tighter threshold (250 vs 300) with fewer wasted simulations. The resulting posteriors are more concentrated - ABC-SMC has effectively "zoomed in" on the high-probability region. This efficiency gain becomes even more pronounced in higher dimensions, where rejection sampling becomes impractical.
+
+# The big picture: Likelihood vs ABC
+
+Now let's step back and compare all our approaches - parametric likelihoods and ABC methods - to see what's fundamentally different (and what's surprisingly similar).
 
 ## Summary of approaches
 
@@ -638,7 +708,7 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
       title="Effect of Outliers on Observation Data")
 ```
 
-**Exercise for students**: Fit both datasets with Poisson and ABC. Which is more robust to the outlier?
+**Exercise for students**: Fit both datasets using (1) MCMC with Poisson likelihood and (2) ABC with L1 distance. Which approach is more robust to the outlier? Why might that be?
 
 # The philosophical question
 
@@ -699,6 +769,14 @@ This philosophical foundation prepares us for modern inference methods:
 
 In all cases, we're making pragmatic choices about how to connect models to data. Being explicit about these choices makes us better scientists!
 
+::: {.callout-tip title="Learning points"}
+- **Parametric likelihoods are pragmatic choices**, not mechanistic truths - we choose Poisson or Negative Binomial for convenience, not because they represent reality
+- **Negative log-likelihood is a distance function** - choosing an observation model is choosing how to measure the fit between predictions and data
+- **ABC makes distance explicit** - but choosing L1 vs L2 vs weighted distances is conceptually similar to choosing a likelihood
+- **Sensitivity analysis** is essential - if conclusions change with different observation models, that reveals which data features drive inference
+- **Flexibility vs computation**: parametric likelihoods are fast (MCMC), ABC is slow but general-purpose
+:::
+
 # Going further
 
 ## Summary statistics for ABC
@@ -733,14 +811,14 @@ For ABC with outliers or model misspecification, consider robust distances:
 
 # References
 
+- Toni, T. et al. (2009). [Approximate Bayesian computation scheme for parameter inference and model selection in dynamical systems](https://pmc.ncbi.nlm.nih.gov/articles/PMC2658655/). *J. R. Soc. Interface* 6(31), 187-202. (The ABC-SMC paper - highly readable introduction)
 - Wood, S.N. (2010). [Statistical inference for noisy nonlinear ecological dynamic systems](https://www.nature.com/articles/nature09319). *Nature* 466, 1102-1104. (Synthetic likelihood approach)
 - Marin, J.-M. et al. (2012). [Approximate Bayesian computational methods](https://link.springer.com/article/10.1007/s11222-011-9288-2). *Statistics and Computing* 22, 1167-1180.
 - Cranmer, K. et al. (2020). [The frontier of simulation-based inference](https://www.pnas.org/doi/10.1073/pnas.1912789117). *PNAS* 117(48), 30055-30062. (Comprehensive review of modern likelihood-free methods)
 
-# Next session
+# Next sessions
 
 Now that we understand the connection between likelihoods and distances, we're ready to explore truly modern methods that go beyond both traditional likelihoods and simple ABC:
 
-- Universal Differential Equations: Learning unknown mechanisms
-- Variational Inference: Fast approximate posteriors
-- Neural density estimation: Likelihood-free with neural networks
+- [Variational Inference](variational_inference.qmd): Fast approximate posteriors
+- [Universal Differential Equations](universal_differential_equations.qmd): Learning unknown mechanisms
