@@ -247,7 +247,7 @@ logpdf(dist, 2)
 
 The equivalent R code would be:
 
-```{r eval = FALSE}
+```r
 rnorm(10, 3, 0.1)
 dnorm(2, 3, 0.1, log = TRUE)
 ```
@@ -566,7 +566,7 @@ scatter!(
 ::: {.callout-note title="Coming from R?" collapse="true"}
 In R, you would calculate Poisson log-likelihood as:
 
-```{r eval = FALSE}
+```r
 log_lik <- dpois(observed, lambda = expected, log=TRUE)
 ```
 
