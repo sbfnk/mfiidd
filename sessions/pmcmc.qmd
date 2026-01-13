@@ -271,7 +271,7 @@ chain_pmcmc = sample(model_pmcmc, PG(20), 1000)
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code explained
+## Code explainer
 - [`PG(n_particles)`](https://github.com/TuringLang/AdvancedPS.jl) - Particle Gibbs sampler from `AdvancedPS.jl`. Uses `n_particles` parallel particles to estimate the likelihood at each MCMC iteration. More particles give more accurate estimates but cost more computation. Typical values: 20-50 for exploration, 50-100 for production.
 :::
 
