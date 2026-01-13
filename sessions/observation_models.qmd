@@ -273,7 +273,7 @@ end
 
 # Interlude: Likelihood as Distance
 
-## The key insight
+## Likelihood as distance
 
 The negative log-likelihood is actually a **distance function** between observed and predicted data!
 
@@ -454,7 +454,7 @@ println("  L2: ", round(distance_L2(test_sim, observed_data), digits=2))
 println("  Weighted: ", round(distance_weighted(test_sim, observed_data), digits=2))
 ```
 
-**Key insight**: Choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood!
+Choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood.
 
 ## ABC-SMC: Sequential Monte Carlo ABC
 
