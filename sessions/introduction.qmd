@@ -287,6 +287,8 @@ The `plot()` commands now contain an argument `idxs`, which allows us to choose 
 This uses the [plot recipe for differential equations](https://docs.sciml.ai/DiffEqDocs/stable/basics/plot).
 Index 0 corresponds to the time variable, and any indices >0 to the variables of the differential equations.
 In our case, we specify `0, 2`, that is we plot time (on the x axis) against the second variable, I (on the y axis).
+
+Note the use of `plot!` (with `!`) which adds to an existing plot, following the same convention as `push!` - the `!` indicates the function modifies something in place rather than creating a new object.
 :::
 
 **Take 2 minutes**: Look at these trajectories.
