@@ -410,7 +410,7 @@ end
 - [`logpdf(dist, x)`](https://juliastats.org/Distributions.jl/stable/starting/#logpdf) - returns the log probability density of `x` under distribution `dist`. We use log probabilities because they're numerically more stable (multiplying tiny probabilities can underflow).
 - [`Normal(μ, σ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Normal) - creates a normal distribution with mean `μ` and standard deviation `σ`.
 - [`Gamma(α, θ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Gamma) - creates a gamma distribution with shape `α` and scale `θ`. Useful for positive parameters like durations.
-- `push!(array, value)` - appends `value` to the end of `array`. The `!` indicates it modifies the array in place.
+- `push!(array, value)` - appends `value` to the end of `array`. The `!` indicates it modifies the array in place, which you can think of as shorthand for `array = push(array, value)`.
 :::
 
 ::: {.callout-tip title="Learning points"}
