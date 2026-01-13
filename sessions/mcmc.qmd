@@ -471,6 +471,11 @@ Now let's use the Metropolis-Hastings algorithm on our epidemiological model:
 chain_mh = sample(model, MH([1.0 0.0; 0.0 1.0]), 5000)
 ```
 
+::: {.callout-tip collapse="true"}
+## Code explainer
+- `[1.0 0.0; 0.0 1.0]` - a 2×2 matrix in Julia. Spaces separate columns, semicolons separate rows. This is the identity matrix, used here as the proposal covariance for MH. The diagonal values (1.0) set the proposal standard deviation for each parameter; off-diagonal zeros mean proposals are independent.
+:::
+
 ```{julia}
 println("Turing.jl Metropolis-Hastings results:")
 describe(chain_mh)
