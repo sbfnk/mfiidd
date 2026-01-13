@@ -131,23 +131,23 @@ sol = solve(prob, saveat = 1)
 ::: {.callout-tip collapse = "true"}
 ## More details on these commands
 Let's take a closer look at what each of these commands do:
-```{{julia}}
+```julia
 init_state = [999, 1, 0]
 ```
 This creates an 1-dimensional [Array](https://docs.julialang.org/en/v1/manual/arrays/) (i.e., a vector) with three elements that we will later use to represent the initial state of our forward simulation (999 susceptibles, 1 infective and 0 recovered).
 The output tells us that the elements of the vector are of type `Int64`, i.e. integer-valued numbers.
 
-```{{julia}}
+```julia
 t0, tend = (t0, tend)
 ```
 This assigns values to the variables `t0` (0) and `tend` (30).
 It is just a shorter version of writing
-```{{julia}}
+```julia
 t0 = 0
 tend = 40
 ```
 
-```{{julia}}
+```julia
 prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
 ```
 
@@ -160,7 +160,7 @@ Here we could also have used a vector `[t0, tend]`.
 Either will be correctly interpreted by `ODEProblem()`.
 The fourth argument gives the parameters of the model `p` as a vector.
 
-```{{julia}}
+```julia
 sol = solve(prob, saveat = 1)
 ```
 
