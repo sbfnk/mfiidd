@@ -278,7 +278,7 @@ println("VI mean-field correlation (R_0, D_inf): ",
         round(cor(vi_mf_df.R_0, vi_mf_df.D_inf), digits=3))
 ```
 
-The mean-field approximation forces this correlation to zero, which can lead to:
+What we see is that the mean-field approximation forces this correlation to zero, which can lead to:
 
 - **Overconfident marginals**: Each parameter appears more certain than it really is
 - **Implausible joint samples**: Combinations that the true posterior considers unlikely
@@ -331,7 +331,7 @@ println("VI full-rank correlation (R_0, D_inf): ",
         round(cor(vi_full_df.R_0, vi_full_df.D_inf), digits=3))
 ```
 
-The full-rank approximation now captures the negative correlation between $R_0$ and $D_{\text{inf}}$, giving a much better approximation to the true posterior.
+We can see that the full-rank approximation now captures the negative correlation between $R_0$ and $D_{\text{inf}}$, giving a much better approximation to the true posterior.
 
 ```{julia}
 # Scatter plot comparison
@@ -397,7 +397,7 @@ println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
 println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
 ```
 
-The speedup becomes even more dramatic with larger models or more samples.
+It turns out that the speedup becomes even more dramatic with larger models or more samples.
 
 ## Trade-offs summary
 
@@ -465,11 +465,13 @@ In this session, we learned:
 3. **Full-rank VI** captures correlations - good balance for most applications
 4. **Practical workflow**: Start with VI for exploration, validate with MCMC
 
-## Key takeaways
-
-- **Use VI for**: Rapid prototyping, real-time systems, many datasets
-- **Use MCMC for**: Publication-quality analysis, complex posteriors
-- **Hybrid approach**: VI for daily operations, periodic MCMC validation
+::: {.callout-tip title="Learning points"}
+- **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior
+- **Mean-field VI** assumes parameter independence - very fast, but misses correlations that are common in epidemic models
+- **Full-rank VI** captures correlations using a full covariance matrix - good balance between speed and accuracy
+- **ELBO** (Evidence Lower Bound) is the objective function - higher values mean better approximations
+- **Speed vs accuracy trade-off**: VI is much faster than MCMC but provides approximations; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
+:::
 
 VI is not a replacement for MCMC - it's a complementary tool that enables applications where MCMC is too slow!
 
@@ -501,6 +503,10 @@ When analysing many similar datasets, you can train a neural network to directly
 - Simulation-based inference
 - Real-time applications with strict latency requirements
 - Analysing thousands of similar datasets
+
+# Next session
+
+In [Universal Differential Equations](universal_differential_equations.qmd), we'll explore how to combine mechanistic models with neural networks to discover unknown transmission patterns directly from data.
 
 # References
 
