@@ -183,7 +183,7 @@ println("Sample mean: $(round(mean(samples_mh), digits = 2)) (true: $(target_mea
 println("Sample std: $(round(std(samples_mh), digits = 2)) (true: $(target_std))")
 ```
 
-::: {.callout-note title = "Coming from R?" collapse = "true"}
+::: {.callout-note title="Coming from R?" collapse="true"}
 
 In R, you would implement the this code like this:
 
