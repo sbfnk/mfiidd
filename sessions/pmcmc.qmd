@@ -399,7 +399,7 @@ At each observation time:
 2. Each particle is weighted according to how well it matches the observed data
 3. Particles with low weights are discarded and replaced by resampling from high-weight particles
 
-The key insight is that particles represent the distribution of possible trajectories that could have generated the observed data, given the parameters.
+Particles represent the distribution of possible trajectories that could have generated the observed data, given the parameters.
 The likelihood is computed from the particle weights across all observation times.
 
 Turing.jl's `AdvancedPS.jl` package implements sophisticated particle filtering algorithms (including Particle Gibbs) automatically, so you don't need to code your own.
