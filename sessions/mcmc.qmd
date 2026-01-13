@@ -542,12 +542,12 @@ Notice that:
 - NUTS needs fewer samples for same quality
 - NUTS had automatic warmup (no manual burn-in needed)
 
-**What NUTS gives you automatically:**
+What NUTS gives you automatically:
 
-1. **No tuning required**: Automatically adapts step size and mass matrix during warmup
-2. **Efficient exploration**: Uses gradients to navigate parameter space intelligently
-3. **Automatic warmup**: Built-in adaptation period (no manual burn-in decisions)
-4. **Better convergence**: Typically needs far fewer samples than Metropolis-Hastings
+1. No tuning required - automatically adapts step size and mass matrix during warmup
+2. Efficient exploration - uses gradients to navigate parameter space intelligently
+3. Automatic warmup - built-in adaptation period (no manual burn-in decisions)
+4. Better convergence - typically needs far fewer samples than Metropolis-Hastings
 
 ```{julia}
 # Built-in convergence diagnostics
