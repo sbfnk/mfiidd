@@ -384,11 +384,23 @@ First, let's use Turing.jl to sample from the exact same Normal distribution you
 end
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`@model`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a Turing.jl macro that defines a probabilistic model. Everything inside becomes part of the model specification.
+- `x ~ Normal(5.0, 2.0)` - the `~` operator means "is distributed as". This declares that `x` is a random variable drawn from a Normal distribution with mean 5 and standard deviation 2. Turing will infer the value of `x` during sampling.
+:::
+
 ```{julia}
 #| output: false
 # Sample using Metropolis-Hastings (normal proposals with std 10.0)
 chain_normal_mh = sample(normal_model(), MH([10.0;;]), 50000)
 ```
+
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`sample(model, sampler, n)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - runs the MCMC sampler on the model for `n` iterations, returning a chain of samples.
+- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. The `[10.0;;]` syntax creates a 1×1 matrix specifying the proposal covariance (standard deviation 10 in this 1D case).
+:::
 
 ```{julia}
 # Compare to your manual implementation
@@ -398,6 +410,12 @@ println("  Std: $(round(std(samples_mh), digits = 2))")
 println("\nTuring.jl M-H:")
 describe(chain_normal_mh)
 ```
+
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`describe(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/) - prints summary statistics for all parameters in the chain, including mean, standard deviation, and quantiles.
+- `chain[:x]` - extracts the samples for parameter `x` from the chain. You can use this to access any parameter defined in your `@model` function.
+:::
 
 ```{julia}
 # Visualize - same result!
@@ -480,6 +498,11 @@ For models where we can compute gradients (like our ODE model), NUTS (No U-Turn 
 chain_nuts = sample(model, NUTS(), 2000)
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`NUTS()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - the No U-Turn Sampler, a gradient-based MCMC algorithm that automatically tunes its step size and trajectory length. Much more efficient than Metropolis-Hastings for continuous parameters. The algorithm uses [automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) to compute gradients of the log-posterior.
+:::
+
 ```{julia}
 println("NUTS results:")
 describe(chain_nuts)
@@ -527,6 +550,11 @@ using MCMCChains
 summarystats(chain_nuts)
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`summarystats(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - returns a table with mean, std, MCSE (Monte Carlo Standard Error), ESS (Effective Sample Size), and R̂ (convergence diagnostic). We'll learn what these mean in the next session.
+:::
+
 # Posterior analysis with Turing.jl
 
 Now we can analyse the posterior distribution:
@@ -535,6 +563,11 @@ Now we can analyse the posterior distribution:
 # Parameter correlations
 corner_plot = corner(chain_nuts, [:R_0, :D_inf])
 ```
+
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`corner(chain, params)`](https://turinglang.org/MCMCChains.jl/stable/statsplots/) - creates a "corner plot" showing the marginal distributions (diagonal) and pairwise joint distributions (off-diagonal) for the selected parameters. This visualises parameter correlations.
+:::
 
 ```{julia}
 # Credible intervals

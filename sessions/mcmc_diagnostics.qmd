@@ -270,6 +270,13 @@ println("Running $n_chains chains in parallel ($(Threads.nthreads()) threads ava
 chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, n_chains)
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`MCMCThreads()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#sampling-multiple-chains) - tells Turing to run multiple chains in parallel using Julia threads. Much faster than running sequentially on multi-core machines.
+- `sample(model, sampler, MCMCThreads(), n_samples, n_chains)` - the extended signature for parallel sampling. Here we request `n_chains` chains, each with `n_samples` samples.
+- [`Threads.nthreads()`](https://docs.julialang.org/en/v1/base/multi-threading/#Base.Threads.nthreads) - returns how many threads Julia has available. Start Julia with `julia -t auto` to use all CPU cores.
+:::
+
 ```{julia}
 # Check what each individual chain found
 println("Individual chain summaries:")
@@ -294,6 +301,12 @@ for row in eachrow(rhat_values)
 end
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- `chain_multi[:, :, i]` - extracts the i-th chain from a multi-chain object. The three dimensions are: samples × parameters × chains.
+- [`rhat(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates the R̂ (Gelman-Rubin) diagnostic. Compares variance within chains to variance between chains. Values < 1.1 indicate convergence; < 1.01 is even better.
+:::
+
 ```{julia}
 # Visualize multiple chains
 plot(chain_multi)
@@ -306,7 +319,14 @@ ESS tells you how many independent samples your correlated MCMC samples are equi
 ```{julia}
 ess_values = DataFrame(ess(chain_multi))
 n_samples = length(chain_multi)
+```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`ess(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates Effective Sample Size. MCMC samples are correlated, so N samples don't give you N independent draws. ESS estimates how many independent samples your chain is equivalent to.
+:::
+
+```{julia}
 println("Effective Sample Size:")
 for row in eachrow(ess_values)
     param = row.parameters
@@ -449,7 +469,15 @@ Posterior predictive checks reveal whether your model actually generates data th
 # Generate predictions from the posterior
 # Use missing values to tell Turing to generate new observations
 predictions = predict(sir_model(fill(missing, length(epi1.obs)), init_state, epi1.time), chain_multi)
+```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`predict(model, chain)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#making-predictions) - generates new data from the model using parameter values from the posterior chain. This is the basis for posterior predictive checks.
+- `fill(missing, n)` - creates a vector of `n` missing values. When passed to the model, this tells Turing to generate new observations rather than condition on existing data.
+:::
+
+```{julia}
 # Plot posterior predictive samples
 p = plot(title = "Posterior Predictive Check", xlabel = "Time", ylabel = "Cases")
 
