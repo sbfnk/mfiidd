@@ -819,9 +819,9 @@ for n in n_params
 end
 ```
 
-This shows that the **computational cost** of grid search, i.e. the number of simulations that we need to run, reaches very large numbers even at moderate levels of complexity.
+This shows that the computational cost of grid search, i.e. the number of simulations that we need to run, reaches very large numbers even at moderate levels of complexity.
 
-In addition, this kind of sampling is **wasteful**, because most parameter combinations will be far from the ones that lead to a good fit to the data.
+In addition, this kind of sampling is wasteful, because most parameter combinations will be far from the ones that lead to a good fit to the data.
 
 Lastly, it is difficult to establish whether the grid is fine enough (or important parameter regions might be in the "gaps"), and whether the limits of the grid are wide enough.
 
@@ -829,12 +829,12 @@ Lastly, it is difficult to establish whether the grid is fine enough (or importa
 
 In this session, you learned:
 
-1. **Priors**: Express beliefs before seeing data, explored through simulation
-2. **Likelihood**: Quantifies how well parameters explain observed data
-3. **Posterior**: Combines priors and likelihood using Bayes' theorem
-4. **Manual exploration**: Grid search to find best parameters and understand uncertainty
-5. **Model checking**: Using simulation to validate model assumptions
-6. **Limitations**: Why manual approaches don't scale
+1. Priors express beliefs before seeing data, explored through simulation
+2. The likelihood quantifies how well parameters explain observed data
+3. The posterior combines priors and likelihood using Bayes' theorem
+4. Grid search can find best parameters and understand uncertainty
+5. Simulation helps validate model assumptions (posterior predictive checking)
+6. Manual approaches don't scale - we need algorithms
 
 # References
 
