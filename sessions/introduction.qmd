@@ -363,7 +363,7 @@ end
 plot!(p)
 ```
 
-**Key insight**: Priors determine what kinds of epidemics our model considers plausible before seeing data.
+Priors determine what kinds of epidemics our model considers plausible before seeing data.
 
 ## Evaluating prior densities
 
@@ -561,7 +561,7 @@ scatter!(
 )
 ```
 
-**Key insight**: The likelihood is highest when our model prediction matches the observation closely.
+The likelihood is highest when our model prediction matches the observation closely.
 
 ::: {.callout-note title="Coming from R?" collapse="true"}
 In R, you would calculate Poisson log-likelihood as:
@@ -629,7 +629,7 @@ for i in 1:length(test_params)
 end
 ```
 
-**Key insight**: When we have strong prior beliefs that align with the data, the posterior gets a boost. When priors conflict with data, they pull the posterior away from the likelihood.
+When we have strong prior beliefs that align with the data, the posterior gets a boost. When priors conflict with data, they pull the posterior away from the likelihood.
 
 # Systematic posterior exploration
 

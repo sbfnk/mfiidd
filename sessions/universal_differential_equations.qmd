@@ -431,7 +431,7 @@ The neural network can only learn β(t), but the **SIR structure itself** constr
 - **Two-population model**: Different mixing groups, delayed introduction
 - **Learn γ(t) too**: Time-varying recovery might help
 
-This is a key insight about hybrid models: **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
+**UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
 
 An imperfect fit isn't failure—it's the model telling us: *"I can't explain this data with just time-varying transmission. The mechanism you're looking for might require different structure."*
 
