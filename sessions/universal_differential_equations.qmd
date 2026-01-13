@@ -7,28 +7,27 @@ engine: julia
 
 # Introduction
 
-## The mystery of the second wave
+## From model comparison to model discovery
 
-Recall the Tristan da Cunha 1971 influenza outbreak. When we first examined this data, we noticed something puzzling: after the initial outbreak subsided around day 15, cases re-emerged around day 25-35. A standard SIR model with constant transmission produces only a single peak.
+In the [pMCMC session](pmcmc.qmd), we formally compared two mechanistic models for the Tristan da Cunha two-wave outbreak: SEITL and SEIT4L. Both encode the same biological hypothesis - temporary immunity followed by potential reinfection - but with different assumptions about timing. We used LOO-CV to show that SEIT4L (Erlang-distributed immunity) fits better than SEITL (exponential).
 
-We discussed possible explanations:
+But what if we *didn't know* the mechanism? What if we were seeing a two-wave pattern for the first time and had no theory to guide us?
+
+We might hypothesise alternative explanations:
 
 - **Behavioral relaxation**: People resumed normal contact patterns after the first wave
 - **Waning vigilance**: Initial precautions (isolation, reduced gatherings) were abandoned
 - **Population structure**: Different groups (households, age groups) infected at different times
-- **Incomplete isolation**: Some infected individuals weren't fully isolated
 
-But which explanation is correct? And what transmission pattern would actually produce the observed dynamics?
+All of these would manifest as *time-varying transmission* β(t) rather than structural changes to the compartmental model.
 
-## From hypothesis to discovery
+**Universal Differential Equations (UDEs)** combine mechanistic differential equations with neural networks to learn unknown functions from data. In our case, we'll ask: "What transmission pattern β(t) would a simple SIR model need to explain these dynamics?"
 
-Throughout this course, we've assumed we know the functional form of disease transmission:
+More powerfully, UDEs can discover missing terms in equations which, with careful interpretation, can amount to learning unknown mechanisms (see [Going further](#going-further)).
 
-$$\beta \cdot \frac{S \cdot I}{N}$$
+## The UDE approach
 
-**Universal Differential Equations (UDEs)** offer a different approach: instead of proposing mechanisms and testing them, we can **learn** what transmission function is consistent with the data, while respecting biological constraints.
-
-Keep the **known** epidemiological structure:
+We keep the **known** epidemiological structure, but let a neural network learn the **unknown** parts:
 ```
 dS/dt = -β(t) * S * I / N   # ← Learn β(t) from data!
 dI/dt = +β(t) * S * I / N - γ * I
@@ -525,6 +524,15 @@ UDEs work well when:
 3. **Known structure, unknown details**: Chemical reactions, climate models
 4. **Discovery research**: Finding unknown mechanisms (not just fitting)
 
+::: {.callout-tip title="Learning points"}
+- **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)
+- **The loss function matters**: Poisson likelihood forces the model to explain all cases including small counts; sum of squared errors is dominated by peak values
+- **Regularisation is essential**: With limited data (~60 points), neural networks easily overfit without L2 penalties on weights
+- **Learned patterns suggest mechanisms** but don't prove them - UDEs generate hypotheses that need independent validation
+- **An imperfect fit is informative**: If the UDE can't fit the data, the imposed structure (e.g., SIR) may be inadequate
+- **Data requirements are high**: UDEs shine with hundreds to thousands of data points; for small datasets, simpler approaches (splines, GPs) may be more appropriate
+:::
+
 # Going further
 
 ## Network architecture choices
@@ -572,6 +580,8 @@ Genetic programming / symbolic regression evolves equations by combining mathema
 The workflow often combines both approaches: first use a neural network UDE to confirm that a time-varying or state-dependent term improves fit, then apply symbolic regression to find an interpretable equation for that term.
 
 For policy applications, this matters. "Transmission increases when prevalence drops below 5%" is actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. Symbolic UDEs offer a path from discovery to interpretation.
+
+For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://www.nature.com/articles/s41540-025-00550-w) for a recent review of UDEs in systems biology.
 
 # Summary
 
