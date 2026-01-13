@@ -152,7 +152,7 @@ println("MCMC time: $(round(t_mcmc, digits=1)) seconds")
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code walkthrough
+## Code explained
 - [`@elapsed`](https://docs.julialang.org/en/v1/base/base/#Base.@elapsed) - Julia macro that returns the time in seconds to execute the expression. We use this to compare MCMC vs VI speed.
 - `NUTS(0.65)` - the argument sets the target acceptance rate during warmup. Values closer to 1 mean smaller, more cautious steps. 0.65 is a good default for complex posteriors; use 0.8-0.9 for difficult geometries.
 - `progress=false` - suppresses the progress bar during sampling. Set to `true` if you want to watch progress.
@@ -220,7 +220,7 @@ println("Final ELBO: ", round(stats_mf[end].elbo, digits=2))
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code walkthrough
+## Code explained
 - [`q_meanfield_gaussian(model)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - creates an initial mean-field Gaussian variational distribution for the model, with independent Normal distributions for each parameter.
 - [`vi(model, q_init, n_iters; ...)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - runs variational inference, optimising the ELBO for `n_iters` steps. Returns the optimised distribution `q` and training statistics.
 - `adtype=AutoForwardDiff()` - specifies [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for computing gradients. Forward-mode AD is efficient when the number of parameters is small (like here).
@@ -312,7 +312,7 @@ println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code walkthrough
+## Code explained
 - [`q_fullrank_gaussian(model)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - creates a full-rank Gaussian variational distribution that can capture correlations between parameters. Uses a lower-triangular Cholesky factor for the covariance matrix.
 :::
 

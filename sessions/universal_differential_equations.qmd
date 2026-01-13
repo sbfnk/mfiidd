@@ -175,7 +175,7 @@ println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data p
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code walkthrough
+## Code explained
 - [`Chain(...)`](https://lux.csail.mit.edu/stable/api/Lux/layers#Lux.Chain) - combines multiple neural network layers in sequence. Input flows through each layer in order.
 - [`Dense(in => out, activation)`](https://lux.csail.mit.edu/stable/api/Lux/layers#Lux.Dense) - a fully-connected layer with `in` inputs, `out` outputs, and an activation function applied element-wise.
 - `tanh` - activation function that squashes values to [-1, 1]. Helps learn smooth functions and keeps gradients bounded.
@@ -307,7 +307,7 @@ println("\nTraining with Adam optimizer (100 iterations)...")
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code walkthrough
+## Code explained
 - [`OptimizationFunction(loss, ad_backend)`](https://docs.sciml.ai/Optimization/stable/) - wraps a loss function with automatic differentiation for gradient computation.
 - `Optimization.AutoForwardDiff()` - uses [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for forward-mode automatic differentiation. Efficient when the number of parameters is small (~33 here). For larger networks, reverse-mode (Zygote.jl) would be faster.
 - [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimizer that adjusts per-parameter learning rates and uses momentum. The go-to optimizer for neural networks.
