@@ -467,9 +467,9 @@ In this session, we learned:
 
 ## Key takeaways
 
-✅ **Use VI for**: Rapid prototyping, real-time systems, many datasets
-✅ **Use MCMC for**: Publication-quality analysis, complex posteriors
-✅ **Hybrid approach**: VI for daily operations, periodic MCMC validation
+- **Use VI for**: Rapid prototyping, real-time systems, many datasets
+- **Use MCMC for**: Publication-quality analysis, complex posteriors
+- **Hybrid approach**: VI for daily operations, periodic MCMC validation
 
 VI is not a replacement for MCMC - it's a complementary tool that enables applications where MCMC is too slow!
 
