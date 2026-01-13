@@ -174,6 +174,16 @@ println("Data points: ", length(flu_tdc.obs))
 println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data points per parameter")
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`Chain(...)`](https://lux.csail.mit.edu/stable/api/Lux/layers#Lux.Chain) - combines multiple neural network layers in sequence. Input flows through each layer in order.
+- [`Dense(in => out, activation)`](https://lux.csail.mit.edu/stable/api/Lux/layers#Lux.Dense) - a fully-connected layer with `in` inputs, `out` outputs, and an activation function applied element-wise.
+- `tanh` - activation function that squashes values to [-1, 1]. Helps learn smooth functions and keeps gradients bounded.
+- [`softplus`](https://en.wikipedia.org/wiki/Softplus) - defined as log(1 + exp(x)), ensures outputs are always positive. Smoother than ReLU at zero.
+- [`Lux.setup(rng, model)`](https://lux.csail.mit.edu/stable/api/Lux/utilities#Lux.setup) - initialises the neural network parameters `p` and state `st`. Lux separates parameters from architecture for functional programming.
+- [`ComponentArray`](https://jonniedie.github.io/ComponentArrays.jl/stable/) - wraps nested parameter structures into a flat array while preserving named access. Essential for gradient-based optimisation.
+:::
+
 Let's unpack the architecture choices:
 
 - `Dense(2 => 8, tanh)`: A fully-connected layer taking 2 inputs and producing 8 outputs. The `tanh` activation function squashes values to [-1, 1], helping the network learn smooth, bounded functions. Why 8 hidden units? It's a balance: more units = more flexibility but more parameters to learn from limited data. With 60 data points, we keep the network small.
@@ -294,6 +304,17 @@ println("\nTraining with Adam optimizer (100 iterations)...")
                          end
                          return false
                      end)
+```
+
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`OptimizationFunction(loss, ad_backend)`](https://docs.sciml.ai/Optimization/stable/) - wraps a loss function with automatic differentiation for gradient computation.
+- `Optimization.AutoForwardDiff()` - uses [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for forward-mode automatic differentiation. Efficient when the number of parameters is small (~33 here). For larger networks, reverse-mode (Zygote.jl) would be faster.
+- [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimizer that adjusts per-parameter learning rates and uses momentum. The go-to optimizer for neural networks.
+- `callback` - function called after each iteration. Returns `true` to stop early, `false` to continue. Useful for monitoring progress.
+:::
+
+```{julia}
 
 println("\n" * "="^60)
 println("Final loss: ", round(result.objective, digits=2))

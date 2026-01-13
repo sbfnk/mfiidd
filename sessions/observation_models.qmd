@@ -258,6 +258,11 @@ where:
 end
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`NegativeBinomial(r, p)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.NegativeBinomial) - Julia's parameterisation uses `r` (number of successes) and `p` (success probability). To get mean `μ` with overdispersion `φ`, use `r=φ` and `p=φ/(φ+μ)`. This gives variance = `μ + μ²/φ`, so larger `φ` approaches Poisson, smaller `φ` gives more overdispersion.
+:::
+
 **Honest question**: Why Negative Binomial?
 
 - Mechanistic justification: Weak (no clear biological process)

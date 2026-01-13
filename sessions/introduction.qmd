@@ -207,11 +207,17 @@ println(
     round(maximum(R_0_samples), digits = 2)
 )
 println(
-    "D_inf prior samples - mean: ", round(mean(D_inf_samples), digits = 2), 
+    "D_inf prior samples - mean: ", round(mean(D_inf_samples), digits = 2),
     ", range: ", round(minimum(D_inf_samples), digits = 2), " to ",
     round(maximum(D_inf_samples), digits = 2)
 )
 ```
+
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`Uniform(a, b)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Uniform) - creates a uniform distribution object from `a` to `b`. This is from [Distributions.jl](https://juliastats.org/Distributions.jl/stable/).
+- [`rand(dist, n)`](https://juliastats.org/Distributions.jl/stable/starting/#rand) - draws `n` random samples from the distribution `dist`. You can also use `rand(dist)` for a single sample.
+:::
 
 ```{julia}
 # Visualize our priors
@@ -398,6 +404,14 @@ for theta in test_params
 end
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- [`logpdf(dist, x)`](https://juliastats.org/Distributions.jl/stable/starting/#logpdf) - returns the log probability density of `x` under distribution `dist`. We use log probabilities because they're numerically more stable (multiplying tiny probabilities can underflow).
+- [`Normal(μ, σ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Normal) - creates a normal distribution with mean `μ` and standard deviation `σ`.
+- [`Gamma(α, θ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Gamma) - creates a gamma distribution with shape `α` and scale `θ`. Useful for positive parameters like durations.
+- `push!(array, value)` - appends `value` to the end of `array`. The `!` indicates it modifies the array in place.
+:::
+
 ::: {.callout-tip title="Learning points"}
 
 - For **uniform priors**, all parameter values within the valid range have the same log-density
@@ -493,6 +507,14 @@ scatter!(
 )
 plot!(p)
 ```
+
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- `sol[2, :]` - extracts the second row (the I compartment) from the ODE solution matrix. The `:` means "all columns" (all time points).
+- `[ Poisson(It) for It in I ]` - an [array comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) that creates a Poisson distribution for each expected value `It` in the vector `I`.
+- [`Poisson(λ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Poisson) - creates a Poisson distribution with rate parameter `λ`. Used here as our observation model.
+- `logpdf.(loglik, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
+:::
 
 **Take 5 minutes**: Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
 
