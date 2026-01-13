@@ -494,7 +494,7 @@ end
 ```
 
 ::: {.callout-tip collapse="true"}
-## Code explained
+## Code explainer
 - [`ConstantRateJump(rate, affect!)`](https://docs.sciml.ai/JumpProcesses/stable/jump_types/#Defining-a-Constant-Rate-Jump) - defines a transition event where `rate` is a function returning the event rate, and `affect!` modifies the state when the event occurs.
 - [`DiscreteProblem`](https://docs.sciml.ai/JumpProcesses/stable/jump_types/#Defining-Problems-with-Jumps) - defines a problem with discrete states (counts), suitable for jump processes.
 - [`JumpProblem(prob, Direct(), jumps...)`](https://docs.sciml.ai/JumpProcesses/stable/jump_types/#JumpProblem) - combines the discrete problem with jump definitions. `Direct()` specifies the Gillespie Direct algorithm for selecting the next jump.
