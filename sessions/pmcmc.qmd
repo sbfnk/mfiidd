@@ -545,41 +545,24 @@ density!(p2, chain_pmcmc, :D_imm, label="SEIT4L")
 plot(p1, p2, layout=(1, 2), size=(800, 400))
 ```
 
-## Model comparison with LOO-CV
+## Model comparison
 
-To formally compare models, we use **Leave-One-Out Cross-Validation (LOO-CV)**, estimated efficiently using Pareto-smoothed importance sampling (PSIS-LOO). This estimates out-of-sample predictive accuracy - lower values indicate better predictive performance.
+Looking at the posterior densities above, we can compare the two models qualitatively. For formal model comparison, several approaches exist:
 
-```{julia}
-using ParetoSmooth
+::: {.callout-note title="Approaches to model comparison"}
+**Information criteria** (DIC, WAIC, LOO-CV) estimate out-of-sample predictive accuracy. For MCMC output, [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides PSIS-LOO. However, applying these to particle MCMC requires care because the likelihood estimates are noisy.
 
-# Compute LOO-CV for both models
-loo_seitl = psis_loo(chain_seitl, model_seitl)
-loo_seit4l = psis_loo(chain_pmcmc, model_pmcmc)
+**Bayes factors** compare marginal likelihoods $P(\text{data}|M_1) / P(\text{data}|M_2)$. These can be estimated from particle filter output but are computationally intensive.
 
-println("Model comparison (LOO - lower is better):")
-println("  SEITL:  ", round(loo_seitl.estimates[:looic, :estimate], digits=1))
-println("  SEIT4L: ", round(loo_seit4l.estimates[:looic, :estimate], digits=1))
-println("\nDifference: ", round(loo_seitl.estimates[:looic, :estimate] - loo_seit4l.estimates[:looic, :estimate], digits=1))
-```
-
-```{julia}
-# Compare models formally
-comparison = loo_compare((seitl=loo_seitl, seit4l=loo_seit4l))
-println(comparison)
-```
-
-::: {.callout-note title="Interpreting model comparison"}
-**LOO-CV** (Leave-One-Out Cross-Validation) estimates how well each model would predict new data by systematically leaving out each observation and predicting it from the rest. PSIS-LOO computes this efficiently without actually refitting the model.
+**Posterior predictive checks** ask: does each model generate data that looks like the observations? This visual approach is often the most informative starting point.
 
 When comparing models:
 
-- **Difference > 4**: Strong evidence for the better model
+- **Difference in information criterion > 4**: Strong evidence for the better model
 - **Difference 2-4**: Moderate evidence
 - **Difference < 2**: Models are essentially equivalent
 
-The standard error of the difference tells you how certain the comparison is. If the difference is smaller than 2× the SE, be cautious about strong conclusions.
-
-[Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) found that SEIT4L (Erlang-distributed immunity duration) provided a better fit than SEITL, suggesting that the *timing* of immunity loss matters - it's not memoryless.
+[Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) compared SEITL and SEIT4L using DIC and found that SEIT4L (Erlang-distributed immunity duration) provided a better fit, suggesting that the *timing* of immunity loss matters - it's not memoryless.
 :::
 
 ::: {.callout-tip title="Learning points"}
@@ -587,23 +570,24 @@ The standard error of the difference tells you how certain the comparison is. If
 - **Particle Gibbs (PG)** jointly samples parameters and state trajectories, avoiding particle degeneracy in high-dimensional state spaces
 - **Number of particles** trades off accuracy vs computation: start with 20 for exploration, use 50-100 for production
 - **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
-- **Model comparison** with WAIC balances fit against complexity - use it to choose between competing mechanistic explanations
+- **Model comparison** using information criteria or Bayes factors helps choose between competing mechanistic explanations
 :::
 
 # Going further
 
 ## Multiple chains and diagnostics
 
-For production pMCMC, you should run multiple chains and check convergence:
+For production pMCMC, you should run multiple chains and check convergence. The pattern is:
 
-```{julia}
+```julia
 # Run multiple chains in parallel with Particle Gibbs
 chain_multi = sample(model_pmcmc, PG(50), MCMCThreads(), 2000, 4)
 
-# Check R̂ statistics
-using MCMCChains
+# Check R̂ and ESS statistics
 summarystats(chain_multi)
 ```
+
+Use the same diagnostics (R̂ < 1.1, ESS > 100) as for standard MCMC.
 
 ## Filtered trajectories
 
