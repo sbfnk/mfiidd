@@ -1,0 +1,437 @@
+---
+title: "Model Checking and Validation"
+format: html
+engine: julia
+order: 4
+---
+
+# Introduction
+
+You've learned how to fit models and diagnose MCMC convergence. But a converged chain doesn't mean your model is *correct* - it just means the sampler has explored the posterior properly. This session focuses on a different question: **does your model actually describe the data well?**
+
+Model checking is about building trust in your inferences. A model that doesn't generate data resembling your observations shouldn't be trusted to make predictions or inform policy.
+
+# Objectives
+
+In this session you will:
+
+1. Use prior predictive checks to validate model specification
+2. Use posterior predictive checks to assess model fit
+3. Interpret residual patterns to diagnose model problems
+4. Understand simulation-based calibration for validating inference pipelines
+
+::: {.callout-note collapse="true"}
+
+# Setup
+
+```{julia}
+#| echo: false
+#| include: false
+
+using Pkg
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
+```
+
+## Source file
+
+The source file of this session is located at `sessions/model_checking.qmd`.
+
+## Load libraries
+
+```{julia}
+using Random
+using Distributions
+using DifferentialEquations
+using DataFrames
+using Plots
+using StatsPlots
+using Turing
+using MCMCChains
+using CSV
+using DrWatson
+using StatsBase
+```
+
+## Initialisation
+
+```{julia}
+Random.seed!(1234)
+```
+
+:::
+
+# The Bayesian workflow
+
+Model checking isn't a one-time step at the end - it's part of an iterative workflow:
+
+1. **Specify model** - choose structure, priors, likelihood
+2. **Prior predictive check** - do simulations from priors look reasonable?
+3. **Fit model** - run MCMC or other inference
+4. **Diagnose sampler** - check convergence (previous session)
+5. **Posterior predictive check** - does the fitted model generate realistic data?
+6. **Iterate** - if checks fail, revise the model
+
+We've covered steps 1-4. This session focuses on steps 2, 5, and 6.
+
+# Prior predictive checks
+
+Before fitting any data, you should ask: *do my priors make sense?* Prior predictive checking simulates data purely from your prior assumptions, without conditioning on observations.
+
+Let's use the SIR model from the introduction:
+
+```{julia}
+function sir_ode!(du, u, p, t)
+    R_0, D_inf = p
+    β = R_0 / D_inf
+    γ = 1.0 / D_inf
+    S, I, R, C = u
+    N = S + I + R
+
+    du[1] = -β * S * I / N
+    du[2] = β * S * I / N - γ * I
+    du[3] = γ * I
+    du[4] = β * S * I / N  # Cumulative incidence
+end
+
+function simulate_sir(R_0, D_inf, S0, I0, times)
+    u0 = [S0, I0, 0.0, 0.0]
+    prob = ODEProblem(sir_ode!, u0, (times[1], times[end]), [R_0, D_inf])
+    sol = solve(prob, Tsit5(), saveat=times)
+
+    inc_cumulative = [sol[i][4] for i in 1:length(sol)]
+    inc_daily = [0.0; diff(inc_cumulative)]
+
+    return inc_daily
+end
+```
+
+Now let's define a model with priors and sample from the prior predictive distribution:
+
+```{julia}
+@model function sir_model(obs, times, S0, I0)
+    # Priors
+    R_0 ~ Uniform(0.5, 10.0)
+    D_inf ~ Uniform(1.0, 14.0)
+    ρ ~ Uniform(0.0, 1.0)  # Reporting rate
+
+    # Simulate
+    inc = simulate_sir(R_0, D_inf, S0, I0, times)
+
+    # Likelihood
+    for i in eachindex(obs)
+        λ = max(ρ * inc[i], 1e-10)
+        obs[i] ~ Poisson(λ)
+    end
+end
+```
+
+```{julia}
+# Prior predictive sampling
+times = 0.0:1.0:59.0
+S0, I0 = 279.0, 5.0
+
+# Sample from priors (no data conditioning)
+prior_samples = sample(sir_model(fill(missing, 60), times, S0, I0), Prior(), 200, progress=false)
+```
+
+```{julia}
+# Generate trajectories from prior samples
+p_prior = plot(title="Prior Predictive Check",
+               xlabel="Time (days)", ylabel="Expected daily cases",
+               legend=false)
+
+for i in 1:100
+    R_0 = prior_samples[:R_0][i]
+    D_inf = prior_samples[:D_inf][i]
+    ρ = prior_samples[:ρ][i]
+
+    inc = simulate_sir(R_0, D_inf, S0, I0, times)
+    obs_expected = ρ .* inc
+    plot!(p_prior, collect(times), obs_expected, alpha=0.2, color=:blue)
+end
+
+plot!(p_prior, ylim=(0, 150))
+```
+
+**Questions to ask:**
+
+- Do the simulated epidemics look plausible given what you know about influenza?
+- Is the range of peak sizes reasonable?
+- Are there impossible trajectories (negative values, explosions)?
+
+If prior predictive simulations look unreasonable, revise your priors before fitting data. This is much easier than debugging a fitted model.
+
+::: {.callout-tip}
+## When priors are too vague
+If your prior predictive check shows wildly varying trajectories - some with 0 cases, others with thousands - your priors may be too vague. Consider using domain knowledge to constrain them. For influenza, $R_0$ between 1 and 5 is more realistic than 0.5 to 10.
+:::
+
+# Posterior predictive checks
+
+After fitting the model, posterior predictive checks ask: *can the fitted model generate data that looks like what we observed?*
+
+```{julia}
+# Load data and fit model
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+
+model = sir_model(flu_tdc.obs, times, S0, I0)
+chain = sample(model, NUTS(), 1000, progress=false)
+```
+
+```{julia}
+# Generate posterior predictive samples
+function posterior_predictive(chain, times, S0, I0, n_sims=100)
+    sims = []
+    n_samples = length(chain)
+    indices = rand(1:n_samples, n_sims)
+
+    for idx in indices
+        R_0 = chain[:R_0][idx]
+        D_inf = chain[:D_inf][idx]
+        ρ = chain[:ρ][idx]
+
+        inc = simulate_sir(R_0, D_inf, S0, I0, times)
+        # Sample from observation model
+        obs_sim = rand.(Poisson.(max.(ρ .* inc, 1e-10)))
+        push!(sims, obs_sim)
+    end
+    return sims
+end
+
+ppc_samples = posterior_predictive(chain, times, S0, I0)
+```
+
+```{julia}
+# Plot posterior predictive check
+p_ppc = plot(title="Posterior Predictive Check",
+             xlabel="Time (days)", ylabel="Daily cases")
+
+for sim in ppc_samples
+    plot!(p_ppc, collect(times), sim, alpha=0.1, color=:lightblue, label="")
+end
+
+scatter!(p_ppc, flu_tdc.time, flu_tdc.obs,
+         color=:red, label="Observed", markersize=4)
+plot!(p_ppc, legend=:topright)
+```
+
+**What to look for:**
+
+- Do the simulated data envelopes contain the observations?
+- Are there systematic patterns the model misses?
+- Does the model capture the variability in the data?
+
+For the Tristan da Cunha data with a simple SIR model, you'll likely see the model fails to capture the **second wave**. This is expected - SIR doesn't have temporary immunity. This motivates the SEITL/SEIT4L models in later sessions.
+
+# Quantifying posterior predictive fit
+
+Visual checks are valuable but subjective. We can also compute summary statistics to quantify fit.
+
+```{julia}
+# Compute summary statistics for each posterior predictive sample
+function compute_summaries(trajectory)
+    peak_value = maximum(trajectory)
+    peak_time = argmax(trajectory) - 1  # Convert to 0-indexed time
+    total_cases = sum(trajectory)
+    return (peak=peak_value, peak_time=peak_time, total=total_cases)
+end
+
+# Summaries for observed data
+obs_summary = compute_summaries(flu_tdc.obs)
+println("Observed: peak=$(obs_summary.peak), peak_time=$(obs_summary.peak_time), total=$(obs_summary.total)")
+
+# Summaries for posterior predictive samples
+ppc_summaries = [compute_summaries(sim) for sim in ppc_samples]
+ppc_peaks = [s.peak for s in ppc_summaries]
+ppc_peak_times = [s.peak_time for s in ppc_summaries]
+ppc_totals = [s.total for s in ppc_summaries]
+```
+
+```{julia}
+# Plot distributions of summary statistics
+p1 = histogram(ppc_peaks, bins=20, alpha=0.7, label="Posterior pred.",
+               xlabel="Peak cases", ylabel="Count", title="Peak Size")
+vline!(p1, [obs_summary.peak], color=:red, linewidth=2, label="Observed")
+
+p2 = histogram(ppc_peak_times, bins=20, alpha=0.7, label="Posterior pred.",
+               xlabel="Peak time (days)", ylabel="Count", title="Peak Timing")
+vline!(p2, [obs_summary.peak_time], color=:red, linewidth=2, label="Observed")
+
+p3 = histogram(ppc_totals, bins=20, alpha=0.7, label="Posterior pred.",
+               xlabel="Total cases", ylabel="Count", title="Total Cases")
+vline!(p3, [obs_summary.total], color=:red, linewidth=2, label="Observed")
+
+plot(p1, p2, p3, layout=(1, 3), size=(900, 300), legend=:topright)
+```
+
+If the observed value (red line) falls in the tails of the posterior predictive distribution, the model struggles to explain that aspect of the data.
+
+# Residual analysis
+
+Residuals are the difference between observed and predicted values. Patterns in residuals can reveal model deficiencies.
+
+```{julia}
+# Compute posterior mean predictions
+mean_R_0 = mean(chain[:R_0])
+mean_D_inf = mean(chain[:D_inf])
+mean_ρ = mean(chain[:ρ])
+
+mean_inc = simulate_sir(mean_R_0, mean_D_inf, S0, I0, times)
+mean_pred = mean_ρ .* mean_inc
+
+# Compute residuals
+residuals = flu_tdc.obs .- mean_pred
+```
+
+```{julia}
+# Plot residuals over time
+p_resid = plot(collect(times), residuals,
+               xlabel="Time (days)", ylabel="Residual (obs - pred)",
+               title="Residuals Over Time", legend=false,
+               marker=:circle, markersize=3)
+hline!(p_resid, [0], color=:black, linestyle=:dash)
+```
+
+**What patterns indicate problems?**
+
+- **Trend**: residuals systematically positive or negative over time → model missing temporal structure
+- **Autocorrelation**: residuals at time $t$ predict residuals at $t+1$ → missing dynamics
+- **Heteroscedasticity**: residual variance changes with predicted value → wrong observation model
+
+For the SIR fit to Tristan da Cunha, you should see clear structure: positive residuals during the second wave that the SIR model can't capture.
+
+```{julia}
+# Check for autocorrelation in residuals
+lag1_resid = residuals[1:end-1]
+lag0_resid = residuals[2:end]
+
+p_acf = scatter(lag1_resid, lag0_resid,
+                xlabel="Residual at t", ylabel="Residual at t+1",
+                title="Residual Autocorrelation", legend=false,
+                alpha=0.6)
+```
+
+Strong correlation here suggests the model is missing important dynamics - exactly what we'd expect when fitting SIR to two-wave data.
+
+# Simulation-based calibration
+
+A more rigorous check asks: *does my inference procedure recover true parameters when I know them?*
+
+Simulation-based calibration (SBC) works as follows:
+
+1. Draw parameters from the prior: $\theta^* \sim p(\theta)$
+2. Simulate data from the model: $y^* \sim p(y|\theta^*)$
+3. Fit the model to $y^*$ and get posterior samples
+4. Check if $\theta^*$ falls within the posterior as expected
+
+If your inference is correct, the true parameter should be uniformly distributed within the posterior samples (i.e., the 95% credible interval should contain the truth 95% of the time).
+
+```{julia}
+#| output: false
+# SBC for R_0 (simplified example with fewer iterations for speed)
+function run_sbc(n_sbc=20)
+    ranks = Int[]
+
+    for i in 1:n_sbc
+        # 1. Draw from prior
+        R_0_true = rand(Uniform(0.5, 10.0))
+        D_inf_true = rand(Uniform(1.0, 14.0))
+        ρ_true = rand(Uniform(0.0, 1.0))
+
+        # 2. Simulate data
+        inc = simulate_sir(R_0_true, D_inf_true, S0, I0, times)
+        obs_sim = rand.(Poisson.(max.(ρ_true .* inc, 1e-10)))
+
+        # 3. Fit model (short chain for speed)
+        model_sim = sir_model(obs_sim, times, S0, I0)
+        chain_sim = sample(model_sim, NUTS(), 200, progress=false)
+
+        # 4. Compute rank of true value
+        R_0_samples = vec(chain_sim[:R_0])
+        rank = sum(R_0_samples .< R_0_true)
+        push!(ranks, rank)
+    end
+
+    return ranks
+end
+
+# This takes a while - in practice you'd run more iterations
+sbc_ranks = run_sbc(20)
+```
+
+```{julia}
+# Plot SBC histogram
+histogram(sbc_ranks, bins=10,
+          xlabel="Rank", ylabel="Count",
+          title="SBC Rank Histogram for R_0",
+          legend=false)
+```
+
+A uniform histogram indicates well-calibrated inference. Peaks at the edges suggest the posterior is too narrow (overconfident) or too wide (underconfident).
+
+::: {.callout-note}
+## SBC in practice
+Full SBC requires many simulations (100+) and is computationally expensive. It's most valuable when developing new models or inference methods. For routine analysis, prior and posterior predictive checks are usually sufficient.
+:::
+
+# When models fail checks
+
+What should you do when model checks reveal problems?
+
+**Prior predictive failures:**
+
+- Priors too vague → use domain knowledge to constrain
+- Impossible values → add bounds or change distribution family
+- Missing structure → reconsider model specification
+
+**Posterior predictive failures:**
+
+- Systematic bias → model is missing important mechanisms
+- Poor coverage → observation model may be wrong (e.g., Poisson vs Negative Binomial)
+- Specific features missed → consider model extensions
+
+**Residual patterns:**
+
+- Temporal trends → add time-varying parameters or additional compartments
+- Autocorrelation → model dynamics are incomplete
+- Heteroscedasticity → observation model variance structure is wrong
+
+The key insight is that **model failure is information**. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
+
+::: {.callout-tip title="Learning points"}
+- **Prior predictive checks** validate that your priors generate plausible data before you see observations
+- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
+- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
+- **Simulation-based calibration** rigorously tests whether inference recovers known parameters
+- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
+:::
+
+# Going further
+
+## Posterior predictive p-values
+
+For any test statistic $T(y)$, you can compute a posterior predictive p-value:
+
+$$p = P(T(y^{rep}) \geq T(y^{obs}) | y^{obs})$$
+
+Values near 0 or 1 indicate the model struggles to reproduce that aspect of the data.
+
+## Cross-validation
+
+Leave-one-out cross-validation (LOO-CV) estimates out-of-sample predictive performance. In Julia, [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO for Turing models.
+
+## Calibration plots
+
+For models predicting probabilities or intervals, calibration plots check if predicted 90% intervals contain the truth 90% of the time across many predictions.
+
+# Next session
+
+In [Observation Models](observation_models.qmd), we'll explore different ways to connect model predictions to data - from Poisson likelihoods to Negative Binomial and even likelihood-free approaches like ABC.
+
+# References
+
+- Gelman et al. (2013). [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/), Chapter 6. (Comprehensive treatment of model checking)
+- Gabry et al. (2019). [Visualization in Bayesian workflow](https://arxiv.org/abs/1709.01449). *JRSS A* 182(2), 389-402.
+- Talts et al. (2018). [Validating Bayesian Inference Algorithms with Simulation-Based Calibration](https://arxiv.org/abs/1804.06788). arXiv.
+- [Turing.jl documentation](https://turinglang.org/stable/) - Prior and posterior predictive sampling
