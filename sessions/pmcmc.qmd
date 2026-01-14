@@ -2,7 +2,7 @@
 title: "Particle MCMC"
 format: html
 engine: julia
-order: 5
+order: 7
 ---
 
 # Introduction
@@ -263,7 +263,7 @@ model_pmcmc = pmcmc_seit4l(flu_tdc.obs, init_state)
 using AdvancedPS
 
 # Run with 20 particles for demonstration (use 50-100 for production)
-chain_pmcmc = sample(model_pmcmc, PG(20), 1000)
+chain_pmcmc = sample(model_pmcmc, PG(20), 1000, progress=false)
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -362,7 +362,7 @@ end
 # Fit deterministic model
 times_obs = 0.0:1.0:59.0
 model_det = seit4l_deterministic_model(flu_tdc.obs, init_state, times_obs)
-chain_det = sample(model_det, NUTS(), 2000)
+chain_det = sample(model_det, NUTS(), 2000, progress=false)
 ```
 
 ```{julia}
@@ -399,22 +399,11 @@ Turing.jl's `AdvancedPS.jl` package implements sophisticated particle filtering 
 
 # Choosing the number of particles
 
-A key question in particle MCMC is: how many particles do we need?
+A key question in particle MCMC is: how many particles do we need? The answer involves a trade-off. Too few particles produce noisy likelihood estimates, which leads to poor MCMC mixing and unreliable inference. Too many particles waste computation without improving results.
 
-- **Too few particles** → noisy likelihood estimates → poor MCMC mixing
-- **Too many particles** → wasted computation
+The goal is to find the minimum number of particles that gives stable likelihood estimates. In practice, this means starting with a small number (10-20 particles) for initial exploratory runs to check that the model works and the sampler can find reasonable parameter values. Once you're confident the model is correctly specified, you can examine the trace plots: if they look very noisy or the chain gets stuck frequently, increase the particle count. For final inference that you plan to report or publish, using 50-100 particles provides a good balance between accuracy and computation time.
 
-The goal is to find the minimum number of particles that gives stable likelihood estimates.
-
-**Practical guidelines:**
-
-1. **Start small**: Try 10-20 particles for initial exploratory runs
-2. **Check mixing**: Look at trace plots - if they look very noisy or get stuck, increase particle count
-3. **Production runs**: Use 50-100 particles for final inference
-4. **Rule of thumb**: The variance in log-likelihood estimates should decrease as you add particles. When it plateaus, you have enough.
-
-For this dataset (60 observations, 284 individuals), 20-50 particles is typically sufficient.
-You can experiment with different particle counts and observe the effect on posterior estimates and MCMC efficiency.
+A useful diagnostic is to monitor the variance in log-likelihood estimates across iterations. This variance should decrease as you add particles, eventually plateauing when you have enough. For a dataset like Tristan da Cunha with 60 observations and 284 individuals, 20-50 particles is typically sufficient.
 
 # Model comparison: SEITL vs SEIT4L
 
@@ -528,7 +517,7 @@ init_state_seitl = Dict(
 
 # Fit SEITL - pass observations vector directly
 model_seitl = pmcmc_seitl(flu_tdc.obs, init_state_seitl)
-chain_seitl = sample(model_seitl, PG(20), 500)
+chain_seitl = sample(model_seitl, PG(20), 1000, progress=false)
 ```
 
 ```{julia}
@@ -542,32 +531,107 @@ density!(p2, chain_pmcmc, :D_imm, label="SEIT4L")
 plot(p1, p2, layout=(1, 2), size=(800, 400))
 ```
 
-## Model comparison
+## Posterior predictive checks
 
-Looking at the posterior densities, we can compare the two models. For formal model comparison, several approaches exist:
+Before turning to formal model comparison criteria, it's valuable to ask a simple question: can each model generate data that looks like what we observed? This is called a *posterior predictive check*. We sample parameters from the posterior, simulate trajectories, and compare them visually to the data.
+
+```{julia}
+# Posterior predictive check for SEIT4L
+function posterior_predictive_seit4l(chain, init_state, n_sims=50)
+    sims = []
+    n_samples = length(chain)
+    indices = rand(1:n_samples, n_sims)
+
+    for idx in indices
+        θ = Dict(
+            :R_0 => chain[:R_0][idx],
+            :D_lat => chain[:D_lat][idx],
+            :D_inf => chain[:D_inf][idx],
+            :α => chain[:α][idx],
+            :D_imm => chain[:D_imm][idx],
+            :ρ => chain[:ρ][idx]
+        )
+        traj = simulate_seit4l_stochastic(θ, init_state, 0.0:1.0:59.0)
+        # Apply observation model (Poisson with reporting rate)
+        obs_sim = rand.(Poisson.(max.(θ[:ρ] .* traj.Inc, 1e-10)))
+        push!(sims, obs_sim)
+    end
+    return sims
+end
+
+# Generate posterior predictive samples
+ppc_seit4l = posterior_predictive_seit4l(chain_pmcmc, init_state)
+
+# Plot
+p_ppc = plot(title="SEIT4L Posterior Predictive Check",
+             xlabel="Time (days)", ylabel="Daily cases")
+for sim in ppc_seit4l
+    plot!(p_ppc, 0:59, sim, alpha=0.2, color=:lightblue, label="")
+end
+scatter!(p_ppc, flu_tdc.time, flu_tdc.obs, color=:red, label="Observed", markersize=4)
+plot!(p_ppc, legend=:topright)
+```
+
+```{julia}
+# Posterior predictive check for SEITL
+function posterior_predictive_seitl(chain, init_state, n_sims=50)
+    sims = []
+    n_samples = length(chain)
+    indices = rand(1:n_samples, n_sims)
+
+    for idx in indices
+        θ = Dict(
+            :R_0 => chain[:R_0][idx],
+            :D_lat => chain[:D_lat][idx],
+            :D_inf => chain[:D_inf][idx],
+            :α => chain[:α][idx],
+            :D_imm => chain[:D_imm][idx],
+            :ρ => chain[:ρ][idx]
+        )
+        traj = simulate_seitl_stochastic(θ, init_state, 0.0:1.0:59.0)
+        obs_sim = rand.(Poisson.(max.(θ[:ρ] .* traj.Inc, 1e-10)))
+        push!(sims, obs_sim)
+    end
+    return sims
+end
+
+ppc_seitl = posterior_predictive_seitl(chain_seitl, init_state_seitl)
+
+p_ppc2 = plot(title="SEITL Posterior Predictive Check",
+              xlabel="Time (days)", ylabel="Daily cases")
+for sim in ppc_seitl
+    plot!(p_ppc2, 0:59, sim, alpha=0.2, color=:lightgreen, label="")
+end
+scatter!(p_ppc2, flu_tdc.time, flu_tdc.obs, color=:red, label="Observed", markersize=4)
+plot!(p_ppc2, legend=:topright)
+```
+
+```{julia}
+plot(p_ppc, p_ppc2, layout=(1, 2), size=(900, 400))
+```
+
+Examine these plots carefully. Both models should capture the two-wave pattern, but look for differences in how well they match the timing and magnitude of the peaks. Does one model produce simulations that more consistently match the observed data?
+
+## Formal model comparison
 
 ::: {.callout-note title="Approaches to model comparison"}
-**Information criteria** (DIC, WAIC, LOO-CV) estimate out-of-sample predictive accuracy. For MCMC output, [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides PSIS-LOO. However, applying these to particle MCMC requires care because the likelihood estimates are noisy.
+Beyond visual checks, several quantitative approaches exist for comparing models.
 
-**Bayes factors** compare marginal likelihoods $P(\text{data}|M_1) / P(\text{data}|M_2)$. These can be estimated from particle filter output but are computationally intensive.
+**Information criteria** (DIC, WAIC, LOO-CV) estimate out-of-sample predictive accuracy. For standard MCMC output, [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides PSIS-LOO. However, applying these to particle MCMC requires care because the likelihood estimates are noisy, which can bias the results.
 
-**Posterior predictive checks** ask: does each model generate data that looks like the observations? This visual approach is often the most informative starting point.
+**Bayes factors** compare marginal likelihoods $P(\text{data}|M_1) / P(\text{data}|M_2)$. These can be estimated from particle filter output but are computationally intensive and sensitive to prior choices.
 
-When comparing models:
+When interpreting information criteria differences: greater than 4 indicates strong evidence for the better model, 2-4 indicates moderate evidence, and less than 2 means the models are essentially equivalent.
 
-- **Difference in information criterion > 4**: Strong evidence for the better model
-- **Difference 2-4**: Moderate evidence
-- **Difference < 2**: Models are essentially equivalent
-
-[Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) compared SEITL and SEIT4L using DIC and found that SEIT4L (Erlang-distributed immunity duration) provided a better fit, suggesting that the *timing* of immunity loss matters - it's not memoryless.
+[Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit. This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 :::
 
 ::: {.callout-tip title="Learning points"}
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
-- **Particle Gibbs (PG)** jointly samples parameters and state trajectories, avoiding particle degeneracy in high-dimensional state spaces
 - **Number of particles** trades off accuracy vs computation: start with 20 for exploration, use 50-100 for production
 - **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
-- **Model comparison** using information criteria or Bayes factors helps choose between competing mechanistic explanations
+- **Posterior predictive checks** are a visual way to assess model fit: simulate data from the posterior and compare to observations
+- **Model comparison** using information criteria helps choose between competing mechanistic explanations, though applying them to particle MCMC requires care
 :::
 
 # Going further
