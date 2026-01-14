@@ -766,7 +766,7 @@ We now have multiple mechanistic models that could explain the two-wave pattern:
 
 Both encode the same biological hypothesis (temporary immunity followed by potential reinfection), but make different assumptions about the *distribution* of time spent in temporary immunity. The original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper compared these and other variants using information criteria (DIC) and found that SEIT4L provided a better fit.
 
-In the [next session on Particle MCMC](pmcmc.qmd), we'll fit both models to data and formally compare them using cross-validation.
+In the [next session on Particle MCMC](pmcmc.qmd), we'll fit both models to data and compare them.
 :::
 
 ::: {.callout-note}
