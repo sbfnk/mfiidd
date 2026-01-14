@@ -1,24 +1,15 @@
 /* Custom styles for MFIIDD course materials */
 
-/* Style code output (stdout) with a subtle background to distinguish from prose */
-/* Using a very light blue/lavender that's distinct from the grey code blocks */
+/* Code output: lighter grey than code blocks with subtle border */
 .cell-output-stdout pre,
 .cell-output-display pre {
-  background-color: #f0f4f8;  /* Light blue-grey */
-  border-left: 3px solid #6c9bc4;  /* Subtle blue accent */
-  padding: 0.5em 1em;
-  margin: 0.5em 0;
+  background-color: #fafafa;
+  border-left: 3px solid #ccc;
 }
 
-/* Dark mode adjustments */
+/* Dark mode */
 [data-bs-theme="dark"] .cell-output-stdout pre,
 [data-bs-theme="dark"] .cell-output-display pre {
-  background-color: #1e2a35;  /* Dark blue-grey */
-  border-left-color: #4a7c9b;
-}
-
-/* Also style the cell-output container for consistency */
-.cell-output {
-  margin-top: 0.5em;
-  margin-bottom: 1em;
+  background-color: #3a3a3a;
+  border-left: 3px solid #666;
 }
