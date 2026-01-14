@@ -227,7 +227,7 @@ Turing model for pMCMC inference of SEIT4L parameters using Particle Gibbs.
 For stochastic models, we define the model with observations and let Turing's
 Particle Gibbs sampler handle the particle filtering automatically.
 """
-@model function pmcmc_seit4l(obs_data, init_state)
+@model function pmcmc_seit4l(obs, init_state)
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
     D_lat ~ Uniform(0.1, 10.0)
@@ -245,11 +245,9 @@ Particle Gibbs sampler handle the particle filtering automatically.
     traj = simulate_seit4l_stochastic(θ, init_state, times)
 
     # Likelihood: observed data given simulated incidence
-    # obs_data has 60 rows: obs_data.obs[i] is observation at time i-1 (row i, time i-1)
-    # traj has 60 rows: traj.Inc[i] is incidence at time i-1 (row i, time i-1)
-    for i in 1:nrow(obs_data)
+    for i in eachindex(obs)
         λ = max(ρ * traj.Inc[i], 1e-10)
-        obs_data.obs[i] ~ Poisson(λ)
+        obs[i] ~ Poisson(λ)
     end
 end
 ```
@@ -257,8 +255,8 @@ end
 Now let's run pMCMC using Turing's Particle Gibbs sampler:
 
 ```{julia}
-# Define the model
-model_pmcmc = pmcmc_seit4l(flu_tdc, init_state)
+# Define the model - pass observations vector directly
+model_pmcmc = pmcmc_seit4l(flu_tdc.obs, init_state)
 
 # Run Particle MCMC with Particle Gibbs sampler
 # PG(n_particles) where n_particles is the number of particles for the filter
