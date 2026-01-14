@@ -28,6 +28,7 @@ website:
         - sessions/introduction.qmd
         - sessions/mcmc.qmd
         - sessions/mcmc_diagnostics.qmd
+        - sessions/model_checking.qmd
         - sessions/observation_models.qmd
         - sessions/seitl.qmd
         - sessions/pmcmc.qmd
@@ -37,8 +38,8 @@ website:
 format:
   html:
     theme:
-      light: cosmo
-      dark: solar
+      light: brite
+      dark: vapor
     css: styles.css
     link-external-icon: true
     link-external-newwindow: true
