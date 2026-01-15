@@ -882,6 +882,19 @@ chain = sample(model_pmmh, MH(proposal_conservative...), 5000)
 
 For adaptive proposal tuning, see [AdaptiveParticleMCMC.jl](https://github.com/mvihola/AdaptiveParticleMCMC.jl).
 
+## Alternative samplers
+
+Julia's [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface enables different samplers to work with the same model. Since Turing models implement this interface, you can use:
+
+- **[Pigeons.jl](https://pigeons.run/)** - parallel tempering with adaptive exploration:
+  ```julia
+  using Pigeons
+  pt = pigeons(target = TuringLogPotential(model_pmmh))
+  ```
+- **[AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl)** - standalone HMC (though not suitable for PMMH due to discontinuous likelihood)
+
+This composability is a key advantage of Julia's ecosystem - define your model once, sample with any compatible algorithm.
+
 ## Particle Gibbs {#particle-gibbs}
 
 **Particle Gibbs (PG)** is another PMCMC method, available in Turing via `PG(n_particles)`.
