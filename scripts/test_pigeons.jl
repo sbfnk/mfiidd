@@ -6,6 +6,7 @@ Pkg.activate(joinpath(@__DIR__, ".."))
 
 using Random
 using Distributions
+using DataFrames
 using Turing
 using CSV
 using DrWatson
