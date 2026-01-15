@@ -11,7 +11,6 @@ using Turing
 using MCMCChains
 using CSV
 using DrWatson
-using JLD2
 using StatsBase
 using AdvancedMH
 
@@ -182,18 +181,48 @@ n_particles = 256
 n_samples = 50000  # Long chain for good mixing
 thinning = 10      # Keep every 10th sample
 
-# Random walk proposals - smaller steps for ~15-25% acceptance
+# Random walk proposals - tuned for ~20-40% acceptance rate
+# Rule of thumb: proposal std ≈ posterior std / 2
 proposal = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 0.4)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
-    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.1)),
-    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.01)),
-    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.4)),
-    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.01))
+    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 4.0)),
+    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.3)),
+    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 1.5)),
+    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
+    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 2.0)),
+    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.05))
 )
 
 # Initial values near posterior mode (from deterministic fit) to reduce burn-in
 init_params = (R_0=6.0, D_lat=1.3, D_inf=2.0, α=0.5, D_imm=10.5, ρ=0.7)
+
+# Helper function to save chain as CSV
+function save_chain_csv(chain, path)
+    params = chain.name_map.parameters
+    internals = chain.name_map.internals
+    all_names = vcat(params, internals)
+    data_matrix = chain.value.data[:, :, 1]
+    df = DataFrame(data_matrix, all_names)
+    CSV.write(path, df)
+end
+
+# Helper function to print diagnostics
+function print_diagnostics(chain, name)
+    println("\n$name chain summary:")
+    println(describe(chain)[1])
+
+    # ESS
+    println("\nEffective Sample Size:")
+    ess_result = ess(chain)
+    for p in chain.name_map.parameters
+        println("  $p: $(round(ess_result[p, :ess], digits=1))")
+    end
+
+    # Acceptance rate
+    lj = chain[:logjoint].data[:, 1]
+    n_accepts = sum(lj[2:end] .!= lj[1:end-1])
+    accept_rate = n_accepts / (length(lj) - 1)
+    println("\nAcceptance rate: $(round(accept_rate * 100, digits=1))%")
+end
 
 # SEIT4L
 println("Running PMMH for SEIT4L with $n_particles particles, $n_samples samples, thinning=$thinning...")
@@ -205,12 +234,12 @@ chain_full = sample(model_seit4l, MH(proposal...), n_samples; init_params, progr
 chain_pmcmc = chain_full[1:thinning:end]
 println("Thinned from $(length(chain_full)) to $(length(chain_pmcmc)) samples")
 
-output_path = datadir("pmcmc_seit4l_chain_precomputed.jld2")
+# Save as CSV for portability across Julia versions
+output_path = datadir("pmcmc_seit4l_samples.csv")
 println("Saving SEIT4L chain to $output_path")
-@save output_path chain_pmcmc
+save_chain_csv(chain_pmcmc, output_path)
 
-println("\nSEIT4L chain summary:")
-println(chain_pmcmc)
+print_diagnostics(chain_pmcmc, "SEIT4L")
 
 # SEITL
 println("\nRunning PMMH for SEITL with $n_particles particles, $n_samples samples, thinning=$thinning...")
@@ -222,11 +251,11 @@ chain_seitl_full = sample(model_seitl, MH(proposal...), n_samples; init_params, 
 chain_seitl = chain_seitl_full[1:thinning:end]
 println("Thinned from $(length(chain_seitl_full)) to $(length(chain_seitl)) samples")
 
-output_path_seitl = datadir("pmcmc_seitl_chain_precomputed.jld2")
+# Save as CSV
+output_path_seitl = datadir("pmcmc_seitl_samples.csv")
 println("Saving SEITL chain to $output_path_seitl")
-@save output_path_seitl chain_seitl
+save_chain_csv(chain_seitl, output_path_seitl)
 
-println("\nSEITL chain summary:")
-println(chain_seitl)
+print_diagnostics(chain_seitl, "SEITL")
 
 println("\nAll done!")
