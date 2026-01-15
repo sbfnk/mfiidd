@@ -493,14 +493,15 @@ Now let's run PMMH. As in the [MCMC session](mcmc.qmd), we need to specify propo
 # Define model with 256 particles
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
-# Random walk proposals - smaller steps for higher acceptance
+# Random walk proposals - tuned for ~20-40% acceptance rate
+# Rule of thumb: proposal std ≈ posterior std / 2
 proposal = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 0.4)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
-    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.1)),
-    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.01)),
-    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.4)),
-    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.01))
+    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 4.0)),
+    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.3)),
+    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 1.5)),
+    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
+    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 2.0)),
+    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.05))
 )
 
 # Initial values near posterior mode (from deterministic fit) to reduce burn-in
@@ -868,14 +869,14 @@ The key to good PMMH performance is well-tuned random walk proposals. You must u
 **Target acceptance rates**: For pseudo-marginal MCMC, 10-20% acceptance is typical (lower than the 23% optimal for standard MH) because the stochastic likelihood adds noise to acceptance decisions.
 
 ```julia
-# Smaller steps → higher acceptance but slower exploration
+# Smaller steps → higher acceptance but slower exploration (may get stuck)
 proposal_conservative = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 0.25)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
-    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.1)),
-    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.01)),
-    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.25)),
-    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.01))
+    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 1.0)),
+    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.1)),
+    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.5)),
+    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.02)),
+    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.5)),
+    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.02))
 )
 chain = sample(model_pmmh, MH(proposal_conservative...), 5000)
 ```
