@@ -51,7 +51,7 @@ The source file of this session is located at `sessions/seitl.qmd`.
 using Random ## for random numbers
 using Distributions ## for probability distributions
 using DifferentialEquations ## for differential equations
-using JumpProcesses ## for stochastic simulation (Gillespie algorithm)
+# JumpProcesses.jl is an alternative for stochastic simulation - we implement Gillespie manually here
 using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
@@ -407,13 +407,14 @@ We will now test if this can be better reproduced with a stochastic model which 
 
 ## Stochastic simulations
 
-For stochastic simulation, we need to implement the model using the Gillespie algorithm (stochastic simulation algorithm).
+For stochastic simulation, we implement the Gillespie algorithm (stochastic simulation algorithm) directly. This simulates the model day-by-day, which is natural for fitting to daily incidence data and prepares us for particle filtering later.
+
 The model has the following transitions:
 
 | Transition | Rate | Effect |
 |------------|------|--------|
 | S → E | $\beta S I / N$ | S-1, E+1 |
-| E → I | $\epsilon E$ | E-1, I+1, Inc+1 |
+| E → I | $\epsilon E$ | E-1, I+1 (count as new case) |
 | I → T | $\nu I$ | I-1, T+1 |
 | T → S | $(1-\alpha) \tau T$ | T-1, S+1 |
 | T → L | $\alpha \tau T$ | T-1, L+1 |
@@ -421,84 +422,89 @@ The model has the following transitions:
 ```{julia}
 """
 SEITL stochastic model using Gillespie algorithm.
+Simulates day-by-day, tracking daily incidence directly.
 """
 function simulate_seitl_stochastic(θ, init_state, times)
-    # Parameters
     R_0, D_lat, D_inf, α, D_imm = θ[:R_0], θ[:D_lat], θ[:D_inf], θ[:α], θ[:D_imm]
     β = R_0 / D_inf
     ϵ = 1.0 / D_lat
     ν = 1.0 / D_inf
     τ = 1.0 / D_imm
 
-    # Initial state
-    u0 = [init_state[:S], init_state[:E], init_state[:I],
-          init_state[:T], init_state[:L], 0.0]
+    # State: [S, E, I, T, L] - no cumulative incidence needed
+    state = Float64[init_state[:S], init_state[:E], init_state[:I],
+                    init_state[:T], init_state[:L]]
 
-    # Rate function: returns vector of rates for each transition
-    function rate_func(u, p, t)
-        S, E, I, T, L, Inc = u
-        N = S + E + I + T + L
-
-        return [
-            β * S * I / N,           # S → E (infection)
-            ϵ * E,                   # E → I (becoming infectious)
-            ν * I,                   # I → T (recovery to temporary immunity)
-            (1 - α) * τ * T,         # T → S (loss of immunity)
-            α * τ * T                # T → L (gain long-term immunity)
-        ]
-    end
-
-    # Stoichiometry matrix: columns are states, rows are transitions
-    # Each row shows how a transition changes the state
+    # Stoichiometry: how each transition changes [S, E, I, T, L]
     stoich = [
-        -1  1  0  0  0  0;  # S → E
-         0 -1  1  0  0  1;  # E → I (also increments Inc)
-         0  0 -1  1  0  0;  # I → T
-         1  0  0 -1  0  0;  # T → S
-         0  0  0 -1  1  0   # T → L
+        [-1, 1, 0, 0, 0],   # S → E
+        [0, -1, 1, 0, 0],   # E → I
+        [0, 0, -1, 1, 0],   # I → T
+        [1, 0, 0, -1, 0],   # T → S
+        [0, 0, 0, -1, 1]    # T → L
     ]
 
-    # Define jump problem
-    prob = DiscreteProblem(u0, (times[1], times[end]))
-
-    # Create jump processes
-    jumps = []
-    for i in 1:size(stoich, 1)
-        affect! = function(integrator)
-            for j in 1:length(integrator.u)
-                integrator.u[j] += stoich[i, j]
-            end
-        end
-        rate(u, p, t) = rate_func(u, p, t)[i]
-        push!(jumps, ConstantRateJump(rate, affect!))
+    function rates(s)
+        S, E, I, T, L = s
+        N = S + E + I + T + L
+        [β*S*I/N, ϵ*E, ν*I, (1-α)*τ*T, α*τ*T]
     end
 
-    jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper())
+    # Gillespie step: simulate one time unit, return daily incidence
+    function gillespie_step!(s, dt)
+        t, daily_inc = 0.0, 0
+        while t < dt
+            r = rates(s)
+            total_rate = sum(r)
+            total_rate ≤ 0 && break
+            τ_wait = randexp() / total_rate
+            t + τ_wait > dt && break
+            t += τ_wait
+            # Select event
+            cum, rnd, event = 0.0, rand() * total_rate, 0
+            for i in 1:5
+                cum += r[i]
+                if rnd ≤ cum
+                    event = i
+                    break
+                end
+            end
+            # Apply transition
+            for j in 1:5
+                s[j] += stoich[event][j]
+            end
+            # Track E→I transitions as new cases
+            event == 2 && (daily_inc += 1)
+        end
+        daily_inc
+    end
 
-    # Aggregate incidence by day
-    # Use interpolation to get cumulative incidence at each time point
-    Inc_cumulative_at_times = [sol(t)[6] for t in times]
+    # Simulate day-by-day
+    n_days = length(times)
+    results = DataFrame(time=times, S=zeros(n_days), E=zeros(n_days),
+                       I=zeros(n_days), T=zeros(n_days), L=zeros(n_days),
+                       Inc=zeros(n_days))
 
-    # Convert cumulative to daily incidence
-    Inc_daily = [0.0; diff(Inc_cumulative_at_times)]
+    for (i, t) in enumerate(times)
+        # Record state at start of day
+        results.S[i], results.E[i], results.I[i] = state[1], state[2], state[3]
+        results.T[i], results.L[i] = state[4], state[5]
+        # Simulate one day and record incidence
+        if i < n_days
+            results.Inc[i+1] = gillespie_step!(state, times[i+1] - t)
+        end
+    end
 
-    # Get other state variables at the requested times
-    state_matrix = reduce(hcat, [sol(t)[1:5] for t in times])'
-    df = DataFrame(state_matrix, [:S, :E, :I, :T, :L])
-    df[!, :time] = times
-    df[!, :Inc] = Inc_daily
-
-    return df
+    return results
 end
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`ConstantRateJump(rate, affect!)`](https://docs.sciml.ai/JumpProcesses/stable/jump_types/#Defining-a-Constant-Rate-Jump) - defines a transition event where `rate` is a function returning the event rate, and `affect!` modifies the state when the event occurs.
-- [`DiscreteProblem`](https://docs.sciml.ai/JumpProcesses/stable/jump_types/#Defining-Problems-with-Jumps) - defines a problem with discrete states (counts), suitable for jump processes.
-- [`JumpProblem(prob, Direct(), jumps...)`](https://docs.sciml.ai/JumpProcesses/stable/jump_types/#JumpProblem) - combines the discrete problem with jump definitions. `Direct()` specifies the Gillespie Direct algorithm for selecting the next jump.
-- [`SSAStepper()`](https://docs.sciml.ai/JumpProcesses/stable/algorithms/#JumpProcesses.SSAStepper) - the Stochastic Simulation Algorithm (SSA) stepper, implementing the exact Gillespie algorithm.
+- **Gillespie algorithm**: At each step, compute all transition rates, sample the waiting time from an exponential distribution, select which event occurs (weighted by rates), and apply the state change.
+- `randexp() / total_rate` - samples the waiting time to the next event. The `randexp()` function draws from Exp(1), and dividing by the total rate gives Exp(total_rate).
+- **Stoichiometry matrix** - each row defines how a transition changes the state vector [S, E, I, T, L].
+- **Daily incidence** - we track E→I transitions directly (event 2) rather than maintaining a cumulative counter. This is more natural for step-by-step simulation.
 :::
 
 ```{julia}
