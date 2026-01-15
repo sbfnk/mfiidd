@@ -47,7 +47,6 @@ The source file of this session is located at `sessions/pmcmc.qmd`.
 using Random ## for random numbers
 using Distributions ## for probability distributions
 using DifferentialEquations ## for differential equations
-using JumpProcesses ## for stochastic simulation (Gillespie algorithm)
 using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
@@ -57,6 +56,8 @@ using AdvancedMH ## for custom MH proposals
 using CSV ## for CSV file reading
 using StatsBase ## for statistical functions
 using JLD2 ## for loading pre-computed chains
+using SSMProblems ## for state-space model interface
+using GeneralisedFilters ## for particle filtering
 ```
 
 ## Initialisation
@@ -217,88 +218,168 @@ A key question in particle MCMC is: how many particles do we need? The answer de
 
 The principled approach is to calibrate the number of particles by targeting a specific variance of the log-likelihood estimate. [Pitt et al. (2012)](https://academic.oup.com/biomet/article/99/2/269/217203) and [Doucet et al. (2015)](https://academic.oup.com/biomet/article/102/2/295/238171) showed that MCMC efficiency is maximised when the standard deviation of the log-likelihood estimate is between 1 and 3.
 
-## Bootstrap particle filter
+## State-space model interface
 
-To calibrate, we run a bootstrap particle filter (with resampling) at fixed parameters and measure variance across repeated runs. At each time step, we propagate particles forward, weight them by how well they match the observation, and resample according to these weights.
+To use particle filtering, we define our model using the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface. This separates the model definition from the filtering algorithm, making the code cleaner and more reusable.
 
-The implementation combines the Gillespie algorithm (for stochastic simulation) with importance sampling and resampling:
+A state-space model has three components:
+1. **Initial state distribution** - where does the system start?
+2. **Transition dynamics** - how does the state evolve?
+3. **Observation process** - how do observations relate to the state?
 
 ```{julia}
 """
-Bootstrap particle filter with resampling.
-Returns log-likelihood estimate and whether particle depletion occurred.
+SEIT4L latent dynamics using Gillespie algorithm.
+State: [S, E, I, T1, T2, T3, T4, L, daily_inc]
 """
-function particle_filter(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
-    n_obs = length(obs)
-    ρ = θ[:ρ]
+struct SEIT4LDynamics <: SSMProblems.LatentDynamics
+    θ::Dict{Symbol, Float64}
+end
 
-    # SEIT4L rates
-    function rates(state)
-        S, E, I, T1, T2, T3, T4, L = state
-        β = θ[:R_0] / θ[:D_inf]
-        ϵ = 1.0 / θ[:D_lat]
-        ν = 1.0 / θ[:D_inf]
-        τ = 4.0 / θ[:D_imm]
-        N = S + E + I + T1 + T2 + T3 + T4 + L
-        [β*S*I/N, ϵ*E, ν*I, τ*T1, τ*T2, τ*T3, (1-θ[:α])*τ*T4, θ[:α]*τ*T4]
-    end
+# Gillespie step: simulate one day, return new state with daily incidence
+function SSMProblems.simulate(rng::AbstractRNG, dyn::SEIT4LDynamics, step::Integer, prev_state; kwargs...)
+    θ = dyn.θ
+    β = θ[:R_0] / θ[:D_inf]
+    ϵ = 1.0 / θ[:D_lat]
+    ν = 1.0 / θ[:D_inf]
+    τ = 4.0 / θ[:D_imm]
+
+    # Extract compartments (first 8 elements)
+    state = collect(prev_state[1:8])
 
     stoich = [[-1,1,0,0,0,0,0,0], [0,-1,1,0,0,0,0,0], [0,0,-1,1,0,0,0,0],
               [0,0,0,-1,1,0,0,0], [0,0,0,0,-1,1,0,0], [0,0,0,0,0,-1,1,0],
               [1,0,0,0,0,0,-1,0], [0,0,0,0,0,0,-1,1]]
 
-    # Gillespie step function
-    function gillespie_step!(state, dt)
-        t, incidence = 0.0, 0
-        while t < dt
-            r = rates(state)
-            total = sum(r)
-            total ≤ 0 && break
-            τ = randexp() / total
-            t + τ > dt && break
-            t += τ
-            cum, rnd, ev = 0.0, rand()*total, 0
-            for i in 1:8
-                cum += r[i]
-                if rnd ≤ cum; ev = i; break; end
-            end
-            for j in 1:8; state[j] += stoich[ev][j]; end
-            ev == 2 && (incidence += 1)  # E→I
-        end
-        incidence
+    function rates(s)
+        S, E, I, T1, T2, T3, T4, L = s
+        N = S + E + I + T1 + T2 + T3 + T4 + L
+        [β*S*I/N, ϵ*E, ν*I, τ*T1, τ*T2, τ*T3, (1-θ[:α])*τ*T4, θ[:α]*τ*T4]
     end
 
-    particles = [copy(init_state) for _ in 1:n_particles]
-    log_lik, depleted = 0.0, false
+    # Simulate one day
+    t, daily_inc = 0.0, 0
+    while t < 1.0
+        r = rates(state)
+        total_rate = sum(r)
+        total_rate ≤ 0 && break
+        τ_wait = randexp(rng) / total_rate
+        t + τ_wait > 1.0 && break
+        t += τ_wait
+        # Select event
+        cum, rnd, event = 0.0, rand(rng) * total_rate, 0
+        for i in 1:8
+            cum += r[i]
+            if rnd ≤ cum; event = i; break; end
+        end
+        # Apply transition
+        for j in 1:8; state[j] += stoich[event][j]; end
+        event == 2 && (daily_inc += 1)  # E→I = new case
+    end
 
-    for t in 1:n_obs
-        # Propagate particles forward one time step
-        inc = [gillespie_step!(particles[i], 1.0) for i in 1:n_particles]
-        # Weight by observation likelihood
-        log_w = [logpdf(Poisson(max(ρ*inc[i], 1e-10)), obs[t]) for i in 1:n_particles]
-        # Log-sum-exp trick for numerical stability
+    return vcat(state, daily_inc)
+end
+
+"""
+Poisson observation process.
+Observes daily incidence (last element of state) with reporting rate ρ.
+"""
+struct PoissonObservation <: SSMProblems.ObservationProcess
+    ρ::Float64
+end
+
+function SSMProblems.distribution(obs::PoissonObservation, step::Integer, state; kwargs...)
+    daily_inc = state[end]
+    Poisson(max(obs.ρ * daily_inc, 1e-10))
+end
+
+"""
+Initial state distribution - deterministic for now.
+"""
+struct SEIT4LInitial <: SSMProblems.AbstractStateSpacePrior
+    init_state::Vector{Float64}
+end
+
+function SSMProblems.simulate(rng::AbstractRNG, prior::SEIT4LInitial; kwargs...)
+    vcat(prior.init_state, 0.0)  # Add 0 initial daily incidence
+end
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- `SSMProblems.LatentDynamics` - abstract type for state transition models. We implement `simulate` to define how the state evolves.
+- `SSMProblems.ObservationProcess` - abstract type for observation models. We implement `distribution` to return a `Distributions.jl` distribution.
+- **State includes daily incidence** - the last element tracks new cases this step, which the observation process uses.
+- `AbstractRNG` parameter - allows reproducible random number generation across particles.
+:::
+
+## Bootstrap particle filter
+
+Now we can run the particle filter using [GeneralisedFilters.jl](https://turinglang.org/SSMProblems.jl/GeneralisedFilters/dev/):
+
+```{julia}
+"""
+Run bootstrap particle filter and return log-likelihood.
+"""
+function particle_filter(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+    # Define SSM components
+    dynamics = SEIT4LDynamics(θ)
+    observation = PoissonObservation(θ[:ρ])
+    initial = SEIT4LInitial(init_state)
+
+    # Create state-space model
+    model = StateSpaceModel(dynamics, observation, initial)
+
+    # Run bootstrap particle filter
+    rng = Random.default_rng()
+    algo = BF(n_particles)  # Bootstrap Filter
+    _, log_lik = GeneralisedFilters.filter(rng, model, algo, obs)
+
+    return log_lik, false  # Return log-lik and depleted flag (not tracked by GeneralisedFilters)
+end
+```
+
+::: {.callout-note collapse="true"}
+## What does the bootstrap particle filter do?
+
+The bootstrap particle filter estimates the likelihood by simulating many trajectories ("particles") and weighting them by how well they match observations. Here's the algorithm:
+
+```julia
+# Manual implementation (for illustration)
+function bootstrap_particle_filter_manual(θ, obs, n_particles, init_state)
+    particles = [copy(init_state) for _ in 1:n_particles]
+    log_lik = 0.0
+
+    for t in 1:length(obs)
+        # 1. PROPAGATE: simulate each particle forward one step
+        daily_inc = [gillespie_step!(particles[i], θ) for i in 1:n_particles]
+
+        # 2. WEIGHT: compute likelihood of observation given each particle
+        log_w = [logpdf(Poisson(θ[:ρ] * inc), obs[t]) for inc in daily_inc]
+
+        # 3. ACCUMULATE: add log-mean-weight to likelihood (log-sum-exp for stability)
         max_lw = maximum(log_w)
         w = exp.(log_w .- max_lw)
         log_lik += max_lw + log(mean(w))
+
+        # 4. RESAMPLE: if weights are too uneven, resample particles
         w ./= sum(w)
-        # Resample if effective sample size drops
-        ess = 1.0 / sum(w.^2)
+        ess = 1.0 / sum(w.^2)  # Effective sample size
         if ess < n_particles / 2
             idx = wsample(1:n_particles, w, n_particles)
             particles = [copy(particles[i]) for i in idx]
-            length(unique(idx)) == 1 && (depleted = true)
         end
     end
-    log_lik, depleted
+    return log_lik
 end
 ```
 
 The key ideas:
-
 - **Propagate**: each particle simulates one day using the Gillespie algorithm
 - **Weight**: particles are weighted by how well their incidence matches the observation (Poisson likelihood)
-- **Resample**: when weights become too uneven (low effective sample size), we resample to focus computation on plausible trajectories
-- **Accumulate likelihood**: the log-likelihood is the sum of log-mean-weights across time steps
+- **Resample**: when weights become too uneven (low ESS), we resample to focus computation on plausible trajectories
+- **Accumulate likelihood**: the log-likelihood is the sum of log-mean-weights across time steps (using log-sum-exp for numerical stability)
+:::
 
 ## Calibrating particle count
 
