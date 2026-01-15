@@ -77,89 +77,80 @@ In the previous session, you defined Turing `@model` functions for SEITL and SEI
 In this session, we'll use the same pattern with SEIT4L to demonstrate particle MCMC.
 
 First, let's define the SEIT4L stochastic model using the Gillespie algorithm.
-Julia's `JumpProcesses.jl` (part of `DifferentialEquations.jl`) provides excellent support for stochastic simulation:
+We implement this day-by-day, which is natural for fitting to daily incidence data:
 
 ```{julia}
 """
 SEIT4L stochastic model using Gillespie algorithm.
+Simulates day-by-day, tracking daily incidence directly.
 """
 function simulate_seit4l_stochastic(θ, init_state, times)
-    # Parameters
     R_0, D_lat, D_inf, α, D_imm = θ[:R_0], θ[:D_lat], θ[:D_inf], θ[:α], θ[:D_imm]
     β = R_0 / D_inf
     ϵ = 1.0 / D_lat
     ν = 1.0 / D_inf
     τ = 4.0 / D_imm  # Rate for each of 4 T stages
 
-    # Initial state
-    u0 = [init_state[:S], init_state[:E], init_state[:I],
-          init_state[:T1], init_state[:T2], init_state[:T3], init_state[:T4],
-          init_state[:L], 0.0]
+    # State: [S, E, I, T1, T2, T3, T4, L]
+    state = Float64[init_state[:S], init_state[:E], init_state[:I],
+                    init_state[:T1], init_state[:T2], init_state[:T3], init_state[:T4],
+                    init_state[:L]]
 
-    # Rate function
-    function rate_func(u, p, t)
-        S, E, I, T1, T2, T3, T4, L, Inc = u
-        N = S + E + I + T1 + T2 + T3 + T4 + L
-
-        return [
-            β * S * I / N,           # S → E (infection)
-            ϵ * E,                   # E → I (becoming infectious)
-            ν * I,                   # I → T1 (recovery to temporary immunity stage 1)
-            τ * T1,                  # T1 → T2
-            τ * T2,                  # T2 → T3
-            τ * T3,                  # T3 → T4
-            (1 - α) * τ * T4,        # T4 → S (loss of immunity)
-            α * τ * T4               # T4 → L (gain long-term immunity)
-        ]
-    end
-
-    # Stoichiometry matrix
+    # Stoichiometry: how each transition changes state
     stoich = [
-        -1  1  0  0  0  0  0  0  0;  # S → E
-         0 -1  1  0  0  0  0  0  1;  # E → I (also increments Inc)
-         0  0 -1  1  0  0  0  0  0;  # I → T1
-         0  0  0 -1  1  0  0  0  0;  # T1 → T2
-         0  0  0  0 -1  1  0  0  0;  # T2 → T3
-         0  0  0  0  0 -1  1  0  0;  # T3 → T4
-         1  0  0  0  0  0 -1  0  0;  # T4 → S
-         0  0  0  0  0  0 -1  1  0   # T4 → L
+        [-1,1,0,0,0,0,0,0], [0,-1,1,0,0,0,0,0], [0,0,-1,1,0,0,0,0],
+        [0,0,0,-1,1,0,0,0], [0,0,0,0,-1,1,0,0], [0,0,0,0,0,-1,1,0],
+        [1,0,0,0,0,0,-1,0], [0,0,0,0,0,0,-1,1]
     ]
 
-    # Define jump problem
-    prob = DiscreteProblem(u0, (times[1], times[end]))
-
-    # Create jump processes
-    # We need to create separate affect! functions for each jump to avoid closure issues
-    jumps = ConstantRateJump[]
-    for i in 1:size(stoich, 1)
-        # Capture the stoichiometry row for this specific jump
-        stoich_row = stoich[i, :]
-        affect! = function(integrator)
-            for j in 1:length(integrator.u)
-                integrator.u[j] += stoich_row[j]
-            end
-        end
-        rate(u, p, t) = rate_func(u, p, t)[i]
-        push!(jumps, ConstantRateJump(rate, affect!))
+    function rates(s)
+        S, E, I, T1, T2, T3, T4, L = s
+        N = S + E + I + T1 + T2 + T3 + T4 + L
+        [β*S*I/N, ϵ*E, ν*I, τ*T1, τ*T2, τ*T3, (1-α)*τ*T4, α*τ*T4]
     end
 
-    jump_prob = JumpProblem(prob, Direct(), jumps...)
-    sol = solve(jump_prob, SSAStepper())
+    # Gillespie step: simulate one time unit, return daily incidence
+    function gillespie_step!(s, dt)
+        t, daily_inc = 0.0, 0
+        while t < dt
+            r = rates(s)
+            total_rate = sum(r)
+            total_rate ≤ 0 && break
+            τ_wait = randexp() / total_rate
+            t + τ_wait > dt && break
+            t += τ_wait
+            # Select event
+            cum, rnd, event = 0.0, rand() * total_rate, 0
+            for i in 1:8
+                cum += r[i]
+                if rnd ≤ cum; event = i; break; end
+            end
+            # Apply transition
+            for j in 1:8; s[j] += stoich[event][j]; end
+            event == 2 && (daily_inc += 1)  # E→I = new case
+        end
+        daily_inc
+    end
 
-    # Extract solution at requested time points
-    # sol(t) interpolates the solution at time t
-    state_names = [:S, :E, :I, :T1, :T2, :T3, :T4, :L, :Inc_cumulative]
+    # Simulate day-by-day
+    n_days = length(times)
+    results = DataFrame(
+        time=times,
+        S=zeros(n_days), E=zeros(n_days), I=zeros(n_days),
+        T1=zeros(n_days), T2=zeros(n_days), T3=zeros(n_days), T4=zeros(n_days),
+        L=zeros(n_days), Inc=zeros(n_days)
+    )
 
-    # Evaluate solution at requested times
-    sol_at_times = [sol(t) for t in times]
-    sol_matrix = reduce(hcat, sol_at_times)'
-    df = DataFrame(sol_matrix, state_names)
-    df[!, :time] = collect(times)
+    for (i, t) in enumerate(times)
+        results.S[i], results.E[i], results.I[i] = state[1], state[2], state[3]
+        results.T1[i], results.T2[i], results.T3[i], results.T4[i] = state[4], state[5], state[6], state[7]
+        results.L[i] = state[8]
+        if i < n_days
+            results.Inc[i+1] = gillespie_step!(state, times[i+1] - t)
+        end
+    end
 
-    # Convert cumulative incidence to daily incidence
-    df[!, :Inc] = [0.0; diff(df.Inc_cumulative)]
-
-    return df
+    return results
 end
 ```
 
@@ -296,7 +287,7 @@ end
 """
 Initial state distribution - deterministic for now.
 """
-struct SEIT4LInitial <: SSMProblems.AbstractStateSpacePrior
+struct SEIT4LInitial <: SSMProblems.StatePrior
     init_state::Vector{Float64}
 end
 
@@ -323,12 +314,12 @@ Run bootstrap particle filter and return log-likelihood.
 """
 function particle_filter(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
     # Define SSM components
+    initial = SEIT4LInitial(init_state)
     dynamics = SEIT4LDynamics(θ)
     observation = PoissonObservation(θ[:ρ])
-    initial = SEIT4LInitial(init_state)
 
-    # Create state-space model
-    model = StateSpaceModel(dynamics, observation, initial)
+    # Create state-space model (order: prior, dynamics, observation)
+    model = StateSpaceModel(initial, dynamics, observation)
 
     # Run bootstrap particle filter
     rng = Random.default_rng()
@@ -338,6 +329,13 @@ function particle_filter(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0,
     return log_lik, false  # Return log-lik and depleted flag (not tracked by GeneralisedFilters)
 end
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- `StateSpaceModel(dynamics, observation, initial)` - combines the three SSM components into a single model object.
+- `BF(n_particles)` - Bootstrap Filter algorithm with the specified number of particles.
+- `GeneralisedFilters.filter(rng, model, algo, obs)` - runs the filter, returning `(filtered_state, log_likelihood)`.
+:::
 
 ::: {.callout-note collapse="true"}
 ## What does the bootstrap particle filter do?
@@ -378,7 +376,7 @@ The key ideas:
 - **Propagate**: each particle simulates one day using the Gillespie algorithm
 - **Weight**: particles are weighted by how well their incidence matches the observation (Poisson likelihood)
 - **Resample**: when weights become too uneven (low ESS), we resample to focus computation on plausible trajectories
-- **Accumulate likelihood**: the log-likelihood is the sum of log-mean-weights across time steps (using log-sum-exp for numerical stability)
+- **Accumulate likelihood**: the log-likelihood is the sum of log-mean-weights across time steps (using the [log-sum-exp trick](https://en.wikipedia.org/wiki/LogSumExp) for numerical stability)
 :::
 
 ## Calibrating particle count
@@ -495,29 +493,43 @@ Now let's run PMMH. As in the [MCMC session](mcmc.qmd), we need to specify propo
 # Define model with 256 particles
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
-# Random walk proposals - step sizes tuned empirically
+# Random walk proposals - smaller steps for higher acceptance
 proposal = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 0.5)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.075)),
-    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.125)),
-    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.0125)),
-    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.5)),
-    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.0125))
+    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 0.4)),
+    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
+    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.1)),
+    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.01)),
+    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.4)),
+    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.01))
 )
 
+# Initial values near posterior mode (from deterministic fit) to reduce burn-in
+init_params = (R_0=6.0, D_lat=1.3, D_inf=2.0, α=0.5, D_imm=10.5, ρ=0.7)
+
 # Run PMMH
-chain_pmcmc = sample(model_pmmh, MH(proposal...), 3000, progress=true)
+chain_pmcmc = sample(model_pmmh, MH(proposal...), 3000; init_params, progress=false)
 ```
 
 ```{julia}
-# Display chain summary
+# Display chain summary and acceptance rate
 display(chain_pmcmc)
+
+# Calculate acceptance rate (proportion of iterations where parameters changed)
+n_accepted = sum(diff(chain_pmcmc[:R_0].data[:, 1]) .!= 0)
+acceptance_rate = n_accepted / (length(chain_pmcmc) - 1)
+println("Acceptance rate: $(round(acceptance_rate * 100, digits=1))%")
 ```
 
 ```{julia}
 # Plot trace plots
 plot(chain_pmcmc)
 ```
+
+**Does this chain look well-mixed?** Look for:
+
+- Are there long flat stretches (plateaus) where the chain gets stuck?
+- Does the chain explore the full range of plausible values, or does it wander slowly?
+- How would you improve mixing? Consider: longer chains, different proposal sizes, multiple chains, or [adaptive MCMC](https://doi.org/10.1198/jcgs.2009.06134).
 
 ```{julia}
 # Plot posterior densities (3 rows x 2 columns for 6 parameters)
@@ -528,11 +540,15 @@ density(chain_pmcmc, size = (800, 900), layout = (3, 2))
 
 **PMMH is challenging in practice!** The pseudo-marginal nature means:
 
-1. **Lower acceptance rates** - With tuned proposals, 10-15% acceptance is typical (lower than standard MCMC) because the particle filter likelihood is stochastic
+1. **Lower acceptance rates** - 10-20% acceptance is typical (lower than standard MCMC's 23% optimal) because the particle filter likelihood is stochastic
 2. **Proposal tuning is sensitive** - The optimal step size varies across parameter space
 3. **Long chains needed** - With lower acceptance, you need more iterations to get enough effective samples
 
-The step sizes above were tuned empirically. In production, you'd use adaptive MCMC (e.g., [AdaptiveParticleMCMC.jl](https://github.com/mvihola/AdaptiveParticleMCMC.jl)) or run pilot chains to calibrate proposals.
+**Tips for better mixing:**
+
+- **Start near the mode** - We use `init_params` from our deterministic fit to avoid wasting iterations on burn-in
+- **Tune proposals empirically** - Too large gives low acceptance, too small gives slow exploration (high autocorrelation)
+- **Adaptive MCMC** - Algorithms that automatically tune proposals during sampling. See [Roberts & Rosenthal (2009)](https://doi.org/10.1198/jcgs.2009.06134) for theory. [AdaptiveMCMC.jl](https://github.com/mvihola/AdaptiveMCMC.jl) implements this for Julia, though not directly integrated with Turing.
 
 :::
 
@@ -896,9 +912,9 @@ In [Observation Models and Distance Metrics](observation_models.qmd), we'll step
 
 - Andrieu et al. (2010). [Particle Markov chain Monte Carlo methods](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x). *JRSS B* 72(3), 269-342. (The original PMCMC paper)
 - Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://academic.oup.com/biomet/article/99/2/269/217203). *Biometrika* 99(2), 269-284. (Particle calibration: target log-likelihood SD of 1-3)
+- Roberts & Rosenthal (2009). [Examples of Adaptive MCMC](https://doi.org/10.1198/jcgs.2009.06134). *J. Computational and Graphical Statistics* 18(2), 349-367. (Adaptive MCMC theory)
 - Doucet & Johansen (2009). [A tutorial on particle filtering and smoothing](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf). *Handbook of Nonlinear Filtering* 12, 656-704. (Trajectory sampling)
 - Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://academic.oup.com/biomet/article/102/2/295/238171). *Biometrika* 102(2), 295-313.
-- Schön et al. (2018). [Probabilistic learning of nonlinear dynamical systems](https://arxiv.org/abs/1703.02419). *Annual Review of Control* 47, 393-404.
 - Doucet et al. (2001). [Sequential Monte Carlo Methods in Practice](https://www.springer.com/gp/book/9780387951461). Springer. (Comprehensive textbook)
 - Arulampalam et al. (2002). [A tutorial on particle filters](https://ieeexplore.ieee.org/document/978374). *IEEE Trans. Signal Processing* 50(2), 174-188.
 - [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
