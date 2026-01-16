@@ -792,12 +792,21 @@ end
 
 ## Fit both models
 
-The SEITL model also takes a long time to fit. We sample both models with PMMH:
+Now let's fit the SEITL model using the same RAM approach:
 
 ```{julia}
-# Load pre-computed SEITL chain
-chain_path_seitl = datadir("pmcmc_seitl_chain_precomputed.jld2")
-@load chain_path_seitl chain_seitl
+#| output: false
+# Fit SEITL model with RAM (same approach as SEIT4L)
+init_state_seitl = [279.0, 0.0, 2.0, 3.0, 0.0]  # S, E, I, T, L
+model_seitl = pmmh_seitl(flu_tdc.obs, init_state_seitl, 256)
+
+chain_seitl = sample(
+    model_seitl,
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    3000;
+    check_model=false,
+    progress=false
+)
 ```
 
 ```{julia}
