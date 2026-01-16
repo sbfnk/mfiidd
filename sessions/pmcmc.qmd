@@ -487,38 +487,28 @@ end
 - **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. With 128 particles, we get SD < 1 at the calibration parameters, but variance can be higher elsewhere in parameter space. Using 256 particles gives more consistent acceptance rates across the posterior.
 :::
 
-Now let's run PMMH. As in the [MCMC session](mcmc.qmd), we need to specify proposal distributions. Here we use random-walk proposals via `AdvancedMH.RandomWalkProposal` - the default `MH()` uses static proposals from the prior which gives very low acceptance:
+Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable. Manual proposal tuning is tricky - if parameters are correlated, independent proposals mix poorly.
+
+The solution is **Robust Adaptive Metropolis (RAM)** which automatically learns the posterior covariance structure during sampling. This is available in `AdvancedMH.jl`:
 
 ```{julia}
 # Define model with 256 particles
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
-# Random walk proposals - tuned for ~20-40% acceptance rate
-# Rule of thumb: proposal std ≈ posterior std / 2
-proposal = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 4.0)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.3)),
-    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 1.5)),
-    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.05)),
-    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 2.0)),
-    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.05))
+# Use Robust Adaptive Metropolis - automatically learns proposal covariance
+# check_model=false is needed for pseudo-marginal models with @addlogprob!
+chain_pmcmc = sample(
+    model_pmmh,
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    3000;
+    check_model=false,
+    progress=false
 )
-
-# Initial values near posterior mode (from deterministic fit) to reduce burn-in
-init_params = (R_0=6.0, D_lat=1.3, D_inf=2.0, α=0.5, D_imm=10.5, ρ=0.7)
-
-# Run PMMH
-chain_pmcmc = sample(model_pmmh, MH(proposal...), 3000; init_params, progress=false)
 ```
 
 ```{julia}
-# Display chain summary and acceptance rate
+# Display chain summary
 display(chain_pmcmc)
-
-# Calculate acceptance rate (proportion of iterations where parameters changed)
-n_accepted = sum(diff(chain_pmcmc[:R_0].data[:, 1]) .!= 0)
-acceptance_rate = n_accepted / (length(chain_pmcmc) - 1)
-println("Acceptance rate: $(round(acceptance_rate * 100, digits=1))%")
 ```
 
 ```{julia}
@@ -530,27 +520,23 @@ plot(chain_pmcmc)
 
 - Are there long flat stretches (plateaus) where the chain gets stuck?
 - Does the chain explore the full range of plausible values, or does it wander slowly?
-- How would you improve mixing? Consider: longer chains, different proposal sizes, multiple chains, or [adaptive MCMC](https://doi.org/10.1198/jcgs.2009.06134).
 
 ```{julia}
 # Plot posterior densities (3 rows x 2 columns for 6 parameters)
 density(chain_pmcmc, size = (800, 900), layout = (3, 2))
 ```
 
-::: {.callout-warning}
+::: {.callout-tip}
+## Why Robust Adaptive Metropolis?
 
-**PMMH is challenging in practice!** The pseudo-marginal nature means:
+With standard MH and independent proposals, mixing is poor when parameters are correlated. The sampler proposes moves that go "against" the correlation structure and gets rejected.
 
-1. **Lower acceptance rates** - 10-20% acceptance is typical (lower than standard MCMC's 23% optimal) because the particle filter likelihood is stochastic
-2. **Proposal tuning is sensitive** - The optimal step size varies across parameter space
-3. **Long chains needed** - With lower acceptance, you need more iterations to get enough effective samples
+**RAM solves this** by learning the posterior covariance during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). It automatically:
 
-**Tips for better mixing:**
+1. Adapts the proposal covariance to match the posterior shape
+2. Scales proposals to achieve ~23% acceptance (optimal for random-walk MH)
 
-- **Start near the mode** - We use `init_params` from our deterministic fit to avoid wasting iterations on burn-in
-- **Tune proposals empirically** - Too large gives low acceptance, too small gives slow exploration (high autocorrelation)
-- **Adaptive MCMC** - Algorithms that automatically tune proposals during sampling. See [Roberts & Rosenthal (2009)](https://doi.org/10.1198/jcgs.2009.06134) for theory. [AdaptiveMCMC.jl](https://github.com/mvihola/AdaptiveMCMC.jl) implements this for Julia, though not directly integrated with Turing.
-
+This is similar to how NUTS adapts its mass matrix, but works for non-differentiable likelihoods like particle filters.
 :::
 
 # Comparing with deterministic model fits
@@ -862,26 +848,21 @@ summarystats(chain_multi)
 
 Use the same diagnostics (R̂ < 1.1, ESS > 100) as for standard MCMC.
 
-## Tuning the MH proposal
+## Alternative: Manual proposal tuning
 
-The key to good PMMH performance is well-tuned random walk proposals. You must use `AdvancedMH.RandomWalkProposal` - the default `MH()` uses static proposals from the prior which gives very low acceptance.
-
-**Target acceptance rates**: For pseudo-marginal MCMC, 10-20% acceptance is typical (lower than the 23% optimal for standard MH) because the stochastic likelihood adds noise to acceptance decisions.
+If you need more control, you can use `MH()` with manual `RandomWalkProposal` specifications instead of RAM. This requires choosing proposal standard deviations for each parameter - too large gives low acceptance, too small gives slow exploration.
 
 ```julia
-# Smaller steps → higher acceptance but slower exploration (may get stuck)
-proposal_conservative = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 1.0)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.1)),
-    :D_inf => AdvancedMH.RandomWalkProposal(Normal(0, 0.5)),
-    :α => AdvancedMH.RandomWalkProposal(Normal(0, 0.02)),
-    :D_imm => AdvancedMH.RandomWalkProposal(Normal(0, 0.5)),
-    :ρ => AdvancedMH.RandomWalkProposal(Normal(0, 0.02))
+# Manual proposals (harder to tune than RAM)
+proposal = (
+    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 2.0)),
+    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.2)),
+    # ... etc for each parameter
 )
-chain = sample(model_pmmh, MH(proposal_conservative...), 5000)
+chain = sample(model_pmmh, MH(proposal...), 5000; init_params=(...))
 ```
 
-For adaptive proposal tuning, see [AdaptiveParticleMCMC.jl](https://github.com/mvihola/AdaptiveParticleMCMC.jl).
+In practice, RAM is easier and usually performs better because it learns the correlations between parameters automatically.
 
 ## Particle Gibbs {#particle-gibbs}
 
@@ -913,6 +894,7 @@ In [Observation Models and Distance Metrics](observation_models.qmd), we'll step
 
 - Andrieu et al. (2010). [Particle Markov chain Monte Carlo methods](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x). *JRSS B* 72(3), 269-342. (The original PMCMC paper)
 - Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://academic.oup.com/biomet/article/99/2/269/217203). *Biometrika* 99(2), 269-284. (Particle calibration: target log-likelihood SD of 1-3)
+- Vihola (2012). [Robust adaptive Metropolis algorithm with coerced acceptance rate](https://doi.org/10.1007/s11222-011-9269-5). *Statistics and Computing* 22, 997-1008. (RAM algorithm used in this session)
 - Roberts & Rosenthal (2009). [Examples of Adaptive MCMC](https://doi.org/10.1198/jcgs.2009.06134). *J. Computational and Graphical Statistics* 18(2), 349-367. (Adaptive MCMC theory)
 - Doucet & Johansen (2009). [A tutorial on particle filtering and smoothing](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf). *Handbook of Nonlinear Filtering* 12, 656-704. (Trajectory sampling)
 - Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://academic.oup.com/biomet/article/102/2/295/238171). *Biometrika* 102(2), 295-313.
