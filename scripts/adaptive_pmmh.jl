@@ -239,12 +239,13 @@ samples, log_posts, final_cov = adaptive_mcmc(
 # Convert to MCMCChains for diagnostics
 chain = Chains(samples, PARAM_NAMES)
 println("\n=== Chain Summary ===")
-println(describe(chain)[1])
+println(chain)
 
 println("\n=== Effective Sample Size ===")
 ess_result = ess(chain)
 for p in PARAM_NAMES
-    println("  $p: $(round(ess_result[p, :ess], digits=1))")
+    e = ess_result[p, :ess]
+    println("  $p: $(round(e, digits=1))")
 end
 
 # Save
