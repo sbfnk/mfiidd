@@ -415,13 +415,6 @@ end
 - `push!(array, value)` - appends `value` to the end of `array`. The `!` indicates it modifies the array in place, which you can think of as shorthand for `array = push(array, value)`.
 :::
 
-::: {.callout-tip title="Learning points"}
-
-- For **uniform priors**, all parameter values within the valid range have the same log-density
-- For **informed priors**, values closer to our beliefs (here, R_0≈2.5, D_inf≈2) have higher densities
-- The informed prior "penalises" parameter values that are far from our expectations
-
-:::
 
 # Part 2: Understanding the likelihood
 
@@ -519,52 +512,6 @@ plot!(p)
 - `logpdf.(loglik, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
 :::
 
-**Take 5 minutes**: Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
-
-
-## Understanding the likelihood function
-
-Our likelihood assumes each observation follows a Poisson distribution around the true prevalence.
-Let's understand this:
-
-```{julia}
-# Pick one time point and explore the likelihood in detail
-time_point = 10
-theta_example = (R_0 = 2.5, D_inf = 2.0)
-prob = ODEProblem(
-    sir_ode!, init_state, (t0, tend), [theta_example.R_0, theta_example.D_inf]
-)
-sol = solve(prob, saveat = epi1.time)
-
-expected_cases = sol[2,:][time_point]
-observed_cases = epi1.obs[time_point]
-
-println("At time $(epi1.time[time_point]):")
-println("  Expected cases: $(round(expected_cases, digits=1))")
-println("  Observed cases: $observed_cases")
-
-# Show the Poisson distribution
-obs_dist = Poisson(expected_cases)
-possible_observations = 0:500
-probabilities = pdf.(obs_dist, possible_observations)
-
-p = plot(
-    possible_observations, probabilities,
-    title = "Likelihood for one data point", 
-    xlabel = "Possible observations", ylabel = "Probability", linewidth = 2
-)
-vline!(
-    p, [observed_cases], color = :red, linewidth = 3,
-    label = "Actual observation"
-)
-scatter!(
-    p, [observed_cases], [pdf(obs_dist, observed_cases)], color = :red,
-    markersize = 8, label = "Likelihood value"
-)
-```
-
-The likelihood is highest when our model prediction matches the observation closely.
-
 ::: {.callout-note title="Coming from R?" collapse="true"}
 In R, you would calculate Poisson log-likelihood as:
 
@@ -581,6 +528,47 @@ logpdf(obs_dist, observed)
 
 This same `obs_dist` object can be used for random sampling (`rand(obs_dist)`) and other operations.
 :::
+
+**Take 5 minutes**: Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
+
+
+## The observation model
+
+Our likelihood makes specific assumptions about how observations relate to the underlying epidemic:
+
+1. **Poisson noise**: Each observation is drawn from a Poisson distribution centred on the model's predicted prevalence. This implies the variance equals the mean - when we expect 100 cases, we expect variation of about ±10.
+
+2. **Conditional independence**: Given the deterministic trajectory, observations at different time points are independent. The observation error at time $t$ doesn't affect the error at time $t+1$.
+
+The total log-likelihood is the sum across all time points: if the model predicts well at most times but poorly at one, that one bad fit drags down the total.
+
+**Take 5 minutes**: Think about when these assumptions might be violated:
+
+- When might variance *not* equal the mean? (Hint: consider overdispersion, or very small/large counts)
+- When might observations *not* be independent? (Hint: consider reporting delays, weekend effects, or outbreak investigations)
+- What other aspects of the observation process might you want to model? (Hint: under-reporting, delays between infection and observation)
+
+## A helper function
+
+We'll be calculating likelihoods repeatedly, so let's wrap the pattern into a reusable function:
+
+```{julia}
+#| output: false
+
+function simulate_and_loglik(R_0, D_inf, data; init_state = [999, 1, 0], tspan = (0, 30))
+    # Simulate ODE
+    prob = ODEProblem(sir_ode!, init_state, tspan, [R_0, D_inf])
+    sol = solve(prob, saveat = data.time)
+    I = sol[2, :]
+
+    # Calculate Poisson log-likelihood
+    loglik = sum(logpdf.(Poisson.(I), data.obs))
+
+    return (I = I, loglik = loglik)
+end
+```
+
+This function simulates the SIR model and returns both the trajectory and the log-likelihood. We'll use it throughout the rest of this session.
 
 # Part 3: Understanding the posterior
 
@@ -642,42 +630,27 @@ Now that we understand the components of Bayesian inference, let's systematicall
 Let's systematically explore the posterior by calculating log-posterior values for a grid of parameter combinations:
 
 ```{julia}
-# Define a finer grid for systematic exploration
-R_0_values = 1.5:0.2:4.0 # from 1.5 to 4.0 in steps of 0.2
-D_inf_values = 1.0:0.2:3.0 # from 1.0 to 3.0 in steps of 0.2
+# Define grid of parameter values to try
+R_0_values = 1.5:0.2:4.0
+D_inf_values = 1.0:0.2:3.0
 
-# initialise empty variables
+# Store results
 best_log_posterior = -Inf
 best_params = nothing
 results = []
 
-println("Exploring posterior manually... (this may take a moment)")
-
-# Loop over grid
 for R_0 in R_0_values
     for D_inf in D_inf_values
-        # Calculate prior log-density manually
-        log_prior = logpdf(Uniform(1, 20), R_0) +
-            logpdf(Uniform(1, 14), D_inf)
+        # Prior
+        log_prior = logpdf(Uniform(1, 20), R_0) + logpdf(Uniform(1, 14), D_inf)
 
-        # Calculate likelihood manually by simulating the ODE
-        prob = ODEProblem(sir_ode!, init_state, (t0, tend), [R_0, D_inf])
-        sol = solve(prob, saveat = epi1.time)
+        # Likelihood (using our helper)
+        result = simulate_and_loglik(R_0, D_inf, epi1)
 
-        # Calculate log-likelihood as sum of Poisson log-densities
-        I = sol[2, :]
-        # assuming Poisson log-likelihood at each time point
-        loglik = [ Poisson(It) for It in I ]
-        # calculate total loglikelihood as sum of log likelihoods
-        # at each time point
-        total_loglik = sum(logpdf.(loglik, epi1.obs))
- 
-        # Calculate log-posterior manually
-        log_post = log_prior + total_loglik
+        # Posterior = prior × likelihood
+        log_post = log_prior + result.loglik
         push!(results, (R_0 = R_0, D_inf = D_inf, log_posterior = log_post))
 
-        # check if log_posterior is the new "best"
-        # (highest log-posterior density)
         if log_post > best_log_posterior
             best_log_posterior = log_post
             best_params = (R_0 = R_0, D_inf = D_inf)
@@ -685,12 +658,16 @@ for R_0 in R_0_values
     end
 end
 
-println(
-    "Best parameters found: ",
-    "R_0 = $(best_params.R_0), D_inf = $(best_params.D_inf)"
-)
+println("Best parameters: R_0 = $(best_params.R_0), D_inf = $(best_params.D_inf)")
 println("Best log-posterior: $(round(best_log_posterior, digits = 1))")
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- `1.5:0.2:4.0` - creates a range from 1.5 to 4.0 in steps of 0.2. This gives us 14 values for R_0.
+- The nested `for` loops try every combination of R_0 and D_inf values - that's 14 × 11 = 154 combinations.
+- For each combination, we calculate the log-posterior (prior + likelihood) and track the best one found so far.
+:::
 
 Is this the result you expected?
 
@@ -716,89 +693,57 @@ heatmap(
 
 What do you observe about the posterior surface?
 
-## The best fit
+## Posterior predictive checking
 
-So far we have only used the log-posterior to find the best-fitting set of parameters.
-However, even the best parameters  could still yield a bad fit to the data.
-In order to check this we visualise trajectories that correspond to the best parameters (with observation noise) and plot them together with the data:
+Finding the best parameters is only half the job - we also need to check whether the model actually fits the data well. We do this by simulating data from the fitted model and comparing it to our observations.
 
 ```{julia}
-# Simulate ODE once with best parameters (deterministic)
-prob = ODEProblem(sir_ode!, init_state, (t0, tend), [best_params.R_0, best_params.D_inf])
-sol = solve(prob, saveat = epi1.time)
-I = sol[2, :]
+# Get the trajectory for the best parameters
+best_result = simulate_and_loglik(best_params.R_0, best_params.D_inf, epi1)
 
-# Generate multiple realisations with Poisson observation noise
-predicted_trajectories = []
+# Plot: deterministic trajectory + observation noise
+p = plot(title = "Best Fit: Observation Noise Only", xlabel = "Time", ylabel = "Cases")
+
+# Multiple realisations with Poisson observation noise (same parameters each time)
 for i in 1:10
-    # Only the observation noise is stochastic
-    pred_data = rand.(Poisson.(I))
-    push!(predicted_trajectories, pred_data)
-end
-
-# Plot the predicted trajectories
-p = plot(title = "Best Fit from Manual Simulation", xlabel = "Time", ylabel = "Cases")
-for pred in predicted_trajectories
-    plot!(p, epi1.time, pred, alpha = 0.3, color = :blue, label = "")
-end
-
-# Show the mean prediction
-mean_pred = mean(predicted_trajectories)
-plot!(p, epi1.time, mean_pred, linewidth = 3, color = :red,
-      label = "Mean prediction (R_0 = $(best_params.R_0), D_inf = $(best_params.D_inf))")
-
-scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
-plot!(p)
-```
-
-## Parameter uncertainty
-
-So far we have only considered the best fitting parameter values.
-Let's get a sense of parameter uncertainty by looking at all "reasonably good" parameter combinations:
-
-```{julia}
-# Define "reasonably good" as the top 10% of log posteriors
-threshold = quantile(log_post_grid, 0.9)
-good_results = filter(r -> r.log_posterior > threshold, results)
-
-println(
-    "Found $(length(good_results)) 'good' parameter combinations out of ",
-    "$(length(results)) total"
-)
-
-# Plot posterior uncertainty
-p = plot(title = "Parameter Uncertainty", xlabel = "Time", ylabel = "Cases")
-
-for result in good_results[1:min(20, end)]  # Plot up to 20 trajectories
-    # Simulate ODE manually and add Poisson observation noise
-    prob = ODEProblem(
-        sir_ode!, init_state, (t0, tend), [result.R_0, result.D_inf]
-    )
-    sol = solve(prob, saveat = epi1.time)
-
-    # Add Poisson observation noise to simulate realistic data
-    I = sol[2, :]
-    loglik = [ Poisson(It) for It in I ]
-    pred_data = rand.(loglik)
+    pred_data = rand.(Poisson.(best_result.I))
     plot!(p, epi1.time, pred_data, alpha = 0.3, color = :blue, label = "")
 end
 
-# Highlight the best fit with manual simulation
-prob_best = ODEProblem(
-    sir_ode!, init_state, (t0, tend), [best_params.R_0, best_params.D_inf]
-)
-sol_best = solve(prob_best, saveat = epi1.time)
-I_best = sol_best[2, :]
-loglik_best = [ Poisson(It) for It in I_best ]
-best_pred = rand.(loglik_best)
-plot!(p, epi1.time, best_pred, alpha = 0.3, color = :red, label = "best")
-
-scatter!(
-    p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black
-)
-
-plot!(p)
+# Deterministic trajectory
+plot!(p, epi1.time, best_result.I, linewidth = 2, color = :red,
+      label = "Model (R_0=$(best_params.R_0), D_inf=$(best_params.D_inf))")
+scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
 ```
+
+The blue lines show variation from **observation noise only** - the underlying trajectory is identical each time.
+
+## Impact of parameter uncertainty
+
+But we don't know the true parameters - we have a distribution of plausible values. Let's see what happens when we also vary the parameters:
+
+```{julia}
+# Find parameter combinations in the top 10% of posterior density
+threshold = quantile(log_post_grid, 0.9)
+good_results = filter(r -> r.log_posterior > threshold, results)
+println("$(length(good_results)) parameter combinations in top 10% of posterior")
+
+# Plot trajectories from different "good" parameter values
+p = plot(title = "Parameter + Observation Uncertainty", xlabel = "Time", ylabel = "Cases")
+
+for r in good_results[1:min(15, end)]
+    result = simulate_and_loglik(r.R_0, r.D_inf, epi1)
+    pred_data = rand.(Poisson.(result.I))  # Add observation noise too
+    plot!(p, epi1.time, pred_data, alpha = 0.3, color = :blue, label = "")
+end
+
+scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
+```
+
+::: {.callout-tip collapse="true"}
+## What's the difference?
+In the first plot, we fixed the parameters at their best values and only varied the observation noise. In the second plot, we vary **both** the parameters (sampling from the posterior) **and** the observation noise. The second plot shows more variation because it accounts for our uncertainty about the true parameter values.
+:::
 
 **Take 5 minutes**: Does the real data look consistent with our simulated datasets? This is **posterior predictive checking** - a key model validation technique.
 
