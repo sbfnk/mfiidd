@@ -7,9 +7,12 @@ order: 4
 
 # Introduction
 
-You've learned how to fit models and diagnose MCMC convergence. But a converged chain doesn't mean your model is *correct* - it just means the sampler has explored the posterior properly. This session focuses on a different question: **does your model actually describe the data well?**
+You've learned how to fit models and diagnose MCMC convergence.
+But a converged chain doesn't mean your model is *correct* - it just means the sampler has explored the posterior properly. 
+This session focuses on a different question: **does your model actually describe the data well?**
 
-Model checking is about building trust in your inferences. A model that doesn't generate data resembling your observations shouldn't be trusted to make predictions or inform policy.
+Model checking is about building trust in your inferences.
+A model that doesn't generate data resembling your observations shouldn't be trusted to make predictions or inform policy.
 
 # Objectives
 
@@ -63,7 +66,7 @@ Random.seed!(1234)
 
 # The Bayesian workflow
 
-Model checking isn't a one-time step at the end - it's part of an iterative workflow:
+Model checking isn't a one-time step at the end - it's part of the process. [Gelman et al. (2020)](https://arxiv.org/abs/2011.01808) describe this as the "Bayesian workflow":
 
 1. **Specify model** - choose structure, priors, likelihood
 2. **Prior predictive check** - do simulations from priors look reasonable?
@@ -72,7 +75,7 @@ Model checking isn't a one-time step at the end - it's part of an iterative work
 5. **Posterior predictive check** - does the fitted model generate realistic data?
 6. **Iterate** - if checks fail, revise the model
 
-We've covered steps 1-4. This session focuses on steps 2, 5, and 6.
+So far we've focused on steps 1, 3, and 4. This session covers the checking steps (2 and 5) that tell you whether the model itself makes sense - not just whether the sampler worked.
 
 # Prior predictive checks
 
@@ -95,11 +98,13 @@ function sir_ode!(du, u, p, t)
 end
 
 function simulate_sir(R_0, D_inf, S0, I0, times)
+    times_vec = collect(times)
     u0 = [S0, I0, 0.0, 0.0]
-    prob = ODEProblem(sir_ode!, u0, (times[1], times[end]), [R_0, D_inf])
-    sol = solve(prob, Tsit5(), saveat=times)
+    prob = ODEProblem(sir_ode!, u0, (times_vec[1], times_vec[end]), [R_0, D_inf])
+    sol = solve(prob, Tsit5(), saveat=times_vec)
 
-    inc_cumulative = [sol[i][4] for i in 1:length(sol)]
+    # Evaluate at each time point explicitly to ensure correct length
+    inc_cumulative = [sol(t)[4] for t in times_vec]
     inc_daily = [0.0; diff(inc_cumulative)]
 
     return inc_daily
@@ -135,6 +140,12 @@ S0, I0 = 279.0, 5.0
 prior_samples = sample(sir_model(fill(missing, 60), times, S0, I0), Prior(), 200, progress=false)
 ```
 
+::: {.callout-tip collapse="true"}
+## Code walkthrough
+- `fill(missing, 60)` - creates a vector of 60 `missing` values. When passed as observations, Turing treats likelihood statements as generative (sampling) rather than conditioning.
+- [`Prior()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a sampler that draws from prior distributions only, ignoring the likelihood. This gives us parameter combinations purely from our prior beliefs.
+:::
+
 ```{julia}
 # Generate trajectories from prior samples
 p_prior = plot(title="Prior Predictive Check",
@@ -164,7 +175,7 @@ If prior predictive simulations look unreasonable, revise your priors before fit
 
 ::: {.callout-tip}
 ## When priors are too vague
-If your prior predictive check shows wildly varying trajectories - some with 0 cases, others with thousands - your priors may be too vague. Consider using domain knowledge to constrain them. For influenza, $R_0$ between 1 and 5 is more realistic than 0.5 to 10.
+If your prior predictive check shows wildly varying trajectories - some with 0 cases, others with thousands - your priors may be too vague. Consider using domain knowledge to constrain them. E.g. for influenza, $R_0$ between 1 and 5 might be more realistic than 0.5 to 10.
 :::
 
 # Posterior predictive checks
@@ -267,6 +278,22 @@ plot(p1, p2, p3, layout=(1, 3), size=(900, 300), legend=:topright)
 
 If the observed value (red line) falls in the tails of the posterior predictive distribution, the model struggles to explain that aspect of the data.
 
+We can quantify this with a *posterior predictive p-value*: the proportion of simulated values that are as extreme as or more extreme than the observed value.
+
+```{julia}
+# Posterior predictive p-values
+p_peak = mean(ppc_peaks .>= obs_summary.peak)
+p_time = mean(ppc_peak_times .>= obs_summary.peak_time)
+p_total = mean(ppc_totals .>= obs_summary.total)
+
+println("P-values:")
+println("  Peak size: $p_peak")
+println("  Peak timing: $p_time")
+println("  Total cases: $p_total")
+```
+
+Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data. A p-value of 0.02 for peak timing, for example, would mean only 2% of simulated epidemics peaked as late as or later than the observed data - suggesting the model systematically predicts earlier peaks.
+
 # Residual analysis
 
 Residuals are the difference between observed and predicted values. Patterns in residuals can reveal model deficiencies.
@@ -277,16 +304,19 @@ mean_R_0 = mean(chain[:R_0])
 mean_D_inf = mean(chain[:D_inf])
 mean_ρ = mean(chain[:ρ])
 
-mean_inc = simulate_sir(mean_R_0, mean_D_inf, S0, I0, times)
+# Use the actual time points from the data
+obs_times = flu_tdc.time
+mean_inc = simulate_sir(mean_R_0, mean_D_inf, S0, I0, obs_times)
 mean_pred = mean_ρ .* mean_inc
 
-# Compute residuals
-residuals = flu_tdc.obs .- mean_pred
+# Compute residuals (use explicit indexing to match lengths)
+n_obs = length(flu_tdc.obs)
+resid = flu_tdc.obs .- mean_pred[1:n_obs]
 ```
 
 ```{julia}
 # Plot residuals over time
-p_resid = plot(collect(times), residuals,
+p_resid = plot(obs_times, resid,
                xlabel="Time (days)", ylabel="Residual (obs - pred)",
                title="Residuals Over Time", legend=false,
                marker=:circle, markersize=3)
@@ -295,16 +325,14 @@ hline!(p_resid, [0], color=:black, linestyle=:dash)
 
 **What patterns indicate problems?**
 
-- **Trend**: residuals systematically positive or negative over time → model missing temporal structure
-- **Autocorrelation**: residuals at time $t$ predict residuals at $t+1$ → missing dynamics
-- **Heteroscedasticity**: residual variance changes with predicted value → wrong observation model
+If residuals show a systematic trend - consistently positive or negative over certain time periods - the model is missing important temporal structure. If residuals at one time point predict residuals at the next (autocorrelation), the model dynamics are incomplete. And if the spread of residuals changes depending on the predicted value (heteroscedasticity), the observation model's variance structure is probably wrong.
 
 For the SIR fit to Tristan da Cunha, you should see clear structure: positive residuals during the second wave that the SIR model can't capture.
 
 ```{julia}
 # Check for autocorrelation in residuals
-lag1_resid = residuals[1:end-1]
-lag0_resid = residuals[2:end]
+lag1_resid = resid[1:end-1]
+lag0_resid = resid[2:end]
 
 p_acf = scatter(lag1_resid, lag0_resid,
                 xlabel="Residual at t", ylabel="Residual at t+1",
@@ -318,7 +346,7 @@ Strong correlation here suggests the model is missing important dynamics - exact
 
 A more rigorous check asks: *does my inference procedure recover true parameters when I know them?*
 
-Simulation-based calibration (SBC) works as follows:
+[Simulation-based calibration (SBC)](https://arxiv.org/abs/1804.06788) works as follows:
 
 1. Draw parameters from the prior: $\theta^* \sim p(\theta)$
 2. Simulate data from the model: $y^* \sim p(y|\theta^*)$
@@ -372,32 +400,20 @@ A uniform histogram indicates well-calibrated inference. Peaks at the edges sugg
 
 ::: {.callout-note}
 ## SBC in practice
-Full SBC requires many simulations (100+) and is computationally expensive. It's most valuable when developing new models or inference methods. For routine analysis, prior and posterior predictive checks are usually sufficient.
+Full SBC requires many simulations (100+) and is computationally expensive. It is particularly important when implementing new models, using complex inference algorithms, or when you need high confidence that your computational pipeline is correct. For established models with well-tested software, prior and posterior predictive checks catch most problems, but SBC provides the strongest guarantee that inference is working as intended.
 :::
 
 # When models fail checks
 
 What should you do when model checks reveal problems?
 
-**Prior predictive failures:**
+If prior predictive simulations look unreasonable, start by examining your priors. Priors that are too vague will generate wildly varying trajectories so you should use your knowledge of the system to constrain them. If you see impossible values (negative counts, probabilities outside [0,1]), add appropriate bounds or switch to a distribution family that respects the constraints.
 
-- Priors too vague → use domain knowledge to constrain
-- Impossible values → add bounds or change distribution family
-- Missing structure → reconsider model specification
+When posterior predictive checks fail, the model itself needs attention. Systematic bias such as predictions consistently too high or too low suggests missing mechanisms. If the model captures the mean but not the variability, your observation model may be wrong; switching from Poisson to Negative Binomial, for instance, allows for overdispersion. When specific features are missed (like a second epidemic wave), consider what biological mechanisms could explain them.
 
-**Posterior predictive failures:**
+Residual patterns point to specific fixes. Temporal trends in residuals suggest time-varying parameters or additional compartments. Autocorrelated residuals indicate the model dynamics are incomplete. And if residual variance grows with predicted values (heteroscedasticity), the observation model's variance structure needs adjustment.
 
-- Systematic bias → model is missing important mechanisms
-- Poor coverage → observation model may be wrong (e.g., Poisson vs Negative Binomial)
-- Specific features missed → consider model extensions
-
-**Residual patterns:**
-
-- Temporal trends → add time-varying parameters or additional compartments
-- Autocorrelation → model dynamics are incomplete
-- Heteroscedasticity → observation model variance structure is wrong
-
-The key insight is that **model failure is information**. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
+Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
 
 ::: {.callout-tip title="Learning points"}
 - **Prior predictive checks** validate that your priors generate plausible data before you see observations
@@ -407,30 +423,13 @@ The key insight is that **model failure is information**. A model that fails to 
 - **Model failure is informative** - it guides model improvement and reveals missing mechanisms
 :::
 
-# Going further
-
-## Posterior predictive p-values
-
-For any test statistic $T(y)$, you can compute a posterior predictive p-value:
-
-$$p = P(T(y^{rep}) \geq T(y^{obs}) | y^{obs})$$
-
-Values near 0 or 1 indicate the model struggles to reproduce that aspect of the data.
-
-## Cross-validation
-
-Leave-one-out cross-validation (LOO-CV) estimates out-of-sample predictive performance. In Julia, [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO for Turing models.
-
-## Calibration plots
-
-For models predicting probabilities or intervals, calibration plots check if predicted 90% intervals contain the truth 90% of the time across many predictions.
-
 # Next session
 
 In [Observation Models](observation_models.qmd), we'll explore different ways to connect model predictions to data - from Poisson likelihoods to Negative Binomial and even likelihood-free approaches like ABC.
 
 # References
 
+- Gelman et al. (2020). [Bayesian Workflow](https://arxiv.org/abs/2011.01808). arXiv. (The definitive guide to iterative model building)
 - Gelman et al. (2013). [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/), Chapter 6. (Comprehensive treatment of model checking)
 - Gabry et al. (2019). [Visualization in Bayesian workflow](https://arxiv.org/abs/1709.01449). *JRSS A* 182(2), 389-402.
 - Talts et al. (2018). [Validating Bayesian Inference Algorithms with Simulation-Based Calibration](https://arxiv.org/abs/1804.06788). arXiv.
