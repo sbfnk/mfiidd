@@ -58,6 +58,7 @@ using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
 using MCMCChains ## for MCMC diagnostics
+using AdvancedMH ## for adaptive MCMC samplers
 ```
 
 ## Initialisation
@@ -493,9 +494,42 @@ plot(
 Look at the trace.
 Can you improve mixing?
 
+## Adaptive MCMC - Learning better proposals
+
+The problem with standard MH is that we need to manually tune the proposal covariance. If parameters are correlated, independent proposals (diagonal covariance) will mix poorly.
+
+**Robust Adaptive Metropolis (RAM)** solves this by automatically learning the posterior covariance during sampling:
+
+```{julia}
+#| output: false
+# Adaptive MCMC - learns proposal covariance automatically
+chain_ram = sample(
+    model,
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    5000;
+    check_model=false
+)
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- [`RobustAdaptiveMetropolis()`](https://turinglang.org/AdvancedMH.jl/dev/) - from AdvancedMH.jl, this sampler adapts its proposal covariance based on the samples seen so far. It learns the correlation structure of the posterior and proposes moves that respect it.
+- `externalsampler()` - wraps an external sampler (from AdvancedMH.jl) for use with Turing models.
+- `check_model=false` - skips model validation (needed for some external samplers).
+:::
+
+```{julia}
+# Compare MH vs Adaptive MH
+p1 = plot(chain_mh[:R_0], title="Standard MH: R_0", xlabel="Iteration", ylabel="R_0", legend=false)
+p2 = plot(chain_ram[:R_0], title="Adaptive MH (RAM): R_0", xlabel="Iteration", ylabel="R_0", legend=false)
+plot(p1, p2, layout=(1, 2), size=(800, 300))
+```
+
+Notice how the adaptive sampler explores the parameter space more efficiently.
+
 ## NUTS - A gradient-based upgrade
 
-For models where we can compute gradients (like our ODE model), NUTS (No U-Turn Sampler) offers better efficiency:
+For models where we can compute gradients (like our ODE model), NUTS (No U-Turn Sampler) offers even better efficiency:
 
 ```{julia}
 #| output: false
@@ -588,14 +622,15 @@ In this session, you learned:
 1. **Why MCMC**: Grid search doesn't scale to high dimensions
 2. **The basics**: Metropolis-Hastings algorithm and MCMC
 3. **The challenges**: Proposal tuning, mixing
-4. **Automation**: How Turing.jl implements the same algorithms (MH → NUTS)
-5. **Modern MCMC**: Why NUTS solves the tuning and efficiency problems
+4. **Adaptive MCMC**: How RAM learns the proposal covariance automatically
+5. **Modern MCMC**: Why NUTS is even better when gradients are available
 6. **Practical workflow**: Using Turing.jl for real Bayesian inference
 
 ::: {.callout-tip title = "Learning points"}
 
 - **MCMC is a universal sampler**: It works for any distribution where you can evaluate density
 - **Metropolis-Hastings** is simple and robust but requires tuning of proposal distributions
+- **Adaptive MCMC (RAM)** learns proposal covariance automatically - essential for correlated parameters
 - **Turing.jl automates** the mechanics of MCMC and other inference methods
 - **NUTS** is more efficient when gradients are available (e.g., deterministic models)
 - **The Bayesian workflow**: Define model → Choose sampler → Analyse samples
@@ -605,6 +640,7 @@ In this session, you learned:
 # References
 
 - [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
+- Vihola (2012). [Robust Adaptive Metropolis Algorithm with Coerced Acceptance Rate](https://doi.org/10.1007/s11222-011-9269-5). *Statistics and Computing* 22, 997-1008. (The RAM algorithm)
 - Hoffman & Gelman (2014). [The No-U-Turn Sampler](https://jmlr.org/papers/v15/hoffman14a.html). *JMLR* 15, 1593-1623. (The NUTS algorithm)
 - Betancourt (2017). [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434). *arXiv*. (Excellent intuition for HMC/NUTS)
 - [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/stable/) - Chain analysis and diagnostics
