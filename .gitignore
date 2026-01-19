@@ -45,3 +45,6 @@ site_libs/
 
 /.quarto/
 **/*.quarto_ipynb
+
+# Quarto freeze cache
+_freeze/
