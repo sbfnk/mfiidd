@@ -487,23 +487,56 @@ end
 - **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. With 128 particles, we get SD < 1 at the calibration parameters, but variance can be higher elsewhere in parameter space. Using 256 particles gives more consistent acceptance rates across the posterior.
 :::
 
-Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable. Manual proposal tuning is tricky - if parameters are correlated, independent proposals mix poorly.
+Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable.
 
-The solution is **Robust Adaptive Metropolis (RAM)** which automatically learns the posterior covariance structure during sampling. This is available in `AdvancedMH.jl`:
+Let's try a short chain first to see what happens:
 
 ```{julia}
 # Define model with 256 particles
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
-# Use Robust Adaptive Metropolis - automatically learns proposal covariance
-# check_model=false is needed for pseudo-marginal models with @addlogprob!
-chain_pmcmc = sample(
+# Run a short chain with RAM
+chain_short = sample(
     model_pmmh,
     externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
-    3000;
+    500;
     check_model=false,
     progress=false
 )
+```
+
+```{julia}
+# Plot the short chain
+plot(chain_short)
+```
+
+**Does this chain look well-mixed?** Look for:
+
+- Are there long flat stretches (plateaus) where the chain gets stuck?
+- Does the chain explore the full range of plausible values, or does it wander slowly?
+
+With only 500 samples, the chain hasn't had time to properly explore the posterior. The trace plots likely show poor mixing - the chain getting stuck or wandering slowly through parameter space.
+
+## Why is PMMH mixing difficult?
+
+Two factors make PMMH challenging:
+
+1. **Noisy likelihood**: The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values.
+
+2. **Correlated parameters**: Epidemic parameters are often highly correlated (e.g., higher R₀ can be compensated by shorter D_inf). Standard MH proposals that change one parameter at a time struggle with this.
+
+The solution is **Robust Adaptive Metropolis (RAM)** which automatically learns the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). But RAM needs many samples to learn the covariance - typically 100,000+ iterations.
+
+::: {.callout-note}
+## Pre-computed chains
+Running PMMH with RAM for good mixing takes several hours. We load pre-computed chains here (500,000 samples, 50,000 burnin, thinned by 50). See `scripts/generate_pmcmc_seit4l.jl` if you want to run it yourself.
+:::
+
+```{julia}
+# Load pre-computed SEIT4L chain with good mixing
+chain_df = CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame)
+chain_pmcmc = Chains(Matrix(chain_df[:, [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]]),
+                     [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ])
 ```
 
 ```{julia}
@@ -512,14 +545,11 @@ display(chain_pmcmc)
 ```
 
 ```{julia}
-# Plot trace plots
+# Plot trace plots - much better mixing!
 plot(chain_pmcmc)
 ```
 
-**Does this chain look well-mixed?** Look for:
-
-- Are there long flat stretches (plateaus) where the chain gets stuck?
-- Does the chain explore the full range of plausible values, or does it wander slowly?
+Compare these traces to the short chain above - the well-mixed chain shows:
 
 ```{julia}
 # Plot posterior densities (3 rows x 2 columns for 6 parameters)
@@ -794,8 +824,7 @@ end
 
 Now let's fit the SEITL model using the same RAM approach:
 
-```{julia}
-#| output: false
+```julia
 # Fit SEITL model with RAM (same approach as SEIT4L)
 init_state_seitl = [279.0, 0.0, 2.0, 3.0, 0.0]  # S, E, I, T, L
 model_seitl = pmmh_seitl(flu_tdc.obs, init_state_seitl, 256)
@@ -803,10 +832,17 @@ model_seitl = pmmh_seitl(flu_tdc.obs, init_state_seitl, 256)
 chain_seitl = sample(
     model_seitl,
     externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
-    3000;
+    500_000;
     check_model=false,
-    progress=false
+    progress=true
 )
+```
+
+```{julia}
+# Load pre-computed SEITL chain
+chain_seitl_df = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame)
+chain_seitl = Chains(Matrix(chain_seitl_df[:, [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]]),
+                     [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ])
 ```
 
 ```{julia}
