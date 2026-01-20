@@ -550,7 +550,7 @@ The total log-likelihood is the sum across all time points: if the model predict
 
 ## A helper function
 
-We'll be calculating likelihoods repeatedly, so let's wrap the pattern into a reusable function:
+We'll be calculating likelihoods repeatedly. Rather than copy-pasting the ODE simulation and Poisson likelihood code from above each time, let's extract it into a reusable function:
 
 ```{julia}
 #| output: false
