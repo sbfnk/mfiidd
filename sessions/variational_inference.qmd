@@ -458,12 +458,11 @@ The practical recommendation: validate VI against MCMC once (to ensure they give
 
 # Summary
 
-In this session, we learned:
+**Variational inference** reframes Bayesian inference as optimisation: instead of sampling from the posterior, we find a simple distribution $q(\theta)$ that's as close as possible to the true posterior. This is much faster than MCMC, with speedups that scale with problem complexity.
 
-1. **Variational inference** trades accuracy for speed (gains scale with problem complexity)
-2. **Mean-field VI** assumes independence - fast but can miss correlations
-3. **Full-rank VI** captures correlations - good balance for most applications
-4. **Practical workflow**: Start with VI for exploration, validate with MCMC
+We explored two approximation families. **Mean-field VI** assumes parameters are independent - very fast, but it missed the strong R₀-D_inf correlation in our SIR model, giving overconfident uncertainty estimates. **Full-rank VI** uses a full covariance matrix, capturing correlations at modest additional cost. For epidemic models with their typical parameter correlations, full-rank is usually worth the overhead.
+
+The practical workflow is: use VI for rapid exploration and real-time applications where MCMC is too slow, but validate against MCMC when accuracy matters. VI is not a replacement for MCMC - it's a complementary tool that enables applications (real-time forecasting, model selection over many candidates) where MCMC would be computationally infeasible.
 
 ::: {.callout-tip title="Learning points"}
 - **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior

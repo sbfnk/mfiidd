@@ -617,14 +617,11 @@ These summaries give us point estimates and uncertainty, but there's a crucial q
 
 # Summary
 
-In this session, you learned:
+We started by seeing why grid search fails in higher dimensions - the curse of dimensionality makes exhaustive exploration impossible. **MCMC** solves this by constructing a random walk that, over time, visits parameter values in proportion to their posterior probability.
 
-1. **Why MCMC**: Grid search doesn't scale to high dimensions
-2. **The basics**: Metropolis-Hastings algorithm and MCMC
-3. **The challenges**: Proposal tuning, mixing
-4. **Adaptive MCMC**: How RAM learns the proposal covariance automatically
-5. **Modern MCMC**: Why NUTS is even better when gradients are available
-6. **Practical workflow**: Using Turing.jl for real Bayesian inference
+The **Metropolis-Hastings** algorithm is the foundation: propose a move, accept or reject based on the posterior ratio. The challenge is choosing good proposals - too small and the chain moves slowly, too large and most moves are rejected. We saw how *Robust Adaptive Metropolis (RAM)* learns the posterior covariance automatically, eliminating manual tuning.
+
+For models with gradients (like our deterministic ODE), **NUTS** goes further - using gradient information to make large, efficient moves through parameter space. Finally, we saw how **Turing.jl** wraps all of this in an elegant interface: define your model with `@model`, call `sample()`, and analyse the results.
 
 ::: {.callout-tip title = "Learning points"}
 
