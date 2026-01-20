@@ -491,9 +491,43 @@ plot(
 )
 ```
 
-**Take 5 minutes**.
-Look at the trace.
-Can you improve mixing?
+::: {.callout-warning title="Exercise: Tune the proposal distribution"}
+
+The trace plot above shows poor mixing - the chain gets stuck and doesn't explore efficiently. Your task is to improve it by adjusting the proposal covariance matrix.
+
+**The proposal covariance matrix** controls how the sampler proposes new parameter values:
+
+```julia
+# Current: identity matrix (proposal std = 1.0 for both parameters)
+MH([1.0 0.0; 0.0 1.0])
+
+# Structure: [var_R0  cov; cov  var_Dinf]
+# Diagonal = variance (std²) for each parameter
+# Off-diagonal = covariance between parameters
+```
+
+**Try these experiments** (run each for 5000 samples):
+
+1. **Smaller proposals**: `MH([0.1 0.0; 0.0 0.1])` - what happens to acceptance rate?
+2. **Larger proposals**: `MH([5.0 0.0; 0.0 5.0])` - does it explore faster or slower?
+3. **Different scales**: `MH([0.5 0.0; 0.0 0.1])` - R₀ and D_inf may need different step sizes
+4. **Add correlation**: `MH([1.0 0.5; 0.5 1.0])` - if parameters are correlated in the posterior, correlated proposals may help
+
+**Questions to answer:**
+
+- What acceptance rate gives the best mixing? (Hint: aim for ~23% for random walk MH)
+- Can you find settings that give a well-mixed trace for *both* parameters simultaneously?
+- How long did tuning take you? Imagine doing this for 10+ parameters...
+
+:::
+
+```{julia}
+# Space for your experiments - modify the proposal matrix and re-run
+# chain_tuned = sample(model, MH([??? ???; ??? ???]), 5000)
+# plot(chain_tuned)
+```
+
+The difficulty you just experienced is why manual tuning doesn't scale. With 2 parameters, you have 3 values to tune (two variances, one covariance). With 10 parameters, you'd have 55 values. This motivates *adaptive* methods that learn the proposal automatically.
 
 ## Adaptive MCMC - Learning better proposals
 
