@@ -772,14 +772,16 @@ Lastly, it is difficult to establish whether the grid is fine enough (or importa
 
 # Summary
 
-In this session, you learned:
+::: {.callout-tip title="Learning points"}
 
-1. Priors express beliefs before seeing data, explored through simulation
-2. The likelihood quantifies how well parameters explain observed data
-3. The posterior combines priors and likelihood using Bayes' theorem
-4. Grid search can find best parameters and understand uncertainty
-5. Simulation helps validate model assumptions (posterior predictive checking)
-6. Manual approaches don't scale - we need algorithms
+- **Priors** express beliefs before seeing data - explore them through simulation (*prior predictive checking*)
+- **Likelihood** quantifies how well parameters explain observed data, given an observation model
+- **Posterior** combines prior and likelihood via Bayes' theorem: $p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$
+- **Observation models** encode assumptions (e.g., Poisson noise, conditional independence) - think critically about when they're violated
+- **Grid search** can explore posteriors but doesn't scale beyond a few parameters
+- **Posterior predictive checking** validates whether fitted models generate realistic data
+
+:::
 
 # References
 
