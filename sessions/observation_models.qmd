@@ -217,7 +217,7 @@ p
 **Question**: Is this assumption justified for epidemic data?
 
 - Under-reporting might be systematic (not random)
-- Behavioral changes might create clustering
+- Behavioural changes might create clustering
 - Surveillance quality might vary over time
 
 # Approach 2: Negative Binomial Likelihood (Pragmatic)
@@ -313,7 +313,7 @@ plot!(predicted_range, gaussian_distance,
 
 What this reveals is that **different likelihoods are just different ways of measuring distance!**
 
-- Poisson: Penalizes deviations inversely proportional to predicted value
+- Poisson: Penalises deviations inversely proportional to predicted value
 - Negative Binomial: Similar but allows more flexibility (overdispersion)
 - Gaussian: Constant penalty regardless of scale
 
@@ -664,7 +664,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400))
 The choice between Poisson, NegBin, and ABC matters most when:
 
 1. **Outliers**: Extreme observations far from predictions
-2. **Tail behavior**: Rare events (very low or very high counts)
+2. **Tail behaviour**: Rare events (very low or very high counts)
 3. **Overdispersion**: Systematic variance > mean in data
 4. **Model misspecification**: When the mechanistic model is wrong
 
@@ -717,7 +717,7 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
 **No!** There are only:
 
 1. **More or less mechanistically motivated** choices
-   - E.g., modeling test sensitivity explicitly vs using NegBin
+   - E.g., modelling test sensitivity explicitly vs using NegBin
 
 2. **More or less flexible** choices
    - Poisson (rigid) → NegBin (flexible) → ABC (very flexible)

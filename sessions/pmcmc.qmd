@@ -154,7 +154,7 @@ function simulate_seit4l_stochastic(θ, init_state, times)
 end
 ```
 
-Let's visualize a few stochastic realizations to see the variability:
+Let's visualise a few stochastic realisations to see the variability:
 
 ```{julia}
 # Load Tristan da Cunha data using the datadir() function from the DrWatson package
@@ -373,6 +373,7 @@ end
 ```
 
 The key ideas:
+
 - **Propagate**: each particle simulates one day using the Gillespie algorithm
 - **Weight**: particles are weighted by how well their incidence matches the observation (Poisson likelihood)
 - **Resample**: when weights become too uneven (low ESS), we resample to focus computation on plausible trajectories

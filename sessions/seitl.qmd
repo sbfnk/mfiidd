@@ -319,7 +319,7 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
-You can visualize all state variables by plotting them:
+You can visualise all state variables by plotting them:
 
 ```{julia}
 # Plot all state variables
@@ -366,7 +366,7 @@ plot!(p)
 
 You've just seen how to simulate the model by directly calling the simulation function with specific parameter values.
 However, since we've defined a Turing `@model`, we can also sample from the prior predictive distribution.
-This is useful when we want to explore the range of behaviors the model can produce before seeing any data.
+This is useful when we want to explore the range of behaviours the model can produce before seeing any data.
 
 ```{julia}
 # Sample from the prior predictive distribution
@@ -801,6 +801,7 @@ end
 ```
 
 This unified structure enables both:
+
 - **Simulation** (this session): Call `rand(my_model(times, init_state, missing))` to sample from the prior predictive distribution
 - **Inference** ([next session](pmcmc.qmd)): Call `sample(my_model(times, init_state, data), PG(50), 1000)` to fit parameters to data using particle MCMC
 

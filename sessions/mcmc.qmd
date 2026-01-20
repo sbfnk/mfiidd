@@ -249,7 +249,7 @@ cat(sprintf("Sample std: %.2f (true: 2.0)\n", sd(result$samples)))
 :::
 
 ```{julia}
-# Visualize the results
+# Visualise the results
 p1 = plot(
     samples_mh[1:1000], title = "Trace Plot (first 1000 samples)", 
     xlabel = "Iteration", ylabel = "x", linewidth = 1
@@ -313,9 +313,10 @@ The posterior distribution is just another probability distribution.
 We can evaluate it at any point: `log_posterior(θ) = log_prior(θ) + log_likelihood(θ|data)`.
 Because of this, MCMC can sample from it.
 The samples give us everything we need from inference:
-  - **Visualization**: Plot the distribution shape
-  - **Summaries**: Mean, median, credible intervals
-  - **Forward simulation**: Use samples with proper parameter correlations preserved
+
+- **Visualisation**: Plot the distribution shape
+- **Summaries**: Mean, median, credible intervals
+- **Forward simulation**: Use samples with proper parameter correlations preserved
 
 When we apply MCMC to the SIR model later, we will be doing exactly the same thing as we did here for the Normal example - just with a more complex probability distribution that happens to be a Bayesian posterior. 
 MCMC doesn't "know" about Bayesian inference; it just knows how to sample from distributions where we can evaluate the density.
@@ -419,7 +420,7 @@ describe(chain_normal_mh)
 :::
 
 ```{julia}
-# Visualize - same result!
+# Visualise - same result!
 p1 = histogram(
     samples_mh, normalize = :pdf, alpha = 0.7,
     title = "Manual M-H", xlabel = "x", ylabel = "Density", label = "Manual"
@@ -483,7 +484,7 @@ describe(chain_mh)
 ```
 
 ```{julia}
-# Visualize
+# Visualise
 plot(
     chain_mh[:R_0], title = "Turing MH: R_0 Trace", xlabel = "Iteration",
     ylabel = "R_0", linewidth = 1
