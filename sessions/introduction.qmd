@@ -772,11 +772,11 @@ Lastly, it is difficult to establish whether the grid is fine enough (or importa
 
 # Summary
 
-We began by exploring **priors** - our beliefs about parameters before seeing data. Through *prior predictive simulation*, we saw how different prior choices lead to different predicted epidemic trajectories, helping us validate whether our assumptions are reasonable.
+We began by exploring *priors* - our beliefs about parameters before seeing data. Through *prior predictive simulation*, we saw how different prior choices lead to different predicted epidemic trajectories, helping us validate whether our assumptions are reasonable.
 
-We then introduced observed data and learned how the **likelihood** quantifies the probability of seeing that data given specific parameter values. Our Poisson observation model assumes each data point is an independent draw around the model's predicted prevalence - assumptions worth questioning for real applications.
+We then introduced observed data and learned how the *likelihood* quantifies the probability of seeing that data given specific parameter values. Our Poisson observation model assumes each data point is an independent draw around the model's predicted prevalence - assumptions worth questioning for real applications.
 
-Combining prior and likelihood via **Bayes' theorem** gives us the **posterior** - our updated beliefs after seeing data. We explored this manually through grid search, finding the best-fitting parameters and visualising the posterior surface. Finally, we used *posterior predictive checking* to validate that our fitted model generates data consistent with observations.
+Combining prior and likelihood via *Bayes' theorem* gives us the *posterior* - our updated beliefs after seeing data. We explored this manually through grid search, finding the best-fitting parameters and visualising the posterior surface. Finally, we used *posterior predictive checking* to validate that our fitted model generates data consistent with observations.
 
 The key limitation we encountered is scalability: grid search becomes computationally infeasible as the number of parameters grows. This motivates the algorithmic approaches we'll learn next.
 

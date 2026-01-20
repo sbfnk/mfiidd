@@ -872,9 +872,9 @@ Several quantitative approaches exist for comparing models.
 
 # Summary
 
-We learned how to fit **stochastic epidemic models** where transitions are random events rather than smooth flows. The key insight is that standard MCMC fails because we can't write down the likelihood analytically - it depends on the unknown sequence of random events.
+We learned how to fit *stochastic epidemic models* where transitions are random events rather than smooth flows. The key insight is that standard MCMC fails because we can't write down the likelihood analytically - it depends on the unknown sequence of random events.
 
-**Particle filters** solve this by simulating many trajectories (particles) and weighting them by how well they match observations. The weighted average gives an unbiased likelihood estimate, which **Particle Marginal Metropolis-Hastings (PMMH)** plugs into a standard MCMC framework. The magic is that the noise in the likelihood estimate doesn't bias the posterior - it just slows mixing.
+*Particle filters* solve this by simulating many trajectories (particles) and weighting them by how well they match observations. The weighted average gives an unbiased likelihood estimate, which *Particle Marginal Metropolis-Hastings (PMMH)* plugs into a standard MCMC framework. The magic is that the noise in the likelihood estimate doesn't bias the posterior - it just slows mixing.
 
 We applied this to the Tristan da Cunha flu data using both SEITL (exponential temporary immunity) and SEIT4L (Erlang-distributed immunity). Fitting these models requires careful calibration: too few particles and the likelihood variance is too high; too many and computation becomes prohibitive. The RAM algorithm helps with mixing by automatically learning proposal covariances.
 

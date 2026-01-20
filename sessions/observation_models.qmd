@@ -751,11 +751,11 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
 
 # Summary
 
-This session challenged the traditional view of observation models as representing "true" data-generating processes. Instead, we saw that **parametric likelihoods are pragmatic choices** - mathematical conveniences that let us quantify fit. Choosing Poisson vs Negative Binomial isn't choosing between truth and falsehood; it's choosing different ways to penalise deviations between model and data.
+This session challenged the traditional view of observation models as representing "true" data-generating processes. Instead, we saw that *parametric likelihoods are pragmatic choices* - mathematical conveniences that let us quantify fit. Choosing Poisson vs Negative Binomial isn't choosing between truth and falsehood; it's choosing different ways to penalise deviations between model and data.
 
-**Approximate Bayesian Computation (ABC)** makes this explicit by directly specifying a distance function and acceptance threshold. While ABC is often called "likelihood-free", we showed it's really using an implicit likelihood defined by that distance. The boundary between "likelihood-based" and "likelihood-free" is philosophical, not technical.
+*Approximate Bayesian Computation (ABC)* makes this explicit by directly specifying a distance function and acceptance threshold. While ABC is often called "likelihood-free", we showed it's really using an implicit likelihood defined by that distance. The boundary between "likelihood-based" and "likelihood-free" is philosophical, not technical.
 
-The practical lesson is **sensitivity analysis**: run inference with different observation models and see if your scientific conclusions change. If they do, you've learned something important about which data features matter. If they don't, your conclusions are robust to modelling choices.
+The practical lesson is *sensitivity analysis*: run inference with different observation models and see if your scientific conclusions change. If they do, you've learned something important about which data features matter. If they don't, your conclusions are robust to modelling choices.
 
 ::: {.callout-tip title="Learning points"}
 - **Parametric likelihoods are pragmatic choices**, not mechanistic truths - we choose Poisson or Negative Binomial for convenience, not because they represent reality
