@@ -629,11 +629,11 @@ plot(chain_problematic)
 
 # Summary
 
-We explored the essential diagnostics that separate trustworthy MCMC results from unreliable ones. **Visual diagnostics** - trace plots, density plots, and autocorrelation - give quick intuition about chain behaviour: is it exploring well, or stuck in one region?
+We explored the essential diagnostics that separate trustworthy MCMC results from unreliable ones. *Visual diagnostics* - trace plots, density plots, and autocorrelation - give quick intuition about chain behaviour: is it exploring well, or stuck in one region?
 
-**Quantitative diagnostics** make this rigorous. The **R̂ statistic** compares within-chain and between-chain variance to detect non-convergence (we want R̂ < 1.1). **Effective Sample Size (ESS)** tells us how many independent samples we really have after accounting for autocorrelation - even 10,000 samples might only give ESS of 100 if the chain is highly correlated.
+*Quantitative diagnostics* make this rigorous. The *R̂ statistic* compares within-chain and between-chain variance to detect non-convergence (we want R̂ < 1.1). *Effective Sample Size (ESS)* tells us how many independent samples we really have after accounting for autocorrelation - even 10,000 samples might only give ESS of 100 if the chain is highly correlated.
 
-We also covered **common problems** and their solutions: poor mixing (reparameterise or use better samplers), divergences in NUTS (increase adapt_delta), and multimodality (consider different initialisations or alternative samplers). The key lesson: always run multiple chains and check diagnostics before trusting any results.
+We also covered common problems and their solutions: poor mixing (reparameterise or use better samplers), divergences in NUTS (increase adapt_delta), and multimodality (consider different initialisations or alternative samplers). The key lesson: always run multiple chains and check diagnostics before trusting any results.
 
 ::: {.callout-tip title = "Learning points"}
 

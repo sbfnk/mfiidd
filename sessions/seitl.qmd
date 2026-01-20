@@ -810,11 +810,11 @@ This is the power of probabilistic programming!
 
 # Summary
 
-We explored the **SEITL model** - an extension of the classic SIR that adds latent periods (E) and temporary immunity (L) to explain the double-wave pattern in the Tristan da Cunha influenza outbreak. The simple SIR can't generate two waves; SEITL can because individuals who recover may become susceptible again.
+We explored the *SEITL model* - an extension of the classic SIR that adds latent periods (E) and temporary immunity (L) to explain the double-wave pattern in the Tristan da Cunha influenza outbreak. The simple SIR can't generate two waves; SEITL can because individuals who recover may become susceptible again.
 
-We implemented two variants: **SEITL** with exponential waiting times (memoryless), and **SEIT4L** with Erlang-distributed temporary immunity (the "4" indicating 4 sub-compartments). The Erlang version is more biologically plausible because immunity loss isn't truly memoryless - individuals recently recovered are unlikely to immediately lose immunity.
+We implemented two variants: *SEITL* with exponential waiting times (memoryless), and *SEIT4L* with Erlang-distributed temporary immunity (the "4" indicating 4 sub-compartments). The Erlang version is more biologically plausible because immunity loss isn't truly memoryless - individuals recently recovered are unlikely to immediately lose immunity.
 
-The key computational choice was **deterministic vs stochastic** simulation. Deterministic ODEs are fast and smooth but ignore demographic stochasticity. Stochastic simulation (Gillespie algorithm) captures the random nature of individual events, crucial when population sizes are small. We saw how the same parameters can generate very different epidemic trajectories in the stochastic version.
+The key computational choice was *deterministic vs stochastic* simulation. Deterministic ODEs are fast and smooth but ignore demographic stochasticity. Stochastic simulation (Gillespie algorithm) captures the random nature of individual events, crucial when population sizes are small. We saw how the same parameters can generate very different epidemic trajectories in the stochastic version.
 
 ::: {.callout-tip title="Learning points"}
 

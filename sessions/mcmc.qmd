@@ -617,11 +617,11 @@ These summaries give us point estimates and uncertainty, but there's a crucial q
 
 # Summary
 
-We started by seeing why grid search fails in higher dimensions - the curse of dimensionality makes exhaustive exploration impossible. **MCMC** solves this by constructing a random walk that, over time, visits parameter values in proportion to their posterior probability.
+We started by seeing why grid search fails in higher dimensions - the curse of dimensionality makes exhaustive exploration impossible. *MCMC* solves this by constructing a random walk that, over time, visits parameter values in proportion to their posterior probability.
 
-The **Metropolis-Hastings** algorithm is the foundation: propose a move, accept or reject based on the posterior ratio. The challenge is choosing good proposals - too small and the chain moves slowly, too large and most moves are rejected. We saw how *Robust Adaptive Metropolis (RAM)* learns the posterior covariance automatically, eliminating manual tuning.
+The *Metropolis-Hastings* algorithm is the foundation: propose a move, accept or reject based on the posterior ratio. The challenge is choosing good proposals - too small and the chain moves slowly, too large and most moves are rejected. We saw how *Robust Adaptive Metropolis (RAM)* learns the posterior covariance automatically, eliminating manual tuning.
 
-For models with gradients (like our deterministic ODE), **NUTS** goes further - using gradient information to make large, efficient moves through parameter space. Finally, we saw how **Turing.jl** wraps all of this in an elegant interface: define your model with `@model`, call `sample()`, and analyse the results.
+For models with gradients (like our deterministic ODE), *NUTS* goes further - using gradient information to make large, efficient moves through parameter space. Finally, we saw how *Turing.jl* wraps all of this in an elegant interface: define your model with `@model`, call `sample()`, and analyse the results.
 
 ::: {.callout-tip title = "Learning points"}
 
