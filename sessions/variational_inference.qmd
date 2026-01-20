@@ -190,7 +190,7 @@ Why is this faster? Optimisation can use parallel gradient computations and conv
 
 How do we measure "closeness" between $q(\theta)$ and the true posterior? VI uses the Kullback-Leibler (KL) divergence, which measures how much information is lost when we use $q$ to approximate the true posterior.
 
-Directly minimising KL divergence is intractable (we can't compute the true posterior!), but we can instead maximise an equivalent quantity called the **Evidence Lower Bound (ELBO)**:
+Directly minimising KL divergence is intractable (we can't compute the true posterior!), but we can instead maximise an equivalent quantity called the *Evidence Lower Bound (ELBO)*:
 
 $$\text{ELBO}(q) = \mathbb{E}_{q}[\log p(\text{data}, \theta)] - \mathbb{E}_{q}[\log q(\theta)]$$
 
