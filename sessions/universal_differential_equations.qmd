@@ -15,7 +15,7 @@ But what if we *didn't know* the mechanism? What if we were seeing a two-wave pa
 
 We might hypothesise alternative explanations:
 
-- **Behavioral relaxation**: People resumed normal contact patterns after the first wave
+- **Behavioural relaxation**: People resumed normal contact patterns after the first wave
 - **Waning vigilance**: Initial precautions (isolation, reduced gatherings) were abandoned
 - **Population structure**: Different groups (households, age groups) infected at different times
 
@@ -164,7 +164,7 @@ nn_architecture = Chain(
     Dense(8 => 1, softplus)     # Output: β > 0 (softplus ensures positivity)
 )
 
-# Initialize parameters
+# Initialise parameters
 p_nn, st_nn = Lux.setup(rng, nn_architecture)
 p_nn = ComponentArray(p_nn)  # Convert to ComponentArray for optimization
 
@@ -295,7 +295,7 @@ opt_func = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
 opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 
 # Train using Adam optimiser
-println("\nTraining with Adam optimizer (100 iterations)...")
+println("\nTraining with Adam optimiser (100 iterations)...")
 @time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=100,
                      callback = (state, l) -> begin
                          if state.iter % 20 == 0
@@ -309,7 +309,7 @@ println("\nTraining with Adam optimizer (100 iterations)...")
 ## Code explainer
 - [`OptimizationFunction(loss, ad_backend)`](https://docs.sciml.ai/Optimization/stable/) - wraps a loss function with automatic differentiation for gradient computation.
 - `Optimization.AutoForwardDiff()` - uses [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for forward-mode automatic differentiation. Efficient when the number of parameters is small (~33 here). For larger networks, reverse-mode (Zygote.jl) would be faster.
-- [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimizer that adjusts per-parameter learning rates and uses momentum. The go-to optimizer for neural networks.
+- [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimiser that adjusts per-parameter learning rates and uses momentum. The go-to optimiser for neural networks.
 - `callback` - function called after each iteration. Returns `true` to stop early, `false` to continue. Useful for monitoring progress.
 :::
 

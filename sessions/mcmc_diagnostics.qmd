@@ -28,7 +28,7 @@ This is an important component of trustworthy Bayesian analysis.
 
 You will learn to:
 
-1. Visually diagnose chains using trace plots and other visualizations
+1. Visually diagnose chains using trace plots and other visualisations
 2. Calculate quantitative diagnostics like R̂ and effective sample size
 3. Identify common problems and how to fix them
 4. Use Turing.jl's built-in diagnostics for automated checking
@@ -308,7 +308,7 @@ end
 :::
 
 ```{julia}
-# Visualize multiple chains
+# Visualise multiple chains
 plot(chain_multi)
 ```
 
@@ -384,10 +384,11 @@ end
 
 1. **Use better algorithms**: NUTS (which we're using!) is usually excellent
 2. **Run longer**: Increase number of samples if mixing is just slow
-3. **Reparameterize**: Transform parameters to improve geometry
+3. **Reparametrise**: Transform parameters to improve geometry
 4. **Multiple chains**: Run several chains to detect stuck chains
 
 For modern gradient-based samplers like NUTS, poor mixing is rare if:
+
 - Your model is specified correctly
 - The posterior is reasonably well-behaved
 - You're using appropriate priors
@@ -573,9 +574,9 @@ end
 | Problem | Symptoms | Solutions |
 |---------|----------|-----------|
 | **Poor mixing** | Trace plots show trends, low ESS | Use NUTS, tune proposals, longer runs |
-| **Multimodality** | High R̂, different chain means | Multiple chains, better initialization |
-| **Divergences** | NUTS warnings, biased sampling | Increase `adapt_delta`, reparameterize |
-| **Slow convergence** | High autocorrelation, low ESS | Better algorithm, longer runs, reparameterize |
+| **Multimodality** | High R̂, different chain means | Multiple chains, better initialisation |
+| **Divergences** | NUTS warnings, biased sampling | Increase `adapt_delta`, reparametrise |
+| **Slow convergence** | High autocorrelation, low ESS | Better algorithm, longer runs, reparametrise |
 | **Non-stationarity** | Trending trace plots | Longer warmup, check model specification |
 
 # Practical example: Debugging a problematic model
@@ -622,7 +623,7 @@ plot(chain_problematic)
 
 **How to fix problematic models:**
 
-1. **Reparameterize**: Use centered parameterizations
+1. **Reparametrise**: Use centered parameterizations
 2. **Better priors**: Match scales of parameters
 3. **Longer adaptation**: Increase warmup period
 4. **Check model**: Maybe the model specification is wrong

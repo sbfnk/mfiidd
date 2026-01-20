@@ -220,7 +220,7 @@ println(
 :::
 
 ```{julia}
-# Visualize our priors
+# Visualise our priors
 p1 = histogram(
     R_0_samples, title = "R_0 Prior", xlabel = "R_0", ylabel = "Frequency",
     alpha = 0.7, label = "Uniform(1, 20)"
@@ -312,7 +312,7 @@ Let's try more informative (i.e., narrower) priors:
 R_0_informed = Normal(2.5, 0.8)  # Most respiratory diseases have R_0 around 2-3
 D_inf_informed = Gamma(2, 1)     # Infectious period likely 1-4 days for common infections
 
-# Sample and visualize
+# Sample and visualise
 R_0_informed_samples = rand(R_0_informed, 1000)
 D_inf_informed_samples = rand(D_inf_informed, 1000)
 
@@ -674,7 +674,7 @@ Is this the result you expected?
 Apart from finding the best parameters we can also use our results to visualise the whole posterior surface.
 
 ```{julia}
-# Visualize the posterior surface
+# Visualise the posterior surface
 R_0_grid = [r.R_0 for r in results]
 D_inf_grid = [r.D_inf for r in results]
 log_post_grid = [r.log_posterior for r in results]
