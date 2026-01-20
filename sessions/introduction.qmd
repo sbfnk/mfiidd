@@ -181,7 +181,7 @@ plot(sol, labels=["S" "I" "R"])
 
 ## What is a prior?
 
-A **prior** represents what we believe about parameters **before** seeing any data.
+A *prior* represents what we believe about parameters *before* seeing any data.
 It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
 
 In our SIR model:
@@ -300,7 +300,7 @@ Some questions to consider:
 - Are the peak sizes reasonable for a population of 1000?
 - Do any last too long or too short?
 
-This is **prior predictive checking** - a crucial step to validate that our priors make sense.
+This is *prior predictive checking* - a crucial step to validate that our priors make sense.
 
 ## Choosing different priors
 
@@ -420,7 +420,7 @@ end
 
 ## What is a likelihood?
 
-The **likelihood** quantifies how probable our observed data is, given specific parameter values.
+The *likelihood* quantifies how probable our observed data is, given specific parameter values.
 It asks: "If the parameters were X, how likely would we be to see the data we actually observed?"
 
 The predictive prior trajectories we looked at earlier were purely a function of the model and its specification.
@@ -574,7 +574,7 @@ This function simulates the SIR model and returns both the trajectory and the lo
 
 ## What is a posterior?
 
-The **posterior** combines our prior beliefs with the data evidence using **Bayes' theorem**:
+The *posterior* combines our prior beliefs with the data evidence using *Bayes' theorem*:
 
 $$p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$$
 
@@ -745,7 +745,7 @@ scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :bl
 In the first plot, we fixed the parameters at their best values and only varied the observation noise. In the second plot, we vary **both** the parameters (sampling from the posterior) **and** the observation noise. The second plot shows more variation because it accounts for our uncertainty about the true parameter values.
 :::
 
-**Take 5 minutes**: Does the real data look consistent with our simulated datasets? This is **posterior predictive checking** - a key model validation technique.
+**Take 5 minutes**: Does the real data look consistent with our simulated datasets? This is *posterior predictive checking* - a key model validation technique that we'll explore in depth in the [model checking](model_checking.qmd) session.
 
 # Why we need algorithmic approaches
 

@@ -498,7 +498,7 @@ Can you improve mixing?
 
 The problem with standard MH is that we need to manually tune the proposal covariance. If parameters are correlated, independent proposals (diagonal covariance) will mix poorly.
 
-**Robust Adaptive Metropolis (RAM)** solves this by automatically learning the posterior covariance during sampling:
+*Robust Adaptive Metropolis (RAM)* solves this by automatically learning the posterior covariance during sampling:
 
 ```{julia}
 #| output: false
