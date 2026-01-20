@@ -751,23 +751,11 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
 
 # Summary
 
-In this session, we've learned:
+This session challenged the traditional view of observation models as representing "true" data-generating processes. Instead, we saw that **parametric likelihoods are pragmatic choices** - mathematical conveniences that let us quantify fit. Choosing Poisson vs Negative Binomial isn't choosing between truth and falsehood; it's choosing different ways to penalise deviations between model and data.
 
-1. **Parametric likelihoods are pragmatic choices**, not mechanistic truths
-2. **Negative log-likelihood is a distance function** - choosing Poisson vs NegBin is choosing how to measure fit
-3. **ABC makes distance metrics explicit** - but the choice is still somewhat arbitrary
-4. **The distinction between "likelihood-based" and "likelihood-free" is blurrier than it appears**
-5. **Sensitivity analysis** is crucial - test if your conclusions depend on observation model choice
+**Approximate Bayesian Computation (ABC)** makes this explicit by directly specifying a distance function and acceptance threshold. While ABC is often called "likelihood-free", we showed it's really using an implicit likelihood defined by that distance. The boundary between "likelihood-based" and "likelihood-free" is philosophical, not technical.
 
-## Looking forward
-
-This philosophical foundation prepares us for modern inference methods:
-
-- Variational inference: Trading accuracy for speed
-- Neural posterior estimation: Learning p(θ|data) directly
-- Universal differential equations: Learning unknown functions
-
-In all cases, we're making pragmatic choices about how to connect models to data. Being explicit about these choices makes us better scientists!
+The practical lesson is **sensitivity analysis**: run inference with different observation models and see if your scientific conclusions change. If they do, you've learned something important about which data features matter. If they don't, your conclusions are robust to modelling choices.
 
 ::: {.callout-tip title="Learning points"}
 - **Parametric likelihoods are pragmatic choices**, not mechanistic truths - we choose Poisson or Negative Binomial for convenience, not because they represent reality

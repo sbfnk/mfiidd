@@ -415,6 +415,14 @@ Residual patterns point to specific fixes. Temporal trends in residuals suggest 
 
 Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
 
+# Summary
+
+We learned that converged MCMC chains don't guarantee a good model - they only tell us the sampler worked. **Model checking** asks the deeper question: does our model actually describe the data?
+
+**Prior predictive checks** simulate data from our priors alone, before seeing any observations. This reveals whether our prior assumptions generate plausible epidemic trajectories, helping us catch unreasonable priors early. **Posterior predictive checks** do the same after fitting: we simulate data from the fitted model and compare it to observations. Systematic discrepancies point to model misspecification.
+
+We explored how to interpret failures: residual patterns diagnose specific problems (trends suggest time-varying parameters, autocorrelation suggests missing dynamics), and different fixes apply to different failures (adjust priors vs. change observation model vs. add model complexity). The key insight is that model checking is iterative - failures guide improvement.
+
 ::: {.callout-tip title="Learning points"}
 - **Prior predictive checks** validate that your priors generate plausible data before you see observations
 - **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data

@@ -870,6 +870,14 @@ Several quantitative approaches exist for comparing models.
 [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit. This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 :::
 
+# Summary
+
+We learned how to fit **stochastic epidemic models** where transitions are random events rather than smooth flows. The key insight is that standard MCMC fails because we can't write down the likelihood analytically - it depends on the unknown sequence of random events.
+
+**Particle filters** solve this by simulating many trajectories (particles) and weighting them by how well they match observations. The weighted average gives an unbiased likelihood estimate, which **Particle Marginal Metropolis-Hastings (PMMH)** plugs into a standard MCMC framework. The magic is that the noise in the likelihood estimate doesn't bias the posterior - it just slows mixing.
+
+We applied this to the Tristan da Cunha flu data using both SEITL (exponential temporary immunity) and SEIT4L (Erlang-distributed immunity). Fitting these models requires careful calibration: too few particles and the likelihood variance is too high; too many and computation becomes prohibitive. The RAM algorithm helps with mixing by automatically learning proposal covariances.
+
 ::: {.callout-tip title="Learning points"}
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
 - **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://academic.oup.com/biomet/article/99/2/269/217203). The required number scales with problem complexity.

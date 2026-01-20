@@ -524,15 +524,6 @@ UDEs work well when:
 3. **Known structure, unknown details**: Chemical reactions, climate models
 4. **Discovery research**: Finding unknown mechanisms (not just fitting)
 
-::: {.callout-tip title="Learning points"}
-- **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)
-- **The loss function matters**: Poisson likelihood forces the model to explain all cases including small counts; sum of squared errors is dominated by peak values
-- **Regularisation is essential**: With limited data (~60 points), neural networks easily overfit without L2 penalties on weights
-- **Learned patterns suggest mechanisms** but don't prove them - UDEs generate hypotheses that need independent validation
-- **An imperfect fit is informative**: If the UDE can't fit the data, the imposed structure (e.g., SIR) may be inadequate
-- **Data requirements are high**: UDEs shine with hundreds to thousands of data points; for small datasets, simpler approaches (splines, GPs) may be more appropriate
-:::
-
 # Going further
 
 ## Network architecture choices
@@ -585,27 +576,21 @@ For more on this approach, see the [SciML tutorial on missing physics](https://d
 
 # Summary
 
-## What we learned about UDEs
+**Universal Differential Equations** blend mechanistic modelling with machine learning. We keep the known structure (SIR compartments, conservation laws) while using a neural network to learn unknown components (how transmission rate β varies over time or with prevalence).
 
-UDEs can discover transmission patterns consistent with data while respecting biological constraints. The key is that we keep the known structure (SIR compartments) while learning the unknown parts (how β varies).
+The **loss function choice** matters significantly. Poisson likelihood forces the model to explain all cases including small counts in the second wave, whereas sum of squared errors would be dominated by the large first-wave peak. Regularisation is essential with small datasets - without L2 penalties on weights, neural networks overfit quickly.
 
-The loss function matters significantly. Poisson likelihood forces the model to explain all cases including small counts in the second wave, whereas sum of squared errors would be dominated by the large first-wave peak.
+The key lesson is **epistemic humility**. If the learned β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation, but it's a hypothesis, not proof. UDEs generate mechanistic hypotheses that need independent validation. An imperfect fit is itself informative - it may indicate that time-varying β within an SIR framework isn't sufficient.
 
-Small datasets make learning challenging. With 60 points, regularisation is essential to prevent overfitting - but strong regularisation may also prevent discovering genuinely complex patterns. This is an inherent trade-off.
+For the Tristan da Cunha data with just 60 points, UDEs are arguably overkill - simpler approaches like Gaussian processes might be more appropriate. UDEs shine with hundreds to thousands of data points, where they can discover genuinely complex patterns.
 
-Learned patterns suggest mechanisms but don't prove them. If β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation, but we'd need independent evidence to confirm this interpretation.
-
-## What we learned about the second wave
-
-If the UDE learned a β(t) that dips then recovers, this suggests the population may have initially reduced contact (caution during the first wave) then resumed normal patterns. But this is hypothesis generation, not proof.
-
-An imperfect fit is itself informative - it may indicate that time-varying β within an SIR framework isn't sufficient, and we might need different model structure (SEIR, age structure, etc.) to fully explain the dynamics.
-
-## The bottom line
-
-UDEs are tools for discovery under constraints. They work best when you have mechanistic knowledge to constrain the model, use appropriate likelihoods, and interpret results as hypotheses rather than conclusions.
-
-For the Tristan da Cunha data with just 60 points, conclusions are necessarily tentative. This is exactly the kind of exploratory analysis UDEs are designed for - generating hypotheses about mechanisms that can then be tested with additional data or independent evidence.
+::: {.callout-tip title="Learning points"}
+- **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)
+- **The loss function matters**: Poisson likelihood forces the model to explain small counts; SSE is dominated by peak values
+- **Regularisation is essential**: With limited data, neural networks easily overfit without L2 penalties
+- **Learned patterns suggest mechanisms** but don't prove them - UDEs generate hypotheses needing independent validation
+- **Data requirements are high**: UDEs shine with hundreds of data points; for small datasets, simpler approaches may be better
+:::
 
 # Next steps
 
