@@ -7,7 +7,7 @@ order: 8
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2.5-3 hours | **Advanced session**
+**Estimated time**: 2-2.5 hours | **Advanced session**
 :::
 
 ::: {.callout-note}

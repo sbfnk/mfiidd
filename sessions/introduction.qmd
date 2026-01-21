@@ -6,7 +6,7 @@ order: 1
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2.5-3 hours (content-heavy session with many exercises)
+**Estimated time**: 2-2.5 hours
 :::
 
 [Lecture slides](slides/intro_slides.pdf)

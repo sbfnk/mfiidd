@@ -6,7 +6,7 @@ order: 2
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 3-3.5 hours (includes hands-on MH implementation and tuning exercise)
+**Estimated time**: 2.5-3 hours
 :::
 
 [Lecture slides: PowerPoint](slides/mcmc_slides1.pptx) / [PDF](slides/mcmc_slides1.pdf)
