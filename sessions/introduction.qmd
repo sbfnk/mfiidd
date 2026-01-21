@@ -19,11 +19,11 @@ We will build intuition by manually calculating priors, likelihoods, and posteri
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
-We will use **Distributions.jl** for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+We will use Distributions.jl for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
 
 In this session, you will
 
-1. understand **priors**, **likelihood**, and **posterior** through simulation
+1. understand priors, likelihood, and posterior through simulation
 2. calculate posterior distributions through manual grid search
 3. manually explore the posterior by trying different parameter values
 4. understand why we need algorithmic approaches (setting up the next session)
@@ -353,11 +353,11 @@ Priors determine what kinds of epidemics our model considers plausible before se
 ::: {.callout-tip}
 ## Principles for choosing priors
 
-1. **Use domain knowledge**: What do published studies say about plausible parameter ranges? For infectious diseases, systematic reviews often provide estimates.
-2. **Avoid impossible values**: If a parameter must be positive, use a distribution with positive support (Gamma, LogNormal) rather than truncating a Normal.
-3. **Check with prior predictive simulation**: Do samples from your priors generate plausible epidemic trajectories? If not, your priors may be too vague or misspecified.
-4. **Weakly informative is often better than flat**: Completely flat priors can cause computational problems and may place substantial probability on implausible values.
-5. **Document your choices**: Record why you chose each prior - this helps with reproducibility and peer review.
+1. Use domain knowledge: What do published studies say about plausible parameter ranges? For infectious diseases, systematic reviews often provide estimates.
+2. Avoid impossible values: If a parameter must be positive, use a distribution with positive support (Gamma, LogNormal) rather than truncating a Normal.
+3. Check with prior predictive simulation: Do samples from your priors generate plausible epidemic trajectories? If not, your priors may be too vague or misspecified.
+4. Weakly informative is often better than flat: Completely flat priors can cause computational problems and may place substantial probability on implausible values.
+5. Document your choices: Record why you chose each prior - this helps with reproducibility and peer review.
 :::
 
 ## Evaluating prior densities
@@ -544,9 +544,12 @@ end
 
 This function simulates the SIR model and returns both the trajectory and the log-likelihood. We'll use it throughout the rest of this session.
 
-::: {.callout-note appearance="simple"}
-## Good time for a break
-You've now covered the two foundational concepts: priors and likelihoods. The next section combines them into the posterior. If you're working through this in one sitting, this is a natural pause point.
+::: {.callout-important}
+## Take a break here
+
+You've completed Parts 1 and 2: priors and likelihoods. Part 3 combines them into the posterior and covers grid search.
+
+If you're working through this in one sitting, **stop here for 10-15 minutes**. The concepts in Part 3 build directly on what you've learned, and a short break will help consolidate your understanding.
 :::
 
 # Part 3: Understanding the posterior
@@ -761,12 +764,12 @@ The *likelihood* quantifies how well parameters explain observed data. Our Poiss
 
 ::: {.callout-tip title="Learning points"}
 
-- **Priors** express beliefs before seeing data - explore them through simulation (*prior predictive checking*)
-- **Likelihood** quantifies how well parameters explain observed data, given an observation model
-- **Posterior** combines prior and likelihood via Bayes' theorem: $p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$
-- **Observation models** encode assumptions (e.g., Poisson noise, conditional independence) - think critically about when they're violated
-- **Grid search** can explore posteriors but doesn't scale beyond a few parameters
-- **Posterior predictive checking** validates whether fitted models generate realistic data
+- Priors express beliefs before seeing data - explore them through simulation (prior predictive checking)
+- Likelihood quantifies how well parameters explain observed data, given an observation model
+- Posterior combines prior and likelihood via Bayes' theorem: $p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$
+- Observation models encode assumptions (e.g., Poisson noise, conditional independence) - think critically about when they're violated
+- Grid search can explore posteriors but doesn't scale beyond a few parameters
+- Posterior predictive checking validates whether fitted models generate realistic data
 
 :::
 

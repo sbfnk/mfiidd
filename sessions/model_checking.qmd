@@ -484,6 +484,38 @@ A key question in Bayesian inference: how much do your conclusions depend on pri
 
 For the SIR model, try fitting with `R_0 ~ Uniform(1, 10)` vs `R_0 ~ Uniform(1, 50)` and compare the posteriors. The peak timing in our data strongly constrains $R_0$, so you should see similar posteriors - a sign that the data is informative.
 
+## From surveillance data to model-ready format
+
+This course uses clean, pre-processed datasets. Real surveillance data requires preparation before modelling. Here are the main considerations:
+
+**Data quality issues**:
+
+- Missing values: Days with no reports may mean zero cases or missing data. Clarify with data providers.
+- Reporting delays: Cases reported today may have symptom onset days or weeks ago. For real-time forecasting, you need to model this delay explicitly or use "nowcasting" methods.
+- Backfill corrections: Historical data may be revised as delayed reports arrive. Use version-controlled datasets and document which version you used.
+- Definition changes: What counts as a "case" may change during an outbreak (clinical vs. PCR-confirmed vs. rapid test). Document definitions and consider whether time-varying detection rates are needed.
+
+**Temporal alignment**:
+
+- Ensure your observation times match what your model predicts. If your model tracks *infection* times but your data reports *symptom onset* or *report* dates, you need to account for these delays.
+- Weekly data requires careful handling of partial weeks at the start/end of series.
+- For models with continuous time, decide how to aggregate (daily incidence vs. point prevalence).
+
+**Population and geographic scope**:
+
+- Confirm that population denominators match your data source (resident population? Including visitors?).
+- For spatial models, ensure geographic boundaries are consistent across data sources.
+
+**Practical checklist before fitting**:
+
+1. Plot the raw data - look for obvious anomalies, zeros, and outliers
+2. Document the data source, access date, and any transformations applied
+3. Check that case counts are plausible given population size
+4. Verify time alignment between model and data
+5. Consider whether a reporting rate parameter (ρ) is needed
+
+For more on data preprocessing for epidemic models, see [Reich et al. (2019)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007399) on collaborative forecasting infrastructure and [Gostic et al. (2020)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008409) on practical identifiability.
+
 # Next session
 
 ::: {.callout-note}

@@ -13,11 +13,64 @@ order: 0
 
 This course uses Julia for all code examples and exercises. This page helps you set up your computing environment before the course begins.
 
-**Three ways to engage with the course:**
+Three ways to engage with the course:
 
 1. **Web only**: Read the materials online without running code. Fine for an overview, but you'll learn more by doing.
 2. **Local installation**: Install Julia and run everything on your own machine. Recommended for the full experience.
 3. **Cloud option**: Use a pre-configured cloud environment (if provided by your instructor).
+
+# Course map
+
+The course has 11 sessions organised into three tiers. Work through them in order, or use this map to plan your time.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         CORE SESSIONS (~10 hours)                       │
+│   Must complete in order. Essential foundations for everything else.   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Getting Started ──► Introduction ──► MCMC ──► Diagnostics ──► Model   │
+│     (1 hr)            (2-2.5 hr)    (2-2.5 hr)  (1.5-2 hr)    Checking │
+│                                                                (1.5 hr) │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    STOCHASTIC MODELS (~5 hours)                         │
+│          For fitting models with demographic stochasticity.            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│       SEITL Interlude ──► Particle Filters ──► Particle MCMC           │
+│         (2-2.5 hr)          (1.5-2 hr)          (1.5-2 hr)             │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    ADVANCED SESSIONS (~6 hours)                         │
+│     Independent of each other. Choose based on your interests.         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Observation Models        Variational          Universal DEs          │
+│     (2-2.5 hr)            Inference             (2+ hr)                │
+│                            (1.5 hr)                                    │
+│  Likelihood vs ABC.       Fast approximate      Learn unknown          │
+│  When does the choice     inference for         mechanisms with        │
+│  of observation model     real-time systems.    neural networks.       │
+│  matter?                  Requires: MCMC        Requires: Comfort      │
+│  Requires: PMCMC                                with neural nets       │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**If you only have limited time:**
+
+| Time available | Recommended path |
+|----------------|------------------|
+| Half day (4 hrs) | Getting Started → Introduction → MCMC (skip exercises) |
+| Full day (8 hrs) | Core sessions (Getting Started through Model Checking) |
+| Two days (16 hrs) | Core + Stochastic models |
+| Full course | All sessions, including advanced topics of interest |
 
 # Local installation
 
@@ -97,6 +150,11 @@ Warnings about "precompilation may be incomplete" are usually harmless. The proc
 
 ## Step 5: Verify the installation
 
+::: {.callout-important}
+## Run this before the course starts
+Don't skip this step. Package installation can succeed while something is still broken. Run the verification code below to confirm everything works. If you hit errors, you'll have time to troubleshoot before the course begins.
+:::
+
 Test that core packages load correctly:
 
 ```julia
@@ -114,7 +172,7 @@ chain = sample(coin_flip(10, 7), NUTS(), 100)
 println("Installation successful!")
 ```
 
-If this runs without errors, you're ready for the course.
+If this runs without errors and prints "Installation successful!", you're ready for the course. If you see errors, check the Troubleshooting section below.
 
 # Troubleshooting
 
@@ -236,6 +294,12 @@ Each session follows a consistent structure:
 - **Main content**: Concepts, code, and exercises
 - **Summary**: What we covered (with Learning Points callout)
 - **Going further**: Optional extensions for interested participants
+
+## For R users
+
+The Introduction and MCMC sessions include "Coming from R?" appendices with R translations of key concepts. Later sessions don't include R equivalents because they rely on Julia-specific packages (Turing.jl's variational inference, SSMProblems.jl for particle filters, Lux.jl for neural networks) that have no direct R counterparts.
+
+If you prefer R, the conceptual material is still valuable - you can implement similar approaches using R packages like [nimble](https://r-nimble.org/), [pomp](https://kingaa.github.io/pomp/), or [odin](https://mrc-ide.github.io/odin/). The algorithms are the same; only the implementation differs.
 
 # Getting help
 
