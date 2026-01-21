@@ -91,7 +91,7 @@ But first of all, let's have a look at the data.
 
 # Tristan da Cunha outbreak
 
-![](../Rmd/external_fig/import/TdC.png)
+![](../figures/TdC.png)
 
 [Tristan da Cunha](http://en.wikipedia.org/wiki/Tristan_da_Cunha) is a volcanic island in the South Atlantic Ocean.
 It has been inhabited since the $19^{th}$ century and in 1971, the 284 islanders were living in the single village of the island: Edinburgh of the Seven Seas.
@@ -139,7 +139,7 @@ One possible explanation for the rapid influenza reinfections reported during th
 This can be modelled as follows:
 
 ![The SEITL model extends the classical SIR model to account for the dynamics and host heterogeneity of the immune response among the islanders. Following recovery, hosts remain temporarily protected against reinfection thanks to the cellular immune response (T-cells). Accordingly, they enter the T stage (temporary protection). Then, following down-regulation of the cellular response, the humoral immune response (antibodies) has a probability $\alpha$ to reach a level sufficient to protect against reinfection. In this case, recovered hosts enter the L stage (long-term protection), but otherwise they remain unprotected and re-enter the susceptible pool (S).
-](../Rmd/external_fig/import/SEITL.jpg)
+](../figures/SEITL.jpg)
 
 The SEITL model can be described with five states (S, E, I, T and L) and five parameters:
 
@@ -652,7 +652,7 @@ plot!(p)
 We propose to extend the SEITL as follows:
 
 ![The SEIT4L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the $T$ compartment (temporary protection) follows an Erlang distribution with mean $D_\mathrm{imm}=1/\tau$ and shape equal to 4 and is modelled by 4 sub-stages $T_{1,2,3,4}$, each being exponentially distributed with mean equal to $\frac{D_\mathrm{imm}}{4}$.
-](../Rmd/external_fig/import/SEIT4L.jpg)
+](../figures/SEIT4L.jpg)
 
 ## SEIT4L model implementation
 
@@ -868,5 +868,5 @@ The key computational choice was *deterministic vs stochastic* simulation. Deter
 
 # Going further
 
-* Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](../Rmd/external_ref/poisson_obs.pdf) from Germán Rodríguez' [lecture notes on generalized linear models](https://grodri.github.io/glms/notes/).
+* Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](../references/poisson_obs.pdf) from Germán Rodríguez' [lecture notes on generalized linear models](https://grodri.github.io/glms/notes/).
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?
