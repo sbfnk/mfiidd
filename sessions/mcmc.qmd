@@ -6,7 +6,7 @@ order: 2
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-2.5 hours (includes hands-on MH implementation and tuning exercise)
+**Estimated time**: 3-3.5 hours (includes hands-on MH implementation and tuning exercise)
 :::
 
 [Lecture slides: PowerPoint](slides/mcmc_slides1.pptx) / [PDF](slides/mcmc_slides1.pdf)
@@ -76,23 +76,29 @@ Random.seed!(1234)
 
 ## Load data and model from previous session
 
-We'll use the same SIR model and epidemic data from the introduction session:
+We'll use the same SIR model and epidemic data from the introduction session.
 
 ```{julia}
-# Define ODE function
-function sir_ode!(du, u, p, t)
-    S, I, R = u
-    R_0, D_inf = p
-    N = S + I + R
+#| echo: false
+# Load SIR model definition
+include(joinpath(@__DIR__, "..", "src", "sir_model.jl"))
+```
 
-    β = R_0 / D_inf
-    ν = 1 / D_inf
+::: {.callout-note collapse="true"}
+## SIR Model Definition (from `src/sir_model.jl`)
 
-    du[1] = -β * S * I / N  # dS/dt
-    du[2] = β * S * I / N - ν * I  # dI/dt
-    du[3] = ν * I  # dR/dt
-end
+Key functions:
 
+- `sir_ode!(du, u, p, t)` - ODE system for S, I, R compartments
+- `simulate_sir(R_0, D_inf, S0, I0, times)` - Returns DataFrame with trajectory
+
+```{julia}
+#| eval: false
+#| file: ../src/sir_model.jl
+```
+:::
+
+```{julia}
 # Initial state and time range
 init_state = [999, 1, 0]
 t0, tend = (0, 30)
@@ -466,6 +472,34 @@ MH([1.0 0.0; 0.0 1.0])
 - Can you find settings that give a well-mixed trace for *both* parameters simultaneously?
 - How long did tuning take you? Imagine doing this for 10+ parameters...
 
+:::
+
+::: {.callout-tip title="Hint 1: Interpreting acceptance rates (click if stuck after 2-3 attempts)" collapse="true"}
+**Acceptance rate too high (>50%)?** Your proposals are too small. The chain accepts most moves but takes tiny steps - you'll see the trace plot moving very slowly.
+
+**Acceptance rate too low (<10%)?** Your proposals are too large. Most proposed jumps land in low-probability regions and get rejected - you'll see the trace plot "stuck" for many iterations.
+
+**Sweet spot (~20-30%)**: A healthy balance of exploration and acceptance.
+
+Check your acceptance rate with: `mean(diff(chain[:R_0].data) .!= 0)`
+:::
+
+::: {.callout-tip title="Hint 2: Why do R₀ and D_inf need different scales? (click if one parameter mixes well but not the other)" collapse="true"}
+Look at the posterior uncertainty for each parameter:
+- R₀ might range from ~1.5 to ~3.5 (spread of ~2)
+- D_inf might range from ~1.5 to ~3.0 (spread of ~1.5)
+
+If you use the same proposal std for both, one will be well-tuned while the other is either too large or too small. Try making the proposal std roughly proportional to the posterior width.
+
+**Rule of thumb**: proposal std ≈ 0.1-0.3 × posterior width
+:::
+
+::: {.callout-tip title="Hint 3: Why might correlation help? (click if diagonal proposals aren't working)" collapse="true"}
+Run the chain and look at a scatter plot of R₀ vs D_inf samples. If they're negatively correlated (higher R₀ → lower D_inf), then independent proposals are inefficient.
+
+Imagine the posterior is a narrow diagonal ridge. Independent proposals move horizontally or vertically, often stepping off the ridge. Correlated proposals can move *along* the ridge.
+
+Try a small negative off-diagonal value: `MH([0.3 -0.05; -0.05 0.1])`
 :::
 
 ```{julia}

@@ -6,7 +6,7 @@ order: 7
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours (uses pre-computed chains for the main analysis)
+**Estimated time**: 2-2.5 hours (uses pre-computed chains for the main analysis)
 :::
 
 # Introduction
@@ -23,6 +23,25 @@ In this session you will:
 2. Fit the stochastic SEIT4L model to the Tristan da Cunha outbreak
 3. Compare stochastic vs deterministic model fits
 4. Understand why PMMH requires long chains and adaptive proposals
+
+::: {.callout-important}
+## Reminder: Stochastic variability
+
+PMMH uses particle filters internally, introducing two sources of randomness: the MCMC proposals and the particle filter likelihood estimates. Your chains will look different from others' runs. Focus on whether the chains have converged (diagnostics), not exact values.
+:::
+
+::: {.callout-warning}
+## Computational requirements
+
+PMMH combines particle filters with MCMC, making it computationally demanding. For this session:
+
+- **Memory**: ~4 GB RAM recommended
+- **Runtime**: Each MCMC iteration takes 0.1-0.5 seconds (256 particles)
+- **Full inference**: 10,000 iterations takes ~30-60 minutes; we use pre-computed chains for the main analysis
+- **Short test runs**: The 500-iteration demonstrations in this session take ~2-5 minutes each
+
+The pre-computed chains (loaded from `data/`) were generated with 500,000 iterations over several hours.
+:::
 
 ::: {.callout-note collapse="true"}
 
@@ -69,6 +88,15 @@ We use the same particle filter implementation from the [previous session](parti
 ```{julia}
 include(joinpath(project_root, "src", "seit4l_particle_filter.jl"))
 ```
+
+::: {.callout-note collapse="true"}
+## SEIT4L Particle Filter Implementation (from `src/seit4l_particle_filter.jl`)
+
+```{julia}
+#| eval: false
+#| file: ../src/seit4l_particle_filter.jl
+```
+:::
 
 ## Initialisation
 

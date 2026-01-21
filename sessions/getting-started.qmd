@@ -6,12 +6,28 @@ order: 0
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 45-60 minutes (includes 15-30 minutes for package installation)
+**Estimated time**: 1-1.5 hours (includes package installation and Julia's first-run compilation)
 :::
 
 # Introduction
 
 This course uses Julia for all code examples and exercises. This page helps you set up your computing environment before the course begins.
+
+::: {.callout-important}
+## Julia compiles code on first use
+
+Unlike R or Python, Julia compiles functions the first time you run them. This means:
+
+- **First run of any function is slow** (seconds to minutes for complex packages)
+- **Subsequent runs are fast** (compiled code is cached for the session)
+- **Restarting Julia loses the cache** (compilation happens again)
+
+This "time to first plot" or "TTFX" is a known Julia trade-off. The payoff is that your code runs much faster once compiled. During the course:
+
+- Expect the first `using Turing` to take 10-30 seconds
+- Expect the first MCMC sample to take longer than subsequent ones
+- If something seems stuck, wait a minute before assuming it's broken
+:::
 
 Three ways to engage with the course:
 
@@ -25,35 +41,38 @@ The course has 11 sessions organised into three tiers. Work through them in orde
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         CORE SESSIONS (~10 hours)                       │
+│                        CORE SESSIONS (~12-14 hours)                     │
 │   Must complete in order. Essential foundations for everything else.   │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Getting Started ──► Introduction ──► MCMC ──► Diagnostics ──► Model   │
-│     (1 hr)            (2-2.5 hr)    (2-2.5 hr)  (1.5-2 hr)    Checking │
-│                                                                (1.5 hr) │
+│   (1-1.5 hr)         (2.5-3 hr)     (3-3.5 hr)  (2-2.5 hr)    Checking │
+│                                                                (2-2.5)  │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    STOCHASTIC MODELS (~5 hours)                         │
+│                    STOCHASTIC MODELS (~8-9 hours)                       │
 │          For fitting models with demographic stochasticity.            │
+│   These sessions involve stochastic simulation - expect different      │
+│   results each run! This is normal, not a bug.                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │       SEITL Interlude ──► Particle Filters ──► Particle MCMC           │
-│         (2-2.5 hr)          (1.5-2 hr)          (1.5-2 hr)             │
-│                                                                         │
+│         (3-3.5 hr)          (2-2.5 hr)          (2-2.5 hr)             │
+│       Requires: Model      Requires: SEITL      Requires: PF           │
+│       Checking                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    ADVANCED SESSIONS (~6 hours)                         │
+│                    ADVANCED SESSIONS (~7-9 hours)                       │
 │     Independent of each other. Choose based on your interests.         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Observation Models        Variational          Universal DEs          │
-│     (2-2.5 hr)            Inference             (2+ hr)                │
-│                            (1.5 hr)                                    │
+│     (2.5-3 hr)            Inference             (3-4 hr)               │
+│                            (2 hr)                                      │
 │  Likelihood vs ABC.       Fast approximate      Learn unknown          │
 │  When does the choice     inference for         mechanisms with        │
 │  of observation model     real-time systems.    neural networks.       │
@@ -67,9 +86,10 @@ The course has 11 sessions organised into three tiers. Work through them in orde
 
 | Time available | Recommended path |
 |----------------|------------------|
-| Half day (4 hrs) | Getting Started → Introduction → MCMC (skip exercises) |
-| Full day (8 hrs) | Core sessions (Getting Started through Model Checking) |
-| Two days (16 hrs) | Core + Stochastic models |
+| Half day (4 hrs) | Getting Started → Introduction → MCMC (read only, skip exercises) |
+| Full day (8 hrs) | Getting Started → Introduction → MCMC → Diagnostics |
+| Two days (16 hrs) | Core sessions + SEITL + Particle Filters |
+| Three days (24+ hrs) | Core + Stochastic models + one advanced topic |
 | Full course | All sessions, including advanced topics of interest |
 
 # Local installation
