@@ -5,6 +5,10 @@ engine: julia
 order: 4
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1.5-2 hours
+:::
+
 # Introduction
 
 You've learned how to fit models and diagnose MCMC convergence.
@@ -477,7 +481,22 @@ For the SIR model, try fitting with `R_0 ~ Uniform(1, 10)` vs `R_0 ~ Uniform(1, 
 
 # Next session
 
-In the [SEITL session](seitl.qmd), we'll extend beyond the simple SIR model to explain the two-wave pattern in the Tristan da Cunha data using temporary immunity.
+::: {.callout-note}
+## Transition: From methods to application
+
+The next session marks a shift in the course. So far, we've focused on **inference methods** using a simple SIR model as a teaching example. You've learned:
+
+- How to define models and compute posteriors (Introduction)
+- How to sample from posteriors efficiently (MCMC)
+- How to verify convergence (MCMC Diagnostics)
+- How to check if your model makes sense (this session)
+
+Now we'll apply these methods to a **real scientific problem**: explaining the unusual two-wave influenza outbreak on Tristan da Cunha in 1971. This requires a more complex model (SEITL) and, because the population was small, stochastic simulation.
+
+The next session introduces new concepts (stochastic models, Gillespie algorithm, Erlang distributions), but the inference framework remains the same - you'll use everything you've learned.
+:::
+
+In the [SEITL session](seitl.qmd), we introduce the Tristan da Cunha dataset and the SEITL model with temporary immunity. This sets up the remaining sessions where we'll fit stochastic models using particle methods.
 
 # References
 

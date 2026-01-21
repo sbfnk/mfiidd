@@ -5,6 +5,10 @@ engine: julia
 order: 3
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1.5-2 hours
+:::
+
 [Lecture slides](slides/mcmc_diagnostics_slides.pdf)
 
 # Introduction
@@ -268,6 +272,18 @@ However, you should still check trace plots to ensure the chain has converged - 
 
 R̂ compares within-chain and between-chain variance.
 It should be < 1.1 (ideally < 1.01):
+
+::: {.callout-note}
+## Running Julia with multiple threads
+To run multiple chains in parallel, Julia must be started with multiple threads. Check your current thread count with `Threads.nthreads()`. If it shows 1, restart Julia with:
+
+```bash
+julia -t auto          # Use all available CPU cores
+julia -t 4             # Use exactly 4 threads
+```
+
+In VS Code, you can set this permanently in settings: search for "Julia: Num Threads" and set it to "auto" or a specific number. Without multiple threads, chains will run sequentially (slower but still correct).
+:::
 
 ```{julia}
 #| output: false
@@ -642,6 +658,60 @@ plot(chain_problematic)
 2. **Better priors**: Match scales of parameters
 3. **Longer adaptation**: Increase warmup period
 4. **Check model**: Maybe the model specification is wrong
+
+# Concept map: Bayesian inference so far
+
+::: {.callout-note}
+## How the pieces fit together
+
+After three sessions, you now have a complete workflow for Bayesian inference with deterministic models:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SESSION 1: INTRODUCTION                      │
+│                                                                 │
+│   Prior (beliefs)  +  Likelihood (data)  =  Posterior (update)  │
+│   ──────────────      ─────────────────      ────────────────   │
+│   What you think      How well parameters    Your updated       │
+│   before seeing       explain the data       beliefs            │
+│   data                                                          │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       SESSION 2: MCMC                           │
+│                                                                 │
+│   Grid search → too slow for real problems                      │
+│   MCMC → smart random walks through parameter space             │
+│                                                                 │
+│   Metropolis-Hastings: simple, needs tuning                     │
+│   RAM: adaptive, learns correlations                            │
+│   NUTS: gradient-based, automatic, efficient                    │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    SESSION 3: DIAGNOSTICS                       │
+│                                                                 │
+│   Did the algorithm work? Check:                                │
+│   • Trace plots    → visual check for mixing                    │
+│   • R̂              → chains agree? (< 1.1)                      │
+│   • ESS            → enough independent samples? (> 100)        │
+│   • Posterior pred → does model match data?                     │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  NEXT: MODEL CHECKING                           │
+│                                                                 │
+│   MCMC converged ≠ Model is correct                             │
+│   Need to check: does the model describe the data well?         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**The workflow**: Define model → Run MCMC → Check convergence → Check model fit → Iterate
+
+:::
 
 # Summary
 

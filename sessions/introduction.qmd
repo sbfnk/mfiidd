@@ -5,6 +5,10 @@ engine: julia
 order: 1
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 2-2.5 hours (content-heavy session with many exercises)
+:::
+
 [Lecture slides](slides/intro_slides.pdf)
 
 # Introduction

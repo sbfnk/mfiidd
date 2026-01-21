@@ -6,6 +6,10 @@ engine: julia
 order: 10
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 2+ hours | **Optional advanced session**
+:::
+
 ::: {.callout-note}
 ## Optional advanced session
 This session covers advanced topics in hybrid mechanistic-machine learning models and is optional. It assumes familiarity with neural networks and automatic differentiation. The core course material can be completed without this session.
