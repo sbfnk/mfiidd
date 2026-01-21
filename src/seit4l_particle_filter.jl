@@ -1,14 +1,18 @@
 #=
 SEIT4L Particle Filter Components
 
-This file contains the shared Gillespie simulator and SSMProblems interface
-for the SEIT4L model. Used by both the Particle Filters and Particle MCMC sessions.
+This file contains the shared Gillespie simulator and particle filter
+for the SEIT4L model.
+
+Used by:
+- Particle Filters session (sessions/particle_filters.qmd)
+- Particle MCMC session (sessions/pmcmc.qmd)
+- Chain generation scripts (scripts/generate_pmcmc_*.jl)
 =#
 
 using Random
 using Distributions
-using SSMProblems
-using GeneralisedFilters
+using StatsBase  # For wsample in simple bootstrap filter
 
 """
     gillespie_step(rng, state, θ)
@@ -85,12 +89,79 @@ function gillespie_step(rng::AbstractRNG, state::Vector{Float64}, θ::Dict)
     return s, daily_inc
 end
 
+"""
+    gillespie_step_seit4l!(state, θ, dt)
+
+In-place version for simple bootstrap filter (no RNG argument, uses global RNG).
+"""
+function gillespie_step_seit4l!(state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
+    new_state, inc = gillespie_step(Random.default_rng(), state, θ)
+    for i in 1:8
+        state[i] = new_state[i]
+    end
+    return inc
+end
+
+"""
+    particle_filter_seit4l(θ, obs, n_particles; init_state)
+
+Simple bootstrap particle filter for SEIT4L (no SSMProblems dependency).
+Used by chain generation scripts.
+
+# Arguments
+- `θ`: Parameter dictionary (must include :R_0, :D_lat, :D_inf, :α, :D_imm, :ρ)
+- `obs`: Vector of observed daily incidence
+- `n_particles`: Number of particles
+- `init_state`: Initial state vector [S, E, I, T1, T2, T3, T4, L]
+
+# Returns
+- `log_likelihood`: Estimated log-likelihood
+"""
+function particle_filter_seit4l(θ, obs, n_particles;
+                                init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+    n_obs = length(obs)
+    ρ = θ[:ρ]
+
+    particles = [copy(init_state) for _ in 1:n_particles]
+    log_lik = 0.0
+
+    for t in 1:n_obs
+        # Propagate particles
+        inc = [gillespie_step_seit4l!(particles[i], θ) for i in 1:n_particles]
+
+        # Weight by observation likelihood
+        log_w = [logpdf(Poisson(max(ρ * inc[i], 1e-10)), obs[t]) for i in 1:n_particles]
+
+        # Log-sum-exp trick for numerical stability
+        max_lw = maximum(log_w)
+        w = exp.(log_w .- max_lw)
+        log_lik += max_lw + log(mean(w))
+
+        # Normalize weights
+        w ./= sum(w)
+
+        # Resample if ESS too low
+        ess = 1.0 / sum(w.^2)
+        if ess < n_particles / 2
+            idx = wsample(1:n_particles, Weights(w), n_particles)
+            particles = [copy(particles[i]) for i in idx]
+        end
+    end
+
+    return log_lik
+end
+
 #=
 SSMProblems.jl Interface
 
 These types define the SEIT4L model as a state-space model for use with
 GeneralisedFilters.jl particle filtering algorithms.
+
+Note: Sessions using this interface must also load SSMProblems and GeneralisedFilters.
 =#
+
+using SSMProblems
+using GeneralisedFilters
 
 """
 SEIT4L latent dynamics.

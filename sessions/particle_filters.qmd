@@ -6,7 +6,7 @@ order: 6
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5 hours
+**Estimated time**: 2-2.5 hours (particle filter calibration requires multiple runs)
 :::
 
 # Introduction
@@ -30,6 +30,24 @@ In this session you will:
 2. Learn the core particle filter algorithm: propagate, weight, resample
 3. Implement the SEIT4L model using the state-space model interface
 4. Calibrate the number of particles needed for reliable inference
+
+::: {.callout-important}
+## Reminder: Stochastic variability
+
+Particle filters use stochastic simulation, so your results will differ slightly from others' - and from repeated runs. The *patterns* (e.g., how ESS changes with particle count) should be similar, but exact numbers will vary. This is expected.
+:::
+
+::: {.callout-warning}
+## Computational requirements
+
+Particle filters are computationally intensive. For this session:
+
+- **Memory**: ~2-4 GB RAM for 256 particles (scales linearly with particle count)
+- **Runtime**: Single likelihood evaluation takes 0.1-0.5 seconds with 100 particles
+- **Calibration section**: Running 100 replicates at multiple particle counts takes 5-10 minutes
+
+If you're on a slower machine, reduce particle counts in the calibration exercises (e.g., use 50, 100, 200 instead of 64, 128, 256, 512).
+:::
 
 ::: {.callout-note collapse="true"}
 
@@ -71,6 +89,15 @@ The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared
 ```{julia}
 include(joinpath(project_root, "src", "seit4l_particle_filter.jl"))
 ```
+
+::: {.callout-note collapse="true"}
+## SEIT4L Particle Filter Implementation (from `src/seit4l_particle_filter.jl`)
+
+```{julia}
+#| eval: false
+#| file: ../src/seit4l_particle_filter.jl
+```
+:::
 
 ## Initialisation
 
@@ -252,6 +279,18 @@ Look at the three plots above (propagation, weighting, resampling).
 1. In the propagation plot, why do the particle trajectories spread apart over time?
 2. In the weighting plot, particles with predicted incidence closer to the observed value get higher weights. Why does Poisson likelihood give this behaviour?
 3. After resampling, some particles are duplicated many times while others disappear entirely. Why is this beneficial for estimating the likelihood?
+:::
+
+::: {.callout-tip}
+## Why resampling is essential: particle degeneracy
+
+Without resampling, particle filters suffer from *degeneracy*: after several time steps, almost all weight concentrates on a single particle. This happens because multiplicative weights compound - a particle that's slightly better at time 1 gets a slightly higher weight, making it even more likely to dominate at time 2, and so on.
+
+Imagine 100 particles after 10 time steps without resampling:
+- 1 particle has weight 0.99
+- 99 particles share weight 0.01
+
+This means we're effectively using just 1 trajectory to estimate the likelihood - a very poor approximation. Resampling fixes this by redistributing particles to maintain diversity, keeping the effective sample size high.
 :::
 
 ## Accumulating the likelihood

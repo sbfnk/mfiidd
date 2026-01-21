@@ -6,7 +6,7 @@ order: 5
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-2.5 hours (introduces new modelling concepts)
+**Estimated time**: 3-3.5 hours (introduces stochastic simulation and new modelling concepts)
 :::
 
 # Introduction
@@ -32,6 +32,19 @@ In this session you will:
 1. Familiarise yourselves with the structure of the SEITL model and try to guess its parameter values from the literature.
 2. Compare deterministic and stochastic simulations in order to explore the role of demographic stochasticity in the dynamics of the SEITL model.
 3. Use a more realistic distribution for the time spent in one of the compartment and assess its effect on the shape of the epidemic.
+
+::: {.callout-important}
+## Stochastic models produce different results each run
+
+Unlike deterministic models, stochastic simulations give **different outputs every time you run them** - even with identical parameters. This is a feature, not a bug: it reflects the real randomness in small populations.
+
+**What this means for you:**
+- Your plots will look different from your neighbour's (and from any solutions we show)
+- Running the same code twice gives different trajectories
+- This is expected and correct behaviour
+
+We set `Random.seed!(1234)` for reproducibility within a session, but the key insight is that stochastic variability *between* simulations is precisely what makes inference harder and more interesting.
+:::
 
 ::: {.callout-note}
 ## Course roadmap

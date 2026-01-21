@@ -6,7 +6,7 @@ order: 3
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours
+**Estimated time**: 2-2.5 hours (multi-chain sampling can be slow)
 :::
 
 [Lecture slides](slides/mcmc_diagnostics_slides.pdf)
@@ -79,24 +79,25 @@ Random.seed!(12345)
 
 ## Load data and model from previous session
 
-We'll use the same SIR model and epidemic data from previous sessions:
+We'll use the same SIR model and epidemic data from previous sessions.
+
+```{julia}
+#| echo: false
+# Load SIR model definition
+include(joinpath(@__DIR__, "..", "src", "sir_model.jl"))
+```
+
+::: {.callout-note collapse="true"}
+## SIR Model Definition (from `src/sir_model.jl`)
+
+```{julia}
+#| eval: false
+#| file: ../src/sir_model.jl
+```
+:::
 
 ```{julia}
 #| output: false
-
-# Define ODE function
-function sir_ode!(du, u, p, t)
-    S, I, R = u
-    R_0, D_inf = p
-    N = S + I + R
-
-    β = R_0 / D_inf
-    ν = 1 / D_inf
-
-    du[1] = -β * S * I / N  # dS/dt
-    du[2] = β * S * I / N - ν * I  # dI/dt
-    du[3] = ν * I  # dR/dt
-end
 
 # Initial state and time range
 init_state = [999, 1, 0]
