@@ -188,69 +188,6 @@ println("Sample mean: $(round(mean(samples_mh), digits = 2)) (true: $(target_mea
 println("Sample std: $(round(std(samples_mh), digits = 2)) (true: $(target_std))")
 ```
 
-::: {.callout-note title="Coming from R?" collapse="true"}
-
-In R, you would implement the this code like this:
-
-```r
-# Target distribution: Normal(5, 2)
-target_mean = 5.0
-target_std = 2.0
-target_dist = dnorm
-
-# Function to evaluate log-density of target
-eval_log_density <- function(x) {
-  target_dist(x, mean = target_mean, sd = target_std, log = TRUE)
-}
-
-# Metropolis-Hastings sampler
-metropolis_hastings_1d <- function(log_density_fn, n_samples,
-                                   initial_value, proposal_std) {
-  # Initialise sample vector
-  samples <- numeric(n_samples)
-  # current_x tracks the state of the chain
-  # initially, set to given initial value
-  current_x <- initial_value
-  # Evaluate log probability at the initial value
-  current_log_prob <- log_target_fn(current_x)
-  # Track number of acceptances
-  n_accepted <- 0
-
-  for (i in 1:n_samples) {
-    # Propose new state
-    proposal_x <- current_x + rnorm(1, mean = 0, sd = proposal_std)
-    # Evaluate log probability at target
-    proposal_log_prob <- log_target_fn(proposal_x)
-
-    # Calculate acceptance probability (in log space)
-    # Note: This is the Metropolis ratio (symmetric proposal)
-    # Full Metropolis-Hastings would include proposal ratio q(x|x')/q(x'|x)
-    # But Normal proposal is symmetric, so this ratio = 1 and cancels out
-    log_alpha <- proposal_log_prob - current_log_prob
-    alpha <- exp(log_alpha)
-
-    # Accept or reject
-    if (runif(1) < alpha) {
-      current_x <- proposal_x
-      current_log_prob <- proposal_log_prob
-      n_accepted <- n_accepted + 1
-    } # if reject, current_x stays what it is
-
-    samples[i] <- current_x
-  }
-
-  acceptance_rate <- n_accepted / n_samples
-  list(samples = samples, acceptance_rate = acceptance_rate)
-}
-
-# Test the sampler
-result <- metropolis_hastings_1d(eval_log_density, 5000, 0.0, 1.0)
-cat(sprintf("Acceptance rate: %.1f%%\n", result$acceptance_rate * 100))
-cat(sprintf("Sample mean: %.2f (true: 5.0)\n", mean(result$samples)))
-cat(sprintf("Sample std: %.2f (true: 2.0)\n", sd(result$samples)))
-```
-
-:::
 
 ```{julia}
 # Visualise the results
@@ -710,3 +647,48 @@ For models with gradients (like our deterministic ODE), *NUTS* goes further - us
 - [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/stable/) - Chain analysis and diagnostics
 
 **Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd) - how to tell if your chains have converged and your results are trustworthy!
+
+# Appendix: Coming from R?
+
+::: {.callout-note collapse="true"}
+## Metropolis-Hastings in R
+
+The Julia MH sampler above translates to R as follows:
+
+```r
+# Target distribution: Normal(5, 2)
+target_mean <- 5.0
+target_std <- 2.0
+
+eval_log_density <- function(x) {
+  dnorm(x, mean = target_mean, sd = target_std, log = TRUE)
+}
+
+metropolis_hastings_1d <- function(log_density_fn, n_samples,
+                                   initial_value, proposal_std) {
+  samples <- numeric(n_samples)
+  current_x <- initial_value
+  current_log_prob <- log_density_fn(current_x)
+  n_accepted <- 0
+
+  for (i in 1:n_samples) {
+    proposal_x <- current_x + rnorm(1, mean = 0, sd = proposal_std)
+    proposal_log_prob <- log_density_fn(proposal_x)
+
+    log_alpha <- proposal_log_prob - current_log_prob
+    if (runif(1) < exp(log_alpha)) {
+      current_x <- proposal_x
+      current_log_prob <- proposal_log_prob
+      n_accepted <- n_accepted + 1
+    }
+    samples[i] <- current_x
+  }
+
+  list(samples = samples, acceptance_rate = n_accepted / n_samples)
+}
+
+result <- metropolis_hastings_1d(eval_log_density, 5000, 0.0, 1.0)
+```
+
+The core algorithm is identical - only syntax differs.
+:::
