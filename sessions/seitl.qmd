@@ -862,7 +862,7 @@ The key computational choice was *deterministic vs stochastic* simulation. Deter
 # References
 
 - Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks: the role of the immune response](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381). *Proc. R. Soc. B* 278(1725), 3635-3643. (The original SEITL model paper - highly recommended!)
-- Mandereau & Cauchemez (1971). [Influenza epidemic on the island of Tristan da Cunha](https://pubmed.ncbi.nlm.nih.gov/4937545/). *Bulletin of the World Health Organization* 44, 493-498. (Original outbreak data)
+- Mantle & Tyrrell (1973). [An epidemic of influenza on Tristan da Cunha](https://pubmed.ncbi.nlm.nih.gov/4708546/). *Journal of Hygiene* 71(1), 89-95. (Original outbreak data)
 - [JumpProcesses.jl](https://docs.sciml.ai/JumpProcesses/stable/) - Stochastic simulation in Julia (Gillespie algorithm and more)
 - [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
 

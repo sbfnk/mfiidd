@@ -11,8 +11,12 @@ order: 9
 :::
 
 ::: {.callout-note}
-## Optional advanced session
-This session covers advanced topics in approximate inference and is optional. The core course material can be completed without this session, but it provides useful techniques for real-time applications and high-dimensional problems.
+## Do this session if...
+- You need faster inference than MCMC provides (e.g., real-time forecasting, many datasets)
+- You're working with high-dimensional models where MCMC is too slow
+- You want to understand modern ML-influenced approaches to Bayesian inference
+
+**Prerequisites**: Complete the MCMC session. This session compares VI to MCMC, so you should understand how MCMC works first. No other optional sessions required.
 :::
 
 # Introduction
@@ -406,7 +410,7 @@ println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
 println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
 ```
 
-It turns out that the speedup becomes even more dramatic with larger models or more samples.
+The speedup becomes even more dramatic with larger models or more samples.
 
 ## Trade-offs summary
 

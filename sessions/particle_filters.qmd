@@ -11,6 +11,11 @@ order: 6
 
 # Introduction
 
+::: {.callout-note appearance="simple"}
+## Where we are in the course
+You've now completed the core inference workflow: defining models (Introduction), running MCMC (MCMC session), checking convergence (Diagnostics), and validating model fit (Model Checking). You've also seen the SEITL model structure. This session introduces particle filters - the key technique for fitting *stochastic* models where the same parameters can produce different trajectories.
+:::
+
 In the previous sessions, we fitted deterministic models using MCMC. For deterministic models, computing the likelihood is straightforward: given parameters, we solve the ODEs to get a trajectory, then evaluate the probability of the data given that trajectory.
 
 But what about stochastic models? In the [SEITL session](seitl.qmd), we saw that the same parameters can produce very different trajectories due to demographic stochasticity. There's no single "expected" trajectory to compare against the data.
@@ -267,7 +272,43 @@ A state-space model has three components:
 2. **Transition dynamics** (`SEIT4LDynamics`) - how does the state evolve? (uses `gillespie_step`)
 3. **Observation process** (`PoissonObservation`) - how do observations relate to the state?
 
-These types are defined in `src/seit4l_particle_filter.jl` and were loaded in the setup. The key design choices:
+Here is the full interface implementation (also available in `src/seit4l_particle_filter.jl`):
+
+```julia
+# Initial state: deterministic starting point
+struct SEIT4LInitial <: SSMProblems.StatePrior
+    init_state::Vector{Float64}
+end
+
+function SSMProblems.simulate(rng::AbstractRNG, prior::SEIT4LInitial; kwargs...)
+    vcat(prior.init_state, 0.0)  # Append 0 for initial daily incidence
+end
+
+# Dynamics: Gillespie simulation for one day
+struct SEIT4LDynamics <: SSMProblems.LatentDynamics
+    θ::Dict{Symbol, Float64}
+end
+
+function SSMProblems.simulate(rng::AbstractRNG, dyn::SEIT4LDynamics,
+                              step::Integer, prev_state; kwargs...)
+    state = collect(prev_state[1:8])  # Extract compartments
+    new_state, daily_inc = gillespie_step(rng, state, dyn.θ)
+    return vcat(new_state, daily_inc)  # Return state with incidence appended
+end
+
+# Observation: Poisson likelihood on reported cases
+struct PoissonObservation <: SSMProblems.ObservationProcess
+    ρ::Float64  # Reporting rate
+end
+
+function SSMProblems.distribution(obs::PoissonObservation, step::Integer,
+                                  state; kwargs...)
+    daily_inc = state[end]
+    Poisson(max(obs.ρ * daily_inc, 1e-10))
+end
+```
+
+The key design choices:
 
 - The state vector is [S, E, I, T1, T2, T3, T4, L, daily_inc] - the 9th element tracks daily incidence for the observation process
 - `SEIT4LDynamics` wraps the Gillespie simulator, calling `gillespie_step` each day
@@ -312,7 +353,7 @@ A key question: how many particles do we need?
 
 The principled approach targets a specific variance of the log-likelihood estimate. Pitt et al. (2012) and Doucet et al. (2015) showed that MCMC efficiency is maximised when the standard deviation of the log-likelihood estimate is between 1 and 3.
 
-Calibrating:
+Calibrating (this takes 1-2 minutes to run all particle counts):
 
 ```{julia}
 # Reference parameters (near what we expect the posterior mode to be)

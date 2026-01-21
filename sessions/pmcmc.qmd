@@ -182,12 +182,18 @@ chain_short = sample(
 plot(chain_short)
 ```
 
-**Does this chain look well-mixed?** Look for:
+::: {.callout-warning}
+## Notice the poor mixing features
+Look carefully at the trace plots above. You should see:
 
-- Are there long flat stretches (plateaus) where the chain gets stuck?
-- Does the chain explore the full range of plausible values, or does it wander slowly?
+- **Flat stretches (plateaus)**: The chain gets stuck at the same value for many iterations
+- **Slow wandering**: Instead of rapidly exploring, the chain drifts gradually
+- **Different behaviour across parameters**: Some parameters may mix better than others
 
-With only 500 samples, the chain hasn't had time to properly explore the posterior. The trace plots likely show poor mixing - the chain getting stuck or wandering slowly through parameter space.
+This is *expected* for a short PMMH chain. The poor mixing illustrates why PMMH requires many more iterations than standard MCMC.
+:::
+
+With only 500 samples, the chain hasn't had time to properly explore the posterior.
 
 ## Why is PMMH mixing difficult?
 

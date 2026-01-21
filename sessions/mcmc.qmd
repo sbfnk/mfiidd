@@ -364,6 +364,11 @@ plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
 This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
 
+::: {.callout-note appearance="simple"}
+## Good time for a break
+You've now implemented Metropolis-Hastings from scratch and understand its core mechanics. The next sections show how modern tools automate this. If you're working through this in one sitting, this is a natural pause point.
+:::
+
 # Automating MCMC with Turing.jl
 
 Now that you understand how MCMC works internally, let's see how Turing.jl automates everything you just coded.
@@ -488,7 +493,12 @@ plot(
 
 ::: {.callout-note}
 ## What to expect from the exercise below
-Finding good proposals by hand is difficult. If you spend 10-15 minutes experimenting without finding a perfect solution, you've learned a key lesson: manual tuning doesn't scale. The frustration is part of the learning.
+Finding good proposals by hand is difficult. The goal is to experience the challenge, not to find a perfect solution.
+
+**Suggested approach:**
+- Spend 5-10 minutes experimenting with different proposal matrices
+- If you're stuck after 10 minutes, reveal the solution - you've learned the key lesson
+- The frustration is the point: manual tuning doesn't scale to real problems
 :::
 
 ::: {.callout-warning title="Exercise: Tune the proposal distribution"}
@@ -590,6 +600,7 @@ For models where we can compute gradients (like our ODE model), NUTS (No U-Turn 
 ```{julia}
 #| output: false
 # Modern gradient-based MCMC
+# Expect: ~30-60 seconds on first run (includes compilation), ~10-20 seconds on subsequent runs
 chain_nuts = sample(model, NUTS(), 2000)
 ```
 

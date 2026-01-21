@@ -584,6 +584,11 @@ end
 
 This function simulates the SIR model and returns both the trajectory and the log-likelihood. We'll use it throughout the rest of this session.
 
+::: {.callout-note appearance="simple"}
+## Good time for a break
+You've now covered the two foundational concepts: priors and likelihoods. The next section combines them into the posterior. If you're working through this in one sitting, this is a natural pause point.
+:::
+
 # Part 3: Understanding the posterior
 
 ## What is a posterior?

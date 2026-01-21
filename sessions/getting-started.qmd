@@ -75,7 +75,24 @@ This reads `Project.toml` and `Manifest.toml` to install all required packages w
 ## Expect a long wait on first run
 Package installation typically takes **15-30 minutes** depending on your internet connection and computer speed. The process downloads ~1GB of packages and then precompiles them. This is a good time to get a coffee or read ahead in the course materials.
 
-You'll see many messages about downloading, building, and precompiling. This is normal. Warnings about "precompilation may be incomplete" are usually harmless. The process is complete when you see the `julia>` prompt again.
+**What to expect in the console:**
+
+```
+  Downloading artifact: LLVM...
+  Downloading artifact: GR...
+    Updating registry at `~/.julia/registries/General.toml`
+   Resolving package versions...
+  Downloaded Turing ─ v0.35.0
+  Downloaded DifferentialEquations ─ v7.15.0
+  ...many more packages...
+Precompiling project...
+  ✓ Distributions
+  ✓ OrdinaryDiffEq
+  ...many more...
+  72 dependencies successfully precompiled in 342 seconds
+```
+
+Warnings about "precompilation may be incomplete" are usually harmless. The process is complete when you see the `julia>` prompt again.
 :::
 
 ## Step 5: Verify the installation

@@ -7,7 +7,16 @@ order: 8
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-2.5 hours (three different inference approaches)
+**Estimated time**: 2-2.5 hours | **Optional advanced session**
+:::
+
+::: {.callout-note}
+## Do this session if...
+- You want to understand *why* we use Poisson or Negative Binomial likelihoods (not just *how*)
+- You're interested in Approximate Bayesian Computation (ABC) as an alternative to likelihood-based inference
+- You want to think critically about the assumptions underlying statistical inference
+
+**Prerequisites**: Complete the core sessions through Particle MCMC. This session is conceptual and doesn't build on specific code from earlier optional sessions.
 :::
 
 # Introduction
@@ -430,7 +439,15 @@ Run ABC with L1 distance:
 
 ::: {.callout-tip}
 ## Choosing the threshold
-ABC rejection sampling is sensitive to the threshold choice. If the threshold is too strict, you'll wait a long time and get few (or zero) samples. If it's too loose, the approximate posterior will be close to the prior. We start with a relaxed threshold (300) here. If you want to experiment, try values between 200-500 and observe how the acceptance rate and posterior width change.
+ABC rejection sampling is sensitive to the threshold choice:
+
+- **Too strict** (e.g., 100): Long wait times, few or zero accepted samples
+- **Too loose** (e.g., 1000): Fast, but approximate posterior is close to the prior
+- **Just right** (e.g., 200-400): Reasonable acceptance rate with meaningful posterior concentration
+
+We start with a relaxed threshold (300) here.
+
+**If you get 0 samples**: Increase the threshold (try 400, then 500). The sampler may be struggling to find parameter combinations that produce simulations close to the data. This can happen due to random variation - ABC is inherently stochastic.
 :::
 
 ```{julia}
