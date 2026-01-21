@@ -25,13 +25,15 @@ website:
       title: "Sessions"
       style: "docked"
       contents:
+        - sessions/getting-started.qmd
         - sessions/introduction.qmd
         - sessions/mcmc.qmd
         - sessions/mcmc_diagnostics.qmd
         - sessions/model_checking.qmd
-        - sessions/observation_models.qmd
         - sessions/seitl.qmd
+        - sessions/particle_filters.qmd
         - sessions/pmcmc.qmd
+        - sessions/observation_models.qmd
         - sessions/variational_inference.qmd
         - sessions/universal_differential_equations.qmd
 

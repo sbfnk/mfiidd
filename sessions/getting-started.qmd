@@ -1,0 +1,201 @@
+---
+title: "Getting Started"
+format: html
+engine: julia
+order: 0
+---
+
+# Introduction
+
+This course uses Julia for all code examples and exercises. This page helps you set up your computing environment before the course begins.
+
+**Three ways to engage with the course:**
+
+1. **Web only**: Read the materials online without running code. Fine for an overview, but you'll learn more by doing.
+2. **Local installation**: Install Julia and run everything on your own machine. Recommended for the full experience.
+3. **Cloud option**: Use a pre-configured cloud environment (if provided by your instructor).
+
+# Local Installation
+
+## Step 1: Install Julia
+
+Download Julia from [julialang.org/downloads](https://julialang.org/downloads/). We recommend version 1.11 or later.
+
+**Installation options:**
+
+- **juliaup (recommended)**: A version manager that makes it easy to install and switch between Julia versions
+  - Windows: `winget install julia -s msstore`
+  - macOS/Linux: `curl -fsSL https://install.julialang.org | sh`
+- **Direct download**: Get the installer for your platform from the downloads page
+
+After installation, open a terminal and verify Julia is working:
+
+```bash
+julia --version
+```
+
+You should see something like `julia version 1.11.2`.
+
+## Step 2: Install VS Code (recommended IDE)
+
+While you can use any text editor, VS Code with the Julia extension provides the best experience:
+
+1. Download [VS Code](https://code.visualstudio.com/)
+2. Install the [Julia extension](https://marketplace.visualstudio.com/items?itemName=julialang.language-julia)
+3. Open VS Code, press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL"
+
+Alternative IDEs: Emacs with julia-mode, Vim with julia-vim, or Jupyter notebooks.
+
+## Step 3: Clone the course repository
+
+```bash
+git clone https://github.com/sbfnk/mfiidd.julia.git
+cd mfiidd.julia
+```
+
+If you don't have git, you can download the repository as a ZIP file from GitHub.
+
+## Step 4: Install Julia packages
+
+Open Julia in the course directory and activate the project environment:
+
+```julia
+using Pkg
+Pkg.activate(".")
+Pkg.instantiate()
+```
+
+This reads `Project.toml` and `Manifest.toml` to install all required packages with exact versions. The first run downloads and precompiles packages, which can take 10-20 minutes depending on your internet connection.
+
+::: {.callout-note}
+## Expect lots of output
+Package installation produces many messages about downloading, building, and precompiling. This is normal. Warnings about "precompilation may be incomplete" are usually harmless.
+:::
+
+## Step 5: Verify the installation
+
+Test that core packages load correctly:
+
+```julia
+using Turing
+using DifferentialEquations
+using Plots
+
+# Quick test: sample from a simple model
+@model function coin_flip(n, k)
+    p ~ Beta(1, 1)
+    k ~ Binomial(n, p)
+end
+
+chain = sample(coin_flip(10, 7), NUTS(), 100)
+println("Installation successful!")
+```
+
+If this runs without errors, you're ready for the course.
+
+# Troubleshooting
+
+## "Package X not found"
+
+Make sure you've activated the project environment:
+
+```julia
+using Pkg
+Pkg.activate(".")  # Note the dot - this activates the current directory
+Pkg.status()       # Should show course packages, not your global environment
+```
+
+## Slow package loading
+
+Julia compiles code on first use. The first `using Turing` in a session takes longer than subsequent calls. This is normal. For faster startup during development, consider [PackageCompiler.jl](https://julialang.github.io/PackageCompiler.jl/stable/) or [Revise.jl](https://timholy.github.io/Revise.jl/stable/).
+
+## Plotting issues on headless servers
+
+If you're running on a server without a display:
+
+```julia
+ENV["GKSwstype"] = "100"  # Use null device for GR backend
+using Plots
+```
+
+## Windows-specific issues
+
+- **Long path errors**: Enable long paths in Windows settings or use a shorter installation path
+- **Firewall prompts**: Allow Julia through your firewall for package downloads
+
+## macOS Apple Silicon
+
+Julia runs natively on Apple Silicon (M1/M2/M3). Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
+
+# Updating before the course
+
+If you installed the packages days or weeks before the course, update them:
+
+```julia
+using Pkg
+Pkg.activate(".")
+Pkg.update()
+Pkg.precompile()
+```
+
+# Working with the materials
+
+## Quarto documents (.qmd)
+
+Course sessions are Quarto documents combining text and executable Julia code. To render a session:
+
+```bash
+quarto preview sessions/introduction.qmd
+```
+
+Or render the entire site:
+
+```bash
+quarto preview
+```
+
+## Running code interactively
+
+In VS Code with the Julia extension:
+
+1. Open a `.qmd` file
+2. Place cursor in a code block
+3. Press `Shift+Enter` to execute and move to next block
+4. Or `Ctrl+Enter` to execute without moving
+
+Alternatively, copy code into the Julia REPL.
+
+## Session structure
+
+Each session follows a consistent structure:
+
+- **Introduction**: What we'll learn and why it matters
+- **Setup** (collapsible): Package loading and initialisation
+- **Main content**: Concepts, code, and exercises
+- **Summary**: What we covered (with Learning Points callout)
+- **Going further**: Optional extensions for interested participants
+
+# Getting help
+
+During the course:
+
+- Ask your instructor or teaching assistants
+- Use the course chat/forum if available
+
+For Julia-specific questions:
+
+- [Julia Discourse](https://discourse.julialang.org/) - friendly community forum
+- [Julia Slack](https://julialang.org/slack/) - real-time chat
+- [Turing.jl documentation](https://turinglang.org/stable/) - for probabilistic programming questions
+
+# Session checklist
+
+Before starting, verify you can:
+
+- [ ] Start Julia and see the `julia>` prompt
+- [ ] Activate the course project (`Pkg.activate(".")`)
+- [ ] Load Turing.jl without errors (`using Turing`)
+- [ ] Create a simple plot (`using Plots; plot(1:10)`)
+- [ ] Run a basic MCMC sampler (the coin flip example above)
+
+If all boxes are ticked, you're ready to begin with the [Introduction](introduction.qmd).
