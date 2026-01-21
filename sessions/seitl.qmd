@@ -2,12 +2,12 @@
 title: "Modelling interlude: Tristan da Cunha outbreak & the SEITL model"
 format: html
 engine: julia
-order: 6
+order: 5
 ---
 
 # Introduction
 
-This session will focus on modelling rather than fitting (don't worry, we will come back to fitting on the next session). The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL. We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.
+This session will focus on modelling rather than fitting (don't worry, we will come back to fitting in the sessions on [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd)). The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL. We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.
 
 As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971.
 Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.
@@ -28,6 +28,19 @@ In this session you will:
 1. Familiarise yourselves with the structure of the SEITL model and try to guess its parameter values from the literature.
 2. Compare deterministic and stochastic simulations in order to explore the role of demographic stochasticity in the dynamics of the SEITL model.
 3. Use a more realistic distribution for the time spent in one of the compartment and assess its effect on the shape of the epidemic.
+
+::: {.callout-note}
+## Course roadmap
+This session marks a transition in the course. We move from general inference methods (MCMC, diagnostics, model checking) to applying them to a specific scientific question: explaining the two-wave Tristan da Cunha outbreak.
+
+The remaining sessions build on the SEITL/SEIT4L models introduced here:
+
+- **Particle Filters**: Estimating likelihoods for stochastic models
+- **Particle MCMC**: Full Bayesian inference using particle filters
+- **Observation Models**: Comparing likelihood-based and likelihood-free inference
+- **Variational Inference** (optional): Fast approximate inference for real-time applications
+- **Universal Differential Equations** (optional): Learning unknown mechanisms with neural networks
+:::
 
 ::: {.callout-note collapse="true"}
 
@@ -169,6 +182,23 @@ Based on the description of the outbreak above and the information below found i
 4. Serological surveys have shown that the seroconversion rate to influenza (probability of developing antibodies) is around 80%. However, it is likely that not all seroconverted individuals acquire a long-term protective against reinfection.
 5. Between 20 and 30% of the infections with influenza are asymptomatic.
 6. There is very limited cross-immunity between influenza viruses A/H1N1 and A/H3N2.
+
+::: {.callout-tip collapse="true"}
+## Hint: Reasonable parameter ranges
+
+Based on the literature above, here are reasonable starting guesses:
+
+| Parameter | Reasoning | Suggested range |
+|-----------|-----------|-----------------|
+| R_0 | Typically ~2 for influenza, but higher in close-knit communities | 4-10 |
+| D_lat | Latent period ~2 days | 1-3 |
+| D_inf | Infectious period ~2 days | 1-4 |
+| D_imm | Cellular response ~15 days post-symptom | 10-20 |
+| α | Seroconversion ~80%, but not all develop long-term immunity | 0.4-0.8 |
+| ρ | <85% reporting, minus asymptomatic (20-30%) | 0.5-0.7 |
+
+These are just starting points. The inference will refine them.
+:::
 
 # Deterministic vs Stochastic simulations
 
@@ -396,10 +426,10 @@ scatter!(p, flu_tdc.time, flu_tdc.obs,
 plot!(p)
 ```
 
-Notice how the same `@model` definition can be used for both simulation (here) and inference (in the next session on pMCMC).
+Notice how the same `@model` definition can be used for both simulation (here) and inference (in the [Particle MCMC session](pmcmc.qmd)).
 This unified approach means you only need to write the model once.
 
-Now, take 10 minutes to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$.
+Now, take 5 minutes to explore the dynamics of the model for different parameter and initial state values. In particular, try different values for $R_0\in[2-15]$ and $\alpha\in[0.3-1]$.
 For which values of $R_0$ and $\alpha$ do you get a decent fit?
 
 You should find that it is hard to capture all the data-points with the deterministic model.
@@ -407,7 +437,7 @@ We will now test if this can be better reproduced with a stochastic model which 
 
 ## Stochastic simulations
 
-For stochastic simulation, we implement the Gillespie algorithm (stochastic simulation algorithm) directly. This simulates the model day-by-day, which is natural for fitting to daily incidence data and prepares us for particle filtering later.
+The stochastic simulation uses the Gillespie algorithm, which simulates individual events (infections, recoveries) as random occurrences. Unlike ODEs which give smooth trajectories, this captures the inherent randomness in small populations. Each event is sampled from the possible transitions weighted by their rates, and waiting times between events follow exponential distributions.
 
 The model has the following transitions:
 
@@ -418,6 +448,9 @@ The model has the following transitions:
 | I → T | $\nu I$ | I-1, T+1 |
 | T → S | $(1-\alpha) \tau T$ | T-1, S+1 |
 | T → L | $\alpha \tau T$ | T-1, L+1 |
+
+::: {.callout-note collapse="true"}
+## Implementation: Gillespie algorithm (click to expand)
 
 ```{julia}
 """
@@ -498,13 +531,6 @@ function simulate_seitl_stochastic(θ, init_state, times)
     return results
 end
 ```
-
-::: {.callout-tip collapse="true"}
-## Code explainer
-- **Gillespie algorithm**: At each step, compute all transition rates, sample the waiting time from an exponential distribution, select which event occurs (weighted by rates), and apply the state change.
-- `randexp() / total_rate` - samples the waiting time to the next event. The `randexp()` function draws from Exp(1), and dividing by the total rate gives Exp(total_rate).
-- **Stoichiometry matrix** - each row defines how a transition changes the state vector [S, E, I, T, L].
-- **Daily incidence** - we track E→I transitions directly (event 2) rather than maintaining a cumulative counter. This is more natural for step-by-step simulation.
 :::
 
 ```{julia}
@@ -581,14 +607,14 @@ plot!(p)
 
 ::: {.callout-note}
 Just like with the deterministic model, you can use the Turing `@model` for prior predictive checks by sampling parameters from priors.
-The same `@model` definitions will be used for particle MCMC inference in the next session, demonstrating the unified approach.
+The same `@model` definitions will be used for inference in the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions, demonstrating the unified approach.
 :::
 
-Take about 10 minutes to explore the dynamics of the stochastic SEITL model.
-
+::: {.callout-warning title="Exercise: Explore stochastic SEITL dynamics"}
 What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?
+:::
 
-Now, let's try to make this model a bit more realistic.
+Now we make this model a bit more realistic.
 
 # Exponential vs Erlang distributions
 
@@ -715,9 +741,11 @@ This version uses an Erlang-4 distribution for the T compartment.
 end
 ```
 
-Take 5 minutes to have a look at the functions above and make sure you understand how the Erlang distribution for the $T$ compartment is coded.
+::: {.callout-warning title="Exercise: Understand the SEIT4L code"}
+Have a look at the functions above and make sure you understand how the Erlang distribution for the $T$ compartment is coded.
+:::
 
-Now, compare the dynamics of the SEITL and SEIT4L model.
+Now compare the dynamics of the SEITL and SEIT4L models.
 Use your best guess from the previous section for the parameters.
 Note that although SEITL and SEIT4L share the same parameters, their state variables differ so you need to modify the initial state of SEIT4L accordingly.
 
@@ -772,7 +800,7 @@ We now have multiple mechanistic models that could explain the two-wave pattern:
 
 Both encode the same biological hypothesis (temporary immunity followed by potential reinfection), but make different assumptions about the *distribution* of time spent in temporary immunity. The original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper compared these and other variants using information criteria (DIC) and found that SEIT4L provided a better fit.
 
-In the [next session on Particle MCMC](pmcmc.qmd), we'll fit both models to data and compare them.
+In the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions, we'll fit both models to data and compare them.
 :::
 
 ::: {.callout-note}

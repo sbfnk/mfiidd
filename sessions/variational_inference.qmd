@@ -3,7 +3,13 @@ title: "Variational Inference: Speed vs Accuracy"
 subtitle: "Fast approximate Bayesian inference for real-time applications"
 format: html
 engine: julia
+order: 9
 ---
+
+::: {.callout-note}
+## Optional advanced session
+This session covers advanced topics in approximate inference and is optional. The core course material can be completed without this session, but it provides useful techniques for real-time applications and high-dimensional problems.
+:::
 
 # Introduction
 
@@ -18,7 +24,7 @@ For a single dataset with a simple model, MCMC takes minutes to hours. But what 
 
 This is where variational inference (VI) comes in. VI trades some accuracy for speed improvements - the gains depend on problem complexity, from modest speedups for simple models to orders of magnitude for large neural networks or models with many latent variables.
 
-## Learning objectives
+# Objectives
 
 By the end of this session, you will be able to:
 
@@ -153,9 +159,8 @@ println("MCMC time: $(round(t_mcmc, digits=1)) seconds")
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`@elapsed`](https://docs.julialang.org/en/v1/base/base/#Base.@elapsed) - Julia macro that returns the time in seconds to execute the expression. We use this to compare MCMC vs VI speed.
-- `NUTS(0.65)` - the argument sets the target acceptance rate during warmup. Values closer to 1 mean smaller, more cautious steps. 0.65 is a good default for complex posteriors; use 0.8-0.9 for difficult geometries.
-- `progress=false` - suppresses the progress bar during sampling. Set to `true` if you want to watch progress.
+- [`@elapsed`](https://docs.julialang.org/en/v1/base/base/#Base.@elapsed) - returns the time in seconds to execute the expression.
+- `NUTS(0.65)` - sets the target acceptance rate during warmup. 0.65 is a good default; use 0.8-0.9 for difficult posteriors.
 :::
 
 ```{julia}
@@ -458,11 +463,11 @@ The practical recommendation: validate VI against MCMC once (to ensure they give
 
 # Summary
 
-*Variational inference* reframes Bayesian inference as optimisation: instead of sampling from the posterior, we find a simple distribution $q(\theta)$ that's as close as possible to the true posterior. This is much faster than MCMC, with speedups that scale with problem complexity.
+Variational inference reframes Bayesian inference as optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior. This trades some accuracy for speed - useful when MCMC is too slow.
 
-We explored two approximation families. *Mean-field VI* assumes parameters are independent - very fast, but it missed the strong R₀-D_inf correlation in our SIR model, giving overconfident uncertainty estimates. *Full-rank VI* uses a full covariance matrix, capturing correlations at modest additional cost. For epidemic models with their typical parameter correlations, full-rank is usually worth the overhead.
+*Mean-field VI* assumes parameter independence. Fast, but it missed the R₀-D_inf correlation in our SIR model, producing overconfident intervals. *Full-rank VI* uses a full covariance matrix, capturing correlations at modest additional cost. For epidemic models with correlated parameters, full-rank is usually worth it.
 
-The practical workflow is: use VI for rapid exploration and real-time applications where MCMC is too slow, but validate against MCMC when accuracy matters. VI is not a replacement for MCMC - it's a complementary tool that enables applications (real-time forecasting, model selection over many candidates) where MCMC would be computationally infeasible.
+VI is not a replacement for MCMC - it's a complementary tool. Use VI for rapid exploration and real-time systems; validate against MCMC when accuracy matters.
 
 ::: {.callout-tip title="Learning points"}
 - **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior

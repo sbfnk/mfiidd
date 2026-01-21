@@ -3,11 +3,12 @@ title: "Observation Models and Distance Metrics"
 subtitle: "Understanding the bridge between likelihood-based and likelihood-free inference"
 format: html
 engine: julia
+order: 8
 ---
 
 # Introduction
 
-So far in this course, we've used **likelihood functions** to connect our mathematical models to observed data. For example, we've assumed that observed case counts follow a Poisson distribution:
+So far in this course, we've used *likelihood functions* to connect our mathematical models to observed data. For example, we've assumed that observed case counts follow a Poisson distribution:
 
 $$\text{obs}_t \sim \text{Poisson}(\rho \cdot I_t)$$
 
@@ -19,7 +20,7 @@ But this raises important questions:
 
 In this session, we'll explore these questions and discover that the distinction between "likelihood-based" and "likelihood-free" inference is less sharp than it initially appears.
 
-## Learning objectives
+# Objectives
 
 By the end of this session, you will be able to:
 
@@ -177,7 +178,7 @@ This is what we've been doing throughout the course:
 end
 ```
 
-Let's fit this model:
+We fit this model:
 
 ```{julia}
 # Fit with NUTS
@@ -275,11 +276,11 @@ end
 
 ## Likelihood as distance
 
-The negative log-likelihood is actually a **distance function** between observed and predicted data!
+The negative log-likelihood is actually a *distance function* between observed and predicted data:
 
 $$\text{Distance} = -\log p(\text{obs} | \text{predicted})$$
 
-Let's see what distance each likelihood implies:
+We can see what distance each likelihood implies:
 
 ```{julia}
 # Compare different observation models as distance functions
@@ -311,7 +312,7 @@ plot!(predicted_range, gaussian_distance,
       label="Gaussian(σ=3)", linewidth=2, linestyle=:dash)
 ```
 
-What this reveals is that **different likelihoods are just different ways of measuring distance!**
+This reveals that different likelihoods are just different ways of measuring distance:
 
 - Poisson: Penalises deviations inversely proportional to predicted value
 - Negative Binomial: Similar but allows more flexibility (overdispersion)
@@ -323,11 +324,11 @@ What this reveals is that **different likelihoods are just different ways of mea
 
 Instead of choosing a parametric likelihood, ABC directly chooses:
 
-1. **Summary statistics**: What features of the data matter?
-2. **Distance metric**: How do we measure similarity?
-3. **Threshold**: How close is "close enough"?
+1. *Summary statistics*: What features of the data matter?
+2. *Distance metric*: How do we measure similarity?
+3. *Threshold*: How close is "close enough"?
 
-Let's implement a simple ABC rejection sampler from scratch:
+Here is a simple ABC rejection sampler from scratch:
 
 ```{julia}
 """
@@ -404,6 +405,11 @@ observed_data = flu_tdc.obs
 
 Run ABC with L1 distance:
 
+::: {.callout-tip}
+## Choosing the threshold
+ABC rejection sampling is sensitive to the threshold choice. If the threshold is too strict, you'll wait a long time and get few (or zero) samples. If it's too loose, the approximate posterior will be close to the prior. We start with a relaxed threshold (300) here. If you want to experiment, try values between 200-500 and observe how the acceptance rate and posterior width change.
+:::
+
 ```{julia}
 # Start with a relaxed threshold to get some samples
 threshold = 300.0  # Relaxed for faster acceptance
@@ -442,7 +448,7 @@ end
 
 ## Compare distance metrics
 
-Let's see how different distance functions give different results:
+Different distance functions give different results:
 
 ```{julia}
 # Test on a candidate parameter set
@@ -463,11 +469,16 @@ The rejection sampler above is inefficient - most samples from the prior are rej
 
 The key idea, introduced by [Toni et al. (2009)](https://pmc.ncbi.nlm.nih.gov/articles/PMC2658655/), is:
 
-1. **Start permissive**: Begin with a loose threshold that accepts many samples
-2. **Gradually tighten**: Reduce the threshold across generations
-3. **Reuse good samples**: Instead of sampling from the prior each time, perturb samples that passed the previous threshold
+1. *Start permissive*: Begin with a loose threshold that accepts many samples
+2. *Gradually tighten*: Reduce the threshold across generations
+3. *Reuse good samples*: Instead of sampling from the prior each time, perturb samples that passed the previous threshold
 
 This is much more efficient because particles that are already "close" to the data are refined, rather than searching blindly from the prior each time. Typical speedups are 20-50× compared to rejection sampling.
+
+::: {.callout-note collapse="true"}
+## Implementation: ABC-SMC (click to expand)
+
+This is a simplified ABC-SMC for pedagogical purposes. Production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) have adaptive thresholds, better perturbation kernels, and importance weighting.
 
 ```{julia}
 """
@@ -533,6 +544,7 @@ function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
     return particles
 end
 ```
+:::
 
 ```{julia}
 # Run ABC-SMC with decreasing thresholds
@@ -555,11 +567,9 @@ abc_smc_df = DataFrame(
 )
 ```
 
-**Note**: This is a simplified ABC-SMC. Production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) have adaptive thresholds, better perturbation kernels, and importance weighting.
-
 ## Comparing rejection ABC and ABC-SMC
 
-Let's see how the two approaches compare on our problem:
+The following compares the two approaches on our problem:
 
 ```{julia}
 # Compare efficiency: how many simulations were needed?
@@ -631,7 +641,7 @@ Now let's step back and compare all our approaches - parametric likelihoods and 
 
 ## Do they give similar results?
 
-Let's compare the posteriors:
+Comparing the posteriors:
 
 ```{julia}
 # Extract MCMC results
@@ -663,12 +673,12 @@ plot(p1, p2, layout=(1, 2), size=(900, 400))
 
 The choice between Poisson, NegBin, and ABC matters most when:
 
-1. **Outliers**: Extreme observations far from predictions
-2. **Tail behaviour**: Rare events (very low or very high counts)
-3. **Overdispersion**: Systematic variance > mean in data
-4. **Model misspecification**: When the mechanistic model is wrong
+1. *Outliers*: Extreme observations far from predictions
+2. *Tail behaviour*: Rare events (very low or very high counts)
+3. *Overdispersion*: Systematic variance > mean in data
+4. *Model misspecification*: When the mechanistic model is wrong
 
-Let's test sensitivity to outliers:
+We can test sensitivity to outliers:
 
 ```{julia}
 # Helper function to simulate and return incidence
@@ -709,6 +719,16 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
 ```
 
 **Exercise for students**: Fit both datasets using (1) MCMC with Poisson likelihood and (2) ABC with L1 distance. Which approach is more robust to the outlier? Why might that be?
+
+::: {.callout-tip collapse="true"}
+## Hint: Outlier robustness
+
+Poisson likelihood is sensitive to outliers because the log-probability drops sharply for counts far from the mean. An outlier of +30 cases when the model predicts 5 contributes a large penalty to the log-likelihood, pulling parameter estimates towards values that accommodate the outlier.
+
+ABC with L1 distance (defined earlier as `sum(abs.(sim .- obs))`) is more robust because the penalty grows linearly with the discrepancy, not exponentially. A single outlier affects the total distance, but doesn't dominate as severely.
+
+For likelihood-based inference, the Negative Binomial distribution (covered earlier in this session) offers a middle ground: its heavier tails make it less sensitive to occasional large deviations than Poisson, while still providing a proper likelihood for MCMC.
+:::
 
 # The philosophical question
 
@@ -751,11 +771,11 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
 
 # Summary
 
-This session challenged the traditional view of observation models as representing "true" data-generating processes. Instead, we saw that *parametric likelihoods are pragmatic choices* - mathematical conveniences that let us quantify fit. Choosing Poisson vs Negative Binomial isn't choosing between truth and falsehood; it's choosing different ways to penalise deviations between model and data.
+Observation models are pragmatic choices, not mechanistic truths. Choosing Poisson vs Negative Binomial isn't choosing between truth and falsehood - it's choosing different ways to penalise deviations between model predictions and data. The negative log-likelihood is simply a distance function.
 
-*Approximate Bayesian Computation (ABC)* makes this explicit by directly specifying a distance function and acceptance threshold. While ABC is often called "likelihood-free", we showed it's really using an implicit likelihood defined by that distance. The boundary between "likelihood-based" and "likelihood-free" is philosophical, not technical.
+*ABC* makes this explicit by directly specifying distance and threshold. While often called "likelihood-free", ABC uses an implicit likelihood defined by that distance. The boundary between likelihood-based and likelihood-free inference is more philosophical than technical.
 
-The practical lesson is *sensitivity analysis*: run inference with different observation models and see if your scientific conclusions change. If they do, you've learned something important about which data features matter. If they don't, your conclusions are robust to modelling choices.
+The practical implication: run inference with different observation models. If conclusions change, you've learned which data features drive inference. If they don't, your results are robust.
 
 ::: {.callout-tip title="Learning points"}
 - **Parametric likelihoods are pragmatic choices**, not mechanistic truths - we choose Poisson or Negative Binomial for convenience, not because they represent reality
@@ -804,9 +824,9 @@ For ABC with outliers or model misspecification, consider robust distances:
 - Marin, J.-M. et al. (2012). [Approximate Bayesian computational methods](https://link.springer.com/article/10.1007/s11222-011-9288-2). *Statistics and Computing* 22, 1167-1180.
 - Cranmer, K. et al. (2020). [The frontier of simulation-based inference](https://www.pnas.org/doi/10.1073/pnas.1912789117). *PNAS* 117(48), 30055-30062. (Comprehensive review of modern likelihood-free methods)
 
-# Next sessions
+# Next sessions (optional)
 
-Now that we understand the connection between likelihoods and distances, we're ready to explore truly modern methods that go beyond both traditional likelihoods and simple ABC:
+The following sessions cover advanced topics and are optional:
 
-- [Variational Inference](variational_inference.qmd): Fast approximate posteriors
-- [Universal Differential Equations](universal_differential_equations.qmd): Learning unknown mechanisms
+- [Variational Inference](variational_inference.qmd): Fast approximate posteriors for real-time applications
+- [Universal Differential Equations](universal_differential_equations.qmd): Learning unknown mechanisms with neural networks
