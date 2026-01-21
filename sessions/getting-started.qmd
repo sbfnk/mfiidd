@@ -6,7 +6,7 @@ order: 0
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 30-45 minutes (longer if installation issues arise)
+**Estimated time**: 45-60 minutes (includes 15-30 minutes for package installation)
 :::
 
 # Introduction
@@ -71,9 +71,9 @@ Pkg.instantiate()
 
 This reads `Project.toml` and `Manifest.toml` to install all required packages with exact versions.
 
-::: {.callout-note}
+::: {.callout-warning}
 ## Expect a long wait on first run
-Package installation typically takes **15-30 minutes** depending on your internet connection and computer speed. The process downloads ~1GB of packages and then precompiles them. This is a good time to get a coffee or read ahead in the course materials.
+Package installation typically takes 15-30 minutes depending on your internet connection and computer speed. The process downloads ~1GB of packages and then precompiles them. This is a good time to get a coffee or read ahead in the course materials. If installation takes more than 45 minutes, check your internet connection or see the Troubleshooting section below.
 
 **What to expect in the console:**
 

@@ -53,8 +53,10 @@ using Random ## for random numbers
 using Distributions ## for probability distributions
 using DifferentialEquations ## for differential equations
 using DataFrames ## for data frames
+using CSV ## for CSV file reading
 using Plots ## for plots
 using StatsPlots ## for statistical plots
+using DrWatson
 ```
 
 ## Initialisation
@@ -439,14 +441,8 @@ The likelihood, on the other hand, is about comparing the model to data.
 We start by loading some observed epidemic data (simulated from the model, but in principle this could be any data) representing the number of infectious individuals at different time points:
 
 ```{julia}
-# Define data frame with epidemic  data
-epi1 = DataFrame(
-    time = 1:1:30, ## 30 data points
-    obs = [
-        1, 3, 4, 11, 19, 38, 67, 112, 183, 210, 237, 182, 178, 154, 95, 68, 51,
-        30, 32, 18, 19, 9, 2, 2, 2, 0, 0, 1, 0, 0
-    ]
-)
+# Load epidemic data from CSV
+epi1 = CSV.read(datadir("epi1_synthetic.csv"), DataFrame)
 
 println("Data overview:")
 first(epi1, 8)
