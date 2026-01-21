@@ -1,0 +1,396 @@
+---
+title: "Particle Filters"
+format: html
+engine: julia
+order: 6
+---
+
+# Introduction
+
+In the previous sessions, we fitted deterministic models using MCMC. For deterministic models, computing the likelihood is straightforward: given parameters, we solve the ODEs to get a trajectory, then evaluate the probability of the data given that trajectory.
+
+But what about stochastic models? In the [SEITL session](seitl.qmd), we saw that the same parameters can produce very different trajectories due to demographic stochasticity. There's no single "expected" trajectory to compare against the data.
+
+This session introduces particle filters - the computational technique that makes Bayesian inference possible for stochastic models.
+
+# Objectives
+
+In this session you will:
+
+1. Understand why stochastic models need different inference methods
+2. Learn the core particle filter algorithm: propagate, weight, resample
+3. Implement the SEIT4L model using the state-space model interface
+4. Calibrate the number of particles needed for reliable inference
+
+::: {.callout-note collapse="true"}
+
+# Setup
+
+```{julia}
+#| echo: false
+#| include: false
+
+using Pkg
+# Activate the project root (one level up from sessions/)
+project_root = joinpath(@__DIR__, "..")
+Pkg.activate(project_root)
+```
+
+## Source file
+
+The source file of this session is located at `sessions/particle_filters.qmd`.
+
+## Load libraries
+
+```{julia}
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DataFrames ## for data frames
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using CSV ## for CSV file reading
+using StatsBase ## for statistical functions
+using SSMProblems ## for state-space model interface
+using GeneralisedFilters ## for particle filtering
+using DrWatson
+```
+
+## Load shared particle filter code
+
+The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared file used by both this session and the [Particle MCMC session](pmcmc.qmd).
+
+```{julia}
+include(joinpath(project_root, "src", "seit4l_particle_filter.jl"))
+```
+
+## Initialisation
+
+We set a random seed for reproducibility.
+
+```{julia}
+Random.seed!(1234)
+```
+
+:::
+
+# Why deterministic likelihood fails for stochastic models
+
+First, consider the problem. With a deterministic model, the trajectory is fully determined by the parameters:
+
+$$\text{Parameters} \rightarrow \text{Unique trajectory} \rightarrow P(\text{data}|\text{trajectory})$$
+
+With a stochastic model, the same parameters can produce infinitely many different trajectories:
+
+$$\text{Parameters} \rightarrow \text{Many possible trajectories} \rightarrow \text{???}$$
+
+The likelihood we need is $P(\text{data}|\theta)$, which marginalises over all possible trajectories:
+
+$$P(\text{data}|\theta) = \int P(\text{data}|\text{trajectory}) \times P(\text{trajectory}|\theta) \, d(\text{trajectory})$$
+
+This integral is intractable - we can't enumerate all possible trajectories. Particle filters give us a Monte Carlo approximation.
+
+# Load data and define SEIT4L dynamics
+
+```{julia}
+# Load Tristan da Cunha data
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+
+# Parameters (reasonable values from literature)
+θ_example = Dict(
+    :R_0 => 7.0,
+    :D_lat => 1.0,
+    :D_inf => 4.0,
+    :α => 0.5,
+    :D_imm => 10.0,
+    :ρ => 0.65
+)
+
+# Initial state for SEIT4L
+init_state = Dict(
+    :S => 279.0,
+    :E => 0.0,
+    :I => 2.0,
+    :T1 => 3.0,
+    :T2 => 0.0,
+    :T3 => 0.0,
+    :T4 => 0.0,
+    :L => 0.0
+)
+```
+
+::: {.callout-note collapse="true"}
+## Implementation: SEIT4L Gillespie simulator (click to expand)
+
+The `gillespie_step` function (loaded from `src/seit4l_particle_filter.jl`) simulates the SEIT4L model for one day using the Gillespie algorithm. Key aspects:
+
+- **Stoichiometry matrix**: Defines how each transition changes the state vector [S, E, I, T1, T2, T3, T4, L]
+- **Rates function**: Computes the rate of each transition given current state
+- **Event selection**: Samples waiting time from exponential distribution, selects event proportional to rates
+- **Incidence tracking**: Counts E→I transitions as new cases
+
+The function signature is `gillespie_step(rng, state, θ)` where `rng` is a random number generator, `state` is the 8-element compartment vector, and `θ` is a parameter dictionary. It returns `(new_state, daily_incidence)`.
+
+See `src/seit4l_particle_filter.jl` for the full implementation.
+:::
+
+# How particle filters work
+
+The particle filter approximates the likelihood integral by:
+
+1. **Propagate**: Simulate many independent trajectories ("particles") forward through time
+2. **Weight**: At each observation time, assign weights based on how well each particle matches the data
+3. **Resample**: Replace low-weight particles with copies of high-weight particles
+
+We can visualise this with our SEIT4L model:
+
+```{julia}
+# Propagate 20 particles for the first 10 days
+n_particles = 20
+particles = [Float64[init_state[:S], init_state[:E], init_state[:I],
+                     init_state[:T1], init_state[:T2], init_state[:T3],
+                     init_state[:T4], init_state[:L]] for _ in 1:n_particles]
+
+# Store trajectories
+trajectories = [zeros(11) for _ in 1:n_particles]
+for i in 1:n_particles
+    trajectories[i][1] = 0  # Day 0: no incidence yet
+end
+
+# Simulate 10 days
+for day in 1:10
+    for i in 1:n_particles
+        particles[i], inc = gillespie_step(Random.default_rng(), particles[i], θ_example)
+        trajectories[i][day+1] = inc
+    end
+end
+
+# Plot
+p = plot(title="Particle Filter: Propagation Step",
+         xlabel="Time (days)", ylabel="Daily incidence")
+
+for i in 1:n_particles
+    plot!(p, 0:10, trajectories[i], alpha=0.4, color=:lightblue, label="")
+end
+
+scatter!(p, flu_tdc.time[1:11], flu_tdc.obs[1:11],
+         label="Observed", markersize=5, color=:red)
+
+plot!(p, legend=:topright)
+```
+
+Each blue line is one "particle" - a possible trajectory. The particles spread out because each follows different random events. The observation (red) will be used to weight the particles.
+
+## The weighting step
+
+Particles that predict incidence close to the observed value get higher weights:
+
+```{julia}
+# Weight particles at day 5 based on how well they match the observation
+day_5_predictions = [trajectories[i][6] for i in 1:n_particles]
+day_5_observed = flu_tdc.obs[6]
+
+# Compute weights (Poisson likelihood)
+log_weights = [logpdf(Poisson(max(θ_example[:ρ] * pred, 0.01)), day_5_observed)
+               for pred in day_5_predictions]
+
+# Normalise
+weights = exp.(log_weights .- maximum(log_weights))
+weights ./= sum(weights)
+
+# Visualise
+p = bar(1:n_particles, weights,
+        xlabel="Particle", ylabel="Weight",
+        title="Particle Weights at Day 5 (obs = $day_5_observed)",
+        legend=false, alpha=0.7)
+
+# Add predictions as labels
+for i in 1:n_particles
+    annotate!(p, i, weights[i] + 0.02, text("$(Int(day_5_predictions[i]))", 7))
+end
+
+plot!(p)
+```
+
+Particles predicting values closer to the observation get higher weights.
+
+## The resampling step
+
+When weights become too uneven, we resample - drawing particles with replacement according to their weights:
+
+```{julia}
+# Resample particles
+n_effective = 1.0 / sum(weights.^2)  # Effective sample size
+println("Effective sample size: $(round(n_effective, digits=1)) out of $n_particles")
+
+# Draw new particles
+resampled_idx = sample(1:n_particles, Weights(weights), n_particles)
+
+# Count how many times each original particle was selected
+counts = [count(==(i), resampled_idx) for i in 1:n_particles]
+
+p = bar(1:n_particles, counts,
+        xlabel="Original particle", ylabel="Copies after resampling",
+        title="Resampling: High-weight particles duplicated",
+        legend=false, alpha=0.7, color=:green)
+plot!(p)
+```
+
+High-weight particles are duplicated, low-weight particles are discarded. This focuses computational effort on plausible trajectories.
+
+::: {.callout-warning title="Exercise: Understand the particle filter steps"}
+Look at the three plots above (propagation, weighting, resampling).
+
+1. In the propagation plot, why do the particle trajectories spread apart over time?
+2. In the weighting plot, particles with predicted incidence closer to the observed value get higher weights. Why does Poisson likelihood give this behaviour?
+3. After resampling, some particles are duplicated many times while others disappear entirely. Why is this beneficial for estimating the likelihood?
+:::
+
+## Accumulating the likelihood
+
+The log-likelihood is estimated by summing the log of mean weights at each time step:
+
+$$\log \hat{P}(\text{data}|\theta) = \sum_{t=1}^{T} \log \left( \frac{1}{N} \sum_{i=1}^{N} w_t^{(i)} \right)$$
+
+This is unbiased in expectation, meaning if we run the particle filter many times, the average will converge to the true likelihood.
+
+# Implementing the state-space model interface
+
+For production use, we define the model using the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface. This separates the model from the filtering algorithm, making code cleaner and more reusable.
+
+A state-space model has three components:
+
+1. **Initial state distribution** (`SEIT4LInitial`) - where does the system start?
+2. **Transition dynamics** (`SEIT4LDynamics`) - how does the state evolve? (uses `gillespie_step`)
+3. **Observation process** (`PoissonObservation`) - how do observations relate to the state?
+
+These types are defined in `src/seit4l_particle_filter.jl` and were loaded in the setup. The key design choices:
+
+- The state vector is [S, E, I, T1, T2, T3, T4, L, daily_inc] - the 9th element tracks daily incidence for the observation process
+- `SEIT4LDynamics` wraps the Gillespie simulator, calling `gillespie_step` each day
+- `PoissonObservation` assumes observed cases follow Poisson(ρ × true_incidence)
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- `SSMProblems.LatentDynamics` - abstract type for state transition models. Implement `simulate` to define how the state evolves.
+- `SSMProblems.ObservationProcess` - abstract type for observation models. Implement `distribution` to return a `Distributions.jl` distribution.
+- `AbstractRNG` parameter allows reproducible random number generation across particles.
+
+See `src/seit4l_particle_filter.jl` for the full implementation.
+:::
+
+## Running the bootstrap particle filter
+
+The `run_particle_filter` function (also in the shared file) assembles the SSM components and runs the bootstrap filter:
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- `StateSpaceModel(initial, dynamics, observation)` - combines the three SSM components into a single model.
+- `BF(n_particles)` - Bootstrap Filter algorithm with the specified number of particles.
+- `GeneralisedFilters.filter(rng, model, algo, obs)` - runs the filter, returning `(filtered_state, log_likelihood)`.
+:::
+
+Testing it:
+
+```{julia}
+# Run with 100 particles
+ll = run_particle_filter(θ_example, flu_tdc.obs, 100)
+println("Log-likelihood estimate: $(round(ll, digits=1))")
+```
+
+# Calibrating particle count
+
+A key question: how many particles do we need?
+
+- Too few particles produce noisy likelihood estimates, causing poor MCMC mixing
+- Too many particles waste computation
+
+The principled approach targets a specific variance of the log-likelihood estimate. Pitt et al. (2012) and Doucet et al. (2015) showed that MCMC efficiency is maximised when the standard deviation of the log-likelihood estimate is between 1 and 3.
+
+Calibrating:
+
+```{julia}
+# Reference parameters (near what we expect the posterior mode to be)
+θ_cal = Dict(:R_0 => 6.0, :D_lat => 1.3, :D_inf => 2.0,
+             :α => 0.5, :D_imm => 10.5, :ρ => 0.7)
+
+# Test different particle counts
+particle_counts = 2 .^ (2:9)  # 4, 8, 16, ..., 512
+n_reps = 30
+
+calibration = DataFrame(n_particles=Int[], mean_ll=Float64[],
+                        sd_ll=Float64[], time_per_run=Float64[])
+
+for n in particle_counts
+    t0 = time()
+    lls = [run_particle_filter(θ_cal, flu_tdc.obs, n) for _ in 1:n_reps]
+    elapsed = (time() - t0) / n_reps
+
+    push!(calibration, (n, mean(lls), std(lls), elapsed))
+end
+
+calibration
+```
+
+```{julia}
+# Plot calibration results
+p1 = plot(calibration.n_particles, calibration.mean_ll,
+    xlabel="Number of particles", ylabel="Mean log-likelihood",
+    title="Bias", legend=false, marker=:circle, linewidth=2, xscale=:log2)
+
+p2 = plot(calibration.n_particles, calibration.sd_ll,
+    xlabel="Number of particles", ylabel="SD of log-likelihood",
+    title="Variance (target: 1-3)", legend=false, marker=:circle,
+    linewidth=2, xscale=:log2)
+hline!(p2, [1, 3], color=:grey, linestyle=:dot, alpha=0.7)
+
+p3 = plot(calibration.n_particles, calibration.time_per_run,
+    xlabel="Number of particles", ylabel="Time (seconds)",
+    title="Computation time", legend=false, marker=:circle,
+    linewidth=2, xscale=:log2)
+
+plot(p1, p2, p3, layout=(1, 3), size=(900, 300))
+```
+
+Look at the variance plot (middle). We want the SD to be in the range 1-3. Read off which particle count achieves this.
+
+::: {.callout-warning title="Exercise: Choose the number of particles"}
+
+Based on the calibration plots above:
+
+1. What particle count achieves SD of log-likelihood between 1 and 3?
+2. What's the trade-off between 128 and 256 particles for this problem?
+3. Why might you want to use more particles than the minimum needed?
+
+Write down your choice and reasoning.
+
+:::
+
+# Summary
+
+Stochastic models cannot be fitted with standard MCMC because the likelihood requires integrating over all possible trajectories. Particle filters solve this by approximating the integral with Monte Carlo simulation.
+
+The algorithm is elegant: propagate many trajectories (particles) forward, weight them by how well they match observations, resample to focus on plausible trajectories, and accumulate likelihood contributions. The resulting estimate is unbiased, though noisy.
+
+The number of particles is a critical tuning parameter. Too few gives high variance in the likelihood estimate, causing poor MCMC mixing. Too many wastes computation. The optimal choice targets a log-likelihood standard deviation between 1 and 3.
+
+::: {.callout-tip title="Learning points"}
+
+- Stochastic models require particle filters because the likelihood marginalises over all possible trajectories
+- Particle filters work by: propagate particles forward, weight by observation likelihood, resample when weights become uneven
+- The SSMProblems.jl interface separates model specification from filtering algorithms
+- Calibrate particle count to achieve log-likelihood SD between 1 and 3 (too few = noisy, too many = slow)
+- The likelihood estimate is unbiased but noisy - this noise slows MCMC but doesn't bias posteriors
+
+:::
+
+# References
+
+- Doucet & Johansen (2009). [A tutorial on particle filtering and smoothing](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf). *Handbook of Nonlinear Filtering* 12, 656-704. (Excellent introduction)
+- Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://academic.oup.com/biomet/article/99/2/269/217203). *Biometrika* 99(2), 269-284. (Calibration: target SD 1-3)
+- Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://academic.oup.com/biomet/article/102/2/295/238171). *Biometrika* 102(2), 295-313.
+- [SSMProblems.jl documentation](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) - State-space model interface
+- [GeneralisedFilters.jl documentation](https://turinglang.org/SSMProblems.jl/GeneralisedFilters/dev/) - Particle filtering algorithms
+
+**Next session**: In [Particle MCMC](pmcmc.qmd), we'll use the particle filter within an MCMC framework to fit the stochastic SEIT4L model to data.

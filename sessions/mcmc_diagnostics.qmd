@@ -14,7 +14,7 @@ You implemented Metropolis-Hastings yourself and saw how Turing.jl's NUTS algori
 But there's a critical question we haven't yet fully addressed: How do you know if the inference procedure has worked?
 
 MCMC algorithms don't come with guarantees.
-A chain will always to give you posterior samples, but it could be stuck exploring only part of the space, still burning in, or mixing so slowly that your "samples" are nearly duplicates and not good representations of the true posterior distributions, which MCMC will only be guaranteed to represent in the limit of infinite number of samples.
+A chain will always give you numbers, but those numbers might not be representative posterior samples. The chain could be stuck exploring only part of the parameter space, still working towards the target distribution, or mixing so slowly that your "samples" are nearly duplicates. MCMC only guarantees unbiased sampling in the limit of infinitely many samples.
 Using unreliable MCMC output leads to incorrect inference - wrong parameter estimates, overconfident intervals, and bad scientific conclusions.
 
 This session teaches you how to diagnose MCMC chains systematically.
@@ -237,8 +237,16 @@ p2 = autocorr_plot(chain_good, :D_inf)
 plot(p1, p2, layout = (2, 1), size = (800, 600))
 ```
 
-We can see that autocorrelation drops quickly to near zero and both parameters show good mixing. 
+We can see that autocorrelation drops quickly to near zero and both parameters show good mixing.
 After ~20-30 MCMC steps, samples are essentially independent
+
+::: {.callout-warning title="Exercise: Interpret the visual diagnostics"}
+Look back at the trace plots, running mean plots, and autocorrelation plots above.
+
+1. What would a *bad* trace plot look like? Sketch or describe what you would see if the chain was stuck or not mixing well.
+2. If the running mean was still trending upward after 2000 iterations, what would that suggest?
+3. If autocorrelation remained high (say > 0.5) even at lag 100, what would that indicate about your effective sample size?
+:::
 
 ## 4. Burn-in and warmup
 
@@ -621,6 +629,13 @@ display(DataFrame(ess(chain_problematic)))
 plot(chain_problematic)
 ```
 
+::: {.callout-warning title="Exercise: Diagnose and fix the problematic model"}
+1. Look at the trace plots and quantitative diagnostics above. What specific problems can you identify?
+2. Which parameters show the worst R̂ and ESS values?
+3. Try modifying the `problematic_model` above to improve its behaviour. Hint: Change the prior scales to be more similar across parameters, or remove the correlation structure.
+4. Run the modified model and compare the diagnostics.
+:::
+
 **How to fix problematic models:**
 
 1. **Reparametrise**: Use centered parameterizations
@@ -630,11 +645,11 @@ plot(chain_problematic)
 
 # Summary
 
-We explored the essential diagnostics that separate trustworthy MCMC results from unreliable ones. *Visual diagnostics* - trace plots, density plots, and autocorrelation - give quick intuition about chain behaviour: is it exploring well, or stuck in one region?
+MCMC always produces numbers, but those numbers might not represent the posterior. *Visual diagnostics* (trace plots, autocorrelation) give quick intuition; *quantitative diagnostics* (R̂, ESS) make assessment rigorous.
 
-*Quantitative diagnostics* make this rigorous. The *R̂ statistic* compares within-chain and between-chain variance to detect non-convergence (we want R̂ < 1.1). *Effective Sample Size (ESS)* tells us how many independent samples we really have after accounting for autocorrelation - even 10,000 samples might only give ESS of 100 if the chain is highly correlated.
+R̂ compares within-chain and between-chain variance - values above 1.1 indicate non-convergence. ESS estimates how many independent samples you actually have after accounting for autocorrelation. Even 10,000 samples might give ESS of only 100 if the chain mixes slowly.
 
-We also covered common problems and their solutions: poor mixing (reparameterise or use better samplers), divergences in NUTS (increase adapt_delta), and multimodality (consider different initialisations or alternative samplers). The key lesson: always run multiple chains and check diagnostics before trusting any results.
+Common problems have standard solutions: poor mixing (reparameterise or use NUTS), divergences (increase adapt_delta), multimodality (multiple chains with different starts). Run at least four chains and check diagnostics before trusting any results.
 
 ::: {.callout-tip title = "Learning points"}
 

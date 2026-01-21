@@ -130,7 +130,7 @@ sol = solve(prob, saveat = 1)
 
 ::: {.callout-tip collapse = "true"}
 ## More details on these commands
-Let's take a closer look at what each of these commands do:
+Here is a closer look at what each of these commands does:
 ```julia
 init_state = [999, 1, 0]
 ```
@@ -189,7 +189,7 @@ In our SIR model:
 - $R_0 \sim \text{Uniform}(1, 20)$: We believe $R_0$ could be anywhere from 1 to 20, with all values equally likely
 - $D_\mathrm{inf} \sim \text{Uniform}(1, 14)$: We believe infectious periods from 1 to 14 days are equally plausible
 
-Let's explore what these priors mean through simulation:
+We can explore what these priors mean through simulation:
 
 ```{julia}
 # Define our priors as Distribution objects
@@ -255,8 +255,7 @@ dnorm(2, 3, 0.1, log = TRUE)
 
 ## Prior predictive simulation
 
-An important question is: **What trajectories do our priors represent?** 
-Let's find out by simulating epidemics using random draws from our priors:
+An important question is: what trajectories do our priors represent? We can find out by simulating epidemics using random draws from our priors:
 
 ```{julia}
 # Prepare plot where we'll add the individual trajectories
@@ -291,21 +290,19 @@ In our case, we specify `0, 2`, that is we plot time (on the x axis) against the
 Note the use of `plot!` (with `!`) which adds to an existing plot, following the same convention as `push!` - the `!` indicates the function modifies something in place rather than creating a new object.
 :::
 
-**Take 2 minutes**: Look at these trajectories.
-Do they seem reasonable? Are there any that look unrealistic? 
-
-Some questions to consider:
+::: {.callout-warning title="Exercise: Evaluate the prior predictive trajectories"}
+Look at these trajectories. Do they seem reasonable? Are there any that look unrealistic?
 
 - Do any grow too fast or too slow?
 - Are the peak sizes reasonable for a population of 1000?
 - Do any last too long or too short?
 
-This is *prior predictive checking* - a crucial step to validate that our priors make sense.
+This is *prior predictive checking* - validating that our priors produce scientifically plausible trajectories.
+:::
 
 ## Choosing different priors
 
-What if we had different beliefs?
-Let's try more informative (i.e., narrower) priors:
+What if we had different beliefs? Here are more informative (narrower) priors:
 
 ```{julia}
 # More informative priors based on epidemiological knowledge
@@ -367,12 +364,22 @@ plot!(p)
 
 Priors determine what kinds of epidemics our model considers plausible before seeing data.
 
+::: {.callout-tip}
+## Principles for choosing priors
+
+1. **Use domain knowledge**: What do published studies say about plausible parameter ranges? For infectious diseases, systematic reviews often provide estimates.
+2. **Avoid impossible values**: If a parameter must be positive, use a distribution with positive support (Gamma, LogNormal) rather than truncating a Normal.
+3. **Check with prior predictive simulation**: Do samples from your priors generate plausible epidemic trajectories? If not, your priors may be too vague or misspecified.
+4. **Weakly informative is often better than flat**: Completely flat priors can cause computational problems and may place substantial probability on implausible values.
+5. **Document your choices**: Record why you chose each prior - this helps with reproducibility and peer review.
+:::
+
 ## Evaluating prior densities
 
 So far we've been *sampling* from our priors to understand what they represent.
 But for Bayesian inference, we also need to *evaluate* how probable specific parameter values are under our priors.
 
-Let's define some specific parameter combinations to explore throughout our analysis:
+We define some specific parameter combinations to explore throughout our analysis:
 
 ```{julia}
 # Parameter combinations we'll explore throughout our analysis
@@ -423,17 +430,17 @@ end
 The *likelihood* quantifies how probable our observed data is, given specific parameter values.
 It asks: "If the parameters were X, how likely would we be to see the data we actually observed?"
 
-The predictive prior trajectories we looked at earlier were purely a function of the model and its specification.
+The prior predictive trajectories we looked at earlier were purely a function of the model and its specification.
 The likelihood, on the other hand, is about comparing the model to data.
-Let's start by loading some observed epidemic data (we simulated these from the model but in principle this could be any data) representing the number of infectious individuals at different time points:
+We start by loading some observed epidemic data (simulated from the model, but in principle this could be any data) representing the number of infectious individuals at different time points:
 
 ```{julia}
 # Define data frame with epidemic  data
 epi1 = DataFrame(
     time = 1:1:30, ## 30 data points
     obs = [
-        3, 4, 11, 19, 38, 67, 112, 183, 210, 237, 182, 178, 154, 95, 68, 51,
-        30, 32, 18, 19, 9, 2, 2, 2, 0, 0, 1, 0, 0, 0
+        1, 3, 4, 11, 19, 38, 67, 112, 183, 210, 237, 182, 178, 154, 95, 68, 51,
+        30, 32, 18, 19, 9, 2, 2, 2, 0, 0, 1, 0, 0
     ]
 )
 
@@ -452,12 +459,11 @@ scatter(
 ```
 
 This data was generated from an SIR model with $R_0 ≈ 2.5$ and $D_\mathrm{inf} = 2$ days.
-Let's see if we could have figured this out by exploring the likelihood.
+Can we figure this out by exploring the likelihood?
 
 ## Exploring likelihood through simulation
 
-The likelihood asks: "How probable is our observed data, given specific parameter values?"
-Let's explore this by trying the parameter values that we looked at before when evaluating priors:
+The likelihood asks: "How probable is our observed data, given specific parameter values?" We explore this by trying the parameter combinations from before:
 
 ```{julia}
 # Calculate and store likelihood values for our test parameters
@@ -529,24 +535,28 @@ logpdf(obs_dist, observed)
 This same `obs_dist` object can be used for random sampling (`rand(obs_dist)`) and other operations.
 :::
 
-**Take 5 minutes**: Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
+::: {.callout-warning title="Exercise: Interpret the likelihood values"}
+Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
+:::
 
 
 ## The observation model
 
 Our likelihood makes specific assumptions about how observations relate to the underlying epidemic:
 
-1. **Poisson noise**: Each observation is drawn from a Poisson distribution centred on the model's predicted prevalence. This implies the variance equals the mean - when we expect 100 cases, we expect variation of about ±10.
+1. *Poisson noise*: Each observation is drawn from a Poisson distribution centred on the model's predicted prevalence. This implies the variance equals the mean - when we expect 100 cases, we expect variation of about ±10.
 
-2. **Conditional independence**: Given the deterministic trajectory, observations at different time points are independent. The observation error at time $t$ doesn't affect the error at time $t+1$.
+2. *Conditional independence*: Given the deterministic trajectory, observations at different time points are independent. The observation error at time $t$ doesn't affect the error at time $t+1$.
 
 The total log-likelihood is the sum across all time points: if the model predicts well at most times but poorly at one, that one bad fit drags down the total.
 
-**Take 5 minutes**: Think about when these assumptions might be violated:
+::: {.callout-warning title="Exercise: When do these assumptions break down?"}
+Think about when these assumptions might be violated:
 
 - When might variance *not* equal the mean? (Hint: consider overdispersion, or very small/large counts)
 - When might observations *not* be independent? (Hint: consider reporting delays, weekend effects, or outbreak investigations)
 - What other aspects of the observation process might you want to model? (Hint: under-reporting, delays between infection and observation)
+:::
 
 ## A helper function
 
@@ -578,13 +588,13 @@ The *posterior* combines our prior beliefs with the data evidence using *Bayes' 
 
 $$p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$$
 
-- $p(\theta|\text{data})$: **Posterior** - what we believe about parameters *after* seeing data
-- $p(\text{data}|\theta)$: **Likelihood** - how well parameters explain the data
-- $p(\theta)$: **Prior** - what we believed *before* seeing data
+- $p(\theta|\text{data})$: *Posterior* - what we believe about parameters *after* seeing data
+- $p(\text{data}|\theta)$: *Likelihood* - how well parameters explain the data
+- $p(\theta)$: *Prior* - what we believed *before* seeing data
 
 In log space: $\log p(\theta|\text{data}) = \log p(\text{data}|\theta) + \log p(\theta) + \text{constant}$
 
-Let's combine our stored prior and likelihood values to calculate the posterior:
+We can combine our stored prior and likelihood values to calculate the posterior:
 
 ```{julia}
 # Posterior = Prior + Likelihood (using our stored values)
@@ -600,7 +610,7 @@ end
 
 ## How priors influence the posterior
 
-Let's see how the choice of prior affects our conclusions by comparing flat vs informed priors for all our test parameters:
+The following compares flat vs informed priors for all our test parameters:
 
 ```{julia}
 # Compare flat vs informative priors using our stored values
@@ -623,11 +633,11 @@ When we have strong prior beliefs that align with the data, the posterior gets a
 
 # Systematic posterior exploration
 
-Now that we understand the components of Bayesian inference, let's systematically explore the posterior by trying many parameter combinations and calculating their log-posterior values manually.
+Now that we understand the components of Bayesian inference, we can systematically explore the posterior by trying many parameter combinations and calculating their log-posterior values manually.
 
 ## Grid search to find the best parameters
 
-Let's systematically explore the posterior by calculating log-posterior values for a grid of parameter combinations:
+We calculate log-posterior values for a grid of parameter combinations:
 
 ```{julia}
 # Define grid of parameter values to try
@@ -716,11 +726,11 @@ plot!(p, epi1.time, best_result.I, linewidth = 2, color = :red,
 scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
 ```
 
-The blue lines show variation from **observation noise only** - the underlying trajectory is identical each time.
+The blue lines show variation from observation noise only - the underlying trajectory is identical each time.
 
 ## Impact of parameter uncertainty
 
-But we don't know the true parameters - we have a distribution of plausible values. Let's see what happens when we also vary the parameters:
+But we don't know the true parameters - we have a distribution of plausible values. What happens when we also vary the parameters?
 
 ```{julia}
 # Find parameter combinations in the top 10% of posterior density
@@ -742,10 +752,12 @@ scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :bl
 
 ::: {.callout-tip collapse="true"}
 ## What's the difference?
-In the first plot, we fixed the parameters at their best values and only varied the observation noise. In the second plot, we vary **both** the parameters (sampling from the posterior) **and** the observation noise. The second plot shows more variation because it accounts for our uncertainty about the true parameter values.
+In the first plot, we fixed the parameters at their best values and only varied the observation noise. In the second plot, we vary *both* the parameters (sampling from the posterior) *and* the observation noise. The second plot shows more variation because it accounts for our uncertainty about the true parameter values.
 :::
 
-**Take 5 minutes**: Does the real data look consistent with our simulated datasets? This is *posterior predictive checking* - a key model validation technique that we'll explore in depth in the [model checking](model_checking.qmd) session.
+::: {.callout-warning title="Exercise: Posterior predictive checking"}
+Does the real data look consistent with our simulated datasets? This is *posterior predictive checking* - a key model validation technique that we'll explore in depth in the [model checking](model_checking.qmd) session.
+:::
 
 # Why we need algorithmic approaches
 
