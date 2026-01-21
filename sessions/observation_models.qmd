@@ -7,7 +7,7 @@ order: 8
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-2.5 hours | **Optional advanced session**
+**Estimated time**: 2-2.5 hours | **Advanced session**
 :::
 
 ::: {.callout-note}
@@ -16,7 +16,7 @@ order: 8
 - You're interested in Approximate Bayesian Computation (ABC) as an alternative to likelihood-based inference
 - You want to think critically about the assumptions underlying statistical inference
 
-**Prerequisites**: Complete the core sessions through Particle MCMC. This session is conceptual and doesn't build on specific code from earlier optional sessions.
+**Prerequisites**: Complete the core sessions through Particle MCMC. This session is conceptual and doesn't build on specific code from other advanced sessions.
 :::
 
 # Introduction
@@ -35,7 +35,7 @@ In this session, we'll explore these questions and discover that the distinction
 
 # Objectives
 
-By the end of this session, you will be able to:
+In this session you will:
 
 1. Critically evaluate observation model choices (Poisson, Negative Binomial, etc.)
 2. Understand negative log-likelihood as an implicit distance metric
@@ -864,9 +864,9 @@ For ABC with outliers or model misspecification, consider robust distances:
 - Marin, J.-M. et al. (2012). [Approximate Bayesian computational methods](https://link.springer.com/article/10.1007/s11222-011-9288-2). *Statistics and Computing* 22, 1167-1180.
 - Cranmer, K. et al. (2020). [The frontier of simulation-based inference](https://www.pnas.org/doi/10.1073/pnas.1912789117). *PNAS* 117(48), 30055-30062. (Comprehensive review of modern likelihood-free methods)
 
-# Next sessions (optional)
+# Next sessions
 
-The following sessions cover advanced topics and are optional:
+The following advanced sessions cover specialised topics:
 
 - [Variational Inference](variational_inference.qmd): Fast approximate posteriors for real-time applications
 - [Universal Differential Equations](universal_differential_equations.qmd): Learning unknown mechanisms with neural networks

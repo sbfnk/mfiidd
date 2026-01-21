@@ -11,7 +11,7 @@ order: 5
 
 # Introduction
 
-This session will focus on modelling rather than fitting (don't worry, we will come back to fitting in the sessions on [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd)). The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL. We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.
+This session focuses on modelling rather than fitting (fitting returns in the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions). The aim is to familiarise you with a real dataset - the Tristan da Cunha outbreak - and a new model called SEITL. This dataset and model serve as the running example for all remaining sessions.
 
 As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971.
 Given the small population size of this island (284 inhabitants), random effects at the individual level may have had important consequences at the population level.

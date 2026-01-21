@@ -7,7 +7,7 @@ order: 9
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5 hours | **Optional advanced session**
+**Estimated time**: 1.5 hours | **Advanced session**
 :::
 
 ::: {.callout-note}
@@ -16,7 +16,7 @@ order: 9
 - You're working with high-dimensional models where MCMC is too slow
 - You want to understand modern ML-influenced approaches to Bayesian inference
 
-**Prerequisites**: Complete the MCMC session. This session compares VI to MCMC, so you should understand how MCMC works first. No other optional sessions required.
+**Prerequisites**: Complete the MCMC session. This session compares VI to MCMC, so you should understand how MCMC works first. No other advanced sessions required.
 :::
 
 # Introduction

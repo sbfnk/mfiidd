@@ -19,7 +19,7 @@ This course uses Julia for all code examples and exercises. This page helps you 
 2. **Local installation**: Install Julia and run everything on your own machine. Recommended for the full experience.
 3. **Cloud option**: Use a pre-configured cloud environment (if provided by your instructor).
 
-# Local Installation
+# Local installation
 
 ## Step 1: Install Julia
 

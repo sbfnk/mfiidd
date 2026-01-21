@@ -238,26 +238,6 @@ p2 = histogram(
 plot(p1, p2, layout = (1,2))
 ```
 
-::: {.callout-note title="Coming from R?" collapse="true"}
-You might be familiar with different functions for calculating probability densities (e.g., `dnorm()`) or generate random numbers (e.g. `rnorm()`) for generating random numbers for given probability distributions.
-In Julia we can use the interface provided by [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) to define the probability distribution and then calculate probability densities or generate random variates:
-
-```julia
-## define normal distribution with mean 3 and standard deviation 0.1
-dist = Normal(3, 0.1)
-## generate 10 random numbers from this distribution
-rand(dist, 10)
-## calculate the (logged) probability density at x = 2
-logpdf(dist, 2)
-```
-
-The equivalent R code would be:
-
-```r
-rnorm(10, 3, 0.1)
-dnorm(2, 3, 0.1, log = TRUE)
-```
-:::
 
 ## Prior predictive simulation
 
@@ -518,22 +498,6 @@ plot!(p)
 - `logpdf.(loglik, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
 :::
 
-::: {.callout-note title="Coming from R?" collapse="true"}
-In R, you would calculate Poisson log-likelihood as:
-
-```r
-log_lik <- dpois(observed, lambda = expected, log=TRUE)
-```
-
-In Julia instead we have used with Distribution objects:
-
-```julia
-obs_dist = Poisson(expected)
-logpdf(obs_dist, observed)
-```
-
-This same `obs_dist` object can be used for random sampling (`rand(obs_dist)`) and other operations.
-:::
 
 ::: {.callout-warning title="Exercise: Interpret the likelihood values"}
 Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
@@ -789,13 +753,11 @@ Lastly, it is difficult to establish whether the grid is fine enough (or importa
 
 # Summary
 
-We began by exploring *priors* - our beliefs about parameters before seeing data. Through *prior predictive simulation*, we saw how different prior choices lead to different predicted epidemic trajectories, helping us validate whether our assumptions are reasonable.
+*Priors* express our beliefs about parameters before seeing data. Through *prior predictive simulation*, different prior choices lead to different predicted epidemic trajectories - this helps validate whether assumptions are reasonable.
 
-We then introduced observed data and learned how the *likelihood* quantifies the probability of seeing that data given specific parameter values. Our Poisson observation model assumes each data point is an independent draw around the model's predicted prevalence - assumptions worth questioning for real applications.
+The *likelihood* quantifies how well parameters explain observed data. Our Poisson observation model assumes each data point is an independent draw around the model's predicted prevalence - assumptions worth questioning for real applications.
 
-Combining prior and likelihood via *Bayes' theorem* gives us the *posterior* - our updated beliefs after seeing data. We explored this manually through grid search, finding the best-fitting parameters and visualising the posterior surface. Finally, we used *posterior predictive checking* to validate that our fitted model generates data consistent with observations.
-
-The key limitation we encountered is scalability: grid search becomes computationally infeasible as the number of parameters grows. This motivates the algorithmic approaches we'll learn next.
+*Bayes' theorem* combines prior and likelihood to give the *posterior* - updated beliefs after seeing data. Grid search can explore this manually, but becomes computationally infeasible as parameters increase. *Posterior predictive checking* validates that fitted models generate realistic data. This scalability limitation motivates the algorithmic approaches in the next session.
 
 ::: {.callout-tip title="Learning points"}
 
@@ -816,3 +778,45 @@ The key limitation we encountered is scalability: grid search becomes computatio
 - McElreath (2020). [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/), 2nd ed. CRC Press. (Excellent introduction with simulation-based approach)
 
 **Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how Turing.jl automates everything with state-of-the-art methods.
+
+# Appendix: Coming from R?
+
+::: {.callout-note collapse="true"}
+## Distributions in Julia vs R
+
+In R, you use separate functions for each distribution operation:
+
+```r
+rnorm(10, 3, 0.1)                    # Generate random numbers
+dnorm(2, 3, 0.1, log = TRUE)         # Calculate log density
+```
+
+In Julia, [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) uses a unified interface - create a distribution object, then use generic functions:
+
+```julia
+dist = Normal(3, 0.1)    # Define the distribution once
+rand(dist, 10)           # Generate random numbers
+logpdf(dist, 2)          # Calculate log density
+```
+
+The same pattern works for all distributions: `Uniform`, `Poisson`, `Gamma`, etc.
+:::
+
+::: {.callout-note collapse="true"}
+## Likelihood calculation in Julia vs R
+
+In R, you calculate Poisson log-likelihood directly:
+
+```r
+log_lik <- dpois(observed, lambda = expected, log = TRUE)
+```
+
+In Julia, create a distribution object first:
+
+```julia
+obs_dist = Poisson(expected)
+logpdf(obs_dist, observed)
+```
+
+The distribution object can also be used for random sampling (`rand(obs_dist)`) and other operations.
+:::

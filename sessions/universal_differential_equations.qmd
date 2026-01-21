@@ -7,7 +7,7 @@ order: 10
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2+ hours | **Optional advanced session**
+**Estimated time**: 2+ hours | **Advanced session**
 :::
 
 ::: {.callout-note}
@@ -414,7 +414,7 @@ If β(t) is roughly constant, the network didn't find time-varying transmission 
 - More training iterations are needed
 - Or genuinely: time-varying β isn't the right mechanism for this data
 
-# Practical Challenges
+# Practical challenges
 
 Training UDEs is genuinely difficult, especially with limited data. Understanding why helps set realistic expectations.
 
