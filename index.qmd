@@ -15,35 +15,6 @@ about:
 
 A course and living resource for learning about model fitting and inference for infectious disease dynamics.
 
-## Prerequisites
-
-To get the most from this course, you should be comfortable with:
-
-- **Basic programming**: Variables, functions, loops, conditionals (in any language)
-- **Probability**: Distributions, Bayes' theorem, conditional probability
-- **Calculus**: Derivatives, integrals (helpful but not essential)
-- **Epidemiology basics**: Compartmental models (S, I, R states), transmission dynamics
-
-No prior Julia experience is required—the Getting Started session introduces Julia syntax as you go.
-
-## Session dependencies
-
-Sessions should be completed in order within each tier:
-
-| Session | Prerequisites |
-|---------|--------------|
-| Getting Started | None |
-| Introduction | Getting Started |
-| MCMC | Introduction |
-| MCMC Diagnostics | MCMC |
-| Model Checking | MCMC Diagnostics |
-| SEITL Interlude | Model Checking |
-| Particle Filters | SEITL Interlude |
-| Particle MCMC | Particle Filters |
-| Observation Models | Particle MCMC |
-| Variational Inference | MCMC (can skip stochastic sessions) |
-| Universal DEs | Introduction (independent track) |
-
 We invite anyone to use the materials here in their own teaching and learning. For questions and discussion of the course or its content, we welcome all users to the [Discussion board](https://github.com/sbfnk/mfiidd.julia/discussions). We welcome all forms of [contributions, additions and suggestions](https://github.com/sbfnk/mfiidd.julia/issues) for improving the materials.
 
 All materials here are provided under the permissive [MIT License](https://github.com/sbfnk/mfiidd.julia/blob/main/LICENSE).

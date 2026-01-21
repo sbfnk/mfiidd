@@ -13,6 +13,17 @@ order: 0
 
 This course uses Julia for all code examples and exercises. This page helps you set up your computing environment before the course begins.
 
+## Prerequisites
+
+To get the most from this course, you should be comfortable with:
+
+- **Basic programming**: Variables, functions, loops, conditionals (in any language)
+- **Probability**: Distributions, Bayes' theorem, conditional probability
+- **Calculus**: Derivatives and integrals (helpful but not essential)
+- **Epidemiology basics**: Compartmental models (S, I, R states), transmission dynamics
+
+No prior Julia experience is required—the course introduces Julia syntax as you go.
+
 ::: {.callout-important}
 ## Julia compiles code on first use
 
@@ -41,38 +52,38 @@ The course has 11 sessions organised into three tiers. Work through them in orde
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        CORE SESSIONS (~12-14 hours)                     │
+│                        CORE SESSIONS (~10-12 hours)                     │
 │   Must complete in order. Essential foundations for everything else.   │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Getting Started ──► Introduction ──► MCMC ──► Diagnostics ──► Model   │
-│   (1-1.5 hr)         (2.5-3 hr)     (3-3.5 hr)  (2-2.5 hr)    Checking │
-│                                                                (2-2.5)  │
+│   (1-1.5 hr)         (2-2.5 hr)     (2.5-3 hr)  (1.5-2 hr)    Checking │
+│                                                                (1.5-2)  │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    STOCHASTIC MODELS (~8-9 hours)                       │
+│                    STOCHASTIC MODELS (~5-6 hours)                       │
 │          For fitting models with demographic stochasticity.            │
 │   These sessions involve stochastic simulation - expect different      │
 │   results each run! This is normal, not a bug.                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │       SEITL Interlude ──► Particle Filters ──► Particle MCMC           │
-│         (3-3.5 hr)          (2-2.5 hr)          (2-2.5 hr)             │
+│         (2-2.5 hr)          (1-1.5 hr)          (1.5-2 hr)             │
 │       Requires: Model      Requires: SEITL      Requires: PF           │
 │       Checking                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    ADVANCED SESSIONS (~7-9 hours)                       │
+│                    ADVANCED SESSIONS (~5-7 hours)                       │
 │     Independent of each other. Choose based on your interests.         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Observation Models        Variational          Universal DEs          │
-│     (2.5-3 hr)            Inference             (3-4 hr)               │
-│                            (2 hr)                                      │
+│     (2-2.5 hr)            Inference             (2-3 hr)               │
+│                            (1.5-2 hr)                                  │
 │  Likelihood vs ABC.       Fast approximate      Learn unknown          │
 │  When does the choice     inference for         mechanisms with        │
 │  of observation model     real-time systems.    neural networks.       │
@@ -86,10 +97,9 @@ The course has 11 sessions organised into three tiers. Work through them in orde
 
 | Time available | Recommended path |
 |----------------|------------------|
-| Half day (4 hrs) | Getting Started → Introduction → MCMC (read only, skip exercises) |
-| Full day (8 hrs) | Getting Started → Introduction → MCMC → Diagnostics |
-| Two days (16 hrs) | Core sessions + SEITL + Particle Filters |
-| Three days (24+ hrs) | Core + Stochastic models + one advanced topic |
+| Half day (4 hrs) | Getting Started → Introduction → MCMC (read-only, skip exercises) |
+| Full day (8 hrs) | Core sessions (Getting Started through Model Checking) |
+| Two days (16 hrs) | Core + Stochastic models |
 | Full course | All sessions, including advanced topics of interest |
 
 # Local installation
