@@ -11,8 +11,12 @@ order: 10
 :::
 
 ::: {.callout-note}
-## Optional advanced session
-This session covers advanced topics in hybrid mechanistic-machine learning models and is optional. It assumes familiarity with neural networks and automatic differentiation. The core course material can be completed without this session.
+## Do this session if...
+- You have complex dynamics that simple parametric models can't capture
+- You want to discover unknown mechanisms from data (not just fit known models)
+- You're comfortable with neural networks and want to see how they combine with ODEs
+
+**Prerequisites**: Familiarity with basic neural networks and automatic differentiation. This session is largely self-contained but assumes you understand the SIR model from earlier sessions.
 :::
 
 # Introduction
@@ -597,7 +601,7 @@ Loss function choice matters. Poisson likelihood forces the model to explain sma
 
 If the learned β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation - but it's a hypothesis needing independent validation. An imperfect fit is informative: it may indicate that SIR structure with time-varying β isn't sufficient.
 
-For 60 data points, UDEs are arguably overkill - Gaussian processes might be more appropriate. UDEs shine with hundreds to thousands of points.
+For 60 data points, UDEs may be overkill - Gaussian processes or splines might be more appropriate. UDEs shine with hundreds to thousands of points.
 
 ::: {.callout-tip title="Learning points"}
 - **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)

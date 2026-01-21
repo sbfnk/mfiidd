@@ -140,7 +140,7 @@ model = sir_model(epi1.obs, init_state, epi1.time)
 ## 1. Trace plots: The most important diagnostic
 
 Trace plots show parameter values over iterations.
-They should look like [hairy caterpillars](../Rmd/external_fig/import/hairy_caterpillar.jpg):
+A well-mixed chain looks like a "hairy caterpillar" - densely filled with rapid up-and-down fluctuations around a stable mean:
 
 ```{julia}
 #| output: false
