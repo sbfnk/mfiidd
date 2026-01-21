@@ -286,9 +286,16 @@ The second component is L2 regularisation (also called weight decay or ridge pen
 - With only 60 data points, without regularisation the network would memorise noise
 - The coefficient (1e-4) controls the strength: too high = β(t) becomes constant; too low = overfitting
 
-::: {.callout-note}
-## Expect variability
-Neural network training depends on random initialisation. If you re-run this code with a different random seed, you'll get a different learned β(t) curve. This reflects genuine uncertainty about what pattern the limited data can support. For robust conclusions, you would train multiple networks and compare results (see [Going further](#ensemble-uncertainty)).
+::: {.callout-important}
+## Set realistic expectations before training
+
+Training UDEs is genuinely difficult, especially with limited data like ours (60 points, 33 parameters). You should expect:
+
+- **Variability**: Different random seeds give different β(t) curves. This reflects genuine uncertainty.
+- **Imperfect fits**: The SIR structure may not be able to capture two waves regardless of β(t) - this is informative, not failure.
+- **Sensitivity to hyperparameters**: Results can change with different regularisation strengths or learning rates.
+
+If training produces NaN values, reduce the learning rate. If the loss doesn't decrease, try different initialisation. See [Practical challenges](#practical-challenges) for detailed troubleshooting.
 :::
 
 ## Step 4: Train the UDE
