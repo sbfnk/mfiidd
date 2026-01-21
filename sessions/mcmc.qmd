@@ -5,6 +5,10 @@ engine: julia
 order: 2
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 2-2.5 hours (includes hands-on MH implementation and tuning exercise)
+:::
+
 [Lecture slides: PowerPoint](slides/mcmc_slides1.pptx) / [PDF](slides/mcmc_slides1.pdf)
 
 # Introduction
@@ -522,6 +526,27 @@ MH([1.0 0.0; 0.0 1.0])
 # chain_tuned = sample(model, MH([??? ???; ??? ???]), 5000)
 # plot(chain_tuned)
 ```
+
+::: {.callout-tip title="Solution: A reasonable proposal (click to reveal)" collapse="true"}
+
+After experimentation, a proposal like this works reasonably well:
+
+```julia
+# Different scales for each parameter, with negative correlation
+chain_tuned = sample(model, MH([0.3 -0.1; -0.1 0.1]), 5000)
+```
+
+**Why this works:**
+
+1. **Smaller proposals** (0.3 for R₀, 0.1 for D_inf): The posterior is concentrated in a small region. Large proposals jump outside this region and get rejected.
+
+2. **Different scales**: R₀ has a larger range (~1-20) than D_inf (~1-14), and the posterior uncertainty differs. Matching proposal scale to posterior scale improves efficiency.
+
+3. **Negative correlation** (-0.1): Higher R₀ values are consistent with lower D_inf values (both increase transmission rate). Correlated proposals explore this ridge more efficiently.
+
+**The key insight**: Finding these values required trial and error. Now imagine doing this for a model with 10 parameters (55 covariance values to tune). This is why adaptive methods like RAM and gradient-based methods like NUTS exist.
+
+:::
 
 The difficulty you just experienced is why manual tuning doesn't scale. With 2 parameters, you have 3 values to tune (two variances, one covariance). With 10 parameters, you'd have 55 values. This motivates *adaptive* methods that learn the proposal automatically.
 

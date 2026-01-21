@@ -5,6 +5,10 @@ engine: julia
 order: 6
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1.5 hours
+:::
+
 # Introduction
 
 In the previous sessions, we fitted deterministic models using MCMC. For deterministic models, computing the likelihood is straightforward: given parameters, we solve the ODEs to get a trajectory, then evaluate the probability of the data given that trajectory.
@@ -364,6 +368,35 @@ Based on the calibration plots above:
 3. Why might you want to use more particles than the minimum needed?
 
 Write down your choice and reasoning.
+
+:::
+
+::: {.callout-warning title="Exercise: Sensitivity to parameters"}
+
+The particle filter likelihood estimate depends on the parameters. Explore how the log-likelihood changes as you vary R₀:
+
+```julia
+# Vary R_0 and compute log-likelihoods
+R0_values = 3.0:1.0:12.0
+n_particles = 128  # Use your calibrated value
+
+ll_results = Float64[]
+for R0 in R0_values
+    θ_test = Dict(:R_0 => R0, :D_lat => 1.3, :D_inf => 2.0,
+                  :α => 0.5, :D_imm => 10.5, :ρ => 0.7)
+    ll = run_particle_filter(θ_test, flu_tdc.obs, n_particles)
+    push!(ll_results, ll)
+end
+
+plot(R0_values, ll_results, xlabel="R_0", ylabel="Log-likelihood",
+     title="Likelihood surface", marker=:circle, legend=false)
+```
+
+**Questions:**
+
+1. Which value of R₀ gives the highest log-likelihood?
+2. Run the same R₀ value multiple times. How much does the log-likelihood vary? (This is the noise from particle filtering)
+3. How does the shape of this likelihood surface compare to what you'd expect from deterministic model fitting?
 
 :::
 

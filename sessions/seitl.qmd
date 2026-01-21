@@ -5,6 +5,10 @@ engine: julia
 order: 5
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 2-2.5 hours (introduces new modelling concepts)
+:::
+
 # Introduction
 
 This session will focus on modelling rather than fitting (don't worry, we will come back to fitting in the sessions on [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd)). The aim of this session is to familiarise yourselves with a real data set: the Tristan da Cunha outbreak and a new model called SEITL. We felt this session was necessary as we will use this dataset and this model as a toy example to illustrate all the concepts and methods from now until the end of the course.

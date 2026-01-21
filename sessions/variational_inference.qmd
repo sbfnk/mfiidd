@@ -6,6 +6,10 @@ engine: julia
 order: 9
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1.5 hours | **Optional advanced session**
+:::
+
 ::: {.callout-note}
 ## Optional advanced session
 This session covers advanced topics in approximate inference and is optional. The core course material can be completed without this session, but it provides useful techniques for real-time applications and high-dimensional problems.

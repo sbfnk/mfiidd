@@ -6,6 +6,10 @@ engine: julia
 order: 8
 ---
 
+::: {.callout-note appearance="simple"}
+**Estimated time**: 2-2.5 hours (three different inference approaches)
+:::
+
 # Introduction
 
 So far in this course, we've used *likelihood functions* to connect our mathematical models to observed data. For example, we've assumed that observed case counts follow a Poisson distribution:
@@ -402,6 +406,25 @@ end
 # Observed data
 observed_data = flu_tdc.obs
 ```
+
+::: {.callout-note}
+## Understanding the distance functions
+
+We've defined three distance functions, each with different properties:
+
+- **L1 (Manhattan)**: `sum(|sim - obs|)` - Sums absolute deviations. Robust to outliers because large errors contribute linearly. A mismatch of 20 cases counts twice as much as a mismatch of 10.
+
+- **L2 (Euclidean)**: `sqrt(sum((sim - obs)²))` - Root of squared deviations. Penalises large errors more heavily than L1. A mismatch of 20 cases counts *four times* as much as 10 (because 20² = 400 vs 10² = 100).
+
+- **Weighted**: `sum(w × |sim - obs|)` where `w = 1/(obs + 1)` - Weights inversely by observation size. This mimics Poisson variance scaling: a mismatch of 5 when obs=2 is penalised more than when obs=50. Useful when you care about relative rather than absolute fit.
+
+**When to use each:**
+
+- L1: Good default. Robust to occasional large mismatches.
+- L2: When large deviations are particularly bad (e.g., outbreak peaks).
+- Weighted: When fit quality should be scale-independent (similar to Poisson likelihood).
+
+:::
 
 Run ABC with L1 distance:
 
