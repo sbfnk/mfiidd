@@ -274,14 +274,9 @@ plot(p1, p2, layout = (2, 1), size = (800, 600))
 
 ## The general principle: MCMC as a universal random number generator
 
-What we just built solves a fundamental problem in computational statistics:
+What we just built solves a fundamental problem in computational statistics: given a probability distribution where we can *evaluate* the density at any point, how do we *generate* random samples from it?
 
-**The problem**: Given a probability distribution where we can *evaluate* the density at any point, how do we *generate* random samples from it?
-
-**Why this matters**: Many useful probability distributions don't have simple sampling algorithms:
-
-- **Easy distributions**: Normal (`randn()`) and Uniform (`rand()`) have built-in samplers
-- **Complex distributions**: Posteriors, mixtures, custom models - no simple formula exists
+Many useful probability distributions don't have simple sampling algorithms. Easy distributions like Normal (`randn()`) and Uniform (`rand()`) have built-in samplers. But posteriors, mixtures, and custom models have no simple formula.
 
 MCMC solves this by only requiring that we can *evaluate* the log-probability at any point.
 We used a Normal distribution above (even though we could just use `randn()`!) to demonstrate this general principle.
@@ -312,13 +307,9 @@ For complex posteriors with correlations, ODEs, and constraints, no such formula
 The posterior distribution is just another probability distribution.
 We can evaluate it at any point: `log_posterior(θ) = log_prior(θ) + log_likelihood(θ|data)`.
 Because of this, MCMC can sample from it.
-The samples give us everything we need from inference:
+The samples give us everything we need: visualisation (plot the distribution shape), summaries (mean, median, credible intervals), and forward simulation (with parameter correlations preserved).
 
-- **Visualisation**: Plot the distribution shape
-- **Summaries**: Mean, median, credible intervals
-- **Forward simulation**: Use samples with proper parameter correlations preserved
-
-When we apply MCMC to the SIR model later, we will be doing exactly the same thing as we did here for the Normal example - just with a more complex probability distribution that happens to be a Bayesian posterior. 
+When we apply MCMC to the SIR model later, we will be doing exactly the same thing as we did here for the Normal example - just with a more complex probability distribution that happens to be a Bayesian posterior.
 MCMC doesn't "know" about Bayesian inference; it just knows how to sample from distributions where we can evaluate the density.
 
 ## Understanding proposal distributions
@@ -366,7 +357,7 @@ plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 - **Optimal**: ~23% acceptance rate for random walk Metropolis
 :::
 
-In our simple case of the normal distribution but for more complicated distributions such as posterior distributions of complex models with multiple parameters finding a good proposal distributions is not straightforward.
+For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
 This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
 
 # Automating MCMC with Turing.jl
@@ -490,6 +481,11 @@ plot(
     ylabel = "R_0", linewidth = 1
 )
 ```
+
+::: {.callout-note}
+## What to expect from the exercise below
+Finding good proposals by hand is difficult. If you spend 10-15 minutes experimenting without finding a perfect solution, you've learned a key lesson: manual tuning doesn't scale. The frustration is part of the learning.
+:::
 
 ::: {.callout-warning title="Exercise: Tune the proposal distribution"}
 
