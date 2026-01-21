@@ -39,11 +39,11 @@ This session marks a transition in the course. We move from general inference me
 
 The remaining sessions build on the SEITL/SEIT4L models introduced here:
 
-- **Particle Filters**: Estimating likelihoods for stochastic models
-- **Particle MCMC**: Full Bayesian inference using particle filters
-- **Observation Models**: Comparing likelihood-based and likelihood-free inference
-- **Variational Inference** (optional): Fast approximate inference for real-time applications
-- **Universal Differential Equations** (optional): Learning unknown mechanisms with neural networks
+- [Particle Filters](particle_filters.qmd): Estimating likelihoods for stochastic models
+- [Particle MCMC](pmcmc.qmd): Full Bayesian inference using particle filters
+- [Observation Models](observation_models.qmd): Comparing likelihood-based and likelihood-free inference
+- [Variational Inference](variational_inference.qmd) (optional): Fast approximate inference for real-time applications
+- [Universal Differential Equations](universal_differential_equations.qmd) (optional): Learning unknown mechanisms with neural networks
 :::
 
 ::: {.callout-note collapse="true"}
@@ -453,8 +453,8 @@ The model has the following transitions:
 | T → S | $(1-\alpha) \tau T$ | T-1, S+1 |
 | T → L | $\alpha \tau T$ | T-1, L+1 |
 
-::: {.callout-note collapse="true"}
-## Implementation: Gillespie algorithm (click to expand)
+::: {.callout-note}
+## Implementation: Gillespie algorithm
 
 ```{julia}
 """

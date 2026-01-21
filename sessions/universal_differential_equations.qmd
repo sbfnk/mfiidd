@@ -538,10 +538,10 @@ UDEs are powerful but not always appropriate. Here's guidance on when they add v
 
 UDEs work well when:
 
-1. **Large spatiotemporal datasets**: COVID-19 with daily data from 100+ locations
-2. **High-frequency measurements**: Lab experiments with measurements every hour
-3. **Known structure, unknown details**: Chemical reactions, climate models
-4. **Discovery research**: Finding unknown mechanisms (not just fitting)
+1. Large spatiotemporal datasets: COVID-19 with daily data from 100+ locations
+2. High-frequency measurements: Lab experiments with measurements every hour
+3. Known structure, unknown details: Chemical reactions, climate models
+4. Discovery research: Finding unknown mechanisms (not just fitting)
 
 # Going further
 
@@ -549,9 +549,9 @@ UDEs work well when:
 
 The neural network architecture affects what patterns can be learned:
 
-- **Smaller networks** (e.g., 4→1) may underfit complex dynamics but are more interpretable
-- **Larger networks** (e.g., 16→8→1) can capture more complexity but risk overfitting with limited data
-- **Input features** matter: β(t) learns time-dependent patterns, β(I/N) learns prevalence-dependent patterns, β(I/N, t) can learn both
+- Smaller networks (e.g., 4→1) may underfit complex dynamics but are more interpretable
+- Larger networks (e.g., 16→8→1) can capture more complexity but risk overfitting with limited data
+- Input features matter: β(t) learns time-dependent patterns, β(I/N) learns prevalence-dependent patterns, β(I/N, t) can learn both
 
 Try different architectures to understand what your data can support.
 
