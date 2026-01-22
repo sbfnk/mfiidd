@@ -132,7 +132,7 @@ init_state = Dict(
 In the [Particle Filters session](particle_filters.qmd), we:
 
 1. Implemented the SEIT4L Gillespie simulator (`gillespie_step`)
-2. Defined the SSMProblems.jl interface (`SEIT4LDynamics`, `PoissonObservation`, `SEIT4LInitial`)
+2. Defined the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface (`SEIT4LDynamics`, `PoissonObservation`, `SEIT4LInitial`)
 3. Created `run_particle_filter(θ, obs, n_particles)` to estimate log-likelihoods
 4. Calibrated particle count: 128-256 particles gave SD of log-likelihood between 1 and 3
 

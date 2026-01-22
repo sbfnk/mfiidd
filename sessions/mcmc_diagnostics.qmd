@@ -14,7 +14,7 @@ order: 3
 # Introduction
 
 In the previous session, you learned how MCMC algorithms explore posterior distributions by taking random walks through parameter space.
-You implemented Metropolis-Hastings yourself and saw how Turing.jl's NUTS algorithm automates everything with gradient-based sampling.
+You implemented Metropolis-Hastings yourself and saw how [Turing.jl](https://turinglang.org/stable/)'s NUTS algorithm automates everything with gradient-based sampling.
 But there's a critical question we haven't yet fully addressed: How do you know if the inference procedure has worked?
 
 MCMC algorithms don't come with guarantees.

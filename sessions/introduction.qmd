@@ -19,7 +19,7 @@ We will build intuition by manually calculating priors, likelihoods, and posteri
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
-We will use Distributions.jl for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
 
 In this session, you will
 
@@ -780,7 +780,7 @@ The *likelihood* quantifies how well parameters explain observed data. Our Poiss
 - Gelman et al. (2013). [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/), 3rd ed. Chapman & Hall/CRC. (The classic reference)
 - McElreath (2020). [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/), 2nd ed. CRC Press. (Excellent introduction with simulation-based approach)
 
-**Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how Turing.jl automates everything with state-of-the-art methods.
+**Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how [Turing.jl](https://turinglang.org/stable/) automates everything with state-of-the-art methods.
 
 # Appendix: Coming from R?
 
