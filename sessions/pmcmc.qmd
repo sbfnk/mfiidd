@@ -408,28 +408,15 @@ $$\text{BF}_{12} = \frac{P(\text{data}|M_1)}{P(\text{data}|M_2)}$$
 
 Values > 10 indicate strong evidence for $M_1$; values < 0.1 indicate strong evidence for $M_2$. The marginal likelihood can be estimated from particle filter output using techniques like [path sampling](https://academic.oup.com/biomet/article/95/2/401/223193) or [thermodynamic integration](https://doi.org/10.1198/016214508000000571), but these are computationally intensive.
 
-**Posterior predictive checks** provide a qualitative but intuitive comparison: which model generates data that looks more like the observations? This doesn't give a single number, but can reveal *how* models differ in their predictions.
+**Posterior predictive checks** provide a qualitative but intuitive comparison: which model generates data that looks more like the observations? This doesn't give a single number, but can reveal *how* models differ in their predictions. A full posterior predictive comparison would simulate many datasets from each fitted model and compare them to the observed data - we leave this as an exercise.
 
-### Posterior predictive comparison
+### Comparing parameter estimates
 
-We can compare the models by checking how well their posterior predictions match key features of the data:
-
-```{julia}
-# Summary statistics from the observed data
-obs_total = sum(flu_tdc.obs)
-obs_peak = maximum(flu_tdc.obs)
-obs_peak_time = argmax(flu_tdc.obs)
-obs_second_wave = sum(flu_tdc.obs[25:40])  # Cases in second wave period
-
-println("Observed data:")
-println("  Total cases: $obs_total")
-println("  Peak: $obs_peak cases on day $obs_peak_time")
-println("  Second wave (days 25-40): $obs_second_wave cases")
-```
+We can compare how the two models estimate the same parameters:
 
 ```{julia}
 # Posterior means from each model
-println("\nPosterior mean estimates:")
+println("Posterior mean estimates:")
 println("SEITL:")
 println("  R_0 = $(round(mean(chain_seitl[:R_0]), digits=2))")
 println("  D_imm = $(round(mean(chain_seitl[:D_imm]), digits=2))")
