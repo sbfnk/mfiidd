@@ -50,45 +50,19 @@ Three ways to engage with the course:
 
 The course has 11 sessions organised into three tiers. Work through them in order, or use this map to plan your time.
 
-```{mermaid}
-%%| fig-width: 8
-%%{init: {'theme': 'neutral'}}%%
-flowchart TB
-    subgraph core["CORE SESSIONS"]
-        direction LR
-        A[Getting Started] --> B[Introduction]
-        B --> C[MCMC]
-        C --> D[Diagnostics]
-        D --> E[Model Checking]
-    end
+**Core sessions** (10-12 hours) - complete in order:
 
-    subgraph stoch["STOCHASTIC MODELS"]
-        direction LR
-        F[SEITL Interlude] --> G[Particle Filters]
-        G --> H[Particle MCMC]
-    end
+> Getting Started → Introduction → MCMC → Diagnostics → Model Checking
 
-    subgraph adv["ADVANCED SESSIONS"]
-        direction LR
-        I[Observation Models]
-        J[Variational Inference]
-        K[Universal DEs]
-    end
+**Stochastic sessions** (5-6 hours) - for fitting models with demographic stochasticity:
 
-    core --> stoch
-    stoch --> adv
-    C -.->|skip stochastic| J
-    B -.->|independent| K
-```
+> SEITL Interlude → Particle Filters → Particle MCMC
 
-| Tier | Sessions | Time |
-|------|----------|------|
-| **Core** | Getting Started → Introduction → MCMC → Diagnostics → Model Checking | 10-12 hrs |
-| **Stochastic** | SEITL Interlude → Particle Filters → Particle MCMC | 5-6 hrs |
-| **Advanced** | Observation Models, Variational Inference, Universal DEs (pick any) | 2-3 hrs each |
+**Advanced sessions** (2-3 hours each) - independent, pick based on interest:
 
-> **Stochastic sessions** involve stochastic simulation - expect different results each run. This is normal.
-> **Advanced sessions** are independent. VI requires only MCMC (can skip stochastic). UDEs requires only Introduction.
+> - **Observation Models** — requires Particle MCMC
+> - **Variational Inference** — requires MCMC only (can skip stochastic track)
+> - **Universal DEs** — requires Introduction only (independent track)
 
 **If you only have limited time:**
 
