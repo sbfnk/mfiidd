@@ -761,7 +761,7 @@ end
 ```
 
 ::: {.callout-warning title="Exercise: Understand the SEIT4L code"}
-Have a look at the functions above and make sure you understand how the Erlang distribution for the $T$ compartment is coded.
+How does the code above implement the Erlang distribution for the $T$ compartment? What changes from the SEITL version?
 :::
 
 Now compare the dynamics of the SEITL and SEIT4L models.
