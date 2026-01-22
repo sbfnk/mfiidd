@@ -418,15 +418,29 @@ See `src/seit4l_particle_filter.jl` for the full implementation.
 
 ## Running the bootstrap particle filter
 
-The `run_particle_filter` function (also in the shared file) assembles the SSM components and runs the bootstrap filter:
+The `run_particle_filter` function assembles the SSM components and runs the bootstrap filter:
 
-::: {.callout-tip collapse="true"}
-## Code explainer
+```julia
+function run_particle_filter(θ, obs, n_particles;
+                             init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+    # Define SSM components
+    initial = SEIT4LInitial(init_state)
+    dynamics = SEIT4LDynamics(θ)
+    observation = PoissonObservation(θ[:ρ])
 
-- `StateSpaceModel(initial, dynamics, observation)` - combines the three SSM components into a single model.
-- `BF(n_particles)` - Bootstrap Filter algorithm with the specified number of particles.
-- `GeneralisedFilters.filter(rng, model, algo, obs)` - runs the filter, returning `(filtered_state, log_likelihood)`.
-:::
+    # Create state-space model
+    model = StateSpaceModel(initial, dynamics, observation)
+
+    # Run bootstrap particle filter
+    rng = Random.default_rng()
+    algo = BF(n_particles)  # Bootstrap Filter
+    _, log_lik = GeneralisedFilters.filter(rng, model, algo, obs)
+
+    return log_lik
+end
+```
+
+This ties everything together: the initial state, Gillespie dynamics, and Poisson observations form a `StateSpaceModel`, which the bootstrap filter (`BF`) processes to estimate the log-likelihood.
 
 Testing it:
 
