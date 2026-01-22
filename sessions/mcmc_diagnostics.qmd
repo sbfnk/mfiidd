@@ -660,59 +660,13 @@ plot(chain_problematic)
 3. **Longer adaptation**: Increase warmup period
 4. **Check model**: Maybe the model specification is wrong
 
-# Concept map: Bayesian inference so far
+# How the pieces fit together
 
-::: {.callout-note}
-## How the pieces fit together
-
-After three sessions, you now have a complete workflow for Bayesian inference with deterministic models:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    SESSION 1: INTRODUCTION                      │
-│                                                                 │
-│   Prior (beliefs)  +  Likelihood (data)  =  Posterior (update)  │
-│   ──────────────      ─────────────────      ────────────────   │
-│   What you think      How well parameters    Your updated       │
-│   before seeing       explain the data       beliefs            │
-│   data                                                          │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       SESSION 2: MCMC                           │
-│                                                                 │
-│   Grid search → too slow for real problems                      │
-│   MCMC → smart random walks through parameter space             │
-│                                                                 │
-│   Metropolis-Hastings: simple, needs tuning                     │
-│   RAM: adaptive, learns correlations                            │
-│   NUTS: gradient-based, automatic, efficient                    │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    SESSION 3: DIAGNOSTICS                       │
-│                                                                 │
-│   Did the algorithm work? Check:                                │
-│   • Trace plots    → visual check for mixing                    │
-│   • R̂              → chains agree? (< 1.1)                      │
-│   • ESS            → enough independent samples? (> 100)        │
-│   • Posterior pred → does model match data?                     │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  NEXT: MODEL CHECKING                           │
-│                                                                 │
-│   MCMC converged ≠ Model is correct                             │
-│   Need to check: does the model describe the data well?         │
-└─────────────────────────────────────────────────────────────────┘
-```
+After three sessions, you now have a complete workflow for Bayesian inference with deterministic models. In the [Introduction](introduction.qmd), you learned the core concepts: priors encode beliefs before seeing data, likelihoods measure how well parameters explain observations, and Bayes' theorem combines them into a posterior. In [MCMC](mcmc.qmd), you saw how to sample from posteriors that are too complex for grid search - from basic Metropolis-Hastings through adaptive methods (RAM) to gradient-based samplers (NUTS). This session covered diagnostics: trace plots for visual assessment, R̂ for convergence, and ESS for effective sample size.
 
 **The workflow**: Define model → Run MCMC → Check convergence → Check model fit → Iterate
 
-:::
+But MCMC convergence doesn't mean your model is correct - that's next in [Model Checking](model_checking.qmd).
 
 # Summary
 
