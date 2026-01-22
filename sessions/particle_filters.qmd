@@ -552,11 +552,11 @@ The number of particles is a critical tuning parameter. Too few gives high varia
 
 ::: {.callout-tip title="Learning points"}
 
-- Stochastic models require particle filters because the likelihood marginalises over all possible trajectories
-- Particle filters work by: propagate particles forward, weight by observation likelihood, resample when weights become uneven
-- The [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface separates model specification from filtering algorithms
-- Calibrate particle count to achieve log-likelihood SD between 1 and 3 (too few = noisy, too many = slow)
-- The likelihood estimate is unbiased but noisy - this noise slows MCMC but doesn't bias posteriors
+- **Stochastic models require particle filters** because the likelihood marginalises over all possible trajectories
+- **Particle filters work by**: propagate particles forward, weight by observation likelihood, resample when weights become uneven
+- **SSMProblems.jl interface** separates model specification from filtering algorithms
+- **Calibrate particle count** to achieve log-likelihood SD between 1 and 3 (too few = noisy, too many = slow)
+- **The likelihood estimate is unbiased but noisy** - this noise slows MCMC but doesn't bias posteriors
 
 :::
 
