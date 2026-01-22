@@ -60,7 +60,7 @@ The course has 11 sessions organised into three tiers. Work through them in orde
 
 **Advanced sessions** (2-3 hours each) - independent, pick based on interest:
 
-> - **Observation Models** — requires Particle MCMC
+> - **Observation Models** — requires MCMC (can skip stochastic track)
 > - **Variational Inference** — requires MCMC only (can skip stochastic track)
 > - **Universal DEs** — requires Introduction only (independent track)
 
