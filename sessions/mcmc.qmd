@@ -19,7 +19,7 @@ This approach introduced you to the core components of conducting inference, but
 This session introduces Markov Chain Monte Carlo (MCMC), the algorithmic solution that makes Bayesian inference practical for real problems.
 Rather than exhaustively searching parameter space, MCMC intelligently explores it by taking random walks that spend more time in high-probability regions.
 
-You'll build understanding by coding a simple MCMC algorithm yourself, then see how modern tools like Turing.jl automate everything with state-of-the-art methods.
+You'll build understanding by coding a simple MCMC algorithm yourself, then see how modern tools like [Turing.jl](https://turinglang.org/stable/) automate everything with state-of-the-art methods.
 By the end, you'll understand both what MCMC does under the hood and how to use it effectively in practice.
 
 # Objectives
