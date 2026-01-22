@@ -7,19 +7,12 @@ order: 9
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours | **Advanced session**
-:::
-
-::: {.callout-note}
-## Do this session if...
-- You need faster inference than MCMC provides (e.g., real-time forecasting, many datasets)
-- You're working with high-dimensional models where MCMC is too slow
-- You want to understand modern ML-influenced approaches to Bayesian inference
-
-**Prerequisites**: Complete the MCMC session. This session compares VI to MCMC, so you should understand how MCMC works first. No other advanced sessions required.
+**Estimated time**: 1.5-2 hours | **Advanced session** | **Requires**: MCMC only (can skip stochastic sessions)
 :::
 
 # Introduction
+
+> **Do this session if** you need faster inference than MCMC (real-time forecasting, many datasets) or want to understand modern ML-influenced approaches to Bayesian inference.
 
 So far in this course, we've used Markov Chain Monte Carlo (MCMC) for Bayesian inference. MCMC is asymptotically exact and provides reliable uncertainty quantification. But it has a key limitation: it's slow.
 

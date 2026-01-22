@@ -11,6 +11,8 @@ order: 5
 
 # Introduction
 
+> **Entering the stochastic tier**: You've completed the core sessions with deterministic ODE models. This session introduces stochastic simulation and a new dataset (Tristan da Cunha) that we'll use for the rest of the course. Fitting resumes in Particle Filters.
+
 This session focuses on modelling rather than fitting (fitting returns in the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions). The aim is to familiarise you with a real dataset - the Tristan da Cunha outbreak - and a new model called SEITL. This dataset and model serve as the running example for all remaining sessions.
 
 As you will read below, the SEITL model has been proposed as a mechanistic explanation for a two-wave influenza A/H3N2 epidemic that occurred on the remote island of Tristan da Cunha in 1971.

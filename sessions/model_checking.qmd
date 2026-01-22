@@ -11,10 +11,7 @@ order: 4
 
 # Introduction
 
-::: {.callout-note appearance="simple"}
-## Where we are in the course
-In the Introduction session, you learned to calculate priors, likelihoods, and posteriors manually. In the MCMC session, you implemented samplers and saw how Turing.jl automates inference. In the Diagnostics session, you learned to check whether the sampler has converged. Now we address a different question: even if the sampler worked, does your model make sense?
-:::
+> **Where we are**: You've learned to calculate posteriors (Introduction), sample them with MCMC, and check convergence (Diagnostics). Now we ask: even if the sampler worked, does the model make sense?
 
 You've learned how to fit models and diagnose MCMC convergence.
 But a converged chain doesn't mean your model is *correct* - it just means the sampler has explored the posterior properly.
