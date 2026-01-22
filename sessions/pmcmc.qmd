@@ -230,7 +230,7 @@ Two factors make PMMH challenging:
 
 2. **Correlated parameters**: Epidemic parameters are often highly correlated (e.g., higher R₀ can be compensated by shorter D_inf). Standard MH proposals that change one parameter at a time struggle with this.
 
-The solution is *Robust Adaptive Metropolis (RAM)* which automatically learns the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). But RAM needs many samples to learn the covariance - typically 100,000+ iterations.
+One solution is *Robust Adaptive Metropolis (RAM)* which automatically learns the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). But RAM needs many samples to learn the covariance - typically 100,000+ iterations.
 
 ::: {.callout-note}
 ## Pre-computed chains
