@@ -81,20 +81,11 @@ using DrWatson
 
 ## Load shared particle filter code
 
-The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared file used by both this session and the [Particle MCMC session](pmcmc.qmd).
+The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared file (code shown in main text below).
 
 ```{julia}
 include(joinpath(project_root, "src", "seit4l_particle_filter.jl"))
 ```
-
-::: {.callout-note collapse="true"}
-## SEIT4L Particle Filter Implementation (from `src/seit4l_particle_filter.jl`)
-
-```{julia}
-#| eval: false
-#| file: ../src/seit4l_particle_filter.jl
-```
-:::
 
 ## Initialisation
 
@@ -151,20 +142,85 @@ init_state = Dict(
 )
 ```
 
-::: {.callout-note collapse="true"}
-## Implementation: SEIT4L Gillespie simulator (click to expand)
+## The Gillespie simulator
 
-The `gillespie_step` function (loaded from `src/seit4l_particle_filter.jl`) simulates the SEIT4L model for one day using the Gillespie algorithm. Key aspects:
+The `gillespie_step` function simulates the SEIT4L model for one day using the Gillespie algorithm:
 
-- **Stoichiometry matrix**: Defines how each transition changes the state vector [S, E, I, T1, T2, T3, T4, L]
-- **Rates function**: Computes the rate of each transition given current state
-- **Event selection**: Samples waiting time from exponential distribution, selects event proportional to rates
+```{julia}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Gillespie step implementation (click to expand)"
+# Stoichiometry matrix: how each transition changes [S, E, I, T1, T2, T3, T4, L]
+const STOICH = [
+    [-1,  1,  0,  0,  0,  0,  0,  0],  # S -> E (infection)
+    [ 0, -1,  1,  0,  0,  0,  0,  0],  # E -> I (become infectious)
+    [ 0,  0, -1,  1,  0,  0,  0,  0],  # I -> T1 (recovery starts)
+    [ 0,  0,  0, -1,  1,  0,  0,  0],  # T1 -> T2
+    [ 0,  0,  0,  0, -1,  1,  0,  0],  # T2 -> T3
+    [ 0,  0,  0,  0,  0, -1,  1,  0],  # T3 -> T4
+    [ 0,  0,  0,  0,  0,  0, -1,  1],  # T4 -> L (long-term immunity)
+    [ 1,  0,  0,  0,  0,  0,  0, -1],  # L -> S (waning immunity)
+]
+
+function gillespie_step(rng, state, θ)
+    S, E, I, T1, T2, T3, T4, L = state
+    N = sum(state)
+
+    # Calculate transition rates
+    β = θ[:R_0] / θ[:D_inf]
+    rates = [
+        β * S * I / N,           # S -> E
+        E / θ[:D_lat],           # E -> I
+        (1 - θ[:α]) * I / θ[:D_inf],  # I -> T1 (temporary immunity)
+        θ[:α] * I / θ[:D_inf],   # I -> L (direct to long-term, not shown above)
+        4 * T1 / θ[:D_imm],      # T1 -> T2 (Erlang stages)
+        4 * T2 / θ[:D_imm],      # T2 -> T3
+        4 * T3 / θ[:D_imm],      # T3 -> T4
+        4 * T4 / θ[:D_imm],      # T4 -> L
+    ]
+
+    daily_incidence = 0
+    t = 0.0
+
+    while t < 1.0  # Simulate one day
+        total_rate = sum(rates)
+        if total_rate == 0
+            break
+        end
+
+        # Time to next event
+        dt = randexp(rng) / total_rate
+        if t + dt > 1.0
+            break
+        end
+        t += dt
+
+        # Choose which event occurs
+        event = sample(rng, 1:length(rates), Weights(rates))
+
+        # Update state
+        state = state .+ STOICH[event]
+
+        # Track E -> I transitions as new cases
+        if event == 2
+            daily_incidence += 1
+        end
+
+        # Recalculate rates with new state
+        S, E, I, T1, T2, T3, T4, L = state
+        # ... (rates update)
+    end
+
+    return state, daily_incidence
+end
+```
+
+Key aspects:
+
+- **Stoichiometry matrix**: Defines how each transition changes the state vector
+- **Rates**: Computed from current state and parameters
+- **Event selection**: Exponential waiting time, event chosen proportional to rates
 - **Incidence tracking**: Counts E→I transitions as new cases
-
-The function signature is `gillespie_step(rng, state, θ)` where `rng` is a random number generator, `state` is the 8-element compartment vector, and `θ` is a parameter dictionary. It returns `(new_state, daily_incidence)`.
-
-See `src/seit4l_particle_filter.jl` for the full implementation.
-:::
 
 # How particle filters work
 
