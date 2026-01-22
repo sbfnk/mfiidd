@@ -467,8 +467,15 @@ We fitted both SEITL and SEIT4L to the Tristan da Cunha data. Calibration is cri
 For production PMMH, you should run multiple chains and check convergence:
 
 ```julia
-# Run multiple chains in parallel (requires same proposal as single chain)
-chain_multi = sample(model_pmmh, MH(proposal...), MCMCThreads(), 2000, 4)
+# Run multiple chains in parallel
+chain_multi = sample(
+    model_pmmh,
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    MCMCThreads(),
+    10000,
+    4;
+    check_model=false
+)
 
 # Check R̂ and ESS statistics
 summarystats(chain_multi)
@@ -478,19 +485,22 @@ Use the same diagnostics (R̂ < 1.1, ESS > 100) as for standard MCMC.
 
 ## Alternative: Manual proposal tuning
 
-If you need more control, you can use `MH()` with manual `RandomWalkProposal` specifications instead of RAM. This requires choosing proposal standard deviations for each parameter - too large gives low acceptance, too small gives slow exploration.
+If you need more control, you can use `MH()` with a covariance matrix instead of RAM. This is the same approach we used in the MCMC session:
 
 ```julia
-# Manual proposals (harder to tune than RAM)
-proposal = (
-    :R_0 => AdvancedMH.RandomWalkProposal(Normal(0, 2.0)),
-    :D_lat => AdvancedMH.RandomWalkProposal(Normal(0, 0.2)),
-    # ... etc for each parameter
-)
-chain = sample(model_pmmh, MH(proposal...), 5000; init_params=(...))
+# Manual covariance matrix (6 parameters, so 6x6 matrix)
+# Diagonal entries are proposal variances, off-diagonal are covariances
+Σ = [4.0  0.0  0.0  0.0  0.0  0.0;   # R_0
+     0.0  0.04 0.0  0.0  0.0  0.0;   # D_lat
+     0.0  0.0  0.25 0.0  0.0  0.0;   # D_inf
+     0.0  0.0  0.0  0.01 0.0  0.0;   # α
+     0.0  0.0  0.0  0.0  4.0  0.0;   # D_imm
+     0.0  0.0  0.0  0.0  0.0  0.01]  # ρ
+
+chain = sample(model_pmmh, MH(Σ), 5000)
 ```
 
-In practice, RAM is easier and usually performs better because it learns the correlations between parameters automatically.
+This requires choosing proposal variances for each parameter - too large gives low acceptance, too small gives slow exploration. In practice, RAM is easier because it learns the covariance structure automatically.
 
 ## Particle Gibbs {#particle-gibbs}
 
