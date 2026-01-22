@@ -458,7 +458,7 @@ The speed comparisons above might seem academic for a single analysis - who care
 
 **Sensitivity analyses**: Checking how results change with different priors, data subsets, or model variants requires many inference runs. VI makes comprehensive sensitivity analysis practical.
 
-**Ensemble forecasting**: Combining predictions from multiple models improves forecast accuracy. With VI, you can feasibly run 10-50 model variants; with MCMC, you might be limited to 2-3.
+**Ensemble forecasting**: Combining predictions from multiple models improves forecast accuracy. VI's speed makes it practical to run many model variants.
 
 The practical recommendation: validate VI against MCMC once (to ensure they give similar results for your problem), then use VI for operational workflows where speed matters.
 
