@@ -400,21 +400,19 @@ function SSMProblems.distribution(obs::PoissonObservation, step::Integer,
 end
 ```
 
-The key design choices:
-
-- The state vector is [S, E, I, T1, T2, T3, T4, L, daily_inc] - the 9th element tracks daily incidence for the observation process
-- `SEIT4LDynamics` wraps the Gillespie simulator, calling `gillespie_step` each day
-- `PoissonObservation` assumes observed cases follow Poisson(ρ × true_incidence)
-
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 
 - `SSMProblems.LatentDynamics` - abstract type for state transition models. Implement `simulate` to define how the state evolves.
 - `SSMProblems.ObservationProcess` - abstract type for observation models. Implement `distribution` to return a `Distributions.jl` distribution.
 - `AbstractRNG` parameter allows reproducible random number generation across particles.
-
-See `src/seit4l_particle_filter.jl` for the full implementation.
 :::
+
+The key design choices:
+
+- The state vector is [S, E, I, T1, T2, T3, T4, L, daily_inc] - the 9th element tracks daily incidence for the observation process
+- `SEIT4LDynamics` wraps the Gillespie simulator, calling `gillespie_step` each day
+- `PoissonObservation` assumes observed cases follow Poisson(ρ × true_incidence)
 
 ## Running the bootstrap particle filter
 
