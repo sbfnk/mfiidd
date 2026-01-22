@@ -52,39 +52,43 @@ The course has 11 sessions organised into three tiers. Work through them in orde
 
 ```{mermaid}
 %%| fig-width: 8
+%%{init: {'theme': 'neutral'}}%%
 flowchart TB
-    subgraph core["CORE SESSIONS (~10-12 hours)"]
+    subgraph core["CORE SESSIONS"]
         direction LR
-        A["Getting Started<br/><small>1-1.5 hr</small>"] --> B["Introduction<br/><small>2-2.5 hr</small>"]
-        B --> C["MCMC<br/><small>2.5-3 hr</small>"]
-        C --> D["Diagnostics<br/><small>1.5-2 hr</small>"]
-        D --> E["Model Checking<br/><small>1.5-2 hr</small>"]
+        A[Getting Started] --> B[Introduction]
+        B --> C[MCMC]
+        C --> D[Diagnostics]
+        D --> E[Model Checking]
     end
 
-    subgraph stoch["STOCHASTIC MODELS (~5-6 hours)"]
+    subgraph stoch["STOCHASTIC MODELS"]
         direction LR
-        F["SEITL Interlude<br/><small>2-2.5 hr</small>"] --> G["Particle Filters<br/><small>1-1.5 hr</small>"]
-        G --> H["Particle MCMC<br/><small>1.5-2 hr</small>"]
+        F[SEITL Interlude] --> G[Particle Filters]
+        G --> H[Particle MCMC]
     end
 
-    subgraph adv["ADVANCED SESSIONS (~5-7 hours)"]
+    subgraph adv["ADVANCED SESSIONS"]
         direction LR
-        I["Observation Models<br/><small>2-2.5 hr</small>"]
-        J["Variational Inference<br/><small>1.5-2 hr</small>"]
-        K["Universal DEs<br/><small>2-3 hr</small>"]
+        I[Observation Models]
+        J[Variational Inference]
+        K[Universal DEs]
     end
 
     core --> stoch
     stoch --> adv
-    C -.-> J
-    B -.-> K
+    C -.->|skip stochastic| J
+    B -.->|independent| K
 ```
 
-::: {.callout-note appearance="simple"}
-**Stochastic sessions** involve stochastic simulation - expect different results each run. This is normal, not a bug.
+| Tier | Sessions | Time |
+|------|----------|------|
+| **Core** | Getting Started → Introduction → MCMC → Diagnostics → Model Checking | 10-12 hrs |
+| **Stochastic** | SEITL Interlude → Particle Filters → Particle MCMC | 5-6 hrs |
+| **Advanced** | Observation Models, Variational Inference, Universal DEs (pick any) | 2-3 hrs each |
 
-**Advanced sessions** are independent of each other. Choose based on your interests. Variational Inference requires only MCMC (can skip stochastic track). Universal DEs requires only Introduction.
-:::
+> **Stochastic sessions** involve stochastic simulation - expect different results each run. This is normal.
+> **Advanced sessions** are independent. VI requires only MCMC (can skip stochastic). UDEs requires only Introduction.
 
 **If you only have limited time:**
 
