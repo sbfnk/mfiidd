@@ -471,11 +471,11 @@ Variational inference reframes Bayesian inference as optimisation: find a simple
 VI is not a replacement for MCMC - it's a complementary tool. Use VI for rapid exploration and real-time systems; validate against MCMC when accuracy matters.
 
 ::: {.callout-tip title="Learning points"}
-- Variational inference turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior
-- Mean-field VI assumes parameter independence - very fast, but misses correlations that are common in epidemic models
-- Full-rank VI captures correlations using a full covariance matrix - good balance between speed and accuracy
-- ELBO (Evidence Lower Bound) is the objective function - higher values mean better approximations
-- Speed vs accuracy trade-off: VI is much faster than MCMC but provides approximations; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
+- **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior
+- **Mean-field VI** assumes parameter independence - very fast, but misses correlations that are common in epidemic models
+- **Full-rank VI** captures correlations using a full covariance matrix - good balance between speed and accuracy
+- **ELBO (Evidence Lower Bound)** is the objective function - higher values mean better approximations
+- **Speed vs accuracy trade-off**: VI is much faster than MCMC but provides approximations; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
 :::
 
 VI is not a replacement for MCMC - it's a complementary tool that enables applications where MCMC is too slow!

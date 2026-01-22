@@ -764,12 +764,12 @@ The *likelihood* quantifies how well parameters explain observed data. Our Poiss
 
 ::: {.callout-tip title="Learning points"}
 
-- Priors express beliefs before seeing data - explore them through simulation (prior predictive checking)
-- Likelihood quantifies how well parameters explain observed data, given an observation model
-- Posterior combines prior and likelihood via Bayes' theorem: $p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$
-- Observation models encode assumptions (e.g., Poisson noise, conditional independence) - think critically about when they're violated
-- Grid search can explore posteriors but doesn't scale beyond a few parameters
-- Posterior predictive checking validates whether fitted models generate realistic data
+- **Priors** express beliefs before seeing data - explore them through simulation (prior predictive checking)
+- **Likelihood** quantifies how well parameters explain observed data, given an observation model
+- **Posterior** combines prior and likelihood via Bayes' theorem: $p(\theta|\text{data}) \propto p(\text{data}|\theta) \times p(\theta)$
+- **Observation models** encode assumptions (e.g., Poisson noise, conditional independence) - think critically about when they're violated
+- **Grid search** can explore posteriors but doesn't scale beyond a few parameters
+- **Posterior predictive checking** validates whether fitted models generate realistic data
 
 :::
 
