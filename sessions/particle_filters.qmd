@@ -511,9 +511,6 @@ Based on the calibration plots above:
 1. What particle count achieves SD of log-likelihood between 1 and 3?
 2. What's the trade-off between 128 and 256 particles for this problem?
 3. Why might you want to use more particles than the minimum needed?
-
-Write down your choice and reasoning.
-
 :::
 
 ::: {.callout-warning title="Exercise: Sensitivity to parameters"}
