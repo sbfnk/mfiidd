@@ -184,12 +184,7 @@ end
 
 Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable.
 
-::: {.callout-note}
-## What to expect
-The short chain below will show poor mixing. With only 500 samples, the adaptive algorithm hasn't had enough iterations to learn the posterior shape. We show this to illustrate why PMMH requires long runs.
-:::
-
-A short chain first shows what happens:
+Let's start with a short chain to see the challenges:
 
 ```{julia}
 # Define model with 256 particles
@@ -230,7 +225,7 @@ Two factors make PMMH challenging:
 
 2. **Correlated parameters**: Epidemic parameters are often highly correlated (e.g., higher R₀ can be compensated by shorter D_inf). Standard MH proposals that change one parameter at a time struggle with this.
 
-One solution is *Robust Adaptive Metropolis (RAM)* which automatically learns the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). But RAM needs many samples to learn the covariance - typically 100,000+ iterations.
+One solution is *Robust Adaptive Metropolis (RAM)* which automatically learns the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). But RAM needs many samples to learn the covariance - often requiring long chains.
 
 ::: {.callout-note}
 ## Pre-computed chains
