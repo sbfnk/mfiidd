@@ -468,8 +468,8 @@ The model has the following transitions:
 | T → S | $(1-\alpha) \tau T$ | T-1, S+1 |
 | T → L | $\alpha \tau T$ | T-1, L+1 |
 
-::: {.callout-note}
-## Implementation: Gillespie algorithm
+::: {.callout-note collapse="true"}
+## Implementation: Gillespie algorithm (click to expand)
 
 ```{julia}
 """
@@ -550,6 +550,18 @@ function simulate_seitl_stochastic(θ, init_state, times)
     return results
 end
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- **Stoichiometry matrix**: Each row defines how compartments change for one transition type (e.g., `[-1, 1, 0, 0, 0]` means S decreases by 1 and E increases by 1 for infection)
+- **`rates(s)`**: Computes the current rate of each transition based on compartment sizes
+- **`gillespie_step!`**: Simulates one day by repeatedly: (1) drawing an exponential waiting time, (2) selecting which event occurs proportional to rates, (3) applying the state change
+- **`randexp() / total_rate`**: Waiting time to next event follows Exp(total_rate)
+- **Event selection**: Cumulative sum trick to select event with probability proportional to its rate
+- **`event == 2`**: E→I transitions are counted as new cases (daily incidence)
+:::
+
 :::
 
 ```{julia}

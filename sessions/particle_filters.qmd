@@ -144,7 +144,7 @@ init_state = Dict(
 
 ## The Gillespie simulator
 
-The `gillespie_step` function simulates the SEIT4L model for one day using the Gillespie algorithm:
+The particle filter needs to simulate many stochastic trajectories. We use the Gillespie algorithm introduced in the [SEITL session](seitl.qmd), adapted here for the SEIT4L model with its four T compartments:
 
 ```{julia}
 #| eval: false
@@ -408,7 +408,7 @@ end
 - `AbstractRNG` parameter allows reproducible random number generation across particles.
 :::
 
-The key design choices:
+How the pieces fit together:
 
 - The state vector is [S, E, I, T1, T2, T3, T4, L, daily_inc] - the 9th element tracks daily incidence for the observation process
 - `SEIT4LDynamics` wraps the Gillespie simulator, calling `gillespie_step` each day
