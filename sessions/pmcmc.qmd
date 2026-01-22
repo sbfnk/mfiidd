@@ -211,12 +211,11 @@ plot(chain_short)
 ```
 
 ::: {.callout-warning}
-## Notice the poor mixing features
+## Notice the poor mixing
 Look carefully at the trace plots above. You should see:
 
 - **Flat stretches (plateaus)**: The chain gets stuck at the same value for many iterations
 - **Slow wandering**: Instead of rapidly exploring, the chain drifts gradually
-- **Different behaviour across parameters**: Some parameters may mix better than others
 
 This is *expected* for a short PMMH chain. The poor mixing illustrates why PMMH requires many more iterations than standard MCMC.
 :::
