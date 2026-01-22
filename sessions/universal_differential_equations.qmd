@@ -7,19 +7,12 @@ order: 10
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-3 hours | **Advanced session**
-:::
-
-::: {.callout-note}
-## Do this session if...
-- You have complex dynamics that simple parametric models can't capture
-- You want to discover unknown mechanisms from data (not just fit known models)
-- You're comfortable with neural networks and want to see how they combine with ODEs
-
-**Prerequisites**: Familiarity with basic neural networks and automatic differentiation. This session is largely self-contained but assumes you understand the SIR model from earlier sessions.
+**Estimated time**: 2-3 hours | **Advanced session** | **Requires**: Introduction only (independent track)
 :::
 
 # Introduction
+
+> **Do this session if** you want to discover unknown mechanisms from data using neural networks, or you have dynamics that simple parametric models can't capture. Assumes basic familiarity with neural networks.
 
 ## From model comparison to model discovery
 

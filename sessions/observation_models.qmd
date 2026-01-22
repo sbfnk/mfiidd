@@ -7,19 +7,12 @@ order: 8
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-2.5 hours | **Advanced session**
-:::
-
-::: {.callout-note}
-## Do this session if...
-- You want to understand *why* we use Poisson or Negative Binomial likelihoods (not just *how*)
-- You're interested in Approximate Bayesian Computation (ABC) as an alternative to likelihood-based inference
-- You want to think critically about the assumptions underlying statistical inference
-
-**Prerequisites**: Complete the core sessions through Particle MCMC. This session is conceptual and doesn't build on specific code from other advanced sessions.
+**Estimated time**: 2-2.5 hours | **Advanced session** | **Requires**: Particle MCMC
 :::
 
 # Introduction
+
+> **Do this session if** you want to understand *why* we use Poisson or Negative Binomial likelihoods (not just how), or you're curious about ABC as an alternative to likelihood-based inference.
 
 So far in this course, we've used *likelihood functions* to connect our mathematical models to observed data. For example, we've assumed that observed case counts follow a Poisson distribution:
 

@@ -11,10 +11,7 @@ order: 6
 
 # Introduction
 
-::: {.callout-note appearance="simple"}
-## Where we are in the course
-You've now completed the core inference workflow: defining models (Introduction), running MCMC (MCMC session), checking convergence (Diagnostics), and validating model fit (Model Checking). You've also seen the SEITL model structure. This session introduces particle filters - the key technique for fitting *stochastic* models where the same parameters can produce different trajectories.
-:::
+> **Where we are**: You've completed the core workflow (Introduction → MCMC → Diagnostics → Model Checking) and seen the SEITL model. Now we tackle stochastic models, where the same parameters produce different trajectories each run.
 
 In the previous sessions, we fitted deterministic models using MCMC. For deterministic models, computing the likelihood is straightforward: given parameters, we solve the ODEs to get a trajectory, then evaluate the probability of the data given that trajectory.
 
