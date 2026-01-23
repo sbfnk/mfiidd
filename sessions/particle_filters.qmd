@@ -263,11 +263,14 @@ for i in 1:n_particles
     plot!(p, 0:5, trajectories[i], alpha=0.4, color=:steelblue, linewidth=1, label="")
 end
 
-# All observations - past in gray, current in red
-scatter!(p, flu_tdc.time[1:5], flu_tdc.obs[1:5],
-         label="Past observations", markersize=4, color=:gray)
+# All observations - earlier in gray, previous (day 4) in red, current target (day 5) as open circle
+scatter!(p, flu_tdc.time[1:4], flu_tdc.obs[1:4],
+         label="Earlier observations", markersize=4, color=:gray)
+scatter!(p, [flu_tdc.time[5]], [flu_tdc.obs[5]],
+         label="Previous observation", markersize=7, color=:red)
 scatter!(p, [flu_tdc.time[6]], [flu_tdc.obs[6]],
-         label="Current observation", markersize=7, color=:red)
+         label="Current target", markersize=7, markershape=:circle,
+         markerstrokecolor=:red, markerstrokewidth=2, color=:white)
 
 plot!(p, legend=:topright)
 ```
@@ -280,22 +283,22 @@ Particles that predict incidence close to the observed value get higher weights:
 
 ```{julia}
 # Compute weights (Poisson likelihood)
-log_weights = [logpdf(Poisson(max(θ_example[:ρ] * pred, 0.01)), day_5_observed)
-               for pred in day_5_predictions]
+log_w = [logpdf(Poisson(max(θ_example[:ρ] * pred, 0.01)), day_5_observed)
+         for pred in day_5_predictions]
 
 # Normalise
-weights = exp.(log_weights .- maximum(log_weights))
-weights ./= sum(weights)
+particle_weights = exp.(log_w .- maximum(log_w))
+particle_weights ./= sum(particle_weights)
 
 # Visualise
-p = bar(1:n_particles, weights,
+p = bar(1:n_particles, particle_weights,
         xlabel="Particle", ylabel="Weight",
         title="Particle Weights at Day 5 (obs = $day_5_observed)",
         legend=false, alpha=0.7)
 
 # Add predictions as labels
 for i in 1:n_particles
-    annotate!(p, i, weights[i] + 0.02, text("$(Int(day_5_predictions[i]))", 7))
+    annotate!(p, i, particle_weights[i] + 0.02, text("$(Int(day_5_predictions[i]))", 7))
 end
 
 plot!(p)
@@ -309,11 +312,11 @@ When weights become too uneven, we resample - drawing particles with replacement
 
 ```{julia}
 # Resample particles
-n_effective = 1.0 / sum(weights.^2)  # Effective sample size
+n_effective = 1.0 / sum(particle_weights.^2)  # Effective sample size
 println("Effective sample size: $(round(n_effective, digits=1)) out of $n_particles")
 
 # Draw new particles
-resampled_idx = sample(1:n_particles, Weights(weights), n_particles)
+resampled_idx = sample(1:n_particles, Weights(particle_weights), n_particles)
 
 # Count how many times each original particle was selected
 counts = [count(==(i), resampled_idx) for i in 1:n_particles]
