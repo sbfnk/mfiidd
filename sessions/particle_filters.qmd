@@ -261,13 +261,18 @@ for i in 1:n_particles
     plot!(p, 0:10, trajectories[i], alpha=0.4, color=:lightblue, label="")
 end
 
-scatter!(p, flu_tdc.time[1:11], flu_tdc.obs[1:11],
-         label="Observed", markersize=5, color=:red)
+# Past observations (already processed) in gray
+scatter!(p, flu_tdc.time[1:10], flu_tdc.obs[1:10],
+         label="Past observations", markersize=4, color=:gray, alpha=0.5)
+
+# Current observation (used for weighting) in red
+scatter!(p, [flu_tdc.time[11]], [flu_tdc.obs[11]],
+         label="Current observation", markersize=6, color=:red)
 
 plot!(p, legend=:topright)
 ```
 
-Each blue line is one "particle" - a possible trajectory. The particles spread out because each follows different random events. The observation (red) will be used to weight the particles.
+Each blue line is one "particle" - a possible trajectory. The particles spread out because each follows different random events. The current observation (red) will be used to weight the particles; past observations (gray) have already been processed.
 
 ## The weighting step
 
