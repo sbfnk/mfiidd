@@ -155,13 +155,13 @@ PMMH model for SEIT4L inference.
 Uses our calibrated particle filter for likelihood estimation.
 """
 @model function pmmh_seit4l(obs, n_particles)
-    # Priors
-    R_0 ~ Uniform(1.0, 50.0)
-    D_lat ~ Uniform(0.1, 10.0)
-    D_inf ~ Uniform(0.1, 15.0)
-    α ~ Uniform(0.0, 1.0)
-    D_imm ~ Uniform(1.0, 50.0)
-    ρ ~ Uniform(0.0, 1.0)
+    # Weakly informative priors
+    R_0 ~ truncated(Normal(3.0, 2.0), lower=1.0)
+    D_lat ~ truncated(Normal(2.0, 1.0), lower=0.5)
+    D_inf ~ truncated(Normal(3.0, 2.0), lower=0.5)
+    α ~ Beta(2, 2)
+    D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
+    ρ ~ Beta(2, 2)
 
     # Create parameter dictionary
     θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
@@ -293,13 +293,13 @@ function seit4l_ode!(du, u, p, t)
 end
 
 @model function seit4l_deterministic_model(obs, init_state, times)
-    # Priors
-    R_0 ~ Uniform(1.0, 50.0)
-    D_lat ~ Uniform(0.1, 10.0)
-    D_inf ~ Uniform(0.1, 15.0)
-    α ~ Uniform(0.0, 1.0)
-    D_imm ~ Uniform(1.0, 50.0)
-    ρ ~ Uniform(0.0, 1.0)
+    # Weakly informative priors
+    R_0 ~ truncated(Normal(3.0, 2.0), lower=1.0)
+    D_lat ~ truncated(Normal(2.0, 1.0), lower=0.5)
+    D_inf ~ truncated(Normal(3.0, 2.0), lower=0.5)
+    α ~ Beta(2, 2)
+    D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
+    ρ ~ Beta(2, 2)
 
     # Solve ODE
     params = [R_0, D_lat, D_inf, α, D_imm]
