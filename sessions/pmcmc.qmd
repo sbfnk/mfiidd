@@ -217,13 +217,9 @@ With only 500 samples, the chain hasn't had time to properly explore the posteri
 
 ## Why is PMMH mixing difficult?
 
-Two factors make PMMH challenging:
+The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values. This noise means proposals that would be accepted with an exact likelihood may be rejected (and vice versa), slowing exploration.
 
-1. **Noisy likelihood**: The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values.
-
-2. **Correlated parameters**: Epidemic parameters are often highly correlated (e.g., higher R₀ can be compensated by shorter D_inf). Standard MH proposals that change one parameter at a time struggle with this.
-
-One solution is *Robust Adaptive Metropolis (RAM)* which automatically learns the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). But RAM needs many samples to learn the covariance - often requiring long chains.
+*Robust Adaptive Metropolis (RAM)* helps by automatically learning the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)).
 
 ::: {.callout-note}
 ## Pre-computed chains
