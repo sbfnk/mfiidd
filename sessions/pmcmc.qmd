@@ -212,7 +212,7 @@ Look carefully at the trace plots above. You should see:
 - **Flat stretches (plateaus)**: The chain gets stuck at the same value for many iterations
 - **Slow wandering**: Instead of rapidly exploring, the chain drifts gradually
 
-This is *expected* for a short PMMH chain. The poor mixing illustrates why PMMH requires many more iterations than standard MCMC.
+This is common for short PMMH chains, though mixing behaviour depends on the specific problem.
 :::
 
 With only 500 samples, the chain hasn't had time to properly explore the posterior.
