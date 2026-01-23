@@ -47,6 +47,7 @@ You will learn to:
 using Pkg
 # Activate the project root (one level up from sessions/)
 project_root = joinpath(@__DIR__, "..")
+ENV["GKSwstype"] = "100"  # Suppress plot windows during render
 Pkg.activate(project_root)
 ```
 

@@ -66,6 +66,7 @@ By the end of this session, you will:
 
 using Pkg
 project_root = joinpath(@__DIR__, "..")
+ENV["GKSwstype"] = "100"  # Suppress plot windows during render
 Pkg.activate(project_root)
 ```
 
