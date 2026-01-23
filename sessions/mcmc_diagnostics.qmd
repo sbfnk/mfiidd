@@ -685,8 +685,7 @@ Common problems have standard solutions: poor mixing (reparameterise or use NUTS
 - **NUTS is usually better** than basic Metropolis-Hastings
 - **When in doubt, run longer** and use more chains
 
-Remember: MCMC is a powerful tool, but it only works if you use it correctly.
-Diagnostics aren't optional - they're essential for trustworthy Bayesian analysis.
+MCMC only works if you use it correctly. Diagnostics aren't optional.
 
 :::
 

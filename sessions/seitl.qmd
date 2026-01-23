@@ -875,7 +875,7 @@ We explored the *SEITL model* - an extension of the classic SIR that adds latent
 
 We implemented two variants: *SEITL* with exponential waiting times (memoryless), and *SEIT4L* with Erlang-distributed temporary immunity (the "4" indicating 4 sub-compartments). The Erlang version is more biologically plausible because immunity loss isn't truly memoryless - individuals recently recovered are unlikely to immediately lose immunity.
 
-The key computational choice was *deterministic vs stochastic* simulation. Deterministic ODEs are fast and smooth but ignore demographic stochasticity. Stochastic simulation (Gillespie algorithm) captures the random nature of individual events, crucial when population sizes are small. We saw how the same parameters can generate very different epidemic trajectories in the stochastic version.
+The main computational choice was *deterministic vs stochastic* simulation. Deterministic ODEs are fast and smooth but ignore demographic stochasticity. Stochastic simulation (Gillespie algorithm) captures the random nature of individual events, which matters when population sizes are small. We saw how the same parameters can generate very different epidemic trajectories in the stochastic version.
 
 ::: {.callout-tip title="Learning points"}
 

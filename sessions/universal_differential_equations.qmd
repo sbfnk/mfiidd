@@ -507,7 +507,7 @@ If results vary wildly (very different final losses or learned patterns), the mo
 
 # When to use UDEs
 
-UDEs are powerful but not always appropriate. Here's guidance on when they add value.
+UDEs aren't always appropriate. Here's when they add value.
 
 ## Use UDEs when:
 
