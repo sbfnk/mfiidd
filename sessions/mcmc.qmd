@@ -262,7 +262,7 @@ MCMC doesn't "know" about Bayesian inference; it just knows how to sample from d
 
 ## Understanding proposal distributions
 
-The choice of proposal standard deviation is crucial:
+The choice of proposal standard deviation matters:
 
 ```{julia}
 # Test different proposal standard deviations
@@ -652,7 +652,7 @@ corner_plot = corner(chain_nuts, [:R_0, :D_inf])
 quantile(chain_nuts[:R_0], [0.025, 0.25, 0.5, 0.75, 0.975])
 ```
 
-These summaries give us point estimates and uncertainty, but there's a crucial question: **should we trust these results?** The next session (MCMC Diagnostics) teaches you how to check whether your chains converged and whether your model makes sense.
+These summaries give us point estimates and uncertainty, but should we trust these results? The next session (MCMC Diagnostics) teaches you how to check whether your chains converged and whether your model makes sense.
 
 # Summary
 
