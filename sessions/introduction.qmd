@@ -356,7 +356,7 @@ Priors determine what kinds of epidemics our model considers plausible before se
 1. Use domain knowledge: What do published studies say about plausible parameter ranges? For infectious diseases, systematic reviews often provide estimates.
 2. Avoid impossible values: If a parameter must be positive, use a distribution with positive support (Gamma, LogNormal) rather than truncating a Normal.
 3. Check with prior predictive simulation: Do samples from your priors generate plausible epidemic trajectories? If not, your priors may be too vague or misspecified.
-4. Weakly informative is often better than flat: Completely flat priors can cause computational problems and may place substantial probability on implausible values.
+4. Bounded uniform priors are fine when you have clear parameter limits; unbounded flat priors can cause computational problems.
 5. Document your choices: Record why you chose each prior - this helps with reproducibility and peer review.
 :::
 
