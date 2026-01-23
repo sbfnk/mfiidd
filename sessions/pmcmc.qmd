@@ -134,8 +134,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 1. Implemented the SEIT4L Gillespie simulator (`gillespie_step`)
 2. Defined the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface (`SEIT4LDynamics`, `PoissonObservation`, `SEIT4LInitial`)
-3. Created `run_particle_filter(θ, obs, n_particles)` to estimate log-likelihoods
-4. Calibrated particle count: 128-256 particles gave SD of log-likelihood between 1 and 3
+3. Calibrated particle count: 128-256 particles gave SD of log-likelihood between 1 and 3
 
 All these components were loaded from `src/seit4l_particle_filter.jl` in the setup above. Now we'll use them for full Bayesian inference.
 
@@ -146,14 +145,14 @@ Now that we have a calibrated particle filter, we can use it for inference. We'l
 PMMH uses the particle filter to estimate the likelihood, then does standard Metropolis-Hastings on the parameters. In Turing.jl, we implement this by:
 
 1. Defining priors as usual with `~`
-2. Running our particle filter to get the log-likelihood
+2. Building a state-space model and running `GeneralisedFilters.filter()` to get the log-likelihood
 3. Adding it to the model's log-probability with `@addlogprob!`
 4. Sampling with `MH()` with custom random-walk proposals
 
 ```{julia}
 """
 PMMH model for SEIT4L inference.
-Uses our calibrated particle filter for likelihood estimation.
+Uses GeneralisedFilters for likelihood estimation.
 """
 @model function pmmh_seit4l(obs, n_particles)
     # Weakly informative priors
@@ -168,8 +167,14 @@ Uses our calibrated particle filter for likelihood estimation.
     θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
              :α => α, :D_imm => D_imm, :ρ => ρ)
 
+    # Build state-space model
+    init_state = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]
+    ssm = StateSpaceModel(SEIT4LInitial(init_state),
+                          SEIT4LDynamics(θ),
+                          PoissonObservation(θ[:ρ]))
+
     # Run particle filter to estimate log-likelihood
-    log_lik = run_particle_filter(θ, obs, n_particles)
+    _, log_lik = GeneralisedFilters.filter(Random.default_rng(), ssm, BF(n_particles), obs)
 
     # Add log-likelihood to model (priors are already included via ~)
     Turing.@addlogprob! log_lik
@@ -178,9 +183,10 @@ end
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds a value to the model's log-probability. This lets us use our own likelihood calculation (from the particle filter) instead of Turing's automatic likelihood. The priors specified with `~` still contribute to the log-probability automatically.
-- `run_particle_filter(θ, obs, n_particles)` - our calibrated particle filter from the previous session.
-- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. With 128 particles, we got SD around 1 at the calibration parameters, but variance can be higher elsewhere in parameter space. Using 256 particles gives more consistent acceptance rates across the posterior.
+- **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in `src/seit4l_particle_filter.jl`.
+- **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood.
+- [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds the particle filter's log-likelihood estimate to the model. The priors specified with `~` still contribute automatically. This is the [recommended pattern](https://github.com/TuringLang/Turing.jl/issues/2428) for integrating external likelihood estimators with Turing.
+- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation.
 :::
 
 Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable.
