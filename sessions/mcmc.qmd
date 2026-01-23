@@ -385,9 +385,9 @@ This is the same structure we've been using manually - priors, simulation, and l
 ```{julia}
 # Define our SIR model in Turing.jl
 @model function sir_model(obs, init_state, times)
-    # Priors (same as our manual approach)
-    R_0 ~ Uniform(1.0, 20.0)
-    D_inf ~ Uniform(1.0, 14.0)
+    # Weakly informative priors
+    R_0 ~ truncated(Normal(2.5, 1.5), lower=1.0)
+    D_inf ~ truncated(Normal(5.0, 3.0), lower=0.5)
 
     # Simulate ODE (same as manual approach)
     prob = ODEProblem(sir_ode!, init_state, (times[1], times[end]), [R_0, D_inf])
