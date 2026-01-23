@@ -233,55 +233,61 @@ The particle filter approximates the likelihood integral by:
 We can visualise this with our SEIT4L model:
 
 ```{julia}
-# Propagate 20 particles for the first 10 days
+# Propagate 20 particles from day 4 to day 5
 n_particles = 20
-particles = [Float64[init_state[:S], init_state[:E], init_state[:I],
-                     init_state[:T1], init_state[:T2], init_state[:T3],
-                     init_state[:T4], init_state[:L]] for _ in 1:n_particles]
 
-# Store trajectories
-trajectories = [zeros(11) for _ in 1:n_particles]
-for i in 1:n_particles
-    trajectories[i][1] = 0  # Day 0: no incidence yet
-end
-
-# Simulate 10 days
-for day in 1:10
-    for i in 1:n_particles
-        particles[i], inc = gillespie_step(Random.default_rng(), particles[i], θ_example)
-        trajectories[i][day+1] = inc
+# Start particles from a realistic state at day 4
+# (run forward from initial state to get there)
+particles_day4 = []
+for _ in 1:n_particles
+    state = Float64[init_state[:S], init_state[:E], init_state[:I],
+                    init_state[:T1], init_state[:T2], init_state[:T3],
+                    init_state[:T4], init_state[:L]]
+    for day in 1:4
+        state, _ = gillespie_step(Random.default_rng(), state, θ_example)
     end
+    push!(particles_day4, copy(state))
 end
 
-# Plot
+# Now propagate one more day and record the incidence
+day_5_predictions = Float64[]
+for i in 1:n_particles
+    _, inc = gillespie_step(Random.default_rng(), particles_day4[i], θ_example)
+    push!(day_5_predictions, inc)
+end
+
+# Plot: show propagation from day 4 to day 5
 p = plot(title="Particle Filter: Propagation Step",
          xlabel="Time (days)", ylabel="Daily incidence")
 
+# Draw lines from previous observation to predicted incidence
+day_4_observed = flu_tdc.obs[5]  # Observation at day 4
 for i in 1:n_particles
-    plot!(p, 0:10, trajectories[i], alpha=0.4, color=:lightblue, label="")
+    plot!(p, [4, 5], [day_4_observed, day_5_predictions[i]],
+          alpha=0.5, color=:steelblue, linewidth=1.5, label="")
 end
 
-# Past observations (already processed) in gray
-scatter!(p, flu_tdc.time[1:10], flu_tdc.obs[1:10],
-         label="Past observations", markersize=4, color=:gray, alpha=0.5)
+# Previous observation (gray) - where particles started
+scatter!(p, [4], [day_4_observed],
+         label="Previous observation", markersize=6, color=:gray)
 
-# Current observation (used for weighting) in red
-scatter!(p, [flu_tdc.time[11]], [flu_tdc.obs[11]],
-         label="Current observation", markersize=6, color=:red)
+# Current observation (red) - used for weighting
+day_5_observed = flu_tdc.obs[6]
+scatter!(p, [5], [day_5_observed],
+         label="Current observation", markersize=8, color=:red)
 
 plot!(p, legend=:topright)
 ```
 
-Each blue line is one "particle" - a possible trajectory. The particles spread out because each follows different random events. The current observation (red) will be used to weight the particles; past observations (gray) have already been processed.
+Each blue line shows one particle's predicted incidence for day 5. The particles spread out because each follows different random events. The current observation (red) will be used to weight the particles in the next step.
 
 ## The weighting step
 
 Particles that predict incidence close to the observed value get higher weights:
 
 ```{julia}
-# Weight particles at day 5 based on how well they match the observation
-day_5_predictions = [trajectories[i][6] for i in 1:n_particles]
-day_5_observed = flu_tdc.obs[6]
+# Weight particles based on how well they match the observation
+# (day_5_predictions and day_5_observed defined in previous code block)
 
 # Compute weights (Poisson likelihood)
 log_weights = [logpdf(Poisson(max(θ_example[:ρ] * pred, 0.01)), day_5_observed)
