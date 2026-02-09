@@ -78,16 +78,3 @@ If you prefer R, the conceptual material is still valuable, but be aware that so
 
 For particle-based methods, [odin](https://mrc-ide.github.io/odin/) with [dust](https://mrc-ide.github.io/dust/) and [mcstate](https://mrc-ide.github.io/mcstate/) is the closest R equivalent.
 For gradient-based MCMC (NUTS) or variational inference, you'd need to use [Stan](https://mc-stan.org/) via its R interface.
-
-# Getting help
-
-During the course:
-
-- Ask your instructor or teaching assistants
-- Use the course chat/forum if available
-
-For Julia-specific questions:
-
-- [Julia Discourse](https://discourse.julialang.org/) - friendly community forum
-- [Julia Slack](https://julialang.org/slack/) - real-time chat
-- [Turing.jl documentation](https://turinglang.org/stable/) - for probabilistic programming questions

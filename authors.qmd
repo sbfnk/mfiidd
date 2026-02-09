@@ -1,0 +1,32 @@
+---
+title: "Authors"
+---
+
+The MFIIDD course was developed by the **MFIIDD course contributors**:
+
+- [Sebastian Funk](https://github.com/sbfnk)
+
+## How to cite
+
+If you use materials from this course in your work, please cite:
+
+> MFIIDD course contributors (2025).
+> MFIIDD: Model Fitting and Inference for Infectious Disease Dynamics.
+> URL: <https://sbfnk.github.io/mfiidd.julia/>
+
+## Licence
+
+All course materials are provided under the [MIT Licence](https://opensource.org/licenses/MIT), making them freely available for teaching, learning, and adaptation.
+
+## Contributing
+
+We welcome contributions to improve and expand the course materials.
+You can:
+
+- [Report issues or suggest improvements](https://github.com/sbfnk/mfiidd.julia/issues)
+- [Join discussions](https://github.com/sbfnk/mfiidd.julia/discussions)
+- [Submit pull requests](https://github.com/sbfnk/mfiidd.julia/pulls)
+
+## Acknowledgements
+
+We thank all participants who have helped improve these materials through feedback, bug reports, and code contributions.

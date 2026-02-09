@@ -1,0 +1,33 @@
+---
+title: "Further Reading"
+---
+
+## Bayesian inference
+
+- Gelman, A. et al. (2013). *Bayesian Data Analysis* (3rd ed.). Chapman & Hall/CRC.
+  The standard reference for Bayesian methods.
+- McElreath, R. (2020). *Statistical Rethinking* (2nd ed.). CRC Press.
+  An accessible introduction to Bayesian modelling with a focus on building intuition.
+
+## Infectious disease modelling
+
+- Keeling, M.J. & Rohani, P. (2008). *Modeling Infectious Diseases in Humans and Animals*. Princeton University Press.
+  Comprehensive treatment of compartmental models and their analysis.
+- Bjørnstad, O.N. (2018). *Epidemics: Models and Data Using R*. Springer.
+  Practical introduction to fitting epidemic models to data.
+
+## Julia
+
+- [Julia manual](https://docs.julialang.org/en/v1/) — official language documentation
+- [Think Julia](https://benlauwens.github.io/ThinkJulia.jl/latest/book.html) — introduction to programming using Julia
+
+## Probabilistic programming
+
+- [Turing.jl tutorials](https://turinglang.org/stable/tutorials/) — worked examples from simple to advanced
+- van de Meent, J.-W. et al. (2018). [An Introduction to Probabilistic Programming](https://arxiv.org/abs/1809.10756). arXiv:1809.10756.
+
+## MCMC and computational methods
+
+- Brooks, S. et al. (2011). *Handbook of Markov Chain Monte Carlo*. Chapman & Hall/CRC.
+- Betancourt, M. (2017). [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434). arXiv:1701.02434.
+  Excellent explanation of the NUTS sampler used throughout this course.

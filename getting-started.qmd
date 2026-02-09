@@ -2,7 +2,6 @@
 title: "Getting Started"
 format: html
 engine: julia
-order: 0
 ---
 
 ::: {.callout-note appearance="simple"}
@@ -277,4 +276,4 @@ Before starting, verify you can:
 - [ ] Run a basic MCMC sampler (the coin flip example above)
 
 If all boxes are ticked, you're ready.
-Head to the [Course Structure](structure.qmd) for an overview, or jump straight to the [Introduction](introduction.qmd).
+Head to the [Course Structure](sessions/structure.qmd) for an overview, or jump straight to the [Introduction](sessions/introduction.qmd).
