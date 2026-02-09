@@ -13,8 +13,8 @@ title: "Further Reading"
 
 - Keeling, M.J. & Rohani, P. (2008). *Modeling Infectious Diseases in Humans and Animals*. Princeton University Press.
   Comprehensive treatment of compartmental models and their analysis.
-- Bjørnstad, O.N. (2018). *Epidemics: Models and Data Using R*. Springer.
-  Practical introduction to fitting epidemic models to data.
+- Vynnycky, E. & White, R.G. (2010). *An Introduction to Infectious Disease Modelling*. Oxford University Press.
+  Accessible introduction to modelling with a focus on practical application.
 
 ## Julia
 
