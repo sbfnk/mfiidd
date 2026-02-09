@@ -26,6 +26,7 @@ website:
       style: "docked"
       contents:
         - sessions/getting-started.qmd
+        - sessions/structure.qmd
         - sessions/introduction.qmd
         - sessions/mcmc.qmd
         - sessions/mcmc_diagnostics.qmd
