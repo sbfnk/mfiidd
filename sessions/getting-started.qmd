@@ -11,18 +11,8 @@ order: 0
 
 # Introduction
 
-This course uses Julia for all code examples and exercises. This page helps you set up your computing environment before the course begins.
-
-## Prerequisites
-
-To get the most from this course, you should be comfortable with:
-
-- **Basic programming**: Variables, functions, loops, conditionals (in any language)
-- **Probability**: Distributions, Bayes' theorem, conditional probability
-- **Calculus**: Derivatives and integrals (helpful but not essential)
-- **Epidemiology basics**: Compartmental models (S, I, R states), transmission dynamics
-
-No prior Julia experience is required—the course introduces Julia syntax as you go.
+This course uses Julia for all code examples and exercises.
+This page helps you set up your computing environment before the course begins.
 
 ::: {.callout-important}
 ## Julia compiles code on first use
@@ -33,7 +23,9 @@ Unlike R or Python, Julia compiles functions the first time you run them. This m
 - **Subsequent runs are fast** (compiled code is cached for the session)
 - **Restarting Julia loses the cache** (compilation happens again)
 
-This "time to first plot" or "TTFX" is a known Julia trade-off. The payoff is that your code runs much faster once compiled. During the course:
+This "time to first plot" or "TTFX" is a known Julia trade-off.
+The payoff is that your code runs much faster once compiled.
+During the course:
 
 - Expect the first `using Turing` to take 10-30 seconds
 - Expect the first MCMC sample to take longer than subsequent ones
@@ -42,42 +34,18 @@ This "time to first plot" or "TTFX" is a known Julia trade-off. The payoff is th
 
 Three ways to engage with the course:
 
-1. **Web only**: Read the materials online without running code. Fine for an overview, but you'll learn more by doing.
-2. **Local installation**: Install Julia and run everything on your own machine. Recommended for the full experience.
+1. **Web only**: Read the materials online without running code.
+   Fine for an overview, but you'll learn more by doing.
+2. **Local installation**: Install Julia and run everything on your own machine.
+   Recommended for the full experience.
 3. **Cloud option**: Use a pre-configured cloud environment (if provided by your instructor).
-
-# Course map
-
-The course has 11 sessions organised into three tiers. Work through them in order, or use this map to plan your time.
-
-**Core sessions** (10-12 hours) - complete in order:
-
-> Getting Started → Introduction → MCMC → Diagnostics → Model Checking
-
-**Stochastic sessions** (5-6 hours) - for fitting models with demographic stochasticity:
-
-> SEITL Interlude → Particle Filters → Particle MCMC
-
-**Advanced sessions** (2-3 hours each) - independent, pick based on interest:
-
-> - **Observation Models** — requires MCMC (can skip stochastic track)
-> - **Variational Inference** — requires MCMC only (can skip stochastic track)
-> - **Universal DEs** — requires Introduction only (independent track)
-
-**If you only have limited time:**
-
-| Time available | Recommended path |
-|----------------|------------------|
-| Half day (4 hrs) | Getting Started → Introduction → MCMC (read-only, skip exercises) |
-| Full day (8 hrs) | Core sessions (Getting Started through Model Checking) |
-| Two days (16 hrs) | Core + Stochastic models |
-| Full course | All sessions, including advanced topics of interest |
 
 # Local installation
 
 ## Step 1: Install Julia
 
-Download Julia from [julialang.org/downloads](https://julialang.org/downloads/). We recommend version 1.11 or later.
+Download Julia from [julialang.org/downloads](https://julialang.org/downloads/).
+We recommend version 1.11 or later.
 
 **Installation options:**
 
@@ -127,7 +95,10 @@ This reads `Project.toml` and `Manifest.toml` to install all required packages w
 
 ::: {.callout-warning}
 ## Expect a long wait on first run
-Package installation typically takes 15-30 minutes depending on your internet connection and computer speed. The process downloads ~1GB of packages and then precompiles them. This is a good time to get a coffee or read ahead in the course materials. If installation takes more than 45 minutes, check your internet connection or see the Troubleshooting section below.
+Package installation typically takes 15-30 minutes depending on your internet connection and computer speed.
+The process downloads ~1GB of packages and then precompiles them.
+This is a good time to get a coffee or read ahead in the course materials.
+If installation takes more than 45 minutes, check your internet connection or see the Troubleshooting section below.
 
 **What to expect in the console:**
 
@@ -146,14 +117,18 @@ Precompiling project...
   72 dependencies successfully precompiled in 342 seconds
 ```
 
-Warnings about "precompilation may be incomplete" are usually harmless. The process is complete when you see the `julia>` prompt again.
+Warnings about "precompilation may be incomplete" are usually harmless.
+The process is complete when you see the `julia>` prompt again.
 :::
 
 ## Step 5: Verify the installation
 
 ::: {.callout-important}
 ## Run this before the course starts
-Don't skip this step. Package installation can succeed while something is still broken. Run the verification code below to confirm everything works. If you hit errors, you'll have time to troubleshoot before the course begins.
+Don't skip this step.
+Package installation can succeed while something is still broken.
+Run the verification code below to confirm everything works.
+If you hit errors, you'll have time to troubleshoot before the course begins.
 :::
 
 Test that core packages load correctly:
@@ -173,7 +148,8 @@ chain = sample(coin_flip(10, 7), NUTS(), 100)
 println("Installation successful!")
 ```
 
-If this runs without errors and prints "Installation successful!", you're ready for the course. If you see errors, check the Troubleshooting section below.
+If this runs without errors and prints "Installation successful!", you're ready for the course.
+If you see errors, check the Troubleshooting section below.
 
 # Troubleshooting
 
@@ -189,7 +165,10 @@ Pkg.status()       # Should show course packages, not your global environment
 
 ## Slow package loading
 
-Julia compiles code on first use. The first `using Turing` in a session takes longer than subsequent calls. This is normal. For faster startup during development, consider [PackageCompiler.jl](https://julialang.github.io/PackageCompiler.jl/stable/) or [Revise.jl](https://timholy.github.io/Revise.jl/stable/).
+Julia compiles code on first use.
+The first `using Turing` in a session takes longer than subsequent calls.
+This is normal.
+For faster startup during development, consider [PackageCompiler.jl](https://julialang.github.io/PackageCompiler.jl/stable/) or [Revise.jl](https://timholy.github.io/Revise.jl/stable/).
 
 ## Plotting issues on headless servers
 
@@ -207,7 +186,8 @@ using Plots
 
 ## macOS Apple Silicon
 
-Julia runs natively on Apple Silicon (M1/M2/M3). Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
+Julia runs natively on Apple Silicon (M1/M2/M3).
+Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
 
 ## Common runtime issues during the course
 
@@ -286,45 +266,6 @@ In VS Code with the Julia extension:
 
 Alternatively, copy code into the Julia REPL.
 
-## Session structure
-
-Each session follows a consistent structure:
-
-- **Introduction**: What we'll learn and why it matters
-- **Setup** (collapsible): Package loading and initialisation
-- **Main content**: Concepts, code, and exercises
-- **Summary**: What we covered (with Learning Points callout)
-- **Going further**: Optional extensions for interested participants
-
-## For R users
-
-The Introduction and MCMC sessions include "Coming from R?" appendices with R translations of key concepts.
-
-If you prefer R, the conceptual material is still valuable, but be aware that some methods taught here aren't readily available in R:
-
-| Method | R availability |
-|--------|----------------|
-| Basic MCMC (Metropolis-Hastings) | [nimble](https://r-nimble.org/), [mcstate](https://mrc-ide.github.io/mcstate/), [pomp](https://kingaa.github.io/pomp/) |
-| NUTS with automatic differentiation | [Stan](https://mc-stan.org/) (via [rstan](https://mc-stan.org/rstan/)/[cmdstanr](https://mc-stan.org/cmdstanr/)) |
-| Particle filters / PMCMC | [pomp](https://kingaa.github.io/pomp/), [odin](https://mrc-ide.github.io/odin/)/[dust](https://mrc-ide.github.io/dust/)/[mcstate](https://mrc-ide.github.io/mcstate/) |
-| Variational inference | [Stan](https://mc-stan.org/) (via [rstan](https://mc-stan.org/rstan/)/[cmdstanr](https://mc-stan.org/cmdstanr/)) |
-| Universal differential equations | Not available |
-
-For particle-based methods, [odin](https://mrc-ide.github.io/odin/) with [dust](https://mrc-ide.github.io/dust/) and [mcstate](https://mrc-ide.github.io/mcstate/) is the closest R equivalent. For gradient-based MCMC (NUTS) or variational inference, you'd need to use [Stan](https://mc-stan.org/) via its R interface.
-
-# Getting help
-
-During the course:
-
-- Ask your instructor or teaching assistants
-- Use the course chat/forum if available
-
-For Julia-specific questions:
-
-- [Julia Discourse](https://discourse.julialang.org/) - friendly community forum
-- [Julia Slack](https://julialang.org/slack/) - real-time chat
-- [Turing.jl documentation](https://turinglang.org/stable/) - for probabilistic programming questions
-
 # Session checklist
 
 Before starting, verify you can:
@@ -335,4 +276,5 @@ Before starting, verify you can:
 - [ ] Create a simple plot (`using Plots; plot(1:10)`)
 - [ ] Run a basic MCMC sampler (the coin flip example above)
 
-If all boxes are ticked, you're ready to begin with the [Introduction](introduction.qmd).
+If all boxes are ticked, you're ready.
+Head to the [Course Structure](structure.qmd) for an overview, or jump straight to the [Introduction](introduction.qmd).
