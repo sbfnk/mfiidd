@@ -5,6 +5,10 @@ title: "Authors"
 The MFIIDD course was developed by the **MFIIDD course contributors**:
 
 - [Sebastian Funk](https://github.com/sbfnk)
+- [Anton Camacho](https://github.com/ntncmch)
+- [Helen Johnson](https://github.com/hcb101)
+- [Nicholas Davies](https://github.com/nicholasdavies)
+- [Kath O'Reilly](https://github.com/kath-o-reilly)
 
 ## How to cite
 
