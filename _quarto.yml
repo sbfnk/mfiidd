@@ -16,9 +16,10 @@ website:
   open-graph: true
   navbar:
     left:
-      - sessions/getting-started.qmd
-      - sessions/structure.qmd
+      - getting-started.qmd
       - sidebar:sessions
+      - sidebar:reference
+      - authors.qmd
     right:
       - icon: github
         href: https://github.com/sbfnk/mfiidd.julia
@@ -27,6 +28,7 @@ website:
       title: "Sessions"
       style: "docked"
       contents:
+        - sessions/structure.qmd
         - sessions/introduction.qmd
         - sessions/mcmc.qmd
         - sessions/mcmc_diagnostics.qmd
@@ -37,6 +39,10 @@ website:
         - sessions/observation_models.qmd
         - sessions/variational_inference.qmd
         - sessions/universal_differential_equations.qmd
+    - id: reference
+      title: "Reference"
+      style: "docked"
+      contents: "reference/*.qmd"
 
 format:
   html:

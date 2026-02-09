@@ -1,0 +1,29 @@
+---
+title: "Getting Help"
+---
+
+## During the course
+
+- Ask your instructor or teaching assistants
+- Use the course chat/forum if available
+
+## Julia-specific questions
+
+- [Julia Discourse](https://discourse.julialang.org/) — friendly community forum
+- [Julia Slack](https://julialang.org/slack/) — real-time chat
+- [Julia documentation](https://docs.julialang.org/) — official language reference
+
+## Probabilistic programming
+
+- [Turing.jl documentation](https://turinglang.org/stable/) — the probabilistic programming framework used throughout this course
+- [Turing.jl tutorials](https://turinglang.org/stable/tutorials/) — worked examples covering a range of models
+
+## Differential equations
+
+- [DifferentialEquations.jl documentation](https://docs.sciml.ai/DiffEqDocs/stable/) — the ODE solver ecosystem used in this course
+- [SciML tutorials](https://docs.sciml.ai/Overview/stable/) — broader scientific machine learning resources
+
+## Course issues
+
+- [Report a bug or suggest an improvement](https://github.com/sbfnk/mfiidd.julia/issues)
+- [Discussion board](https://github.com/sbfnk/mfiidd.julia/discussions)
