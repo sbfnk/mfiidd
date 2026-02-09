@@ -27,12 +27,12 @@ include(joinpath(@__DIR__, "..", "src", "seit4l_particle_filter.jl"))
 # =============================================================================
 
 @model function pmmh_seit4l(obs, n_particles)
-    R_0 ~ Uniform(1.0, 50.0)
-    D_lat ~ Uniform(0.1, 10.0)
-    D_inf ~ Uniform(0.1, 15.0)
-    α ~ Uniform(0.0, 1.0)
-    D_imm ~ Uniform(1.0, 50.0)
-    ρ ~ Uniform(0.0, 1.0)
+    R_0 ~ truncated(Normal(3.0, 2.0), lower=1.0)
+    D_lat ~ truncated(Normal(2.0, 1.0), lower=0.5)
+    D_inf ~ truncated(Normal(3.0, 2.0), lower=0.5)
+    α ~ Beta(2, 2)
+    D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
+    ρ ~ Beta(2, 2)
 
     θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
              :α => α, :D_imm => D_imm, :ρ => ρ)
