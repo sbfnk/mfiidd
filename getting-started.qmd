@@ -236,4 +236,4 @@ Before starting, verify you can:
 - [ ] Run a basic MCMC sampler (the coin flip example above)
 
 If all boxes are ticked, you're ready.
-Head to the [Course Structure](sessions/structure.qmd) for an overview, or jump straight to the [Introduction](sessions/introduction.qmd).
+Head to the [Course Structure](reference/structure.qmd) for an overview, or jump straight to the [Introduction](sessions/introduction.qmd).
