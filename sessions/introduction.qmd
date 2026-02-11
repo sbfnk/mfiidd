@@ -60,6 +60,11 @@ using StatsPlots ## for statistical plots
 using DrWatson
 ```
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+`using X` in Julia is equivalent to `library(X)` in R — it loads a package and makes its exports available.
+:::
+
 ## Initialisation
 
 We set a random seed for reproducibility. 
@@ -111,6 +116,11 @@ function sir_ode!(du, u, p, t)
 end
 ```
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+In R's `deSolve`, ODE functions return `list(c(dS, dI, dR))` and take arguments in the order `(t, state, parameters)`. In Julia's `DifferentialEquations.jl`, the function modifies `du` in place (note the `!` convention) and the argument order is `(du, u, p, t)`.
+:::
+
 ::: {.callout-tip collapse = "true"}
 ## Why is there an exclamation mark in `sir_ode!()`?
 
@@ -134,6 +144,11 @@ prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
  # Solve ODE
 sol = solve(prob, saveat = 1)
 ```
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+In R, `deSolve::ode(y, times, func, parms)` defines and solves the ODE in one call. Julia splits this into two steps: `ODEProblem()` defines the problem, then `solve()` runs it. This separation lets you reuse the same problem with different solvers or settings.
+:::
 
 ::: {.callout-tip collapse = "true"}
 ## More details on these commands
@@ -226,6 +241,22 @@ println(
 - [`rand(dist, n)`](https://juliastats.org/Distributions.jl/stable/starting/#rand) - draws `n` random samples from the distribution `dist`. You can also use `rand(dist)` for a single sample.
 :::
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+R uses function families for each distribution: `runif`/`dunif`/`punif`/`qunif` for random draws, density, CDF, and quantiles respectively. In Julia, you create a single distribution object and use generic functions:
+
+| Operation | R | Julia |
+|-----------|---|-------|
+| Create | *(implicit)* | `dist = Uniform(1, 20)` |
+| Random draw | `runif(10, 1, 20)` | `rand(dist, 10)` |
+| Density | `dunif(x, 1, 20)` | `pdf(dist, x)` |
+| Log density | `dunif(x, 1, 20, log=TRUE)` | `logpdf(dist, x)` |
+| CDF | `punif(x, 1, 20)` | `cdf(dist, x)` |
+| Quantile | `qunif(p, 1, 20)` | `quantile(dist, p)` |
+
+The same pattern works for all distributions: `Normal`, `Poisson`, `Gamma`, etc.
+:::
+
 ```{julia}
 # Visualise our priors
 p1 = histogram(
@@ -277,6 +308,11 @@ In our case, we specify `0, 2`, that is we plot time (on the x axis) against the
 Note the use of `plot!` (with `!`) which adds to an existing plot, following the same convention as `push!` - the `!` indicates the function modifies something in place rather than creating a new object.
 :::
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+`plot!()` in Julia adds to an existing plot, similar to `lines()` or `points()` in base R, or adding layers with `+ geom_*()` in ggplot2. The plain `plot()` (without `!`) creates a new plot, like `plot()` in base R or `ggplot()`.
+:::
+
 ::: {.callout-warning title="Exercise: Evaluate the prior predictive trajectories"}
 Look at these trajectories. Do they seem reasonable? Are there any that look unrealistic?
 
@@ -314,6 +350,11 @@ histogram!(p2, D_inf_informed_samples, alpha = 0.7, label = "Gamma(2, 1)")
 
 plot(p1, p2, layout = (1,2))
 ```
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+Watch out for the Gamma parameterisation: Julia's `Gamma(shape, scale)` matches R's `dgamma(x, shape, scale=...)`. However, many R users default to the `rate` parameterisation (`dgamma(x, shape, rate=...)`), where `rate = 1/scale`. So `Gamma(2, 1)` in Julia is `dgamma(x, 2, rate=1)` or equivalently `dgamma(x, 2, scale=1)` in R — the same here, but be careful when `scale ≠ 1`.
+:::
 
 ```{julia}
 # Compare epidemic predictions
@@ -409,6 +450,18 @@ end
 - `push!(array, value)` - appends `value` to the end of `array`. The `!` indicates it modifies the array in place, which you can think of as shorthand for `array = push(array, value)`.
 :::
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+`logpdf(dist, x)` in Julia is equivalent to calling a density function with `log = TRUE` in R. For example:
+
+| Julia | R |
+|-------|---|
+| `logpdf(Normal(2.5, 0.8), x)` | `dnorm(x, 2.5, 0.8, log = TRUE)` |
+| `logpdf(Gamma(2, 1), x)` | `dgamma(x, 2, scale = 1, log = TRUE)` |
+| `logpdf(Poisson(10), x)` | `dpois(x, 10, log = TRUE)` |
+
+The key difference is that in Julia you first create the distribution object, then pass it to `logpdf`. In R, you pass the parameters directly to the density function each time.
+:::
 
 # Part 2: Understanding the likelihood
 
@@ -499,6 +552,10 @@ plot!(p)
 - `logpdf.(loglik, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
 :::
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+R vectorises most functions implicitly — `dpois(obs, lambda, log = TRUE)` works element-wise when `obs` and `lambda` are vectors. In Julia, you must explicitly request element-wise operations by adding `.` (called *broadcasting*). So `logpdf.(dists, obs)` applies `logpdf` to each pair of elements. Similarly, `Poisson.(I)` creates a Poisson distribution for each element of `I`. Forgetting the `.` on a vector operation is a common gotcha for R users.
+:::
 
 ::: {.callout-warning title="Exercise: Interpret the likelihood values"}
 Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
@@ -652,6 +709,11 @@ println("Best log-posterior: $(round(best_log_posterior, digits = 1))")
 - For each combination, we calculate the log-posterior (prior + likelihood) and track the best one found so far.
 :::
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+`1.5:0.2:4.0` in Julia is equivalent to `seq(1.5, 4.0, by = 0.2)` in R. The syntax is `start:step:stop`. Note that R's `:` operator (e.g. `1:10`) only increments by 1, whereas Julia's `:` supports any step size.
+:::
+
 Is this the result you expected?
 
 Apart from finding the best parameters we can also use our results to visualise the whole posterior surface.
@@ -782,45 +844,3 @@ The *likelihood* quantifies how well parameters explain observed data. Our Poiss
 - McElreath (2020). [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/), 2nd ed. CRC Press. (Excellent introduction with simulation-based approach)
 
 **Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how [Turing.jl](https://turinglang.org/stable/) automates everything with state-of-the-art methods.
-
-# Appendix: Coming from R?
-
-::: {.callout-note collapse="true"}
-## Distributions in Julia vs R
-
-In R, you use separate functions for each distribution operation:
-
-```r
-rnorm(10, 3, 0.1)                    # Generate random numbers
-dnorm(2, 3, 0.1, log = TRUE)         # Calculate log density
-```
-
-In Julia, [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) uses a unified interface - create a distribution object, then use generic functions:
-
-```julia
-dist = Normal(3, 0.1)    # Define the distribution once
-rand(dist, 10)           # Generate random numbers
-logpdf(dist, 2)          # Calculate log density
-```
-
-The same pattern works for all distributions: `Uniform`, `Poisson`, `Gamma`, etc.
-:::
-
-::: {.callout-note collapse="true"}
-## Likelihood calculation in Julia vs R
-
-In R, you calculate Poisson log-likelihood directly:
-
-```r
-log_lik <- dpois(observed, lambda = expected, log = TRUE)
-```
-
-In Julia, create a distribution object first:
-
-```julia
-obs_dist = Poisson(expected)
-logpdf(obs_dist, observed)
-```
-
-The distribution object can also be used for random sampling (`rand(obs_dist)`) and other operations.
-:::
