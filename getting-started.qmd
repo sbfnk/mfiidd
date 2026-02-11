@@ -67,22 +67,28 @@ While you can use any text editor, VS Code with the Julia extension provides the
 
 1. Download [VS Code](https://code.visualstudio.com/)
 2. Install the [Julia extension](https://marketplace.visualstudio.com/items?itemName=julialang.language-julia)
-3. Open VS Code, press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL"
 
 Alternative IDEs: Emacs with julia-mode, Vim with julia-vim, or Jupyter notebooks.
 
 ## Step 3: Clone the course repository
+
+Back in your **terminal** (not the Julia REPL — close it if you opened one in step 2), download the course materials:
 
 ```bash
 git clone https://github.com/sbfnk/mfiidd.julia.git
 cd mfiidd.julia
 ```
 
-If you don't have git, you can download the repository as a ZIP file from GitHub.
+If you don't have git, you can download the repository as a ZIP file from the [GitHub page](https://github.com/sbfnk/mfiidd.julia).
+
+Then open the course folder in VS Code: either run `code mfiidd.julia` from the terminal, or use **File → Open Folder** in VS Code and navigate to the `mfiidd.julia` directory.
 
 ## Step 4: Install Julia packages
 
-Open Julia in the course directory and activate the project environment:
+With the `mfiidd.julia` folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
+The REPL should open in the bottom panel showing a `julia>` prompt.
+
+Now activate the project environment and install packages:
 
 ```julia
 using Pkg
@@ -130,7 +136,8 @@ Run the verification code below to confirm everything works.
 If you hit errors, you'll have time to troubleshoot before the course begins.
 :::
 
-Test that core packages load correctly:
+Test that core packages load correctly by copying the code below into your Julia REPL (the `julia>` prompt from step 4).
+You can paste the whole block at once — Julia will run each line in order:
 
 ```julia
 using Turing
@@ -147,7 +154,8 @@ chain = sample(coin_flip(10, 7), NUTS(), 100)
 println("Installation successful!")
 ```
 
-If this runs without errors and prints "Installation successful!", you're ready for the course.
+The first time you run this, expect it to take a minute or two as Julia compiles the packages (see the note about compilation above).
+If it completes without errors and prints "Installation successful!", you're ready for the course.
 If you see errors, check the Troubleshooting section below.
 
 # Troubleshooting
