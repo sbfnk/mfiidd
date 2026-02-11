@@ -338,7 +338,23 @@ end
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-Turing's `@model` with `~` syntax is similar to how you define models in [NIMBLE](https://r-nimble.org/) or [BUGS/JAGS](https://mcmc-jags.sourceforge.io/), where `x ~ dnorm(5, 0.04)` also uses `~` to declare distributions. If you've used [Stan](https://mc-stan.org/) via `rstan` or `cmdstanr`, the equivalent would be writing `x ~ normal(5, 2);` in a Stan model block. The key advantage of Turing is that the model is written in native Julia, so you can use loops, conditionals, and call any Julia function (like our ODE solver) directly inside the model.
+Turing's `@model` with `~` syntax is similar to model definitions in NIMBLE, BUGS/JAGS, and Stan:
+
+```r
+# NIMBLE / BUGS / JAGS
+model({
+  x ~ dnorm(5, sd = 2)
+})
+```
+
+```stan
+// Stan (via rstan or cmdstanr)
+model {
+  x ~ normal(5, 2);
+}
+```
+
+The key advantage of Turing is that the model is written in native Julia, so you can use loops, conditionals, and call any Julia function (like our ODE solver) directly inside the model — no separate modelling language needed.
 :::
 
 ```{julia}
@@ -370,7 +386,25 @@ describe(chain_normal_mh)
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-`sample(model, NUTS(), n)` in Turing is analogous to `sampling(stan_model, ...)` in `rstan` or `stan_model$sample(...)` in `cmdstanr`. `describe(chain)` is equivalent to `summary(fit)` or `print(fit)` in `rstan`. Extracting samples with `chain[:x]` is similar to `as.array(fit, pars = "x")` in `rstan` or `fit$draws("x")` in `cmdstanr`.
+
+```r
+# rstan
+fit <- sampling(stan_model, data = list(...), iter = 2000)
+summary(fit)
+as.array(fit, pars = "x")
+
+# cmdstanr
+fit <- stan_model$sample(data = list(...), iter_sampling = 2000)
+fit$summary()
+fit$draws("x")
+```
+
+```julia
+# Turing.jl equivalents
+chain = sample(model, NUTS(), 2000)
+describe(chain)
+chain[:x]
+```
 :::
 
 ```{julia}
