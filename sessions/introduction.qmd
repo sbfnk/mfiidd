@@ -63,6 +63,12 @@ using DrWatson
 ::: {.callout-note collapse="true"}
 ## Coming from R?
 `using X` in Julia is equivalent to `library(X)` in R — it loads a package and makes its exports available.
+
+```r
+# R
+library(deSolve)
+library(ggplot2)
+```
 :::
 
 ## Initialisation
@@ -116,16 +122,31 @@ function sir_ode!(du, u, p, t)
 end
 ```
 
-::: {.callout-note collapse="true"}
-## Coming from R?
-In R's `deSolve`, ODE functions return `list(c(dS, dI, dR))` and take arguments in the order `(t, state, parameters)`. In Julia's `DifferentialEquations.jl`, the function modifies `du` in place (note the `!` convention) and the argument order is `(du, u, p, t)`.
-:::
-
 ::: {.callout-tip collapse = "true"}
 ## Why is there an exclamation mark in `sir_ode!()`?
 
 In Julia, the exclamation mark indicates that the function can modify its arguments.
 In this case, the function modifies `du` in the last 3 lines to indicate the current change in the system as given by the ODEs.
+:::
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+In R's `deSolve`, ODE functions return `list(c(dS, dI, dR))` and take arguments in the order `(t, state, parameters)`. In Julia's `DifferentialEquations.jl`, the function modifies `du` in place (note the `!` convention) and the argument order is `(du, u, p, t)`.
+
+```r
+# R (deSolve)
+sir_ode <- function(t, state, parameters) {
+  with(as.list(c(state, parameters)), {
+    N <- S + I + R
+    beta <- R_0 / D_inf
+    nu <- 1 / D_inf
+    dS <- -beta * S * I / N
+    dI <- beta * S * I / N - nu * I
+    dR <- nu * I
+    list(c(dS, dI, dR))
+  })
+}
+```
 :::
 
 In order to simulate this model, i.e. numerically integrate the differential equations, we define it as an `ODEproblem` (which tells Julia that the function we defined above represents the dynamics of the system) which we then solve:
@@ -147,7 +168,17 @@ sol = solve(prob, saveat = 1)
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-In R, `deSolve::ode(y, times, func, parms)` defines and solves the ODE in one call. Julia splits this into two steps: `ODEProblem()` defines the problem, then `solve()` runs it. This separation lets you reuse the same problem with different solvers or settings.
+In R, `deSolve::ode()` defines and solves the ODE in one call. Julia splits this into two steps: `ODEProblem()` defines the problem, then `solve()` runs it.
+
+```r
+# R (deSolve) — one call does everything
+sol <- ode(
+  y = c(S = 999, I = 1, R = 0),
+  times = seq(0, 30, by = 1),
+  func = sir_ode,
+  parms = c(R_0 = 2.5, D_inf = 2)
+)
+```
 :::
 
 ::: {.callout-tip collapse = "true"}
@@ -310,7 +341,16 @@ Note the use of `plot!` (with `!`) which adds to an existing plot, following the
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-`plot!()` in Julia adds to an existing plot, similar to `lines()` or `points()` in base R, or adding layers with `+ geom_*()` in ggplot2. The plain `plot()` (without `!`) creates a new plot, like `plot()` in base R or `ggplot()`.
+`plot!()` in Julia adds to an existing plot, similar to `lines()` or `points()` in base R, or adding layers with `+ geom_*()` in ggplot2.
+
+```r
+# Base R
+plot(x, y)       # new plot    → Julia: plot(x, y)
+lines(x2, y2)    # add to it   → Julia: plot!(x2, y2)
+
+# ggplot2
+ggplot(df, aes(x, y)) + geom_line() + geom_point()
+```
 :::
 
 ::: {.callout-warning title="Exercise: Evaluate the prior predictive trajectories"}
@@ -353,7 +393,18 @@ plot(p1, p2, layout = (1,2))
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-Watch out for the Gamma parameterisation: Julia's `Gamma(shape, scale)` matches R's `dgamma(x, shape, scale=...)`. However, many R users default to the `rate` parameterisation (`dgamma(x, shape, rate=...)`), where `rate = 1/scale`. So `Gamma(2, 1)` in Julia is `dgamma(x, 2, rate=1)` or equivalently `dgamma(x, 2, scale=1)` in R — the same here, but be careful when `scale ≠ 1`.
+Watch out for the Gamma parameterisation: Julia's `Gamma(shape, scale)` matches R's `scale` argument, but many R users default to the `rate` parameterisation where `rate = 1/scale`.
+
+```r
+# R — these are equivalent:
+dgamma(x, shape = 2, scale = 1)
+dgamma(x, shape = 2, rate = 1)   # same here since scale = 1
+
+# Julia equivalent:
+# Gamma(2, 1)  — always uses scale, never rate
+```
+
+Be careful when `scale ≠ 1`: `Gamma(2, 3)` in Julia corresponds to `dgamma(x, 2, scale = 3)` or `dgamma(x, 2, rate = 1/3)` in R.
 :::
 
 ```{julia}
@@ -554,7 +605,19 @@ plot!(p)
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-R vectorises most functions implicitly — `dpois(obs, lambda, log = TRUE)` works element-wise when `obs` and `lambda` are vectors. In Julia, you must explicitly request element-wise operations by adding `.` (called *broadcasting*). So `logpdf.(dists, obs)` applies `logpdf` to each pair of elements. Similarly, `Poisson.(I)` creates a Poisson distribution for each element of `I`. Forgetting the `.` on a vector operation is a common gotcha for R users.
+R vectorises most functions implicitly; Julia requires an explicit `.` for element-wise operations (*broadcasting*).
+
+```r
+# R — automatically vectorises over obs and lambda
+dpois(obs, lambda = expected, log = TRUE)
+```
+
+```julia
+# Julia — need the dot for element-wise operation
+logpdf.(Poisson.(expected), obs)
+```
+
+Forgetting the `.` on a vector operation is a common gotcha for R users.
 :::
 
 ::: {.callout-warning title="Exercise: Interpret the likelihood values"}
@@ -711,7 +774,18 @@ println("Best log-posterior: $(round(best_log_posterior, digits = 1))")
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-`1.5:0.2:4.0` in Julia is equivalent to `seq(1.5, 4.0, by = 0.2)` in R. The syntax is `start:step:stop`. Note that R's `:` operator (e.g. `1:10`) only increments by 1, whereas Julia's `:` supports any step size.
+
+```r
+# R
+seq(1.5, 4.0, by = 0.2)
+```
+
+```julia
+# Julia
+1.5:0.2:4.0
+```
+
+The syntax is `start:step:stop`. Note that R's `:` operator (e.g. `1:10`) only increments by 1, whereas Julia's `:` supports any step size.
 :::
 
 Is this the result you expected?
