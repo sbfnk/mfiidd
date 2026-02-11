@@ -17,8 +17,7 @@ By the end, you'll be able to specify a transmission model, write down a likelih
 To get the most from this course, you should be comfortable with:
 
 - **Basic programming**: Variables, functions, loops, conditionals (in any language)
-- **Probability**: Familiarity with probability distributions (e.g. normal, uniform). We'll teach Bayes' theorem and conditional probability during the course
-- **Calculus**: Derivatives and integrals (helpful but not essential)
+- **Probability**: Some familiarity with what probability means
 - **Epidemiology basics**: Compartmental models (S, I, R states), transmission dynamics
 
 The course uses Julia for inference, as it provides an interface to all of the state-of-the-art methods used in this course.
