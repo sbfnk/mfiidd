@@ -177,15 +177,6 @@ The first `using Turing` in a session takes longer than subsequent calls.
 This is normal.
 For faster startup during development, consider [PackageCompiler.jl](https://julialang.github.io/PackageCompiler.jl/stable/) or [Revise.jl](https://timholy.github.io/Revise.jl/stable/).
 
-## Plotting issues on headless servers
-
-If you're running on a server without a display:
-
-```julia
-ENV["GKSwstype"] = "100"  # Use null device for GR backend
-using Plots
-```
-
 ## Windows-specific issues
 
 - **Long path errors**: Enable long paths in Windows settings or use a shorter installation path
@@ -195,45 +186,6 @@ using Plots
 
 Julia runs natively on Apple Silicon (M1/M2/M3).
 Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
-
-## Common runtime issues during the course
-
-These issues may arise as you work through the sessions:
-
-### MCMC doesn't converge (high R̂ or low ESS)
-
-- **First**: Run longer (increase `n_samples`)
-- **Second**: Try multiple chains with different initial values
-- **Third**: Check your model specification (see MCMC Diagnostics session)
-- If using Metropolis-Hastings, switch to NUTS (it auto-tunes)
-
-### Particle filter returns `-Inf` log-likelihood
-
-- **Check parameters**: Ensure they're in valid ranges (positive rates, probabilities in [0,1])
-- **Increase particles**: More particles reduce the chance of all weights being zero
-- **Check initial conditions**: Does the model start in a valid state?
-
-### ODE solver fails or is very slow
-
-```julia
-# Try a more robust solver
-solve(prob, Tsit5(), abstol=1e-6, reltol=1e-6)
-
-# Or an implicit solver for stiff problems
-solve(prob, Rodas5())
-```
-
-### "Out of memory" errors
-
-- Reduce the number of MCMC samples or particles
-- Close other applications
-- Restart Julia to free memory
-
-### Code runs much slower than expected
-
-- First run is always slow (Julia compiles code)
-- Restart Julia if you've been experimenting heavily
-- Use `@time` to identify slow functions
 
 # Updating before the course
 
