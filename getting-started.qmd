@@ -72,7 +72,7 @@ Alternative IDEs: Emacs with julia-mode, Vim with julia-vim, or Jupyter notebook
 
 ## Step 3: Clone the course repository
 
-Back in your **terminal** (not the Julia REPL — close it if you opened one in step 2), download the course materials:
+Back in your **terminal** (not the Julia REPL), download the course materials:
 
 ```bash
 git clone https://github.com/sbfnk/mfiidd.julia.git
