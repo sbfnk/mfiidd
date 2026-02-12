@@ -12,7 +12,7 @@ order: 8
 
 # Introduction
 
-> **Do this session if** you want to understand *why* we use Poisson or Negative Binomial likelihoods (not just how), or you're curious about ABC as an alternative to likelihood-based inference.
+> **Do this session if** you want to understand *why* we use Poisson or Negative Binomial likelihoods (not just how), or you're curious about Approximate Bayesian Computation (ABC) as an alternative to likelihood-based inference.
 
 So far in this course, we've used *likelihood functions* to connect our mathematical models to observed data. For example, we've assumed that observed case counts follow a Poisson distribution:
 
@@ -191,6 +191,9 @@ We fit this model:
 # Fit with NUTS
 model_poisson = sir_poisson(times, init_test, flu_tdc.obs)
 chain_poisson = sample(model_poisson, NUTS(0.65), 500, progress=false)
+# The 0.65 is the target acceptance rate for NUTS — higher values (closer to 1)
+# make the sampler more conservative, lower values allow larger steps.
+# The default 0.65 works well for most models.
 ```
 
 ```{julia}
@@ -514,6 +517,8 @@ This is much more efficient because particles that are already "close" to the da
 
 This is a simplified ABC-SMC for pedagogical purposes. Production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) have adaptive thresholds, better perturbation kernels, and importance weighting.
 
+**Note on `Threads.@threads`**: The code below uses `Threads.@threads` to parallelise the particle loop — this macro distributes iterations across available CPU threads, so each particle can be simulated concurrently. For this to have any effect, Julia must be started with multiple threads (e.g., `julia -t auto`). See the [threading note in MCMC Diagnostics](mcmc_diagnostics.qmd#running-julia-with-multiple-threads) for setup instructions. Without multiple threads, the loop runs sequentially (slower but still correct).
+
 ```{julia}
 """
 Simple ABC-SMC implementation.
@@ -660,6 +665,18 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 We see that ABC-SMC achieves a tighter threshold (250 vs 300) with fewer wasted simulations. The resulting posteriors are more concentrated - ABC-SMC has effectively "zoomed in" on the high-probability region. This efficiency gain becomes even more pronounced in higher dimensions, where rejection sampling becomes impractical.
 
+::: {.callout-important}
+## Assessing ABC posterior quality
+
+Unlike MCMC, ABC does not produce chains, so standard diagnostics like ESS (effective sample size) and R-hat do not apply. Instead, assess ABC posterior quality by:
+
+- **Acceptance rate**: Very low rates (< 0.1%) suggest the threshold is too strict or the model is a poor fit. Very high rates (> 10%) suggest the threshold is too loose and the posterior is close to the prior.
+- **Visual comparison with likelihood-based posteriors**: When a likelihood is available (as in this session), run both methods and compare. Large discrepancies suggest either the ABC threshold is too loose or the distance metric captures different features than the likelihood.
+- **Threshold sensitivity**: Run ABC with several thresholds. If the posterior changes substantially as you tighten the threshold, it has not yet converged — you need a stricter threshold (and more computation).
+- **Coverage of prior**: If the ABC posterior looks very similar to the prior, the threshold is too loose and the data are not informing the inference.
+- **Replicate runs**: Run ABC multiple times with different random seeds. If posteriors differ substantially between runs, you need more particles or a less strict threshold.
+:::
+
 # The big picture: Likelihood vs ABC
 
 Now let's step back and compare all our approaches - parametric likelihoods and ABC methods - to see what's fundamentally different (and what's surprisingly similar).
@@ -698,6 +715,8 @@ histogram!(p2, abc_df.D_inf, bins=30, alpha=0.5,
 
 plot(p1, p2, layout=(1, 2), size=(900, 400))
 ```
+
+**How to interpret these plots**: Look for whether the posterior distributions overlap substantially. If the MCMC (Poisson) and ABC (L1) posteriors cover a similar range and peak in similar places, the two approaches agree — meaning the choice of observation model has little effect on inference for this dataset. If one posterior is much wider, shifted, or multimodal compared to the other, the observation model is influencing conclusions. A useful rule of thumb: if the posterior means are within one standard deviation of each other and the bulk of the distributions overlap, the methods are giving consistent answers.
 
 **Discussion**: Are the posteriors similar or different? What does this tell us about the observation model choice?
 
@@ -752,7 +771,7 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
       title="Effect of Outliers on Observation Data")
 ```
 
-**Exercise for students**: Fit both datasets using (1) MCMC with Poisson likelihood and (2) ABC with L1 distance. Which approach is more robust to the outlier? Why might that be?
+**Exercise for students**: Compare how the Poisson likelihood and ABC with L1 distance respond to the outlier. You can do this visually: simulate from a few parameter sets, compute the Poisson log-likelihood and L1 distance for both `data_clean` and `data_outlier`, and see which metric shifts more. If you have time, try a full fit with both methods.
 
 ::: {.callout-tip collapse="true"}
 ## Hint: Outlier robustness
@@ -762,6 +781,39 @@ Poisson likelihood is sensitive to outliers because the log-probability drops sh
 ABC with L1 distance (defined earlier as `sum(abs.(sim .- obs))`) is more robust because the penalty grows linearly with the discrepancy, not exponentially. A single outlier affects the total distance, but doesn't dominate as severely.
 
 For likelihood-based inference, the Negative Binomial distribution (covered earlier in this session) offers a middle ground: its heavier tails make it less sensitive to occasional large deviations than Poisson, while still providing a proper likelihood for MCMC.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{julia}
+#| eval: false
+# Compare how each metric responds to the outlier
+true_params = [10.0, 2.5, 0.8]
+predicted = simulate_and_summarize(true_params)
+
+# Poisson log-likelihood
+function poisson_loglik(predicted, observed)
+    ll = 0.0
+    for i in eachindex(observed)
+        λ = max(predicted[i], 1e-10)
+        ll += logpdf(Poisson(λ), round(Int, observed[i]))
+    end
+    return ll
+end
+
+println("Poisson log-likelihood:")
+println("  Clean data:   ", round(poisson_loglik(predicted, data_clean), digits=2))
+println("  Outlier data: ", round(poisson_loglik(predicted, data_outlier), digits=2))
+
+println("\nL1 distance:")
+println("  Clean data:   ", round(distance_L1(predicted, data_clean), digits=2))
+println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2))
+
+# The Poisson log-likelihood drops much more dramatically with the outlier,
+# because a count of ~35 when expecting ~5 has near-zero Poisson probability.
+# The L1 distance increases by only ~30 (the size of the outlier).
+```
 :::
 
 # The philosophical question
@@ -831,7 +883,30 @@ Instead of comparing full time series, ABC often works better with carefully cho
 - **Growth rate**: Initial doubling time or exponential growth rate
 - **Final size**: Cumulative attack rate
 
-Using fewer, well-chosen summaries can make ABC more robust to noise and model misspecification.
+Here is an example of how to define and use summary statistics for ABC:
+
+```{julia}
+#| eval: false
+"""Extract summary statistics from an epidemic time series."""
+function epidemic_summaries(data)
+    return [
+        sum(data),                          # Total cases
+        Float64(argmax(data)),              # Peak timing (day index)
+        maximum(data),                      # Peak height
+        sum(data[1:min(5, length(data))])   # Early cumulative cases (proxy for growth rate)
+    ]
+end
+
+# Distance on summaries rather than full time series
+function distance_summaries(sim, obs)
+    s_sim = epidemic_summaries(sim)
+    s_obs = epidemic_summaries(obs)
+    # Normalise each summary by the observed value to make them comparable
+    return sum(abs.(s_sim .- s_obs) ./ (abs.(s_obs) .+ 1.0))
+end
+```
+
+Using fewer, well-chosen summaries can make ABC more robust to noise and model misspecification. However, there is a trade-off: summaries that discard too much information will produce wider posteriors. The choice of which summaries to use is problem-specific and often requires experimentation.
 
 ## Alternative observation models
 

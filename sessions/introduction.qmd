@@ -443,6 +443,16 @@ plot!(p)
 
 Priors determine what kinds of epidemics our model considers plausible before seeing data.
 
+::: {.callout-warning title="Exercise: Experiment with priors"}
+Try modifying the priors and re-running the prior predictive simulation above. For example:
+
+1. What happens if you use `R_0_prior = Uniform(1.0, 5.0)` instead of `Uniform(1.0, 20.0)`?
+2. What if you use `LogNormal(log(2.5), 0.3)` for $R_0$? (Hint: this centres the prior around 2.5 but on a log scale)
+3. Can you find a prior that produces only "realistic-looking" epidemic curves?
+
+There is no single right answer — the point is to build intuition for how prior choices affect the range of predictions.
+:::
+
 ::: {.callout-tip}
 ## Principles for choosing priors
 
@@ -533,6 +543,11 @@ println("Data overview:")
 first(epi1, 8)
 ```
 
+::: {.callout-tip collapse="true"}
+## What is `datadir()`?
+`datadir()` comes from the [DrWatson.jl](https://juliadynamics.github.io/DrWatson.jl/stable/) package we loaded in the setup. It returns the path to the `data/` folder in the project root, so `datadir("epi1_synthetic.csv")` expands to something like `/path/to/mfiidd.julia/data/epi1_synthetic.csv`. This keeps file paths portable across different machines.
+:::
+
 We first visualise this data set.
 
 ```{julia}
@@ -598,7 +613,7 @@ plot!(p)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - `sol[2, :]` - extracts the second row (the I compartment) from the ODE solution matrix. The `:` means "all columns" (all time points).
-- `[ Poisson(It) for It in I ]` - an [array comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) that creates a Poisson distribution for each expected value `It` in the vector `I`.
+- `[ Poisson(It) for It in I ]` - an [array comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) that creates a Poisson distribution for each expected value `It` in the vector `I`. If you know R, this is like `lapply(I, function(It) ...)`  or `purrr::map(I, ~ ...)` — it applies an operation to each element and collects the results.
 - [`Poisson(λ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Poisson) - creates a Poisson distribution with rate parameter `λ`. Used here as our observation model.
 - `logpdf.(loglik, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
 :::
@@ -620,8 +635,13 @@ logpdf.(Poisson.(expected), obs)
 Forgetting the `.` on a vector operation is a common gotcha for R users.
 :::
 
-::: {.callout-warning title="Exercise: Interpret the likelihood values"}
-Which parameter combination gives the highest likelihood (least negative log-likelihood)? Which one visually fits the data best?
+::: {.callout-warning title="Exercise: Predict the best fit"}
+Before looking at the output above, consider the parameter combinations being tested. Based on your understanding of SIR dynamics and the data plot:
+
+- Which value of $R_0$ do you expect to give the best fit? Why?
+- How would changing $D_\mathrm{inf}$ affect the epidemic curve?
+
+Now check the log-likelihood values. Did the results match your intuition? Is the visual best fit also the one with the highest log-likelihood?
 :::
 
 
@@ -664,6 +684,31 @@ end
 ```
 
 This function simulates the SIR model and returns both the trajectory and the log-likelihood. We'll use it throughout the rest of this session.
+
+::: {.callout-tip collapse="true"}
+## Code explainer: keyword arguments and named tuples
+The semicolon `;` in the function signature separates *positional* arguments (`R_0`, `D_inf`, `data`) from *keyword* arguments (`init_state`, `tspan`). Keyword arguments have defaults and must be passed by name: `simulate_and_loglik(2.5, 2.0, epi1, init_state = [499, 1, 0])`.
+
+The function returns a *named tuple* `(I = I, loglik = loglik)`, which you access with dot syntax: `result.I` or `result.loglik`. Named tuples are lightweight and immutable — think of them as a simple way to return multiple values with meaningful names.
+:::
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+Keyword arguments with defaults work like R function arguments:
+
+```r
+# R
+simulate_and_loglik <- function(R_0, D_inf, data,
+                                init_state = c(999, 1, 0),
+                                tspan = c(0, 30)) {
+  # ...
+  list(I = I, loglik = loglik)  # named list
+}
+result$I  # access with $
+```
+
+Julia's named tuples are similar to R's named lists but lighter-weight. The main difference is the `;` to separate keyword from positional arguments — R doesn't make this distinction.
+:::
 
 ::: {.callout-important}
 ## Take a break here

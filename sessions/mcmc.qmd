@@ -366,7 +366,7 @@ chain_normal_mh = sample(normal_model(), MH([10.0;;]), 50000)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`sample(model, sampler, n)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - runs the MCMC sampler on the model for `n` iterations, returning a chain of samples.
-- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. The `[10.0;;]` syntax creates a 1×1 matrix specifying the proposal covariance (standard deviation 10 in this 1D case).
+- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` expects a *matrix* for the proposal covariance. The `[10.0;;]` syntax creates a 1×1 matrix — the double semicolon `;;` tells Julia "this is a matrix, not a vector". Without it, `[10.0]` would be a 1-element vector, which `MH` wouldn't accept. The value 10.0 sets the proposal variance (so the proposal standard deviation is √10 ≈ 3.2).
 :::
 
 ```{julia}
@@ -441,6 +441,8 @@ This is the same structure we've been using manually - priors, simulation, and l
     # Likelihood (Poisson observation model of prevalence)
     I = sol[2, :]
     for i in 1:length(obs)
+        # max(..., 0.0) guards against tiny negative values from the ODE solver
+        # (numerical noise can push I slightly below zero near the end of an epidemic)
         obs[i] ~ Poisson(max(I[i], 0.0))
     end
 end
@@ -623,6 +625,8 @@ chain_nuts = sample(model, NUTS(), 2000)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`NUTS()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - the No U-Turn Sampler, a gradient-based MCMC algorithm that automatically tunes its step size and trajectory length. Much more efficient than Metropolis-Hastings for continuous parameters. The algorithm uses [automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) to compute gradients of the log-posterior.
+
+**How do gradients help with sampling?** Metropolis-Hastings proposes random steps and hopes for the best — like exploring a dark room by stumbling around. NUTS computes the gradient (slope) of the log-posterior, which tells it *which direction* leads to higher probability. It then simulates a ball rolling along this surface, following the natural contours of the posterior. This lets it take large, efficient steps along ridges and valleys instead of the small, random steps of MH. The "No U-Turn" part automatically decides when to stop rolling, so you don't need to tune a trajectory length.
 :::
 
 ```{julia}
@@ -657,7 +661,14 @@ Notice that:
 
 - NUTS mixes better (explores parameter space more efficiently)
 - NUTS needs fewer samples for same quality
-- NUTS had automatic warmup (no manual burn-in needed)
+- NUTS had automatic warmup (no manual burn-in needed — see below)
+
+::: {.callout-tip collapse="true"}
+## What is burn-in?
+MCMC chains start at an arbitrary point in parameter space, which may be far from the high-probability region. The initial samples as the chain "finds its way" to the posterior are called *burn-in* (or *warmup*). These samples don't represent the posterior and are typically discarded.
+
+With Metropolis-Hastings, you need to decide how many burn-in samples to discard by inspecting trace plots. NUTS handles this automatically: it uses the warmup period to adapt its step size and mass matrix, then discards those samples for you.
+:::
 
 What NUTS gives you automatically:
 
@@ -675,6 +686,18 @@ summarystats(chain_nuts)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`summarystats(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - returns a table with mean, std, MCSE (Monte Carlo Standard Error), ESS (Effective Sample Size), and R̂ (convergence diagnostic). We'll learn what these mean in the next session.
+:::
+
+::: {.callout-tip}
+## Which sampler should I use?
+
+| Sampler | Best for | Limitations |
+|---------|----------|-------------|
+| **MH** (Metropolis-Hastings) | Simple models, discrete parameters, learning MCMC | Requires manual tuning, slow for many parameters |
+| **RAM** (Robust Adaptive Metropolis) | Models where gradients aren't available (e.g. stochastic simulations) | Still random-walk, less efficient than gradient methods |
+| **NUTS** (No U-Turn Sampler) | Continuous parameters with differentiable models (ODEs, most Turing models) | Can't handle discrete parameters; needs gradients |
+
+**Rule of thumb**: Start with `NUTS()`. If your model has discrete parameters or stochastic components that break automatic differentiation, fall back to `MH` or `RAM`.
 :::
 
 # Posterior analysis with Turing.jl

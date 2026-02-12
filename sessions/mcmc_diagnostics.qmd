@@ -151,6 +151,8 @@ chain_good = sample(model, NUTS(), 2000)
 ```
 
 ```{julia}
+# chain_good[:R_0] extracts the samples for R_0 from the chain object
+# You can use this with any parameter name defined in your @model function
 plot(
     chain_good[:R_0], title = "Good Chain: R_0", xlabel = "Iteration",
     ylabel = "R_0", linewidth = 1
@@ -263,6 +265,8 @@ Modern samplers like NUTS have automatic warmup periods where they adapt the ste
 
 In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total: 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations.
 The returned chain contains only the 2000 post-warmup samples.
+
+By default, NUTS uses 1000 warmup iterations regardless of how many sampling iterations you request. You can change this with the `n_adapts` keyword: `NUTS(0.65; n_adapts=2000)` uses 2000 warmup iterations instead. For most models, the default 1000 is sufficient.
 
 With NUTS, you typically don't need to manually discard burn-in samples.
 The warmup is automatic and adaptive.
@@ -421,7 +425,9 @@ For modern gradient-based samplers like NUTS, poor mixing is rare if:
 
 ## Problem 2: Divergent transitions (for HMC/NUTS)
 
-NUTS can have "divergent transitions" when it encounters difficult geometry:
+NUTS simulates a ball rolling over the posterior surface. A *divergent transition* occurs when the simulation becomes numerically unstable — the ball "flies off" to implausible values instead of following the contour. This typically happens when the posterior has sharp ridges or funnels: the step size that works in flat regions is too large for the narrow parts, causing numerical errors to explode.
+
+A small number of divergences (say <1% of samples) may be acceptable, but many divergences indicate biased sampling — the sampler is systematically avoiding regions it can't navigate, so the samples underrepresent those areas.
 
 ```{julia}
 # Check for divergent transitions
@@ -461,6 +467,12 @@ Here's an artificial example with two modes to show how multiple chains help:
     Turing.@addlogprob! log(0.5 * exp(mode1_loglik) + 0.5 * exp(mode2_loglik))
 end
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- `Turing.@addlogprob!` manually adds a value to the log-probability of the model. This is useful when you can't express the likelihood using `~` syntax — here we need a mixture of two Normals, which requires computing the log-probability by hand.
+- The `~` syntax (e.g. `x ~ Normal(0, 5)`) automatically adds the log-density to the model's total log-probability. `@addlogprob!` does the same thing, but you compute the value yourself.
+:::
 
 ```{julia}
 #| output: false
@@ -529,7 +541,8 @@ plot!(p)
    - For each MCMC sample: takes R₀ and D_inf from the chain → solves ODE → samples new obs from Poisson
 
 3. **The result** is stored with keys like `Symbol("obs[1]")`, `Symbol("obs[2]")`, etc.
-   - We extract these to plot: `predictions[Symbol("obs[$j]")][i, 1]`
+   - Because our model uses `obs[i] ~ Poisson(...)` in a loop, Turing names each predicted observation `obs[1]`, `obs[2]`, etc. To access these in Julia, we convert the string to a `Symbol`: `Symbol("obs[$j]")` becomes `:obs[1]`, `:obs[2]`, etc.
+   - `predictions[Symbol("obs[$j]")][i, 1]` then extracts the `i`-th posterior sample for the `j`-th observation. The `1` is the chain index (we have one chain here).
 
 :::
 
@@ -549,7 +562,11 @@ If they don't, your model needs improvement - no amount of MCMC will fix a funda
 
 # Advanced diagnostics
 
-## Split-R̂ 
+::: {.callout-note appearance="simple"}
+This section covers refinements to the basic diagnostics above. If you're short on time, you can skip ahead to the [troubleshooting guide](#troubleshooting-guide) — the core diagnostics (R̂, ESS, trace plots) from the previous section are sufficient for most analyses.
+:::
+
+## Split-R̂
 
 Modern R̂ splits each chain in half for more robust diagnostics:
 
@@ -652,6 +669,34 @@ plot(chain_problematic)
 2. Which parameters show the worst R̂ and ESS values?
 3. Try modifying the `problematic_model` above to improve its behaviour. Hint: Change the prior scales to be more similar across parameters, or remove the correlation structure.
 4. Run the modified model and compare the diagnostics.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+The problems are:
+
+- **Mismatched scales**: `R_0 ~ Normal(0, 100)` is very wide while `D_inf ~ Normal(0, 0.01)` is extremely tight. The sampler struggles to adapt its step size to work well for both simultaneously.
+- **Redundant parameters**: `x1` and `x2` both depend on `R_0` and appear only as `x1 + x2 - 2*R_0`, making them poorly identified — many combinations of `x1` and `x2` give the same sum.
+
+A fixed version:
+
+```julia
+@model function fixed_model()
+    R_0 ~ Normal(0, 1)       # Moderate scale
+    D_inf ~ Normal(0, 1)     # Same scale as R_0
+
+    x1 ~ Normal(R_0, 1)
+    x2 ~ Normal(R_0, 1)
+
+    for i in 1:10
+        0.0 ~ Normal(x1 + x2 - 2*R_0, 0.1)
+    end
+end
+
+chain_fixed = sample(fixed_model(), NUTS(), 1000)
+plot(chain_fixed)
+```
+
+After fixing the scales, R̂ should be much closer to 1.0 and ESS should increase substantially.
 :::
 
 **How to fix problematic models:**

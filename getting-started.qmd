@@ -96,7 +96,8 @@ Pkg.activate(".")
 Pkg.instantiate()
 ```
 
-This reads `Project.toml` and `Manifest.toml` to install all required packages with exact versions.
+`Pkg.activate(".")` tells Julia to use the course's own set of packages rather than your global installation — think of it as a self-contained library that ensures everyone has the same package versions.
+`Pkg.instantiate()` then reads `Project.toml` and `Manifest.toml` to download and install those exact versions.
 
 ::: {.callout-warning}
 ## Expect a long wait on first run
@@ -202,7 +203,9 @@ Pkg.precompile()
 
 ## Quarto documents (.qmd)
 
-Course sessions are Quarto documents combining text and executable Julia code. To render a session:
+Course sessions are [Quarto](https://quarto.org/) documents (`.qmd`) combining text and executable Julia code.
+If you've used RMarkdown before, Quarto is its successor — same idea, but language-agnostic.
+To render a session:
 
 ```bash
 quarto preview sessions/introduction.qmd
