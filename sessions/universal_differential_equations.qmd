@@ -7,12 +7,18 @@ order: 10
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-3 hours | **Advanced session** | **Requires**: Introduction only (independent track)
+**Estimated time**: 2-3 hours | **Advanced session** | **Requires**: Comfort with ODE-based models (e.g. the [Introduction](introduction.qmd)) and basic familiarity with neural networks (what layers and activation functions are)
 :::
 
 # Introduction
 
 > **Do this session if** you want to discover unknown mechanisms from data using neural networks, or you have dynamics that simple parametric models can't capture. Assumes basic familiarity with neural networks.
+
+::: {.callout-warning title="Coming from R?"}
+UDEs rely on differentiable programming — automatic differentiation through ODE solvers and neural networks — which is not practically available in R. The Julia ecosystem (SciML, Lux.jl) is currently the most mature platform for this kind of work. If you are an R user, this session is still worth reading for the concepts, but the code cannot be straightforwardly translated.
+:::
+
+We discuss when UDEs are appropriate (and when simpler methods suffice) in [When to use UDEs](#when-to-use-udes).
 
 ## From model comparison to model discovery
 
@@ -102,6 +108,14 @@ scatter(
 )
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave?")
 ```
+
+::: {.callout-important title="TdC is a pedagogical example, not an ideal UDE dataset"}
+The Tristan da Cunha dataset has only ~60 data points. As we note in [When to use UDEs](#when-to-use-udes), UDEs really benefit from hundreds to thousands of observations — for 60 points, simpler approaches such as Gaussian processes or splines are likely more appropriate. We use TdC here because it is familiar from earlier sessions and its two-wave pattern poses an interesting modelling challenge, not because it is a good candidate for UDEs in practice. Keep this limitation in mind when interpreting results.
+:::
+
+::: {.callout-note title="Skipped step: synthetic data validation"}
+In a real analysis you should **always** validate a UDE on synthetic data first — generate observations from a known β(t), train the UDE, and check that it recovers the true function. This confirms the method works before you apply it to data where the truth is unknown. We skip this step here for time, but see [Going further → Validation with synthetic data](#validation-with-synthetic-data) for an outline.
+:::
 
 Notice the two distinct periods of transmission:
 
@@ -366,6 +380,8 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 
 **Key question**: Does the UDE capture the second wave? Look at the fit around days 25-35.
 
+You should see the UDE trajectory (orange/green line) tracking the first-wave peak noticeably better than the constant-β baseline. Whether the second wave (days 25-35) is captured depends on the training run: the UDE may show a small uptick there, but with only 60 data points and strong regularisation it is unlikely to reproduce the second wave precisely. If the two curves look almost identical, the network may not have learned anything useful — try reducing the regularisation strength or increasing the number of iterations.
+
 ## Step 6: Visualise learned β(t)
 
 The key output - what transmission pattern did the network learn?
@@ -402,6 +418,8 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
+In a typical run you should see β(t) starting high (above the constant-β baseline), dropping during the trough around days 12-20, and then rising again around days 20-25 as the network tries to reignite transmission for the second wave. The exact shape varies between runs — this variability itself is informative (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below).
+
 Before interpreting this curve, look back at Step 5. How well does the UDE actually fit the data? With only 60 data points and strong regularisation, the fit may be imperfect - and that's informative! An imperfect fit tells us either that the model needs more flexibility, or (more interestingly) that the SIR structure itself can't capture the dynamics. We'll explore this in the next section.
 
 Interpreting the learned β(t):
@@ -414,6 +432,10 @@ If β(t) is roughly constant, the network didn't find time-varying transmission 
 - The network is too small (try more hidden units)
 - More training iterations are needed
 - Or genuinely: time-varying β isn't the right mechanism for this data
+
+## Uncertainty quantification in the main analysis {#uncertainty-quantification-in-the-main-analysis}
+
+Everything above is a single optimisation run — the learned β(t) is a point estimate with no uncertainty attached. This is a serious limitation for drawing scientific conclusions. A quick way to get a rough sense of uncertainty is to re-run the training from several different random seeds (e.g. 5-10) and overlay the resulting β(t) curves. Where the curves agree, the signal is robust; where they diverge, the data cannot constrain the answer. See [Going further → Ensemble uncertainty](#ensemble-uncertainty) for more detail.
 
 # Practical challenges
 
@@ -482,7 +504,7 @@ end
 
 # Test three regularisation scales: half, same, and double
 for (name, scale) in [("0.5×", 0.5), ("1.0×", 1.0), ("2.0×", 2.0)]
-    println("Testing regularization scale: $name")
+    println("Testing regularisation scale: $name")
     loss_fn = make_loss(scale)
     opt_func_test = OptimizationFunction(loss_fn, Optimization.AutoForwardDiff())
     opt_prob_test = OptimizationProblem(opt_func_test, p_all, nothing)
@@ -504,6 +526,23 @@ If lower regularisation gives a substantially better fit, the model may need mor
 If results are similar across scales, the solution is robust to this hyperparameter choice, which increases confidence in the findings.
 
 If results vary wildly (very different final losses or learned patterns), the model is sensitive to this choice - a warning sign that conclusions may not be reliable. This is common with small datasets like our 60 points.
+
+# Exercises
+
+::: {.callout-tip title="Exercise 1: Experiment with hyperparameters"}
+The results above are sensitive to choices we made somewhat arbitrarily. Try changing one thing at a time and observe the effect on the learned β(t) curve and the final loss:
+
+1. **Hidden units**: Change `Dense(2 => 8, tanh)` to `Dense(2 => 4, tanh)` (smaller) or `Dense(2 => 16, tanh)` (larger). How does the number of parameters change? Does the fit improve or does overfitting become visible?
+2. **Learning rate**: Replace `Adam(0.01)` with `Adam(0.001)` or `Adam(0.05)`. What happens to training stability and convergence speed?
+3. **Regularisation strength**: Change the L2 penalty coefficient from `1e-4` to `1e-3` (stronger) or `1e-5` (weaker). How does the smoothness of β(t) change?
+4. **Random seed**: Change `Random.seed!(1234)` to a different value and re-run. How much does the learned β(t) vary between seeds?
+
+For each change, re-run from Step 1 through Step 6 and compare the β(t) plot to your original result.
+:::
+
+::: {.callout-tip title="Exercise 2: Interpret the structural constraint"}
+In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) may be fundamentally unable to produce two waves. Can you explain, in your own words, why setting β to a very large value during the trough still cannot restart the epidemic? What structural change to the model would you propose instead?
+:::
 
 # When to use UDEs
 
@@ -576,7 +615,11 @@ Before trusting UDE discoveries on real data, test on synthetic data where you k
 3. Compare learned β(t) to the true function
 4. If the UDE can't recover known patterns, be cautious about interpreting patterns from real data
 
-## Symbolic regression: interpretable discovery
+## Symbolic regression: interpretable discovery (optional)
+
+::: {.callout-note}
+This section introduces a related but distinct topic — symbolic regression — that extends the UDE workflow. It is included for interest and can be safely skipped.
+:::
 
 A major limitation of neural network UDEs is interpretability - you get a function that works, but you can't write down what it is. Symbolic regression addresses this by searching for *equations* rather than neural network weights.
 
@@ -620,7 +663,7 @@ Now that you've seen modern inference methods (variational inference, UDEs), you
 - **When to use fast approximations** (VI, mean-field)
 - **When to use hybrid approaches** (UDEs, GPs)
 
-The best modelers know **all** the tools and choose wisely!
+The best modellers know **all** the tools and choose wisely!
 
 # References
 

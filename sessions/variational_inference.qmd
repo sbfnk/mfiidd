@@ -66,6 +66,10 @@ using Statistics: mean, std, cor
 Random.seed!(1234)
 ```
 
+::: {.callout-note title="Coming from R?"}
+The closest equivalent to Turing's VI in the R ecosystem is **rstan's `vb()` function**, which implements Automatic Differentiation Variational Inference (ADVI). The interface is similar: you define a Stan model and call `vb(model)` instead of `sampling(model)`. The same trade-offs apply — faster than full MCMC but approximate. If you have used `rstan::vb()` or `cmdstanr`'s `$variational()` method, the concepts in this session will be familiar.
+:::
+
 # Load Tristan da Cunha data
 
 ```{julia}
@@ -205,6 +209,11 @@ The first term rewards $q$ for placing probability mass where the joint distribu
 
 Maximising ELBO is equivalent to minimising $\text{KL}(q || p)$, and importantly, we can estimate the ELBO using samples from $q$ - no need to evaluate the intractable posterior directly.
 
+::: {.callout-note}
+## Mathematical detail
+The derivation of the ELBO from KL divergence involves Jensen's inequality and properties of logarithms. If you are not familiar with these concepts, you can safely accept the ELBO formula above on faith and skip ahead to the practical section below — the key intuition is simply that a higher ELBO means a better approximation.
+:::
+
 ## Mean-field approximation
 
 The simplest VI uses a **mean-field** approximation, which assumes all parameters are independent:
@@ -218,6 +227,8 @@ This factorisation means we only need to learn 6 numbers (3 means + 3 variances)
 
 Note: The actual optimisation happens in unconstrained space (using log transforms for positive parameters, logit for bounded parameters), then samples are transformed back.
 
+The function `q_meanfield_gaussian(model)` inspects the Turing model and creates an initial variational distribution: one independent Gaussian per model parameter, in unconstrained space. It sets all means to zero and all standard deviations to one. This is the starting point — the `vi` function then adjusts these means and standard deviations to maximise the ELBO.
+
 ```{julia}
 println("\nRunning Mean-Field VI...")
 q_init_mf = q_meanfield_gaussian(model)
@@ -228,11 +239,24 @@ println("Final ELBO: ", round(stats_mf[end].elbo, digits=2))
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`q_meanfield_gaussian(model)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - creates an initial mean-field Gaussian variational distribution for the model, with independent Normal distributions for each parameter.
+- [`q_meanfield_gaussian(model)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - creates an initial mean-field Gaussian variational distribution for the model, with independent Normal distributions for each parameter (all initialised to standard normals in unconstrained space).
 - [`vi(model, q_init, n_iters; ...)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - runs variational inference, optimising the ELBO for `n_iters` steps. Returns the optimised distribution `q` and training statistics.
 - `adtype=AutoForwardDiff()` - specifies [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for computing gradients. Forward-mode AD is efficient when the number of parameters is small (like here).
 - `stats_mf[end].elbo` - the final ELBO value. Higher (less negative) is better, indicating a closer approximation to the true posterior.
 :::
+
+## Monitoring ELBO convergence
+
+A critical diagnostic for VI is checking that the ELBO has converged — i.e., that the optimisation has run for long enough. We can plot the ELBO over iterations and look for a plateau:
+
+```{julia}
+elbo_vals_mf = [s.elbo for s in stats_mf]
+plot(elbo_vals_mf, xlabel="Iteration", ylabel="ELBO",
+     title="ELBO convergence (mean-field)", label="ELBO",
+     linewidth=2, color=:blue)
+```
+
+The ELBO should increase (become less negative) and eventually plateau. If the curve is still climbing at the end, you need more iterations. Typical counts range from a few hundred to a few thousand, depending on model complexity — for our simple 3-parameter model, 500 iterations is usually sufficient, but more complex models may need 1000–5000 or more.
 
 Much faster! But is it accurate?
 
@@ -438,6 +462,16 @@ The speedup becomes even more dramatic with larger models or more samples.
 - Parameters are correlated (otherwise mean-field is fine)
 - You've validated that VI and MCMC give similar results for your problem
 
+::: {.callout-warning title="When VI fails"}
+Gaussian VI (both mean-field and full-rank) assumes the posterior is well-approximated by a single Gaussian. This assumption breaks down in several important cases:
+
+- **Multimodal posteriors**: If the posterior has multiple peaks (e.g., a model with label-switching symmetry), a single Gaussian will either collapse onto one mode or spread across modes, giving a poor approximation in either case.
+- **Heavy-tailed posteriors**: Gaussian tails decay exponentially, so VI will systematically underestimate the probability of extreme parameter values. This leads to overconfident uncertainty intervals.
+- **Strong nonlinear correlations**: Full-rank VI captures *linear* correlations via the covariance matrix, but banana-shaped or other nonlinear posterior structures cannot be represented by any Gaussian.
+
+When you suspect these issues, MCMC remains the more reliable choice. A useful diagnostic: if VI and MCMC give substantially different results, trust MCMC — VI is likely struggling with the posterior geometry.
+:::
+
 # Practical workflow
 
 ## Recommended strategy
@@ -463,6 +497,113 @@ The speed comparisons above might seem academic for a single analysis - who care
 
 The practical recommendation: validate VI against MCMC once (to ensure they give similar results for your problem), then use VI for operational workflows where speed matters.
 
+# Exercises
+
+## Exercise 1: ELBO convergence and iteration count
+
+Run mean-field VI with different numbers of iterations (50, 200, 500, 2000) and observe how the ELBO converges and how the posterior approximation changes.
+
+::: {.callout-tip collapse="true"}
+## Hint
+Use a loop over iteration counts, storing the final ELBO and posterior mean of $R_0$ for each run.
+:::
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+```{julia}
+iter_counts = [50, 200, 500, 2000]
+results = []
+
+for n_iter in iter_counts
+    q_init = q_meanfield_gaussian(model)
+    (q_result, stats_result) = vi(model, q_init, n_iter; adtype=AutoForwardDiff(), show_progress=false)
+    samples = rand(q_result, 5_000)
+    push!(results, (
+        n_iter = n_iter,
+        final_elbo = stats_result[end].elbo,
+        R0_mean = mean(samples[1, :]),
+        R0_std = std(samples[1, :]),
+        elbo_trace = [s.elbo for s in stats_result]
+    ))
+end
+
+# Plot ELBO traces
+p = plot(xlabel="Iteration", ylabel="ELBO",
+         title="ELBO convergence by iteration count", legend=:bottomright)
+for r in results
+    plot!(p, r.elbo_trace, label="$(r.n_iter) iters", linewidth=1.5)
+end
+p
+```
+
+```{julia}
+# Summarise results
+println("Iterations | Final ELBO | R₀ mean ± std")
+println("-"^50)
+for r in results
+    println("$(lpad(r.n_iter, 9)) | $(lpad(round(r.final_elbo, digits=1), 10)) | $(round(r.R0_mean, digits=2)) ± $(round(r.R0_std, digits=2))")
+end
+```
+
+You should see that with too few iterations (e.g., 50), the ELBO has not converged and the posterior means may be inaccurate. By around 500 iterations the ELBO typically plateaus for this model, and increasing to 2000 gives negligible improvement. This tells us 500 iterations is sufficient here.
+:::
+
+## Exercise 2: Comparing VI and MCMC posteriors
+
+Run both mean-field VI and full-rank VI, and compare their posteriors against the MCMC baseline. Produce overlay histograms for all three parameters and assess where VI agrees with MCMC and where it diverges.
+
+::: {.callout-tip collapse="true"}
+## Hint
+Use the MCMC chain `chain_mcmc` and VI distributions `q_mf` and `q_full` that we already fitted above. Sample 10,000 draws from each VI distribution and overlay the histograms.
+:::
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+```{julia}
+# Draw samples (reuse existing VI fits from above)
+samp_mf = rand(q_mf, 10_000)
+samp_full = rand(q_full, 10_000)
+
+param_names = ["R_0", "D_inf", "ρ"]
+plots_list = []
+
+for (i, pname) in enumerate(param_names)
+    p = histogram(vec(chain_mcmc[Symbol(pname)]), bins=40, alpha=0.4,
+                  normalize=:pdf, label="MCMC", xlabel=pname, ylabel="Density")
+    histogram!(p, samp_mf[i, :], bins=40, alpha=0.4,
+               normalize=:pdf, label="Mean-field VI")
+    histogram!(p, samp_full[i, :], bins=40, alpha=0.4,
+               normalize=:pdf, label="Full-rank VI")
+    push!(plots_list, p)
+end
+
+plot(plots_list..., layout=(1, 3), size=(1200, 400),
+     plot_title="Posterior comparison: MCMC vs VI")
+```
+
+```{julia}
+# Quantitative comparison
+println("Parameter | MCMC mean (std) | MF-VI mean (std) | FR-VI mean (std)")
+println("-"^75)
+for (i, pname) in enumerate(param_names)
+    mcmc_vals = vec(chain_mcmc[Symbol(pname)])
+    println("$(rpad(pname, 9)) | $(round(mean(mcmc_vals), digits=2)) ($(round(std(mcmc_vals), digits=2))) | " *
+            "$(round(mean(samp_mf[i, :]), digits=2)) ($(round(std(samp_mf[i, :]), digits=2))) | " *
+            "$(round(mean(samp_full[i, :]), digits=2)) ($(round(std(samp_full[i, :]), digits=2)))")
+end
+```
+
+Look at where the three methods agree and disagree. Typical findings for this model:
+
+- **Posterior means** are usually similar across all three methods — VI tends to find the right location.
+- **Posterior widths** may differ: mean-field VI can be overconfident (narrower) because it ignores correlations.
+- **Full-rank VI** generally gives a closer match to MCMC than mean-field, particularly for correlated parameters like $R_0$ and $D_\text{inf}$.
+
+If you see substantial disagreement between full-rank VI and MCMC, it may indicate that 500 VI iterations was not enough, or that the posterior has features (e.g., skewness) that even full-rank Gaussian VI cannot capture.
+:::
+
 # Summary
 
 Variational inference reframes Bayesian inference as optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior. This trades some accuracy for speed - useful when MCMC is too slow.
@@ -483,32 +624,7 @@ VI is not a replacement for MCMC - it's a complementary tool that enables applic
 
 # Going further
 
-## Normalising flows
-
-Both mean-field and full-rank VI assume the posterior is Gaussian. But what if the posterior is:
-
-- Multimodal: Multiple peaks
-- Skewed: Asymmetric
-- Heavy-tailed: Fat tails
-
-Normalising flows use neural networks to create more flexible approximations. A flow transforms a simple base distribution (e.g., Gaussian) through a series of invertible transformations:
-
-$$z_0 \sim \mathcal{N}(0, I) \rightarrow z_1 = f_1(z_0) \rightarrow \cdots \rightarrow \theta = f_K(z_{K-1})$$
-
-Each $f_k$ is an invertible function (often a neural network layer), allowing flows to approximate complex, non-Gaussian posteriors.
-
-[Bijectors.jl](https://turinglang.org/Bijectors.jl/stable/) provides building blocks (PlanarLayer, RadialLayer, Coupling layers), but implementation is more involved than Gaussian VI. For production use, consider:
-
-- [DiffEqFlux.jl](https://docs.sciml.ai/DiffEqFlux/stable/): Continuous normalising flows (FFJORD)
-- Python's [sbi package](https://sbi-dev.github.io/sbi/) via PythonCall.jl: Mature neural flow implementations
-
-## Amortised inference
-
-When analysing many similar datasets, you can train a neural network to directly predict posterior parameters from data - no optimisation at inference time. This is especially useful for:
-
-- Simulation-based inference
-- Real-time applications with strict latency requirements
-- Analysing thousands of similar datasets
+The Gaussian VI methods covered in this session are the most commonly used in practice, but more flexible approaches exist. **Normalising flows** use sequences of invertible transformations to create non-Gaussian approximations, allowing them to handle multimodal and skewed posteriors — see [Bijectors.jl](https://turinglang.org/Bijectors.jl/stable/) for Julia implementations. **Amortised inference** trains a neural network to predict posterior parameters directly from data, eliminating per-dataset optimisation — useful when analysing many similar datasets. These are active research areas; the references below provide entry points.
 
 # Next session
 

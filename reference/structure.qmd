@@ -9,7 +9,7 @@ order: 1
 
 **Model fitting and inference for infectious disease dynamics** (MFIIDD) is a hands-on course that teaches you to fit mathematical models of infectious disease to data using modern Bayesian methods.
 
-You'll work with real and simulated outbreak data, building from simple deterministic models to stochastic compartmental models.
+You'll work with real and simulated outbreak data, building from simple deterministic models to stochastic compartmental models (where individual infection events happen randomly, unlike the smooth ODE solutions you may have seen before).
 By the end, you'll be able to specify a transmission model, write down a likelihood, and use MCMC (and other methods) to estimate parameters and quantify uncertainty.
 
 # Prerequisites
@@ -34,7 +34,7 @@ Work through them in order, or use this map to plan your time.
 
 **Stochastic sessions** (5-6 hours) - for fitting models with demographic stochasticity:
 
-> SEITL Interlude → Particle Filters → Particle MCMC
+> SEITL Interlude (Susceptible–Exposed–Infectious–Temporary immunity–Long-term immunity) → Particle Filters → Particle MCMC
 
 **Advanced sessions** (2-3 hours each) - independent, pick based on interest:
 

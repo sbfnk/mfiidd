@@ -13,7 +13,12 @@ order: 7
 
 In the [previous session](particle_filters.qmd), we learned how particle filters estimate likelihoods for stochastic models by simulating many trajectories and weighting them by how well they match observations. We also calibrated the number of particles needed for reliable inference.
 
-Now we'll put this into practice. This session shows how to combine particle filters with Metropolis-Hastings to perform full Bayesian inference on stochastic models - the Particle Marginal Metropolis-Hastings (PMMH) algorithm.
+Now we'll put this into practice. This session shows how to combine particle filters with Metropolis-Hastings to perform full Bayesian inference on stochastic models — the Particle Marginal Metropolis-Hastings (PMMH) algorithm.
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+In R, particle MCMC is available through [`pomp`](https://kingaa.github.io/pomp/) (the `pmcmc()` function) and the [`mcstate`](https://mrc-ide.github.io/mcstate/) package (part of the odin/dust/mcstate ecosystem). The concepts are identical; only the implementation differs.
+:::
 
 # Objectives
 
@@ -168,6 +173,8 @@ Uses GeneralisedFilters for likelihood estimation.
              :α => α, :D_imm => D_imm, :ρ => ρ)
 
     # Build state-space model
+    # The SSMProblems interface expects a plain vector, not a Dict
+    # Order: [S, E, I, T1, T2, T3, T4, L]
     init_state = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]
     ssm = StateSpaceModel(SEIT4LInitial(init_state),
                           SEIT4LDynamics(θ),
@@ -184,7 +191,7 @@ end
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in `src/seit4l_particle_filter.jl`.
-- **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood.
+- **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood. `Random.default_rng()` provides the global random number generator — this is Julia's way of passing randomness explicitly rather than relying on a hidden global state.
 - [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds the particle filter's log-likelihood estimate to the model. The priors specified with `~` still contribute automatically. This is the [recommended pattern](https://github.com/TuringLang/Turing.jl/issues/2428) for integrating external likelihood estimators with Turing.
 - **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation.
 :::
@@ -198,6 +205,8 @@ Let's start with a short chain to see the challenges:
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
 # Run a short chain with RAM
+# externalsampler() wraps an AdvancedMH.jl sampler for use with Turing models
+# check_model=false is needed because our model uses @addlogprob! instead of standard ~ syntax
 chain_short = sample(
     model_pmmh,
     externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
@@ -221,6 +230,15 @@ Look carefully at the trace plots above. You should see:
 :::
 
 With only 500 samples, the chain hasn't had time to properly explore the posterior.
+
+::: {.callout-warning title="Exercise: Run your own short PMMH chain"}
+Try running a short PMMH chain yourself:
+
+1. Run `sample(model_pmmh, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; check_model=false)` and look at the trace plots
+2. What acceptance rate does the sampler achieve? (Look at the proportion of samples that change between iterations)
+3. Try reducing the particle count to 64: `pmmh_seit4l(flu_tdc.obs, 64)`. How does this affect mixing? Is it faster but noisier?
+4. Compare to the pre-computed chain loaded below — how many more iterations were needed for convergence?
+:::
 
 ## Why is PMMH mixing difficult?
 
@@ -349,11 +367,15 @@ p4 = density(chain_pmcmc, :α, title = "α (Stochastic)", legend = false)
 plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
 ```
 
-__What differences do you notice between the deterministic and stochastic fits?__
+::: {.callout-warning title="Exercise: Interpret the stochastic vs deterministic comparison"}
+Look at the posterior density plots above and compare the two models:
 
-For the Tristan da Cunha outbreak with only 284 individuals, demographic stochasticity plays a significant role.
-In practice, the stochastic model typically shows wider posterior distributions (more uncertainty), different point estimates for some parameters, and better capture of the irregularity in the data.
-However, the deterministic model is much faster to fit and often provides similar qualitative insights.
+1. Which model gives wider posterior distributions? Why would accounting for stochastic variability change the uncertainty in parameter estimates?
+2. Focus on the $\alpha$ parameter (probability of long-term immunity). Do the two models agree on its value?
+3. For a population of 284 people, do you think the deterministic approximation is reasonable, or does stochasticity matter?
+:::
+
+For the Tristan da Cunha outbreak with only 284 individuals, demographic stochasticity plays a significant role. The stochastic model typically shows wider posteriors because it accounts for an additional source of variability — the randomness of individual infection events — that the deterministic model ignores. The deterministic model is much faster to fit and useful for initial exploration, but for small populations the stochastic model gives more honest uncertainty estimates.
 
 
 # Model comparison: SEITL vs SEIT4L
@@ -445,6 +467,30 @@ For particle MCMC model comparison:
 4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
+
+::: {.callout-warning title="Exercise: Posterior predictive comparison"}
+Generate posterior predictive simulations from both SEITL and SEIT4L and compare them visually:
+
+```julia
+# For each model chain, sample parameters and simulate trajectories
+function posterior_predictive_sims(chain, simulate_fn, init_state, times, n_sims=50)
+    plots_data = []
+    for i in rand(1:length(chain), n_sims)
+        θ = Dict(:R_0 => chain[:R_0][i], :D_lat => chain[:D_lat][i],
+                 :D_inf => chain[:D_inf][i], :α => chain[:α][i],
+                 :D_imm => chain[:D_imm][i], :ρ => chain[:ρ][i])
+        traj = simulate_fn(θ, init_state, times)
+        obs_sim = rand.(Poisson.(max.(θ[:ρ] .* traj.Inc, 1e-10)))
+        push!(plots_data, obs_sim)
+    end
+    return plots_data
+end
+```
+
+1. Which model produces simulated epidemics that look more like the observed data?
+2. Does either model consistently miss the second wave timing?
+3. How does the *spread* of simulations differ between models?
+:::
 
 # Summary
 

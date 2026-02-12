@@ -138,6 +138,11 @@ Now let's define a model with priors and sample from the prior predictive distri
 end
 ```
 
+::: {.callout-tip collapse="true"}
+## Why `max(..., 1e-10)` everywhere?
+You'll see `max(value, 1e-10)` throughout the course wherever we create a Poisson distribution. `Poisson(λ)` requires `λ > 0` — passing exactly zero causes an error. In practice, the model can produce zero expected incidence (e.g. before the epidemic starts or after it ends), and numerical noise from the ODE solver can even produce tiny negative values. The `max(..., 1e-10)` guard ensures we always pass a valid (tiny but positive) rate. The value `1e-10` is small enough to be effectively zero for all practical purposes.
+:::
+
 ```{julia}
 # Prior predictive sampling
 times = 0.0:1.0:59.0
@@ -149,8 +154,13 @@ prior_samples = sample(sir_model(fill(missing, 60), times, S0, I0), Prior(), 200
 
 ::: {.callout-tip collapse="true"}
 ## Code walkthrough
-- `fill(missing, 60)` - creates a vector of 60 `missing` values. When passed as observations, Turing treats likelihood statements as generative (sampling) rather than conditioning.
+- `fill(missing, 60)` - creates a vector of 60 `missing` values. When passed as observations, Turing treats `~` statements as generative — instead of computing `logpdf(Poisson(λ), obs[i])` (conditioning), it runs `rand(Poisson(λ))` (sampling). This is how Turing generates synthetic data from the model.
 - [`Prior()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a sampler that draws from prior distributions only, ignoring the likelihood. This gives us parameter combinations purely from our prior beliefs.
+:::
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+This pattern has no direct R equivalent. In Stan, you'd write a separate `generated quantities` block for prior predictive simulation. In R with bespoke code, you'd write a separate simulation function. Turing's `missing` trick lets you reuse the same model for both fitting (pass real data) and simulation (pass `missing` values) — no separate code needed.
 :::
 
 ```{julia}
@@ -179,6 +189,16 @@ plot!(p_prior, ylim=(0, 150))
 - Are there impossible trajectories (negative values, explosions)?
 
 If prior predictive simulations look unreasonable, revise your priors before fitting data. This is much easier than debugging a fitted model.
+
+::: {.callout-warning title="Exercise: Tighten the priors and compare"}
+The current priors allow $R_0$ up to 10, which is unrealistic for influenza. Try:
+
+1. Change the prior to `R_0 ~ Uniform(1.0, 5.0)` in the model definition above
+2. Re-run the prior predictive sampling
+3. Plot the new trajectories alongside the originals
+
+How does the range of epidemic curves change? Are the new trajectories more realistic?
+:::
 
 ::: {.callout-tip}
 ## When priors are too vague
@@ -215,7 +235,7 @@ function posterior_predictive(chain, times, S0, I0, n_sims=100)
         ρ = chain[:ρ][idx]
 
         inc = simulate_sir(R_0, D_inf, S0, I0, times)
-        # Sample from observation model
+        # Sample from observation model (see code explainer below)
         obs_sim = rand.(Poisson.(max.(ρ .* inc, 1e-10)))
         push!(sims, obs_sim)
     end
@@ -224,6 +244,18 @@ end
 
 ppc_samples = posterior_predictive(chain, times, S0, I0)
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer: `rand.(Poisson.(max.(ρ .* inc, 1e-10)))`
+This line chains several broadcasting operations (the `.` dots). Reading from inside out:
+
+1. `ρ .* inc` — multiply each element of `inc` by the reporting rate `ρ`
+2. `max.(..., 1e-10)` — ensure no value is zero or negative (Poisson requires a positive rate)
+3. `Poisson.(...)` — create a Poisson distribution for each expected value
+4. `rand.(...)` — draw one random sample from each Poisson distribution
+
+The result is a vector of simulated observed case counts, one per time point. In R, this would be: `rpois(length(inc), lambda = pmax(rho * inc, 1e-10))`.
+:::
 
 ```{julia}
 # Plot posterior predictive check
@@ -310,7 +342,11 @@ println("  Peak timing: $p_time")
 println("  Total cases: $p_total")
 ```
 
-Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data. A p-value of 0.02 for peak timing, for example, would mean only 2% of simulated epidemics peaked as late as or later than the observed data - suggesting the model systematically predicts earlier peaks.
+Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data. A p-value of 0.02 for peak timing, for example, would mean only 2% of simulated epidemics peaked as late as or later than the observed data — suggesting the model systematically predicts earlier peaks.
+
+::: {.callout-note}
+These p-values are *descriptive*, not hypothesis tests — there is no "reject if p < 0.05" rule here. They quantify how surprised you should be, given the model. A value of 0.15 doesn't mean the model is "fine"; a value of 0.03 doesn't mean it's "wrong". Use them alongside visual checks and scientific judgement.
+:::
 
 # Residual analysis
 
@@ -343,7 +379,7 @@ hline!(p_resid, [0], color=:black, linestyle=:dash)
 
 **What patterns indicate problems?**
 
-If residuals show a systematic trend - consistently positive or negative over certain time periods - the model is missing important temporal structure. If residuals at one time point predict residuals at the next (autocorrelation), the model dynamics are incomplete. And if the spread of residuals changes depending on the predicted value (heteroscedasticity), the observation model's variance structure is probably wrong.
+If residuals show a systematic trend — consistently positive or negative over certain time periods — the model is missing important temporal structure. If residuals at one time point predict residuals at the next (autocorrelation), the model dynamics are incomplete. And if the spread of residuals changes depending on the predicted value (*heteroscedasticity* — literally "different scatter"), the observation model's variance structure is probably wrong. For example, with a Poisson observation model the variance equals the mean, so residuals should be larger when predicted cases are high; if they're *much* larger than expected, the data may be overdispersed.
 
 For the SIR fit to Tristan da Cunha, you should see clear structure: positive residuals during the second wave that the SIR model can't capture.
 
@@ -432,6 +468,18 @@ When posterior predictive checks fail, the model itself needs attention. Systema
 Residual patterns point to specific fixes. Temporal trends in residuals suggest time-varying parameters or additional compartments. Autocorrelated residuals indicate the model dynamics are incomplete. And if residual variance grows with predicted values (heteroscedasticity), the observation model's variance structure needs adjustment.
 
 Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
+
+::: {.callout-tip}
+## When is a model "good enough"?
+There is no universal threshold. All models are wrong — the question is whether yours is useful for your specific purpose. A model is good enough when:
+
+- It captures the features you care about (e.g. peak timing for planning surge capacity)
+- Posterior predictive checks don't show systematic failures in those features
+- Adding complexity doesn't meaningfully improve fit for your question
+- You've documented what the model does and doesn't capture
+
+A model that misses a second wave is fine if you only care about the first wave's peak. It's not fine if you're trying to understand long-term immunity.
+:::
 
 ::: {.callout-warning title="Exercise: Diagnosing the SIR failure"}
 The SIR model fails to capture the second wave in the Tristan da Cunha data. Based on the residual patterns and posterior predictive checks above:

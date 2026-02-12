@@ -222,6 +222,16 @@ These are just starting points. The inference will refine them.
 
 # Deterministic vs Stochastic simulations
 
+::: {.callout-note}
+## Two independent modelling choices
+This session explores two separate decisions that can be combined independently:
+
+1. **Simulation method**: deterministic (ODEs) vs stochastic (Gillespie) — controls whether we model individual-level randomness
+2. **Compartment durations**: exponential (SEITL) vs Erlang (SEIT4L) — controls how realistic the waiting times are
+
+These are orthogonal: you can have a deterministic SEIT4L or a stochastic SEITL. We cover all four combinations below, but the key point is that each choice addresses a different biological question.
+:::
+
 Now, try to assess whether the SEITL model can reproduce the two-wave outbreak of Tristan da Cunha with your guess values for the initial state and the parameters.
 This will give you the opportunity to compare the deterministic and stochastic model.
 We suggest to start with the deterministic model and then move on to the stochastic model but feel free to proceed in a different way.
@@ -296,7 +306,9 @@ When obs=missing, use for prior predictive simulation.
 When obs=data, use for inference (in later sessions).
 """
 @model function seitl_model(times, init_state, obs=missing)
-    # Priors
+    # Deliberately wide priors — we want the data to drive inference
+    # rather than our prior beliefs. These ranges are generous enough
+    # to include all plausible parameter values for influenza.
     R_0 ~ Uniform(1.0, 50.0)
     D_lat ~ Uniform(0.1, 10.0)
     D_inf ~ Uniform(0.1, 15.0)
@@ -337,7 +349,10 @@ Now let's try some parameter values based on the literature:
 )
 
 # Initial state
-# 5 initial infected from the ship, assume some partial immunity from 1954 outbreak
+# 5 initial infected from the ship
+# L = 30: although cross-immunity between H1N1 (1954) and H3N2 (1971) is limited,
+# some islanders may have pre-existing immunity from other exposures or
+# non-specific resistance. This is a rough guess — inference will refine it.
 init_state_guess = Dict(
     :S => 250.0,
     :E => 0.0,
@@ -565,6 +580,11 @@ end
 
 :::
 
+::: {.callout-note collapse="true"}
+## Coming from R?
+In R, the [`GillespieSSA2`](https://CRAN.R-project.org/package=GillespieSSA2) and [`adaptivetau`](https://CRAN.R-project.org/package=adaptivetau) packages provide Gillespie simulation. The [`odin`](https://mrc-ide.github.io/odin/) and [`dust`](https://mrc-ide.github.io/dust/) packages from the MRC Centre offer a more performant framework for stochastic compartmental models. Here we implement Gillespie manually to show the algorithm clearly, but Julia's [`JumpProcesses.jl`](https://docs.sciml.ai/JumpProcesses/stable/) package provides a production-quality implementation.
+:::
+
 ```{julia}
 """
 Turing model for stochastic SEITL - enables both simulation and inference.
@@ -677,7 +697,9 @@ ylabel!("Probability density")
 plot!(p)
 ```
 
-We propose to extend the SEITL as follows:
+We propose to extend the SEITL by replacing the single T compartment with 4 sub-stages (k=4). Why 4? This is a pragmatic choice from the original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper: k=4 gives a bell-shaped distribution that is more realistic than the exponential (k=1), while keeping the model small enough to fit efficiently. The "Going further" section at the end invites you to explore other values of k.
+
+The extended model looks as follows:
 
 ![The SEIT4L model extends the SEITL model to account for memory effect in the contraction of the cellular response. The time spent in the $T$ compartment (temporary protection) follows an Erlang distribution with mean $D_\mathrm{imm}=1/\tau$ and shape equal to 4 and is modelled by 4 sub-stages $T_{1,2,3,4}$, each being exponentially distributed with mean equal to $\frac{D_\mathrm{imm}}{4}$.
 ](../figures/SEIT4L.jpg)
@@ -887,6 +909,13 @@ The main computational choice was *deterministic vs stochastic* simulation. Dete
 
 :::
 
+::: {.callout-important}
+## Why we need particle filters
+Fitting stochastic models is fundamentally harder than fitting deterministic ones. With a deterministic model, the same parameters always produce the same trajectory, so the likelihood is straightforward. With a stochastic model, the same parameters can produce wildly different trajectories — there is no single "expected" output to compare against.
+
+Particle filters solve this by running many stochastic simulations simultaneously and estimating the likelihood as an average. The [next session](particle_filters.qmd) introduces this technique.
+:::
+
 # References
 
 - Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks: the role of the immune response](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381). *Proc. R. Soc. B* 278(1725), 3635-3643. (The original SEITL model paper - highly recommended!)
@@ -897,4 +926,5 @@ The main computational choice was *deterministic vs stochastic* simulation. Dete
 # Going further
 
 * Curious about why we use the Poisson likelihood for count data? Have a look at the bottom of page 3 of this [reference](../references/poisson_obs.pdf) from Germán Rodríguez' [lecture notes on generalized linear models](https://grodri.github.io/glms/notes/).
+* **Stochastic SEIT4L**: We implemented a stochastic version of SEITL but not SEIT4L. As an exercise, try implementing `simulate_seit4l_stochastic` by extending the Gillespie algorithm with additional transitions for the T1→T2→T3→T4 sub-stages. The stoichiometry matrix will need 7 transitions instead of 5.
 * You might wonder why we only modified the distribution of the $T$ compartment. Indeed, wouldn't it be more realistic to use Erlang distributions for all the other compartments? And why did we use a shape equal to 4 and not 2 or 100? Think about another variant of the SEITL model and implement it by modifying the original version in a similar way as we did for the SEIT4L model. Does it fit the data better?

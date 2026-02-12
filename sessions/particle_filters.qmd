@@ -6,7 +6,7 @@ order: 6
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours
+**Estimated time**: 2-2.5 hours (includes computation time for calibration)
 :::
 
 # Introduction
@@ -17,7 +17,12 @@ In the previous sessions, we fitted deterministic models using MCMC. For determi
 
 But what about stochastic models? In the [SEITL session](seitl.qmd), we saw that the same parameters can produce very different trajectories due to demographic stochasticity. There's no single "expected" trajectory to compare against the data.
 
-This session introduces particle filters - the computational technique that makes Bayesian inference possible for stochastic models.
+This session introduces particle filters — the computational technique that makes Bayesian inference possible for stochastic models.
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+Particle filters weren't covered in the R-based course. If this is your first encounter with them, that's expected — they're a new topic rather than a Julia translation of something you've seen before. In R, the [`pomp`](https://kingaa.github.io/pomp/) package and the [`odin`](https://mrc-ide.github.io/odin/)/[`dust`](https://mrc-ide.github.io/dust/)/[`mcstate`](https://mrc-ide.github.io/mcstate/) ecosystem provide particle filtering capabilities.
+:::
 
 # Objectives
 
@@ -144,6 +149,11 @@ init_state = Dict(
 ```
 
 ## The Gillespie simulator
+
+::: {.callout-note}
+## Why SEIT4L instead of SEITL?
+From here on, we use the **SEIT4L** model (Erlang-4 temporary immunity) rather than the basic SEITL (exponential temporary immunity). As we saw in the [SEITL session](seitl.qmd), the Erlang distribution gives more realistic timing for immunity loss. The original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper found that SEIT4L fits the Tristan da Cunha data better. Everything below works identically with SEITL — just with fewer T sub-compartments.
+:::
 
 The particle filter needs to simulate many stochastic trajectories. We use the Gillespie algorithm introduced in the [SEITL session](seitl.qmd), adapted here for the SEIT4L model with its four T compartments:
 
@@ -361,7 +371,7 @@ This is unbiased in expectation, meaning if we run the particle filter many time
 
 # Implementing the state-space model interface
 
-For production use, we define the model using the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface. This separates the model from the filtering algorithm, making code cleaner and more reusable.
+For production use, we define the model using the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface. This separates the model from the filtering algorithm, so you can swap in different filtering methods (bootstrap, guided, auxiliary) without rewriting the model. It also integrates with Turing.jl for the Particle MCMC in the [next session](pmcmc.qmd).
 
 A state-space model has three components:
 
@@ -462,6 +472,8 @@ A key question: how many particles do we need?
 
 The principled approach targets a specific variance of the log-likelihood estimate. Pitt et al. (2012) and Doucet et al. (2015) showed that MCMC efficiency is maximised when the standard deviation of the log-likelihood estimate is between 1 and 3.
 
+Why is *some* noise acceptable? MCMC with a noisy likelihood (called "pseudo-marginal MCMC") still targets the correct posterior — the noise slows down mixing but doesn't introduce bias. An SD of 1-3 is a sweet spot: low enough for reasonable MCMC acceptance rates, high enough to avoid wasting computation on unnecessary precision.
+
 Calibrating (this takes 1-2 minutes to run all particle counts):
 
 ```{julia}
@@ -508,6 +520,18 @@ plot(p1, p2, p3, layout=(1, 3), size=(900, 300))
 ```
 
 Look at the variance plot (middle). We want the SD to be in the range 1-3. Read off which particle count achieves this.
+
+::: {.callout-note collapse="true"}
+## Typical results (if you can't run the code)
+In our runs, we typically see:
+
+- **4-16 particles**: SD > 10, far too noisy for reliable inference
+- **32-64 particles**: SD around 3-6, borderline
+- **128 particles**: SD around 1.5-3, in the target range
+- **256-512 particles**: SD < 1.5, diminishing returns for the extra computation
+
+Your numbers will differ due to stochastic variability, but the pattern should be similar. For the PMCMC session, we'll use around 128-256 particles based on this calibration.
+:::
 
 ::: {.callout-warning title="Exercise: Choose the number of particles"}
 
@@ -562,6 +586,7 @@ The number of particles is a critical tuning parameter. Too few gives high varia
 - **SSMProblems.jl interface** separates model specification from filtering algorithms
 - **Calibrate particle count** to achieve log-likelihood SD between 1 and 3 (too few = noisy, too many = slow)
 - **The likelihood estimate is unbiased but noisy** - this noise slows MCMC but doesn't bias posteriors
+- **Next step**: The noisy likelihood estimate slots directly into the Metropolis-Hastings acceptance ratio — wherever we previously computed `log_likelihood(θ)`, we now use `run_particle_filter(θ, data, n_particles)` instead
 
 :::
 
