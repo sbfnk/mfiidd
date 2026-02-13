@@ -9,6 +9,8 @@ order: 1
 
 **Model fitting and inference for infectious disease dynamics** (MFIIDD) is a hands-on course that teaches you to fit mathematical models of infectious disease to data using modern Bayesian methods.
 
+This course assumes you already know how to **build** epidemic models (SIR, SEIR, etc.) and focuses on the next step: **fitting** those models to data and drawing rigorous conclusions from the results. If you need to learn epidemic modelling from scratch, we recommend completing an introductory modelling course first — for example, the CMMID [Modern Techniques in Modelling](https://cmmid.github.io/mtm/) short course (R-based).
+
 You'll work with real and simulated outbreak data, building from simple deterministic models to stochastic compartmental models (where individual infection events happen randomly, unlike the smooth ODE solutions you may have seen before).
 By the end, you'll be able to specify a transmission model, write down a likelihood, and use MCMC (and other methods) to estimate parameters and quantify uncertainty.
 
@@ -18,7 +20,7 @@ To get the most from this course, you should be comfortable with:
 
 - **Basic programming**: Variables, functions, loops, conditionals (in any language)
 - **Probability**: Some familiarity with what probability means
-- **Epidemiology basics**: Compartmental models (S, I, R states), transmission dynamics
+- **Epidemic modelling**: Compartmental models (S, I, R states), transmission dynamics, and solving ODEs — e.g. from the [MTM course](https://cmmid.github.io/mtm/) or equivalent experience
 
 The course uses Julia for inference, as it provides an interface to all of the state-of-the-art methods used in this course.
 No prior Julia experience is required; the course introduces Julia syntax as you go.
@@ -61,19 +63,19 @@ Each session follows a consistent structure:
 - **Summary**: What we covered (with Learning Points callout)
 - **Going further**: Optional extensions for interested participants
 
-# For R users
+# For R and Stan users
 
-The Introduction and MCMC sessions include inline "Coming from R?" callouts throughout, with Julia-to-R comparisons appearing alongside the relevant code. The MCMC session also has an appendix with a full R translation of the Metropolis-Hastings algorithm.
+The early sessions include inline "Coming from R?" callouts comparing Julia syntax to R equivalents (e.g. `deSolve`, distributions, plotting). Where the comparison is with a probabilistic programming language rather than R itself, callouts are labelled "Coming from Stan?" instead. The MCMC session also has an appendix with a full R translation of the Metropolis-Hastings algorithm.
 
 If you prefer R, the conceptual material is still valuable, but be aware that some methods taught here aren't readily available in R:
 
-| Method | R availability |
+| Method | R / Stan availability |
 |--------|----------------|
 | Basic MCMC (Metropolis-Hastings) | [nimble](https://r-nimble.org/), [mcstate](https://mrc-ide.github.io/mcstate/), [pomp](https://kingaa.github.io/pomp/) |
-| NUTS with automatic differentiation | [Stan](https://mc-stan.org/) (via [rstan](https://mc-stan.org/rstan/)/[cmdstanr](https://mc-stan.org/cmdstanr/)) |
+| NUTS with automatic differentiation | [Stan](https://mc-stan.org/) |
 | Particle filters / PMCMC | [pomp](https://kingaa.github.io/pomp/), [odin](https://mrc-ide.github.io/odin/)/[dust](https://mrc-ide.github.io/dust/)/[mcstate](https://mrc-ide.github.io/mcstate/) |
-| Variational inference | [Stan](https://mc-stan.org/) (via [rstan](https://mc-stan.org/rstan/)/[cmdstanr](https://mc-stan.org/cmdstanr/)) |
-| Universal differential equations | Not available |
+| Variational inference | [Stan](https://mc-stan.org/) |
+| Universal differential equations | Not available in R |
 
 For particle-based methods, [odin](https://mrc-ide.github.io/odin/) with [dust](https://mrc-ide.github.io/dust/) and [mcstate](https://mrc-ide.github.io/mcstate/) is the closest R equivalent.
-For gradient-based MCMC (NUTS) or variational inference, you'd need to use [Stan](https://mc-stan.org/) via its R interface.
+For gradient-based MCMC (NUTS) or variational inference, [Stan](https://mc-stan.org/) is the standard tool (accessible from R, Python, and other languages).

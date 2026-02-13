@@ -66,8 +66,8 @@ using Statistics: mean, std, cor
 Random.seed!(1234)
 ```
 
-::: {.callout-note title="Coming from R?"}
-R itself does not have a native VI implementation, but if you've used Stan from R, the closest equivalent is **`rstan::vb()`** or **`cmdstanr`'s `$variational()`** method, both of which implement Automatic Differentiation Variational Inference (ADVI). The interface is similar: define a Stan model and call `vb(model)` instead of `sampling(model)`. The same trade-offs apply — faster than full MCMC but approximate. If you have used either of these, the concepts in this session will be familiar.
+::: {.callout-note title="Coming from Stan?"}
+The closest equivalent is Stan's ADVI (e.g. `vb()` in rstan, `$variational()` in cmdstanr, or `CmdStanModel.variational()` in cmdstanpy). The interface is similar: define a model and call the VI method instead of the sampling method. The same trade-offs apply — faster than full MCMC but approximate.
 :::
 
 # Load Tristan da Cunha data

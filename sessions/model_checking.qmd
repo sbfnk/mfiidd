@@ -160,7 +160,7 @@ prior_samples = sample(sir_model(fill(missing, 60), times, S0, I0), Prior(), 200
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-This pattern has no direct R equivalent. If you've used Stan from R, you'd write a separate `generated quantities` block for prior predictive simulation. In pure R, you'd write a separate simulation function. Turing's `missing` trick lets you reuse the same model for both fitting (pass real data) and simulation (pass `missing` values) — no separate code needed.
+This pattern has no direct R equivalent. In Stan, you'd write a separate `generated quantities` block for prior predictive simulation. In plain R, you'd write a separate simulation function. Turing's `missing` trick lets you reuse the same model for both fitting (pass real data) and simulation (pass `missing` values) — no separate code needed.
 :::
 
 ```{julia}
