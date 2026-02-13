@@ -166,21 +166,6 @@ prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
 sol = solve(prob, saveat = 1)
 ```
 
-::: {.callout-note collapse="true"}
-## Coming from R?
-In R, `deSolve::ode()` defines and solves the ODE in one call. Julia splits this into two steps: `ODEProblem()` defines the problem, then `solve()` runs it.
-
-```r
-# R (deSolve) — one call does everything
-sol <- ode(
-  y = c(S = 999, I = 1, R = 0),
-  times = seq(0, 30, by = 1),
-  func = sir_ode,
-  parms = c(R_0 = 2.5, D_inf = 2)
-)
-```
-:::
-
 ::: {.callout-tip collapse = "true"}
 ## More details on these commands
 Here is a closer look at what each of these commands does:
@@ -220,6 +205,21 @@ sol = solve(prob, saveat = 1)
 This solves the ODE problem given by `prob`.
 The `saveat` argument tells the solver to save state information at time steps of size 1.
 If this is not given, the time steps at which information is saved will be chosen by the ODE solver - this is often fine but as we will later want to compare this to observations at integer time steps we here save information at these distinct steps.
+:::
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+In R, `deSolve::ode()` defines and solves the ODE in one call. Julia splits this into two steps: `ODEProblem()` defines the problem, then `solve()` runs it.
+
+```r
+# R (deSolve) — one call does everything
+sol <- ode(
+  y = c(S = 999, I = 1, R = 0),
+  times = seq(0, 30, by = 1),
+  func = sir_ode,
+  parms = c(R_0 = 2.5, D_inf = 2)
+)
+```
 :::
 
 The `sol` object now contains information on the system dynamics (contained in `sol.u`) at different times (contained in `sol.t`).
@@ -819,6 +819,7 @@ println("Best log-posterior: $(round(best_log_posterior, digits = 1))")
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
+Julia's `start:step:stop` syntax is equivalent to `seq(start, stop, by = step)` in R. Note that R's `:` operator (e.g. `1:10`) only increments by 1, whereas Julia's `:` supports any step size.
 
 ```r
 # R
@@ -829,8 +830,6 @@ seq(1.5, 4.0, by = 0.2)
 # Julia
 1.5:0.2:4.0
 ```
-
-The syntax is `start:step:stop`. Note that R's `:` operator (e.g. `1:10`) only increments by 1, whereas Julia's `:` supports any step size.
 :::
 
 Is this the result you expected?

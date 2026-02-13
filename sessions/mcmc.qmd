@@ -338,7 +338,7 @@ end
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-Turing's `@model` with `~` syntax is similar to model definitions in NIMBLE, BUGS/JAGS, and Stan:
+If you've used probabilistic programming from R, you'll recognise the `~` syntax. Turing's `@model` is similar to model definitions in NIMBLE, BUGS/JAGS, and Stan (which R users typically access via `rstan` or `cmdstanr`):
 
 ```r
 # NIMBLE / BUGS / JAGS
@@ -386,25 +386,13 @@ describe(chain_normal_mh)
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
+If you've used Stan from R, the workflow is similar: `sample()` runs inference and returns a chain object, `describe()` gives summary statistics, and `chain[:x]` extracts samples for a parameter.
 
-```r
-# rstan
-fit <- sampling(stan_model, data = list(...), iter = 2000)
-summary(fit)
-as.array(fit, pars = "x")
-
-# cmdstanr
-fit <- stan_model$sample(data = list(...), iter_sampling = 2000)
-fit$summary()
-fit$draws("x")
-```
-
-```julia
-# Turing.jl equivalents
-chain = sample(model, NUTS(), 2000)
-describe(chain)
-chain[:x]
-```
+| Action | rstan | cmdstanr | Turing.jl |
+|--------|-------|----------|-----------|
+| Run sampler | `sampling(model, ...)` | `model$sample(...)` | `sample(model, NUTS(), n)` |
+| Summary | `summary(fit)` | `fit$summary()` | `describe(chain)` |
+| Extract parameter | `as.array(fit, pars="x")` | `fit$draws("x")` | `chain[:x]` |
 :::
 
 ```{julia}
