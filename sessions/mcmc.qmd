@@ -337,8 +337,8 @@ end
 :::
 
 ::: {.callout-note collapse="true"}
-## Coming from R?
-If you've used probabilistic programming from R, you'll recognise the `~` syntax. Turing's `@model` is similar to model definitions in NIMBLE, BUGS/JAGS, and Stan (which R users typically access via `rstan` or `cmdstanr`):
+## Coming from Stan/NIMBLE/BUGS?
+If you've used probabilistic programming languages, you'll recognise the `~` syntax. Turing's `@model` is similar to model definitions in Stan, NIMBLE, and BUGS/JAGS:
 
 ```r
 # NIMBLE / BUGS / JAGS
@@ -348,7 +348,7 @@ model({
 ```
 
 ```stan
-// Stan (via rstan or cmdstanr)
+// Stan
 model {
   x ~ normal(5, 2);
 }
@@ -385,8 +385,8 @@ describe(chain_normal_mh)
 :::
 
 ::: {.callout-note collapse="true"}
-## Coming from R?
-If you've used Stan from R, the workflow is similar: `sample()` runs inference and returns a chain object, `describe()` gives summary statistics, and `chain[:x]` extracts samples for a parameter.
+## Coming from Stan?
+If you've used Stan, the workflow is similar: `sample()` runs inference and returns a chain object, `describe()` gives summary statistics, and `chain[:x]` extracts samples for a parameter.
 
 | Action | rstan | cmdstanr | Turing.jl |
 |--------|-------|----------|-----------|
