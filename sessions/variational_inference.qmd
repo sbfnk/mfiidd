@@ -67,7 +67,7 @@ Random.seed!(1234)
 ```
 
 ::: {.callout-note title="Coming from R?"}
-The closest equivalent to Turing's VI in the R ecosystem is **rstan's `vb()` function**, which implements Automatic Differentiation Variational Inference (ADVI). The interface is similar: you define a Stan model and call `vb(model)` instead of `sampling(model)`. The same trade-offs apply — faster than full MCMC but approximate. If you have used `rstan::vb()` or `cmdstanr`'s `$variational()` method, the concepts in this session will be familiar.
+R itself does not have a native VI implementation, but if you've used Stan from R, the closest equivalent is **`rstan::vb()`** or **`cmdstanr`'s `$variational()`** method, both of which implement Automatic Differentiation Variational Inference (ADVI). The interface is similar: define a Stan model and call `vb(model)` instead of `sampling(model)`. The same trade-offs apply — faster than full MCMC but approximate. If you have used either of these, the concepts in this session will be familiar.
 :::
 
 # Load Tristan da Cunha data
