@@ -7,7 +7,7 @@ about:
   links:
     - icon: chat-fill
       text: Dive into the course
-      href: getting-started.qmd
+      href: ./getting-started.html
     - icon: github
       text: Visit us on GitHub
       href: https://github.com/sbfnk/mfiidd.julia
