@@ -114,7 +114,7 @@ epi1 = DataFrame(
 )
 
 # Define our SIR model in Turing.jl (same as MCMC session)
-@model function sir_model(obs, init_state, times)
+@model function sir_model(init_state, times, n_obs)
     # Priors
     R_0 ~ Uniform(1.0, 20.0)
     D_inf ~ Uniform(1.0, 14.0)
@@ -125,14 +125,13 @@ epi1 = DataFrame(
 
     # Likelihood
     I = sol[2, :]
-    for i in 1:length(obs)
-        # Use max to handle tiny numerical errors from automatic differentiation
-        obs[i] ~ Poisson(max(I[i], 0.0))
-    end
+    # Use max to handle tiny numerical errors from automatic differentiation
+    lambdas = [max(I[i], 0.0) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 end
 
 # Create model instance
-model = sir_model(epi1.obs, init_state, epi1.time)
+model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs)
 ```
 
 :::
@@ -506,14 +505,14 @@ Posterior predictive checks reveal whether your model actually generates data th
 
 ```{julia}
 # Generate predictions from the posterior
-# Use missing values to tell Turing to generate new observations
-predictions = predict(sir_model(fill(missing, length(epi1.obs)), init_state, epi1.time), chain_multi)
+# decondition() removes the observed data, so Turing samples new observations
+predictions = predict(decondition(model), chain_multi)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`predict(model, chain)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#making-predictions) - generates new data from the model using parameter values from the posterior chain. This is the basis for posterior predictive checks.
-- `fill(missing, n)` - creates a vector of `n` missing values. When passed to the model, this tells Turing to generate new observations rather than condition on existing data.
+- [`decondition(model)`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.decondition) - removes the conditioning (observed data) from the model, so that `obs ~ arraydist(Poisson.(lambdas))` samples new observations instead of computing likelihoods against the data. This is how you generate posterior predictive samples from a conditioned model.
 :::
 
 ```{julia}
@@ -534,14 +533,14 @@ plot!(p)
 
 ::: {.callout-note title = "Understanding the Julia code for generating predictions" collapse = "true"}
 
-1. **`fill(missing, length(epi1.obs))`** creates `[missing, missing, ..., missing]` (30 times)
-   - This tells Turing: "I want you to generate 30 new observations, not use the original data"
+1. **`decondition(model)`** removes the observed data from the model
+   - Our `model` was created with `sir_model(...) | (; obs = epi1.obs)`, which conditions on the observed data. `decondition()` reverses this, telling Turing to *sample* new observations rather than computing likelihoods against the data.
 
-2. **`predict(sir_model(...), chain_multi)`** uses parameters from the posterior chain to simulate new data
+2. **`predict(decondition(model), chain_multi)`** uses parameters from the posterior chain to simulate new data
    - For each MCMC sample: takes R₀ and D_inf from the chain → solves ODE → samples new obs from Poisson
 
 3. **The result** is stored with keys like `Symbol("obs[1]")`, `Symbol("obs[2]")`, etc.
-   - Because our model uses `obs[i] ~ Poisson(...)` in a loop, Turing names each predicted observation `obs[1]`, `obs[2]`, etc. To access these in Julia, we convert the string to a `Symbol`: `Symbol("obs[$j]")` becomes `:obs[1]`, `:obs[2]`, etc.
+   - Because our model uses `obs ~ arraydist(Poisson.(lambdas))`, Turing names each element of the predicted vector `obs[1]`, `obs[2]`, etc. To access these in Julia, we convert the string to a `Symbol`: `Symbol("obs[$j]")` becomes `:obs[1]`, `:obs[2]`, etc.
    - `predictions[Symbol("obs[$j]")][i, 1]` then extracts the `i`-th posterior sample for the `j`-th observation. The `1` is the chain index (we have one chain here).
 
 :::

@@ -163,7 +163,7 @@ Not a perfect fit, but good enough for illustration!
 This is what we've been doing throughout the course:
 
 ```{julia}
-@model function sir_poisson(times, init_state, obs=missing)
+@model function sir_poisson(times, init_state, n_obs)
     # Priors
     R_0 ~ Uniform(1.0, 20.0)
     D_inf ~ Uniform(1.0, 10.0)
@@ -174,22 +174,23 @@ This is what we've been doing throughout the course:
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood: Poisson observation model
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            λ = max(ρ * traj.Inc[i], 1e-10)
-            obs[i] ~ Poisson(λ)
-        end
-    end
+    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 
     return traj
 end
 ```
 
+::: {.callout-note collapse="true"}
+## Reminder: `arraydist` and `|` conditioning
+`obs ~ arraydist(Poisson.(lambdas))` declares a vector of independent Poisson observations, one per time point. The `|` operator, applied when creating the model instance below, conditions the model on the actual data. See the [MCMC session](mcmc.qmd) for a full explanation of this pattern.
+:::
+
 We fit this model:
 
 ```{julia}
 # Fit with NUTS
-model_poisson = sir_poisson(times, init_test, flu_tdc.obs)
+model_poisson = sir_poisson(times, init_test, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
 chain_poisson = sample(model_poisson, NUTS(0.65), 500, progress=false)
 # The 0.65 is the target acceptance rate for NUTS — higher values (closer to 1)
 # make the sampler more conservative, lower values allow larger steps.
@@ -245,7 +246,7 @@ where:
 - $\phi$ controls overdispersion (variance = $\mu + \mu^2/\phi$)
 
 ```{julia}
-@model function sir_negbin(times, init_state, obs=missing)
+@model function sir_negbin(times, init_state, n_obs)
     # Priors
     R_0 ~ Uniform(1.0, 20.0)
     D_inf ~ Uniform(1.0, 10.0)
@@ -257,13 +258,9 @@ where:
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood: Negative Binomial observation model
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            μ = max(ρ * traj.Inc[i], 1e-10)
-            # NegativeBinomial(r, p) where r=φ, p=φ/(φ+μ)
-            obs[i] ~ NegativeBinomial(φ, φ/(φ+μ))
-        end
-    end
+    mus = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    # NegativeBinomial(r, p) where r=φ, p=φ/(φ+μ)
+    obs ~ arraydist([NegativeBinomial(φ, φ/(φ+μ)) for μ in mus])
 
     return traj
 end

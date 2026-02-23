@@ -317,7 +317,7 @@ function seit4l_ode!(du, u, p, t)
     du[9] = ϵ * E
 end
 
-@model function seit4l_deterministic_model(obs, init_state, times)
+@model function seit4l_deterministic_model(init_state, times, n_obs)
     # Weakly informative priors
     R_0 ~ truncated(Normal(3.0, 2.0), lower=1.0)
     D_lat ~ truncated(Normal(2.0, 1.0), lower=0.5)
@@ -340,20 +340,25 @@ end
     inc_daily = [0.0; diff(inc_cumulative)]
 
     # Likelihood: Poisson observations
-    # obs[i] corresponds to inc_daily[i+1] (time i, since inc_daily[1] is at time 0)
-    for i in 1:length(obs)
-        # obs has 60 elements (times 0-59), inc_daily has 60 elements (indices 1-60)
-        # obs[i] is at time i-1, so it corresponds to inc_daily[i]
-        λ = max(ρ * inc_daily[i], 1e-10)
-        obs[i] ~ Poisson(λ)
-    end
+    # obs[i] corresponds to inc_daily[i] (times 0-59, indices 1-60)
+    lambdas = [max(ρ * inc_daily[i], 1e-10) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 end
 ```
+
+::: {.callout-tip}
+## Why `|` conditioning here but `@addlogprob!` above?
+The deterministic model uses `obs ~ arraydist(Poisson.(lambdas))` — the likelihood is expressed as a `~` statement, so Turing can condition on the data directly with `|`.
+
+The stochastic `pmmh_seit4l` model uses an *external* likelihood estimator (the particle filter via `GeneralisedFilters.filter`), which returns a log-likelihood that we add manually with `@addlogprob!`. In that model, there is no `obs ~` statement in the model body — `obs` enters as a function argument passed to the filter — so `|` has nothing to condition on.
+
+In short: use `|` when the likelihood is a `~` statement; use `@addlogprob!` when the likelihood comes from an external computation.
+:::
 
 ```{julia}
 # Fit deterministic model
 times_obs = 0.0:1.0:59.0
-model_det = seit4l_deterministic_model(flu_tdc.obs, init_state, times_obs)
+model_det = seit4l_deterministic_model(init_state, times_obs, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
 chain_det = sample(model_det, NUTS(), 2000, progress=false)
 ```
 
