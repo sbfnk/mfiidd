@@ -129,7 +129,7 @@ init_state = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
 # Turing model for inference
 
 ```{julia}
-@model function sir_model(times, init_state, obs=missing)
+@model function sir_model(times, init_state, n_obs)
     # Priors
     R_0 ~ Uniform(1.0, 20.0)
     D_inf ~ Uniform(1.0, 10.0)
@@ -140,18 +140,19 @@ init_state = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            λ = max(ρ * traj.Inc[i], 1e-10)
-            obs[i] ~ Poisson(λ)
-        end
-    end
+    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 
     return traj
 end
 
-model = sir_model(times, init_state, flu_tdc.obs)
+model = sir_model(times, init_state, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
 ```
+
+::: {.callout-note collapse="true"}
+## Reminder: `arraydist` and `|` conditioning
+`obs ~ arraydist(Poisson.(lambdas))` declares a vector of independent Poisson observations, one per time point. The `|` operator, applied when creating the model instance below, conditions the model on the actual data — see the [MCMC session](mcmc.qmd) for a full explanation of this pattern.
+:::
 
 # Baseline: MCMC with NUTS
 

@@ -146,14 +146,19 @@ using DifferentialEquations
 using Plots
 
 # Quick test: sample from a simple model
-@model function coin_flip(n, k)
+@model function coin_flip(n)
     p ~ Beta(1, 1)
     k ~ Binomial(n, p)
 end
 
-chain = sample(coin_flip(10, 7), NUTS(), 100)
+chain = sample(coin_flip(10) | (; k = 7), NUTS(), 100)
 println("Installation successful!")
 ```
+
+::: {.callout-tip collapse="true"}
+## What does `|` mean?
+The `|` operator *conditions* the model on observed data. Here, `coin_flip(10) | (; k = 7)` means "run the coin flip model with 10 trials, given that we observed 7 heads". Turing then infers the posterior distribution of `p` (the coin's bias). You'll see this pattern throughout the course — we'll explain it in detail in the [MCMC session](sessions/mcmc.qmd).
+:::
 
 The first time you run this, expect it to take a minute or two as Julia compiles the packages (see the note about compilation above).
 If it completes without errors and prints "Installation successful!", you're ready for the course.

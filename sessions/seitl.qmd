@@ -302,10 +302,10 @@ end
 
 """
 Turing model for SEITL - enables both simulation and inference.
-When obs=missing, use for prior predictive simulation.
-When obs=data, use for inference (in later sessions).
+When unconditioned, use for prior predictive simulation.
+When conditioned with | (; obs = data), use for inference (in later sessions).
 """
-@model function seitl_model(times, init_state, obs=missing)
+@model function seitl_model(times, init_state, n_obs)
     # Deliberately wide priors — we want the data to drive inference
     # rather than our prior beliefs. These ranges are generous enough
     # to include all plausible parameter values for influenza.
@@ -323,13 +323,9 @@ When obs=data, use for inference (in later sessions).
     # Simulate trajectory
     traj = simulate_seitl_deterministic(θ, init_state, times)
 
-    # Likelihood (if observations provided)
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            λ = max(ρ * traj.Inc[i], 1e-10)
-            obs[i] ~ Poisson(λ)
-        end
-    end
+    # Likelihood
+    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 
     return traj
 end
@@ -438,14 +434,14 @@ This is useful when we want to explore the range of behaviours the model can pro
 # This samples parameter values from the priors and simulates trajectories
 
 # Generate 5 trajectories using the Turing model
-# When obs=missing, the model samples parameters from priors and simulates
+# Without conditioning, the model samples parameters from priors and simulates
 p = plot(title = "Prior Predictive Simulations",
          xlabel = "Time (days)", ylabel = "Cases")
 
 for i in 1:5
     # Sample parameters from priors
-    model = seitl_model(times, init_state_guess, missing)
-    params = rand(model)
+    seitl_prior = seitl_model(times, init_state_guess, length(times))
+    params = rand(seitl_prior)
 
     # Create parameter dictionary and simulate
     θ = Dict(:R_0 => params.R_0, :D_lat => params.D_lat, :D_inf => params.D_inf,
@@ -590,7 +586,7 @@ In R, the [`GillespieSSA2`](https://CRAN.R-project.org/package=GillespieSSA2) an
 Turing model for stochastic SEITL - enables both simulation and inference.
 This version uses the Gillespie algorithm for demographic stochasticity.
 """
-@model function seitl_stochastic_model(times, init_state, obs=missing)
+@model function seitl_stochastic_model(times, init_state, n_obs)
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
     D_lat ~ Uniform(0.1, 10.0)
@@ -606,13 +602,9 @@ This version uses the Gillespie algorithm for demographic stochasticity.
     # Simulate stochastic trajectory
     traj = simulate_seitl_stochastic(θ, init_state, times)
 
-    # Likelihood (if observations provided)
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            λ = max(ρ * traj.Inc[i], 1e-10)
-            obs[i] ~ Poisson(λ)
-        end
-    end
+    # Likelihood
+    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 
     return traj
 end
@@ -658,8 +650,7 @@ plot!(p)
 ```
 
 ::: {.callout-note}
-Just like with the deterministic model, you can use the Turing `@model` for prior predictive checks by sampling parameters from priors.
-The same `@model` definitions will be used for inference in the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions, demonstrating the unified approach.
+Just like with the deterministic model, you can use the Turing `@model` for prior predictive checks by sampling parameters from priors (without conditioning on data). The same `@model` definitions will be used for inference in the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions — condition with `| (; obs = data)` when fitting, leave unconditioned when simulating. See the [unified approach callout](#sec-unified-approach) at the end of this session for the full pattern.
 :::
 
 ::: {.callout-warning title="Exercise: Explore stochastic SEITL dynamics"}
@@ -767,7 +758,7 @@ end
 Turing model for SEIT4L - enables both simulation and inference.
 This version uses an Erlang-4 distribution for the T compartment.
 """
-@model function seit4l_model(times, init_state, obs=missing)
+@model function seit4l_model(times, init_state, n_obs)
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
     D_lat ~ Uniform(0.1, 10.0)
@@ -783,13 +774,9 @@ This version uses an Erlang-4 distribution for the T compartment.
     # Simulate trajectory
     traj = simulate_seit4l_deterministic(θ, init_state, times)
 
-    # Likelihood (if observations provided)
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            λ = max(ρ * traj.Inc[i], 1e-10)
-            obs[i] ~ Poisson(λ)
-        end
-    end
+    # Likelihood
+    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 
     return traj
 end
@@ -858,12 +845,12 @@ In the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) s
 :::
 
 ::: {.callout-note}
-## From simulation to inference: the unified Turing approach
+## From simulation to inference: the unified Turing approach {#sec-unified-approach}
 
 Throughout this session, you've defined models using the `@model` macro with the pattern:
 
 ```julia
-@model function my_model(times, init_state, obs=missing)
+@model function my_model(times, init_state, n_obs)
     # 1. Define priors
     R_0 ~ Uniform(1.0, 50.0)
     # ... other parameters
@@ -871,23 +858,26 @@ Throughout this session, you've defined models using the `@model` macro with the
     # 2. Simulate trajectory
     traj = simulate_function(θ, init_state, times)
 
-    # 3. Likelihood (if data provided)
-    if !ismissing(obs)
-        for i in 1:length(obs)
-            obs[i] ~ Poisson(λ[i])
-        end
-    end
+    # 3. Likelihood
+    obs ~ arraydist(Poisson.(λ))
 
     return traj
 end
 ```
 
+The `obs` variable is not a function argument — it's a random variable defined by the `~` statements. To supply observed data, use the `|` (condition) operator:
+
+```julia
+model = my_model(times, init_state, length(data)) | (; obs = data)
+```
+
 This unified structure enables both:
 
-- **Simulation** (this session): Call `rand(my_model(times, init_state, missing))` to sample from the prior predictive distribution
-- **Inference** ([next session](pmcmc.qmd)): Call `sample(my_model(times, init_state, data), PG(50), 1000)` to fit parameters to data using particle MCMC
+- **Simulation** (this session): Call `rand(my_model(times, init_state, n_obs))` to sample from the prior predictive distribution (no conditioning — `obs` is sampled)
+- **Inference** ([next session](pmcmc.qmd)): Call `sample(model, NUTS(), 1000)` where `model` is conditioned on data (the exact sampler choice depends on the model — see the MCMC and Particle MCMC sessions)
+- **Posterior prediction**: Use `predict(decondition(model), chain)` to generate new observations from the fitted model
 
-You write the model once and use it for both purposes.
+You write the model once and use it for all purposes.
 This is the power of probabilistic programming!
 :::
 

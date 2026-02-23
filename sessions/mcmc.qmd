@@ -417,7 +417,7 @@ This is the same structure we've been using manually - priors, simulation, and l
 
 ```{julia}
 # Define our SIR model in Turing.jl
-@model function sir_model(obs, init_state, times)
+@model function sir_model(init_state, times, n_obs)
     # Weakly informative priors
     R_0 ~ truncated(Normal(2.5, 1.5), lower=1.0)
     D_inf ~ truncated(Normal(5.0, 3.0), lower=0.5)
@@ -428,18 +428,29 @@ This is the same structure we've been using manually - priors, simulation, and l
 
     # Likelihood (Poisson observation model of prevalence)
     I = sol[2, :]
-    for i in 1:length(obs)
-        # max(..., 0.0) guards against tiny negative values from the ODE solver
-        # (numerical noise can push I slightly below zero near the end of an epidemic)
-        obs[i] ~ Poisson(max(I[i], 0.0))
-    end
+    # max(..., 0.0) guards against tiny negative values from the ODE solver
+    # (numerical noise can push I slightly below zero near the end of an epidemic)
+    lambdas = [max(I[i], 0.0) for i in 1:n_obs]
+    obs ~ arraydist(Poisson.(lambdas))
 end
 
 # Create model instance
 #| output: false
 
-model = sir_model(epi1.obs, init_state, epi1.time)
+model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs)
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer: `arraydist` and `|` conditioning
+
+Two new pieces of syntax appear here:
+
+**`obs ~ arraydist(Poisson.(lambdas))`** — declares a vector of observations where each element has its own distribution. [`arraydist`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.arraydist) creates an independent product distribution: `obs[1] ~ Poisson(lambdas[1])`, `obs[2] ~ Poisson(lambdas[2])`, etc. The dot in `Poisson.(lambdas)` is Julia's broadcasting — it applies `Poisson` to each element of `lambdas`.
+
+**`sir_model(...) | (; obs = epi1.obs)`** — the [`|` operator](https://turinglang.org/DynamicPPL.jl/stable/api/#Conditioning-and-Deconditioning) *conditions* the model on observed data. It tells Turing "don't sample `obs` — use these observed values instead and compute the likelihood". The `(; obs = epi1.obs)` is a [named tuple](https://docs.julialang.org/en/v1/manual/functions/#Named-Tuples) matching the variable name `obs` inside the model to the data — the semicolon is Julia's syntax for a named tuple with no positional arguments.
+
+This separation of model structure from data is a key Turing pattern: the `@model` function defines the generative process, and `|` supplies the observations. The same model can be used unconditioned (for simulation), conditioned (for inference), or deconditioned after fitting for posterior predictive checks (`decondition()` — you'll see this in the [Model Checking](model_checking.qmd) session).
+:::
 
 ## Sample the SIR model with Metropolis-Hastings
 
