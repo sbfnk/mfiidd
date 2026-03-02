@@ -190,7 +190,7 @@ Running averages should stabilise if the chain has converged:
 
 ```{julia}
 function running_mean(x)
-    return [mean(x[1:i]) for i in 1:length(x)]
+    return [mean(x[1:i]) for i in eachindex(x)]
 end
 
 R_0_samples = vec(chain_good[:R_0])

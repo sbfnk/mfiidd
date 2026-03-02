@@ -127,12 +127,12 @@ function simulate_sir(θ, init_state, times)
     sol = solve(prob, Tsit5(), saveat=times)
 
     # Extract incidence (new infections per day)
-    S_values = [sol(t)[1] for t in times]
+    S_values = sol[1, :]
     incidence = [0.0; -diff(S_values)]
 
     return DataFrame(time=times, S=S_values,
-                     I=[sol(t)[2] for t in times],
-                     R=[sol(t)[3] for t in times],
+                     I=sol[2, :],
+                     R=sol[3, :],
                      Inc=incidence)
 end
 ```
@@ -888,7 +888,7 @@ Here is an example of how to define and use summary statistics for ABC:
 function epidemic_summaries(data)
     return [
         sum(data),                          # Total cases
-        Float64(argmax(data)),              # Peak timing (day index)
+        argmax(data),                       # Peak timing (day index)
         maximum(data),                      # Peak height
         sum(data[1:min(5, length(data))])   # Early cumulative cases (proxy for growth rate)
     ]

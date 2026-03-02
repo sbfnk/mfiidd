@@ -112,12 +112,12 @@ function simulate_sir(θ, init_state, times)
     sol = solve(prob, Tsit5(), saveat=times)
 
     # Extract incidence
-    S_values = [sol(t)[1] for t in times]
+    S_values = sol[1, :]
     incidence = [0.0; -diff(S_values)]
 
     return DataFrame(time=times, S=S_values,
-                     I=[sol(t)[2] for t in times],
-                     R=[sol(t)[3] for t in times],
+                     I=sol[2, :],
+                     R=sol[3, :],
                      Inc=incidence)
 end
 

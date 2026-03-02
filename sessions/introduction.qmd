@@ -737,8 +737,7 @@ We can combine our stored prior and likelihood values to calculate the posterior
 ```{julia}
 # Posterior = Prior + Likelihood (using our stored values)
 println("Posterior breakdown using flat priors:")
-for i in 1:length(test_params)
-    theta = test_params[i]
+for (i, theta) in enumerate(test_params)
     log_post_flat = log_priors_flat[i] + log_likelihoods[i]
 
     println("R_0=$(theta.R_0), D_inf=$(theta.D_inf)")
@@ -753,9 +752,7 @@ The following compares flat vs informed priors for all our test parameters:
 ```{julia}
 # Compare flat vs informative priors using our stored values
 println("Flat vs Informed posterior comparison:")
-for i in 1:length(test_params)
-    theta = test_params[i]
-
+for (i, theta) in enumerate(test_params)
     # Calculate posteriors using stored values
     log_post_flat = log_priors_flat[i] + log_likelihoods[i]
     log_post_informed = log_priors_informed[i] + log_likelihoods[i]
