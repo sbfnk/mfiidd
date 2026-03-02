@@ -147,14 +147,14 @@ end
 β_guess = 0.5
 γ_guess = 0.4
 u0 = [270.0, 3.0, 0.0]
-tspan = (0.0, Float64(maximum(flu_tdc.time)))
-times = Float64.(flu_tdc.time)
+tspan = (0.0, maximum(flu_tdc.time))
+times = flu_tdc.time
 
 prob_constant = ODEProblem(sir_constant_beta, u0, tspan, [β_guess, γ_guess])
 sol_constant = solve(prob_constant, Tsit5(), saveat=times)
 
 # Extract incidence
-S_values = [sol_constant(t)[1] for t in times]
+S_values = sol_constant[1, :]
 incidence_constant = [0.0; -diff(S_values)]
 
 # Plot
@@ -259,7 +259,7 @@ function predict_ude(p_all)
         return fill(NaN, length(times))
     end
 
-    S_pred = [sol_ude.u[i][1] for i in 1:length(times)]
+    S_pred = sol_ude[1, :]
     incidence_pred = [0.0; -diff(S_pred)]
 
     return incidence_pred

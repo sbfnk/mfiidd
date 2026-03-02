@@ -308,8 +308,8 @@ p = bar(1:n_particles, particle_weights,
         legend=false, alpha=0.7)
 
 # Add predictions as labels
-for i in 1:n_particles
-    annotate!(p, i, particle_weights[i] + 0.02, text("$(Int(day_5_predictions[i]))", 7))
+for (i, pred) in enumerate(day_5_predictions)
+    annotate!(p, i, particle_weights[i] + 0.02, text("$(round(Int, pred))", 7))
 end
 
 plot!(p)

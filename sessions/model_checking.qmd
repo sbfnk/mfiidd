@@ -110,8 +110,7 @@ function simulate_sir(R_0, D_inf, S0, I0, times)
     prob = ODEProblem(sir_ode!, u0, (times_vec[1], times_vec[end]), [R_0, D_inf])
     sol = solve(prob, Tsit5(), saveat=times_vec)
 
-    # Evaluate at each time point explicitly to ensure correct length
-    inc_cumulative = [sol(t)[4] for t in times_vec]
+    inc_cumulative = sol[4, :]
     inc_daily = [0.0; diff(inc_cumulative)]
 
     return inc_daily

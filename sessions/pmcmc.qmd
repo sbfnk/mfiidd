@@ -336,7 +336,7 @@ end
     sol = solve(prob, Tsit5(), saveat=times)
 
     # Extract daily incidence
-    inc_cumulative = [sol[i][9] for i in 1:length(sol)]
+    inc_cumulative = sol[9, :]
     inc_daily = [0.0; diff(inc_cumulative)]
 
     # Likelihood: Poisson observations
