@@ -458,7 +458,7 @@ The key difference is in the D_imm (duration of temporary immunity) estimates. S
 
 ### What the original study found
 
-[Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
+[Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 
 The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compared to 1.0 for exponential), meaning individuals lose immunity at more consistent times. For the Tristan da Cunha data, this more realistic timing distribution better captures the second wave dynamics.
 
