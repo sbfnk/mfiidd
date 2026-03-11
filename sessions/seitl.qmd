@@ -688,7 +688,7 @@ ylabel!("Probability density")
 plot!(p)
 ```
 
-We propose to extend the SEITL by replacing the single T compartment with 4 sub-stages (k=4). Why 4? This is a pragmatic choice from the original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper: k=4 gives a bell-shaped distribution that is more realistic than the exponential (k=1), while keeping the model small enough to fit efficiently. The "Going further" section at the end invites you to explore other values of k.
+We propose to extend the SEITL by replacing the single T compartment with 4 sub-stages (k=4). Why 4? This is a pragmatic choice from the original [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) paper: k=4 gives a bell-shaped distribution that is more realistic than the exponential (k=1), while keeping the model small enough to fit efficiently. The "Going further" section at the end invites you to explore other values of k.
 
 The extended model looks as follows:
 
@@ -839,7 +839,7 @@ We now have multiple mechanistic models that could explain the two-wave pattern:
 - **SEITL**: Exponential duration in T compartment (memoryless)
 - **SEIT4L**: Erlang-4 duration in T compartment (more realistic timing)
 
-Both encode the same biological hypothesis (temporary immunity followed by potential reinfection), but make different assumptions about the *distribution* of time spent in temporary immunity. The original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper compared these and other variants using information criteria (DIC) and found that SEIT4L provided a better fit.
+Both encode the same biological hypothesis (temporary immunity followed by potential reinfection), but make different assumptions about the *distribution* of time spent in temporary immunity. The original [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) paper compared these and other variants using information criteria (DIC) and found that SEIT4L provided a better fit.
 
 In the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions, we'll fit both models to data and compare them.
 :::
@@ -908,7 +908,7 @@ Particle filters solve this by running many stochastic simulations simultaneousl
 
 # References
 
-- Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks: the role of the immune response](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381). *Proc. R. Soc. B* 278(1725), 3635-3643. (The original SEITL model paper - highly recommended!)
+- Camacho et al. (2011). [Explaining rapid reinfections in multiple-wave influenza outbreaks: the role of the immune response](https://doi.org/10.1098/rspb.2011.0300). *Proc. R. Soc. B* 278(1725), 3635-3643. (The original SEITL model paper - highly recommended!)
 - Mantle & Tyrrell (1973). [An epidemic of influenza on Tristan da Cunha](https://pubmed.ncbi.nlm.nih.gov/4708546/). *Journal of Hygiene* 71(1), 89-95. (Original outbreak data)
 - [JumpProcesses.jl](https://docs.sciml.ai/JumpProcesses/stable/) - Stochastic simulation in Julia (Gillespie algorithm and more)
 - [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia
