@@ -145,8 +145,8 @@ end
 
 # Rough starting values (we'd use MCMC in reality, but we'll keep this quick)
 β_guess = 0.5
-γ_guess = 0.4  # mean infectious period ≈ 2.5 days, consistent with influenza
-u0 = [270.0, 3.0, 0.0]
+γ_guess = 0.5  # mean infectious period ≈ 2 days, consistent with influenza (see SEITL session)
+u0 = [281.0, 3.0, 0.0]  # N = 284 (total population of Tristan da Cunha)
 tspan = (0.0, maximum(flu_tdc.time))
 times = flu_tdc.time
 
@@ -202,7 +202,7 @@ println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data p
 - `tanh` - activation function that squashes values to [-1, 1]. Helps learn smooth functions and keeps gradients bounded.
 - [`softplus`](https://en.wikipedia.org/wiki/Softplus) - defined as log(1 + exp(x)), ensures outputs are always positive. Smoother than ReLU at zero.
 - [`Lux.setup(rng, model)`](https://lux.csail.mit.edu/stable/api/Lux/utilities#Lux.setup) - initialises the neural network parameters `p` and state `st`. Lux separates parameters from architecture for functional programming.
-- [`ComponentArray`](https://jonniedie.github.io/ComponentArrays.jl/stable/) - wraps nested parameter structures into a flat array while preserving named access. Essential for gradient-based optimisation.
+- [`ComponentArray`](https://jonniedie.github.io/ComponentArrays.jl/stable/) - wraps nested parameter structures into a flat array while preserving named access. Needed for gradient-based optimisation.
 :::
 
 A few things to note about this architecture (expand the code explainer above for definitions of each function):
@@ -225,7 +225,7 @@ SIR model where β is learned by neural network.
 function sir_ude!(du, u, p, t)
     S, I, R = u
     N = S + I + R
-    γ = p.γ  # Keep recovery rate fixed (known from literature)
+    γ = p.γ  # Fixed here for simplicity; in practice you'd estimate γ jointly
 
     # Neural network predicts β(t, I)
     # Inputs: prevalence (I/N) and normalized time (t/tmax)
@@ -316,11 +316,14 @@ println("Initial loss: ", round(loss_ude(p_all, nothing), digits=2))
 opt_func = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
 opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 
-# Train using Adam optimiser
-println("\nTraining with Adam optimiser (100 iterations)...")
-@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=100,
+# Train using Adam optimiser — store loss history for convergence check
+loss_history = Float64[]
+
+println("\nTraining with Adam optimiser (500 iterations)...")
+@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=500,
                      callback = (state, l) -> begin
-                         if state.iter % 20 == 0
+                         push!(loss_history, l)
+                         if state.iter % 100 == 0
                              println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                          end
                          return false
@@ -331,7 +334,7 @@ println("\nTraining with Adam optimiser (100 iterations)...")
 ## Code explainer
 - [`OptimizationFunction(loss, ad_backend)`](https://docs.sciml.ai/Optimization/stable/) - wraps a loss function with automatic differentiation for gradient computation.
 - `Optimization.AutoForwardDiff()` - uses [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for forward-mode automatic differentiation. Efficient when the number of parameters is small (~33 here). For larger networks, reverse-mode (Zygote.jl) would be faster.
-- [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimiser that adjusts per-parameter learning rates and uses momentum. The go-to optimiser for neural networks.
+- [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimiser that adjusts per-parameter learning rates and uses momentum.
 - `callback` - function called after each iteration. Returns `true` to stop early, `false` to continue. Useful for monitoring progress.
 :::
 
@@ -341,6 +344,14 @@ println("\n" * "="^60)
 println("Final loss: ", round(result.objective, digits=2))
 
 p_trained = result.u
+```
+
+Always check that the loss has converged — if it's still decreasing at the end, run more iterations:
+
+```{julia}
+plot(loss_history, xlabel="Iteration", ylabel="Loss",
+     label="Training loss", linewidth=2,
+     title="Convergence check", yscale=:log10)
 ```
 
 A few things to understand about this training process:
@@ -372,41 +383,35 @@ You should see the UDE trajectory (orange/green line) tracking the first-wave pe
 
 ## Step 6: Visualise learned β(t)
 
-What transmission pattern did the network learn?
+What transmission pattern did the network learn? Since the network takes both prevalence (I/N) and time as inputs, we need to evaluate it along the actual epidemic trajectory — the β(t) the ODE solver used during integration, not at some arbitrary fixed prevalence.
 
 ```{julia}
-# Create a time grid for plotting
+# Solve the trained UDE at high resolution to get the trajectory
+prob_trained = ODEProblem(sir_ude!, u0, tspan, p_trained)
+sol_trained = solve(prob_trained, Tsit5(), dense=true)
+
+# Evaluate β along the actual trajectory
 t_plot = range(0.0, maximum(times), length=100)
+N_total = sum(u0)
 
-# We need to evaluate β at each time point
-# The network takes [I/N, t/tmax] as input
-# We use a representative prevalence value (mid-epidemic)
-I_representative = 50.0
-N_total = 273.0
-
-# Evaluate the network at each time point
-β_learned_over_time = [begin
-    # Normalise inputs as the network expects
-    normalised_prevalence = I_representative / N_total
-    normalised_time = t / maximum(times)
-    input = [normalised_prevalence, normalised_time]
-
-    # Run the neural network forward
-    β_val, _ = nn_architecture(input, p_trained.nn_params, st_nn)
-    β_val[1]  # Extract scalar from 1-element array
+β_along_trajectory = [begin
+    S_t, I_t, R_t = sol_trained(t)
+    nn_input = [I_t / N_total, t / maximum(times)]
+    β_val, _ = nn_architecture(nn_input, p_trained.nn_params, st_nn)
+    β_val[1]
 end for t in t_plot]
 
 # Plot with wave markers
-plot(t_plot, β_learned_over_time,
+plot(t_plot, β_along_trajectory,
      label="Learned β(t)", linewidth=2,
      xlabel="Time (days)", ylabel="β",
-     title="Learned Transmission Rate",
+     title="Learned Transmission Rate (along trajectory)",
      legend=:topright)
 hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-In a typical run you should see β(t) starting high (above the constant-β baseline), dropping during the trough around days 12-20, and then rising again around days 20-25 as the network tries to reignite transmission for the second wave. The exact shape varies between runs — this variability itself is informative (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below).
+In a typical run you should see β(t) starting high (above the constant-β baseline), dropping during the trough around days 12-20, and then rising again around days 20-25 as the network tries to reignite transmission for the second wave. The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below).
 
 Before interpreting this curve, look back at Step 5. How well does the UDE actually fit the data? The fit may be imperfect. An imperfect fit tells us either that the network needs more capacity, or that the SIR structure itself can't capture the dynamics. We'll explore this in the next section.
 
@@ -443,25 +448,27 @@ If the fit is imperfect even with Poisson loss, this tells us something importan
 Consider what happens during the trough (days 13-21):
 
 - Cases drop to near-zero (0-5 per day)
-- In SIR, if I→0, then dI/dt→0 *regardless* of β(t)
-- You can't restart an epidemic with no infectious people!
+- By this point, S has been substantially depleted by the first wave
+- Even with I > 0, the product β·S·I/N is small because S is small
+- A large β can compensate somewhat, but there is a limit
 
 The neural network can only learn β(t), but the **SIR structure itself** constrains what's possible:
 
-1. **S only decreases**: Once recovered, people are immune forever
-2. **The trough problem**: Even infinite β can't help if I≈0
-3. **No memory**: The model has no way to "store" infection for later
+1. **S only decreases**: Once recovered, people are immune forever — the susceptible pool is depleted by the first wave
+2. **The trough problem**: With I near zero and S depleted, restarting growth requires implausibly large β
+3. **No memory**: The model has no way to "store" infection for later release
 
-**What would we need to truly capture two waves?**
+In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds an exposed class and Erlang-distributed temporary immunity — explains the two waves through structural changes, not time-varying transmission. That is the more parsimonious explanation for this data.
 
-- **SEIR model**: Exposed period sustains transmission chains (smoldering)
-- **SIRS model**: Waning immunity allows reinfection
+**What other structural changes could help?**
+
+- **SEIR model**: Exposed period sustains transmission chains during the trough
 - **Two-population model**: Different mixing groups, delayed introduction
-- **Learn γ(t) too**: Time-varying recovery might help
+- **Learn γ(t) too**: Time-varying recovery might help, though this raises identifiability issues with β(t)
 
 **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
 
-An imperfect fit is informative: it suggests that time-varying transmission alone is insufficient to explain the data, and that we may need different model structure.
+An imperfect fit tells us something: time-varying transmission alone is insufficient to explain the data, and we may need different model structure.
 
 ## Common failure modes
 
@@ -476,7 +483,10 @@ NaN explosion happens when gradients become infinite, usually because the optimi
 Different random initialisations of the network weights can lead to different local minima and different learned β(t) curves. Let's check how much this matters.
 
 ```{julia}
-# Train from 3 different random seeds and compare final losses
+# Train from 3 different random seeds and compare learned β(t)
+plot(title="Learned β(t) across random seeds",
+     xlabel="Time (days)", ylabel="β", legend=:topright)
+
 for seed in [1234, 5678, 9012]
     rng_test = Random.default_rng()
     Random.seed!(rng_test, seed)
@@ -491,13 +501,26 @@ for seed in [1234, 5678, 9012]
 
     opt_func_test = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
     opt_prob_test = OptimizationProblem(opt_func_test, p_test, nothing)
-    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=100,
+    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=500,
                         callback = (state, l) -> false)
-    println("Seed $seed → final loss: $(round(result_test.objective, digits=2))")
+
+    # Extract the learned β(t) along the trajectory for comparison
+    p_test_trained = result_test.u
+    prob_test = ODEProblem(sir_ude!, u0, tspan, p_test_trained)
+    sol_test = solve(prob_test, Tsit5(), dense=true)
+    β_test = [begin
+        S_t, I_t, R_t = sol_test(t)
+        nn_input = [I_t / sum(u0), t / maximum(times)]
+        β_val, _ = nn_architecture(nn_input, p_test_trained.nn_params, st_nn)
+        β_val[1]
+    end for t in t_plot]
+
+    plot!(t_plot, β_test, label="Seed $seed (loss=$(round(result_test.objective, digits=1)))",
+          linewidth=2)
 end
 ```
 
-If the final losses are similar across seeds, the ODE constraint is doing its job — the mechanistic structure limits the solution space enough that different starting points converge to similar answers. If they vary substantially, this tells you the data can't uniquely determine β(t), and you should treat any single result with caution.
+Compare not just the final loss values but the shape of the β(t) curves. Similar losses do not guarantee similar β(t) — two different transmission patterns can produce comparably good fits. Where the curves agree, you can be more confident in the result; where they diverge, the data cannot distinguish between explanations.
 
 # Exercises
 
@@ -512,7 +535,7 @@ For each change, re-run from Step 1 through Step 6 and compare the β(t) plot to
 :::
 
 ::: {.callout-tip title="Exercise 2: Interpret the structural constraint"}
-In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) may be fundamentally unable to produce two waves. Can you explain, in your own words, why setting β to a very large value during the trough still cannot restart the epidemic? What structural change to the model would you propose instead?
+In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) struggles to produce two waves. Can you explain, in your own words, why even a very large β during the trough is insufficient — considering both the depleted susceptible pool and near-zero prevalence? What structural change to the model would you propose, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
 :::
 
 # When to use UDEs
@@ -540,19 +563,14 @@ UDEs aren't always appropriate. Here's when they add value.
 |--------|-------------|------------------|------------|-------------------|
 | **Constant β** | Low | High | Low (10-50 points) | Very low |
 | **Time-varying β with splines** | Medium | Medium | Medium (50-200) | Low |
-| **GP for β(t)** | Medium | High | Medium (50-200) | Medium |
+| **GP for β(t)** | Medium | Medium (but with UQ) | Medium (50-200) | Medium |
 | **UDE** | High | Low | High (100-1000+) | High |
 
 **For TdC data (60 points)**: GPs or splines are likely more appropriate than UDEs.
 
-# Real success stories
+# Where UDEs have been applied
 
-UDEs work well when:
-
-1. Large spatiotemporal datasets: COVID-19 with daily data from 100+ locations
-2. High-frequency measurements: Lab experiments with measurements every hour
-3. Known structure, unknown details: Chemical reactions, climate models
-4. Discovery research: Finding unknown mechanisms (not just fitting)
+Real-data applications of UDEs are still relatively few. In epidemiology, Kuwahara & Bauch (2024) used a UDE to predict COVID-19 second waves from case and mobility data, and Rojas-Campos et al. (2023) demonstrated the UDE → SINDy pipeline on simulated regional transmission data. Outside epidemiology, UDEs have been applied to glucose-insulin dynamics (de Rooij et al. 2025) and battery degradation modelling (Kuzhiyil et al. 2024). Philipps et al. (2025) review the broader state of UDEs in systems biology and note that most published work still uses synthetic data.
 
 # Going further
 
@@ -597,7 +615,7 @@ Genetic programming / symbolic regression evolves equations by combining mathema
 
 The workflow often combines both approaches: first use a neural network UDE to confirm that a time-varying or state-dependent term improves fit, then apply symbolic regression to find an interpretable equation for that term.
 
-For policy applications, this matters. "Transmission increases when prevalence drops below 5%" is actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. Symbolic UDEs offer a path from discovery to interpretation.
+For policy applications, the difference matters in principle. A hypothetical finding like "transmission increases when prevalence drops below 5%" would be actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. In practice, recovering clean symbolic expressions from noisy epidemic data is difficult, but symbolic UDEs offer a path from discovery towards interpretation.
 
 For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://www.nature.com/articles/s41540-025-00550-w) for a recent review of UDEs in systems biology.
 
@@ -607,12 +625,13 @@ Universal Differential Equations combine mechanistic structure (SIR compartments
 
 Loss function choice matters. Poisson likelihood forces the model to explain small counts in the second wave; squared errors would be dominated by the first-wave peak. The ODE structure constrains the network — it can only learn β(t) curves that produce valid epidemic trajectories.
 
-If the learned β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation — but it's a hypothesis needing independent validation. An imperfect fit is informative: it may indicate that SIR structure with time-varying β isn't sufficient.
+If the learned β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation — but it's a hypothesis needing independent validation. An imperfect fit may indicate that SIR structure with time-varying β isn't sufficient.
 
 ::: {.callout-tip title="Learning points"}
 - **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)
 - **The loss function matters**: Poisson likelihood forces the model to explain small counts; SSE is dominated by peak values
 - **The ODE constrains the network**: The mechanistic structure limits what the network can learn, preventing it from memorising noise
+- **A single training run is a point estimate**: Without ensemble runs or Bayesian treatment, there is no uncertainty quantification — interpret any single β(t) curve with caution
 - **Learned patterns suggest mechanisms** but don't prove them - UDEs generate hypotheses needing independent validation
 - **Data requirements are high**: UDEs need hundreds of data points to work well; for small datasets, simpler approaches may be better
 :::
@@ -623,7 +642,10 @@ This session and the [variational inference](variational_inference.qmd) session 
 
 # References
 
-- Rackauckas et al. (2020). [Universal Differential Equations for Scientific Machine Learning](https://arxiv.org/abs/2001.04385). *arXiv:2001.04385*
+- Rackauckas et al. (2020). [Universal Differential Equations for Scientific Machine Learning](https://arxiv.org/abs/2001.04385). *arXiv:2001.04385*. (The original UDE paper)
+- Kuwahara & Bauch (2024). [Predicting Covid-19 pandemic waves with biologically and behaviorally informed universal differential equations](https://doi.org/10.1016/j.heliyon.2024.e25363). *Heliyon* 10(4). (UDE applied to real COVID-19 case and mobility data)
+- Rojas-Campos et al. (2023). [Learning COVID-19 Regional Transmission Using Universal Differential Equations in a SIR model](https://arxiv.org/abs/2310.16804). *arXiv:2310.16804*. (UDE → SINDy pipeline for regional transmission)
+- Philipps et al. (2025). [Current state and open problems in universal differential equations for systems biology](https://www.nature.com/articles/s41540-025-00550-w). *npj Systems Biology and Applications*. (Review of UDEs in systems biology)
 - Brunton et al. (2016). [Discovering governing equations from data by sparse identification of nonlinear dynamical systems](https://www.pnas.org/doi/10.1073/pnas.1517384113). *PNAS* 113(15), 3932-3937. (The original SINDy paper)
 - Cranmer et al. (2020). [Discovering Symbolic Models from Deep Learning with Inductive Biases](https://arxiv.org/abs/2006.11287). *NeurIPS*. (Symbolic regression from neural networks)
 - [DiffEqFlux.jl documentation](https://docs.sciml.ai/DiffEqFlux/stable/) - Neural ODEs and UDEs in Julia
