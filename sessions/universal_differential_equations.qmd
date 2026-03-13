@@ -269,10 +269,11 @@ Loss function using Poisson negative log-likelihood.
 function loss_ude(p_all, _)
     pred = predict_ude(p_all)
 
-    # Poisson negative log-likelihood
+    # Poisson negative log-likelihood (clamp predictions to avoid log(negative))
     ε = 1e-6
     obs = flu_tdc.obs
-    nll = sum(pred .- obs .* log.(pred .+ ε))
+    pred_safe = max.(pred, ε)
+    nll = sum(pred_safe .- obs .* log.(pred_safe))
 
     return nll
 end
