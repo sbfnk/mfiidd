@@ -1,45 +1,37 @@
 
 # Model fitting and inference for infectious disease dynamics
 
-This repository contains course materials for teaching Bayesian inference methods for epidemiological models at the London School of Hygiene & Tropical Medicine.
+Course materials for teaching Bayesian inference methods for infectious disease models, developed at the London School of Hygiene & Tropical Medicine. The course uses Julia with the [Turing.jl](https://turinglang.org/) probabilistic programming framework.
 
-## About this course
+## What the course covers
 
-This is a modernized version of the original [MFIIDD course](https://sbfnk.github.io/mfiidd/), reimagined for contemporary statistical practice. The course teaches both the theory and implementation of model fitting and inference using production-ready tools.
+The course bridges the gap between statistical inference methods and infectious disease modelling. It covers:
 
-### Why the transition?
+- Fitting deterministic and stochastic compartmental models to data
+- MCMC sampling (NUTS, HMC) and convergence diagnostics
+- Model checking with prior and posterior predictive checks
+- Particle filters and particle MCMC for stochastic models
+- Observation models and Approximate Bayesian Computation
+- Variational inference and universal differential equations (additional sessions)
 
-The original R-based course relied on `fitR`, a custom package developed for teaching purposes. While pedagogically useful, this approach had significant drawbacks:
+No prior Julia experience is required. The materials include guidance for those coming from R throughout.
 
-- **Outdated methods**: Inference techniques have advanced substantially in recent years
-- **Poor maintenance**: The teaching package became difficult to maintain and update
-- **Limited performance**: Implementations were not optimized for real-world use
-- **Unintended consequences**: Students adopted the teaching code for actual research, despite it not being designed for production use
+## Repository structure
 
-### Modern approach
-
-This revised course uses **Turing.jl**, a mature probabilistic programming language, to teach the same core concepts while providing students with:
-
-- Modern, production-quality inference tools (NUTS, HMC, particle MCMC)
-- High-performance implementations suitable for real research
-- Active community support and comprehensive documentation
-- Skills directly transferable to research applications
-
-Students learn the same fundamental concepts of infectious disease modeling and Bayesian inference, but now using tools they can confidently apply in their own work.
-
-## Course structure
-
-Course materials are organized in:
-- **`sessions/`**: Quarto documents (`.qmd`) with Julia code for hands-on sessions
-- **`Rmd/`**: Legacy RMarkdown materials (being phased out)
-- **`src/`**: Core Julia modeling framework with Turing.jl integration
+- **`sessions/`**: Quarto documents (`.qmd`) with Julia code for each teaching session
+- **`data/`**: Datasets used in practicals
+- **`Rmd/`**: Legacy RMarkdown materials from the [previous version of the course](https://sbfnk.github.io/mfiidd.archive/)
 
 ## Local development
 
-To render the course website locally, use Quarto:
+To render the course website locally, use [Quarto](https://quarto.org/):
 
 ```bash
 quarto render
 ```
 
 This generates HTML pages in the `_site/` directory. Changes pushed to the `main` branch are automatically deployed to the course website.
+
+## Licence
+
+[MIT](LICENSE)
