@@ -269,6 +269,9 @@ Loss function using Poisson negative log-likelihood.
 function loss_ude(p_all, _)
     pred = predict_ude(p_all)
 
+    # Return large loss if ODE solver failed (pred contains NaN)
+    any(isnan, pred) && return eltype(pred)(1e10)
+
     # Poisson negative log-likelihood (clamp predictions to avoid log(negative))
     ε = 1e-6
     obs = flu_tdc.obs
@@ -352,7 +355,7 @@ Always check that the loss has converged — if it's still decreasing at the end
 ```{julia}
 plot(loss_history, xlabel="Iteration", ylabel="Loss",
      label="Training loss", linewidth=2,
-     title="Convergence check", yscale=:log10)
+     title="Convergence check")
 ```
 
 A few things to understand about this training process:
