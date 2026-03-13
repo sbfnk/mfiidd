@@ -570,7 +570,7 @@ UDEs aren't always appropriate. Here's when they add value.
 
 # Where UDEs have been applied
 
-Real-data applications of UDEs are still relatively few. In epidemiology, Kuwahara & Bauch (2024) used a UDE to predict COVID-19 second waves from case and mobility data, and Rojas-Campos et al. (2023) demonstrated the UDE → SINDy pipeline on simulated regional transmission data. Outside epidemiology, UDEs have been applied to glucose-insulin dynamics (de Rooij et al. 2025) and battery degradation modelling (Kuzhiyil et al. 2024). Philipps et al. (2025) review the broader state of UDEs in systems biology and note that most published work still uses synthetic data.
+Real-data applications of UDEs are still relatively few. In epidemiology, Kuwahara & Bauch (2024) used a UDE to predict COVID-19 second waves from case and mobility data, Schmid et al. (2026) combined a UDE-based SEIR model with wastewater surveillance to project case counts, and Rojas-Campos et al. (2023) demonstrated the UDE → SINDy pipeline on simulated regional transmission data. Outside epidemiology, UDEs have been applied to glucose-insulin dynamics (de Rooij et al. 2025) and battery degradation modelling (Kuzhiyil et al. 2024). Philipps et al. (2025) review the broader state of UDEs in systems biology and note that most published work still uses synthetic data.
 
 # Going further
 
@@ -645,6 +645,7 @@ This session and the [variational inference](variational_inference.qmd) session 
 - Rackauckas et al. (2020). [Universal Differential Equations for Scientific Machine Learning](https://arxiv.org/abs/2001.04385). *arXiv:2001.04385*. (The original UDE paper)
 - Kuwahara & Bauch (2024). [Predicting Covid-19 pandemic waves with biologically and behaviorally informed universal differential equations](https://doi.org/10.1016/j.heliyon.2024.e25363). *Heliyon* 10(4). (UDE applied to real COVID-19 case and mobility data)
 - Rojas-Campos et al. (2023). [Learning COVID-19 Regional Transmission Using Universal Differential Equations in a SIR model](https://arxiv.org/abs/2310.16804). *arXiv:2310.16804*. (UDE → SINDy pipeline for regional transmission)
+- Schmid et al. (2026). [Wastewater-informed neural compartmental model for long-horizon case number projections](https://www.medrxiv.org/content/10.64898/2026.02.10.26345731v1). *medRxiv*. (UDE-based SEIR with wastewater data for case projections)
 - Philipps et al. (2025). [Current state and open problems in universal differential equations for systems biology](https://www.nature.com/articles/s41540-025-00550-w). *npj Systems Biology and Applications*. (Review of UDEs in systems biology)
 - Brunton et al. (2016). [Discovering governing equations from data by sparse identification of nonlinear dynamical systems](https://www.pnas.org/doi/10.1073/pnas.1517384113). *PNAS* 113(15), 3932-3937. (The original SINDy paper)
 - Cranmer et al. (2020). [Discovering Symbolic Models from Deep Learning with Inductive Biases](https://arxiv.org/abs/2006.11287). *NeurIPS*. (Symbolic regression from neural networks)
