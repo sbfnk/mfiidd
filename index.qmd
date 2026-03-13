@@ -13,8 +13,10 @@ about:
       href: https://github.com/sbfnk/mfiidd.julia
 ---
 
-A course and living resource for learning about model fitting and inference for infectious disease dynamics.
+An open course resource for learning about model fitting and inference for infectious disease dynamics, using Julia and the Turing.jl probabilistic programming framework.
 
-We invite anyone to use the materials here in their own teaching and learning. For questions and discussion of the course or its content, we welcome all users to the [Discussion board](https://github.com/sbfnk/mfiidd.julia/discussions). We welcome all forms of [contributions, additions and suggestions](https://github.com/sbfnk/mfiidd.julia/issues) for improving the materials.
+There is a growing demand for fitting mechanistic models to infectious disease data, but the range of available methods can make it hard to know where to start. This course covers methods from MCMC to particle filters and Approximate Bayesian Computation, with practical sessions throughout. Additional sessions cover variational inference and universal differential equations (combining mechanistic models with machine learning). If you have experience programming in R, Python, or a similar language, you have everything you need to get started. No prior Julia experience is required.
+
+We invite anyone to use the materials here in their own teaching and learning. For questions and discussion of the course or its content, we welcome all users to the [Discussion board](https://github.com/sbfnk/mfiidd.julia/discussions). [Contributions and suggestions](https://github.com/sbfnk/mfiidd.julia/issues) for improving the materials are welcome.
 
 All materials here are provided under the permissive [MIT License](https://github.com/sbfnk/mfiidd.julia/blob/main/LICENSE).
