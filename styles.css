@@ -1,0 +1,15 @@
+/* Custom styles for MFIIDD course materials */
+
+/* Code output: lighter grey than code blocks with subtle border */
+.cell-output-stdout pre,
+.cell-output-display pre {
+  background-color: #fafafa;
+  border-left: 3px solid #ccc;
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .cell-output-stdout pre,
+[data-bs-theme="dark"] .cell-output-display pre {
+  background-color: #3a3a3a;
+  border-left: 3px solid #666;
+}
