@@ -143,9 +143,11 @@ function sir_constant_beta(du, u, p, t)
     du[3] = γ * I
 end
 
-# Rough starting values (we'd use MCMC in reality, but we'll keep this quick)
-β_guess = 0.5
-γ_guess = 0.5  # mean infectious period ≈ 2 days, consistent with influenza (see SEITL session)
+# Literature-informed values for influenza (R_0 ≈ 2.5, D_inf ≈ 2 days)
+R_0_guess = 2.5
+D_inf_guess = 2.0
+γ_guess = 1.0 / D_inf_guess
+β_guess = R_0_guess * γ_guess
 u0 = [281.0, 3.0, 0.0]  # N = 284 (total population of Tristan da Cunha)
 tspan = (0.0, maximum(flu_tdc.time))
 times = flu_tdc.time
