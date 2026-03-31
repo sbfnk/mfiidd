@@ -1,7 +1,0 @@
-on a mac; first do
-
-brew install nloptr
-
-then install with
-
-install.packages("nloptr", configure.args="--with-nlopt-libs=-lnlopt_cxx")

@@ -1,0 +1,85 @@
+---
+format: docx
+---
+
+**[Model Fitting and Inference for Infectious Disease Dynamics]{.underline}**
+
+Course type: Short Course
+
+Learning type: Face-to-Face
+
+Admissions: [TBC]
+
+Course organisers: Sebastian Funk, Sam Abbott, Nick Davies
+
+**Overview**
+
+Course dates: [TBC]
+
+The course will take place in London, UK.
+
+A short course taught by members of the [Centre for the Mathematical Modelling of Infectious Diseases](http://cmmid.lshtm.ac.uk/).
+
+There is a growing demand for mathematical modellers in public health to explain observed disease trends and predict the outcome of interventions, often by synthesising information from different data sources. At the same time, increasing computational power and methodological advances make it possible to fit ever more complex mechanistic models to data. In light of the speed of methodological advances and the broad nature of the field, the task of choosing from the available methods and packages, as well as putting them into practice, can be daunting.
+
+With this short course we aim to bridge the gap between statistical inference methods and training in infectious disease modelling. We will introduce key terminology from frequentist and Bayesian approaches as well as methods ranging from Markov-Chain Monte Carlo (MCMC) to particle filters and Approximate Bayesian Computation (ABC).
+
+Our aim is to equip students and researchers using infectious disease models with the theoretical background needed to better understand the literature, as well as with practical knowledge of the tools available to apply these methods in their own research.
+
+The two short courses [Modern Techniques in Modelling](https://www.lshtm.ac.uk/study/courses/short-courses/modern-techniques-disease-modelling) and Model Fitting and Inference for Infectious Disease Dynamics are offered back-to-back across two consecutive weeks. While either course can be taken on its own, students who take both courses will benefit from a comprehensive introduction to modern methods in infectious disease transmission modelling.
+
+**Course objectives**
+
+[Teaching methods and course materials]{.underline}
+
+The course consists of computer practical sessions interspersed with introductory lectures. The practical sessions will use Julia (with the Turing.jl probabilistic programming framework), a programming language designed for scientific computing. No prior Julia experience is required, but some pre-reading of Julia basics and concepts is encouraged for those who are able. The course materials include guidance for those coming from R throughout. Participants should bring their own laptop if at all possible.
+
+The course lasts three and a half days. On the first day we will introduce the conceptual underpinning of inference using dynamic models and apply this to model fitting using deterministic models. On the second day, we will cover MCMC diagnostics, model checking and validation, and introduce stochastic models. On the third day, we will implement particle-based methods for matching stochastic models to data. On the final half day, we will cover observation models and Approximate Bayesian Computation. Additional materials on variational inference and universal differential equations are available for self-study.
+
+[Target audience]{.underline}
+
+This course is aimed at students and researchers who are working with dynamic models of infectious disease (i.e., broadly based on the SIR model) and would like to learn about modern methods of matching these to data. The course is limited to 24 participants.
+
+[Prerequisites]{.underline}
+
+In order to benefit from the course, basic knowledge of infectious disease modelling is required. Participants are expected to have a good understanding of key concepts outlined in [Introduction to Infectious Disease Modelling and Its Applications](https://www.lshtm.ac.uk/node/41346) or [Modern Techniques in Modelling](https://www.lshtm.ac.uk/study/courses/short-courses/modern-techniques-disease-modelling).
+
+Some experience with a programming language (R, Python, MATLAB, or similar) is expected. No prior knowledge of Julia is required. The course materials provide all the guidance needed to get started.
+
+**How to apply**
+
+[Applying for this course]{.underline}
+
+[TBC — applications open/closed status]
+
+Please read [LSHTM's Admissions policies](https://www.lshtm.ac.uk/study/applications/applying-short-courses-modules) prior to submitting your application.
+
+[Visas]{.underline}
+
+The student is responsible for obtaining any [visa or other permissions to attend the course](https://www.lshtm.ac.uk/study/visas-immigration/visa-requirements-short-term-study), and is encouraged to start the application process as early as possible as obtaining a visa for the UK can sometimes take a long time. The [Short Courses team](mailto:shortcourses@lshtm.ac.uk) can provide supporting documentation if requested.
+
+[Accommodation]{.underline}
+
+A list of hotels located in the vicinity of LSHTM, along with further resources for short-term accommodation, can be found on our [accommodation pages](https://www.lshtm.ac.uk/study/new-students/accommodation/short-term-accommodation).
+
+Important information
+
+**Please note:**
+
+- Students will be required to bring their own laptops.
+
+- If you have been offered a place on the course you will not be able to register without bringing a formal ID (Passport) and without having obtained the correct visa if required.
+
+- It is essential that you read the [current visa requirements for short course students](https://www.lshtm.ac.uk/study/visas-immigration/visa-requirements-short-courses).
+
+- LSHTM may cancel courses two weeks before the first day of the course if numbers prove insufficient. In those circumstances, course fees will be refunded.
+
+- LSHTM cannot accept responsibility for accommodation, travel and other losses incurred as a result of the course being cancelled.
+
+[Register your interest](https://www.lshtm.ac.uk/study/courses/short-courses/register-interest)
+
+More information
+
+You may also be interested in\
+[Modern Techniques in Modelling](https://www.lshtm.ac.uk/study/courses/short-courses/modern-techniques-disease-modelling)\
+[Introduction to Infectious Disease Modelling and Its Applications](https://www.lshtm.ac.uk/node/41346)
