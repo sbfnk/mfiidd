@@ -1,0 +1,41 @@
+# History files
+.Rhistory
+
+# Example code in package build process
+*-Ex.R
+
+# Mac stuff
+.DS_Store
+*.history
+test/testground.r
+test/testground.txt
+
+# Emacs stuff
+auto
+.#*
+
+# Latex stuff
+*.aux
+*.fdb*
+*.fls
+*.log
+*.synctex.gz
+*.out
+*.bcf
+*.run.xml
+
+# Rmd stuff
+cache/
+Rmd/figure
+
+docs/_minted-rintro/
+docs/*.png
+docs/*.pdf
+docs/rintro.tex
+
+website/
+
+data/
+
+_site/
+site_libs/
