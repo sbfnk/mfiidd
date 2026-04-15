@@ -20,8 +20,6 @@ No prior Julia experience is required. The materials include guidance for those 
 
 - **`sessions/`**: Quarto documents (`.qmd`) with Julia code for each teaching session
 - **`data/`**: Datasets used in practicals
-- **`Rmd/`**: Legacy RMarkdown materials from the [previous version of the course](https://sbfnk.github.io/mfiidd.archive/)
-
 ## Local development
 
 To render the course website locally, use [Quarto](https://quarto.org/):
