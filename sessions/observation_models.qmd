@@ -156,6 +156,11 @@ scatter!(flu_tdc.time, flu_tdc.obs,
 
 Not a perfect fit, but good enough for illustration!
 
+::: {.callout-tip}
+## Workflow note
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on observation model choices.
+:::
+
 # Approach 1: Poisson Likelihood (Traditional)
 
 ## The standard approach

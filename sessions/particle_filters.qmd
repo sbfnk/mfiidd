@@ -103,6 +103,11 @@ Random.seed!(1234)
 
 :::
 
+::: {.callout-tip}
+## Workflow note
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting stochastic models too. We skip these here to focus on the particle filter mechanics.
+:::
+
 # Why deterministic likelihood fails for stochastic models
 
 First, consider the problem. With a deterministic model, the trajectory is fully determined by the parameters:
