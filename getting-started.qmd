@@ -43,15 +43,12 @@ Three ways to engage with the course:
 
 ## Step 1: Install Julia
 
-Download Julia from [julialang.org/downloads](https://julialang.org/downloads/).
-We recommend version 1.11 or later.
+Install Julia using [juliaup](https://github.com/JuliaLang/juliaup), the official version manager:
 
-**Installation options:**
+- **Windows**: `winget install julia -s msstore`
+- **macOS/Linux**: `curl -fsSL https://install.julialang.org | sh`
 
-- **juliaup (recommended)**: A version manager that makes it easy to install and switch between Julia versions
-  - Windows: `winget install julia -s msstore`
-  - macOS/Linux: `curl -fsSL https://install.julialang.org | sh`
-- **Direct download**: Get the installer for your platform from the downloads page
+juliaup handles downloading the right version and makes future upgrades easy (`juliaup update`).
 
 After installation, open a terminal and verify Julia is working:
 
