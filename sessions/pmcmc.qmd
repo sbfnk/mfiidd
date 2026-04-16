@@ -57,10 +57,8 @@ The pre-computed chains (loaded from `data/`) were generated with 500,000 iterat
 #| include: false
 
 using Pkg
-# Activate the project root (one level up from sessions/)
-project_root = joinpath(@__DIR__, "..")
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(project_root)
+Pkg.activate(".")
 ```
 
 ## Source file
@@ -92,7 +90,7 @@ using DrWatson
 We use the same particle filter implementation from the [previous session](particle_filters.qmd).
 
 ```{julia}
-include(joinpath(project_root, "src", "seit4l_particle_filter.jl"))
+include(joinpath("src", "seit4l_particle_filter.jl"))
 ```
 
 ::: {.callout-note collapse="true"}
