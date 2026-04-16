@@ -396,6 +396,8 @@ If you've used Stan, the workflow is similar: `sample()` runs inference and retu
 :::
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Visualise - same result!
 p1 = histogram(
     samples_mh, normalize = :pdf, alpha = 0.7,
@@ -634,6 +636,8 @@ describe(chain_nuts)
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Compare Metropolis-Hastings vs NUTS
 p1 = plot(
     chain_mh[:R_0], title = "Metropolis-Hastings: R_0", xlabel = "Iteration",

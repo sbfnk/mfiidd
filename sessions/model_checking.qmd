@@ -243,6 +243,8 @@ The result is a chain-like object where `predictions[Symbol("obs[$j]")]` gives t
 :::
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Plot posterior predictive check
 p_ppc = plot(title="Posterior Predictive Check",
              xlabel="Time (days)", ylabel="Daily cases")
@@ -289,6 +291,8 @@ ppc_totals = [s.total for s in ppc_summaries]
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Plot distributions of summary statistics
 p1 = histogram(ppc_peaks, bins=20, alpha=0.7, label="Posterior pred.",
                xlabel="Peak cases", ylabel="Count", title="Peak Size")
