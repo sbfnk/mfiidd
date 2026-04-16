@@ -490,7 +490,10 @@ calibration = DataFrame(n_particles=Int[], mean_ll=Float64[],
 
 for n in particle_counts
     t0 = time()
-    lls = [run_particle_filter(θ_cal, flu_tdc.obs, n) for _ in 1:n_reps]
+    lls = Vector{Float64}(undef, n_reps)
+    Threads.@threads for i in 1:n_reps
+        lls[i] = run_particle_filter(θ_cal, flu_tdc.obs, n)
+    end
     elapsed = (time() - t0) / n_reps
 
     push!(calibration, (n, mean(lls), std(lls), elapsed))

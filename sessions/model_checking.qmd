@@ -398,9 +398,9 @@ If your inference is correct, the true parameter should be uniformly distributed
 #| output: false
 # SBC for R_0 (simplified example with fewer iterations for speed)
 function run_sbc(n_sbc=20)
-    ranks = Int[]
+    ranks = Vector{Int}(undef, n_sbc)
 
-    for i in 1:n_sbc
+    Threads.@threads for i in 1:n_sbc
         # 1. Draw from prior
         R_0_true = rand(Uniform(0.5, 10.0))
         D_inf_true = rand(Uniform(1.0, 14.0))
@@ -416,8 +416,7 @@ function run_sbc(n_sbc=20)
 
         # 4. Compute rank of true value
         R_0_samples = vec(chain_sim[:R_0])
-        rank = sum(R_0_samples .< R_0_true)
-        push!(ranks, rank)
+        ranks[i] = sum(R_0_samples .< R_0_true)
     end
 
     return ranks
