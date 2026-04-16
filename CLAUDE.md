@@ -87,3 +87,4 @@ julia --project=. -e "using Pkg; Pkg.instantiate()"
 - Course materials assume familiarity with epidemiological modeling concepts
 - Models follow a standardized structure for educational consistency
 - Cache directories and generated HTML should not be committed
+- Format Julia code following `.JuliaFormatter.toml` (4-space indent, 92-char margin)
