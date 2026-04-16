@@ -20,6 +20,9 @@ title: "Further Reading"
 
 - [Julia manual](https://docs.julialang.org/en/v1/) — official language documentation
 - [Think Julia](https://benlauwens.github.io/ThinkJulia.jl/latest/book.html) — introduction to programming using Julia
+- [Julia Data Science](https://juliadatascience.io/) — practical introduction to data analysis in Julia
+- [Julia for epidemiologists](https://censoreddistributions.epiaware.org/stable/getting-started/julia) — curated resources for those coming from R/Python in epi contexts
+- [From R to Julia](https://sje30.github.io/catam-julia/intro/julia-manual.html) — side-by-side comparison for R users
 
 ## Probabilistic programming
 
