@@ -366,6 +366,8 @@ println("VI full-rank correlation (R_0, D_inf): ",
 We can see that the full-rank approximation now captures the negative correlation between $R_0$ and $D_{\text{inf}}$, giving a much better approximation to the true posterior.
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Scatter plot comparison
 p1 = scatter(vec(chain_mcmc[:R_0]), vec(chain_mcmc[:D_inf]),
              alpha=0.3, label="MCMC", markersize=2,
