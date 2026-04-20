@@ -44,9 +44,7 @@ You will learn to:
 
 ```{julia}
 #| echo: false
-using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ## Source file
