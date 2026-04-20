@@ -43,7 +43,7 @@ In this session, you will:
 #| echo: false
 using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(".")
+Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ## Source file
@@ -80,7 +80,7 @@ We'll use the same SIR model and epidemic data from the introduction session.
 ```{julia}
 #| echo: false
 # Load SIR model definition
-include(joinpath("src", "sir_model.jl"))
+include(joinpath(@__DIR__, "..", "src", "sir_model.jl"))
 ```
 
 ::: {.callout-note collapse="true"}

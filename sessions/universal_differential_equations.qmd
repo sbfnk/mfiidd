@@ -72,7 +72,7 @@ By the end of this session, you will:
 
 using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(".")
+Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ```{julia}

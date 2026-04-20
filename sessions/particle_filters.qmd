@@ -61,7 +61,7 @@ If you're on a slower machine, reduce particle counts in the calibration exercis
 
 using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(".")
+Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ## Source file
@@ -88,7 +88,7 @@ using DrWatson
 The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared file (code shown in main text below).
 
 ```{julia}
-include(joinpath("src", "seit4l_particle_filter.jl"))
+include(joinpath(@__DIR__, "..", "src", "seit4l_particle_filter.jl"))
 ```
 
 ## Initialisation

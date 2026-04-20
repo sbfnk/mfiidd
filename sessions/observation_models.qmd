@@ -44,7 +44,7 @@ In this session you will:
 #| echo: false
 using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(".")
+Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ## Source file

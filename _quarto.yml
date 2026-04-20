@@ -5,7 +5,6 @@ project:
 
 execute:
   freeze: auto
-  execute-dir: project
 
 website:
   title: "MFIIDD"
