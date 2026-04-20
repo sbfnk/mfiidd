@@ -145,7 +145,7 @@ All these components were loaded from `src/seit4l_particle_filter.jl` in the set
 
 ::: {.callout-tip}
 ## Workflow note
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) alongside particle MCMC. We skip these here to focus on the PMMH algorithm.
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on the PMMH algorithm.
 :::
 
 # Particle MCMC (PMMH) with Turing.jl
