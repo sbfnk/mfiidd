@@ -43,7 +43,8 @@ Three ways to engage with the course:
 
 ## Step 1: Install Julia
 
-Install Julia using [juliaup](https://github.com/JuliaLang/juliaup), the official version manager:
+Install Julia using [juliaup](https://github.com/JuliaLang/juliaup), the official version manager.
+Open a terminal (on Windows: search for "PowerShell"; on macOS: open Terminal from Applications/Utilities) and run:
 
 - **Windows**: `winget install julia -s msstore`
 - **macOS/Linux**: `curl -fsSL https://install.julialang.org | sh`
