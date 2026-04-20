@@ -23,7 +23,6 @@ title: "Further Reading"
 - [Julia learning resources](https://julialang.org/learning/) — curated index of tutorials, books, videos, and courses
 - [Julia Data Science](https://juliadatascience.github.io/JuliaDataScience/) — practical introduction to data analysis in Julia
 - [Julia for epidemiologists](https://censoreddistributions.epiaware.org/stable/getting-started/julia) — curated resources for those coming from R/Python in epi contexts
-- [From R to Julia](https://sje30.github.io/catam-julia/intro/julia-manual.html) — side-by-side comparison for R users
 
 ## Probabilistic programming
 
