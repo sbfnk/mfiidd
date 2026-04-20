@@ -7,9 +7,8 @@ engine: julia
 #| echo: false
 #| include: false
 using Pkg
-project_root = joinpath(@__DIR__, "..")
 ENV["GKSwstype"] = "100"
-Pkg.activate(project_root)
+Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 # The log-density is all you need

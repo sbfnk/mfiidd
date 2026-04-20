@@ -13,7 +13,7 @@ jobs:
 
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.12.5'
+          version: '1.12.6'
 
       - name: Update packages
         run: julia --project=. -e 'using Pkg; Pkg.update()'
