@@ -645,6 +645,8 @@ println("  D_inf: mean=$(round(mean(abc_smc_df.D_inf), digits=2)), std=$(round(s
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Visual comparison
 p1 = histogram(abc_df.R_0, bins=20, alpha=0.6, normalize=:pdf,
                label="Rejection (ε=300)", xlabel="R_0", ylabel="Density")
