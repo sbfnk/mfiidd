@@ -154,6 +154,11 @@ model = sir_model(times, init_state, length(flu_tdc.obs)) | (; obs = flu_tdc.obs
 `obs ~ arraydist(Poisson.(lambdas))` declares a vector of independent Poisson observations, one per time point. The `|` operator, applied when creating the model instance below, conditions the model on the actual data — see the [MCMC session](mcmc.qmd) for a full explanation of this pattern.
 :::
 
+::: {.callout-tip}
+## Workflow note
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on comparing VI with MCMC.
+:::
+
 # Baseline: MCMC with NUTS
 
 Let's start with full MCMC to establish a baseline:

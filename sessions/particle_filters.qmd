@@ -103,6 +103,11 @@ Random.seed!(1234)
 
 :::
 
+::: {.callout-tip}
+## Workflow note
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on the particle filter mechanics.
+:::
+
 # Why deterministic likelihood fails for stochastic models
 
 First, consider the problem. With a deterministic model, the trajectory is fully determined by the parameters:
@@ -490,7 +495,10 @@ calibration = DataFrame(n_particles=Int[], mean_ll=Float64[],
 
 for n in particle_counts
     t0 = time()
-    lls = [run_particle_filter(θ_cal, flu_tdc.obs, n) for _ in 1:n_reps]
+    lls = Vector{Float64}(undef, n_reps)
+    Threads.@threads for i in 1:n_reps
+        lls[i] = run_particle_filter(θ_cal, flu_tdc.obs, n)
+    end
     elapsed = (time() - t0) / n_reps
 
     push!(calibration, (n, mean(lls), std(lls), elapsed))
@@ -498,6 +506,13 @@ end
 
 calibration
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- **`Threads.@threads`** — runs loop iterations in parallel across available threads. The replicates are independent, so this is safe and gives a roughly linear speedup.
+- **`Vector{Float64}(undef, n_reps)`** — pre-allocates the results vector so each thread writes to its own index (`lls[i] = ...`). We can't use `push!` here because threads appending to a shared vector is a race condition.
+- To actually use more than one thread, start Julia with `julia --threads=auto` (or set `JULIA_NUM_THREADS`). Without that, `@threads` silently runs serially.
+:::
 
 ```{julia}
 #| code-fold: true
