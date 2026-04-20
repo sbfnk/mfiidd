@@ -20,7 +20,7 @@ Unlike R or Python, Julia compiles functions the first time you call them. This 
 
 - **First-time install triggers precompilation** — `Pkg.add` (or any dependency change) precompiles the whole dependency tree, which can take several minutes for large packages like Turing
 - **After that, `using` a package is faster** — precompilation results are cached on disk and persist across sessions, though large packages still take a few seconds to load
-- **First call to a function is slower** — Julia still needs to compile for the specific argument types you pass
+- **First call to a function can be slow** — Julia needs to compile for the specific argument types you pass
 - **Subsequent calls are fast** — compiled code is cached for the rest of the session
 
 This "time to first plot" or "TTFX" latency is much improved in recent Julia versions but still noticeable with large packages.
