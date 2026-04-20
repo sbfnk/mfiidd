@@ -26,7 +26,7 @@ title: "Further Reading"
 
 ## Probabilistic programming
 
-- [Turing.jl tutorials](https://turinglang.org/stable/tutorials/) — worked examples from simple to advanced
+- [Turing.jl tutorials](https://turinglang.org/docs/tutorials/) — worked examples from simple to advanced
 - van de Meent, J.-W. et al. (2018). [An Introduction to Probabilistic Programming](https://arxiv.org/abs/1809.10756). arXiv:1809.10756.
 
 ## MCMC and computational methods
