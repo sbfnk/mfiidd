@@ -18,7 +18,8 @@ This page helps you set up your computing environment before the course begins.
 
 Unlike R or Python, Julia compiles functions the first time you call them. This means:
 
-- **Package loading is fast** — precompilation results are cached on disk and persist across sessions
+- **First-time install triggers precompilation** — `Pkg.add` (or any dependency change) precompiles the whole dependency tree, which can take several minutes for large packages like Turing
+- **After that, `using` a package is faster** — precompilation results are cached on disk and persist across sessions, though large packages still take a few seconds to load
 - **First call to a function is slower** — Julia still needs to compile for the specific argument types you pass
 - **Subsequent calls are fast** — compiled code is cached for the rest of the session
 
