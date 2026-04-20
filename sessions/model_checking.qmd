@@ -426,6 +426,13 @@ end
 sbc_ranks = run_sbc(20)
 ```
 
+::: {.callout-tip collapse="true"}
+## Code explainer
+- **`Threads.@threads`** — runs the SBC iterations in parallel across available threads. Each iteration fits an independent model, so this is safe and gives a roughly linear speedup.
+- **`Vector{Int}(undef, n_sbc)`** — pre-allocates the ranks vector so each thread writes to its own index (`ranks[i] = ...`). We can't use `push!` here because threads appending to a shared vector is a race condition.
+- To actually use more than one thread, start Julia with `julia --threads=auto` (or set `JULIA_NUM_THREADS`). Without that, `@threads` silently runs serially.
+:::
+
 ```{julia}
 # Plot SBC histogram
 histogram(sbc_ranks, bins=10,

@@ -502,6 +502,13 @@ end
 calibration
 ```
 
+::: {.callout-tip collapse="true"}
+## Code explainer
+- **`Threads.@threads`** — runs loop iterations in parallel across available threads. The replicates are independent, so this is safe and gives a roughly linear speedup.
+- **`Vector{Float64}(undef, n_reps)`** — pre-allocates the results vector so each thread writes to its own index (`lls[i] = ...`). We can't use `push!` here because threads appending to a shared vector is a race condition.
+- To actually use more than one thread, start Julia with `julia --threads=auto` (or set `JULIA_NUM_THREADS`). Without that, `@threads` silently runs serially.
+:::
+
 ```{julia}
 # Plot calibration results
 p1 = plot(calibration.n_particles, calibration.mean_ll,
