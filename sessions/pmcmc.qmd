@@ -139,6 +139,11 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 All these components were loaded from `src/seit4l_particle_filter.jl` in the setup above. Now we'll use them for full Bayesian inference.
 
+::: {.callout-tip}
+## Workflow note
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on the PMMH algorithm.
+:::
+
 # Particle MCMC (PMMH) with Turing.jl
 
 Now that we have a calibrated particle filter, we can use it for inference. We'll implement **Particle Marginal Metropolis-Hastings (PMMH)** - one of the two main particle MCMC algorithms from [Andrieu et al. (2010)](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x).

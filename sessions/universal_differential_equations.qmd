@@ -122,6 +122,11 @@ Notice the two distinct periods of transmission:
 
 **Question**: What transmission pattern β(t) would produce this? Can we learn it from the data?
 
+::: {.callout-tip}
+## Workflow note
+UDEs use gradient-based optimisation rather than Bayesian inference, so the prior/posterior predictive workflow from [Model Checking](model_checking.qmd) doesn't directly apply. In practice, you should still validate UDE predictions against held-out data and check sensitivity to initialisation (as we do [below](#practical-challenges)).
+:::
+
 # Baseline: SIR with constant β
 
 First, let's establish what a constant transmission rate gives us:
