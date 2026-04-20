@@ -500,6 +500,8 @@ calibration
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Plot calibration results
 p1 = plot(calibration.n_particles, calibration.mean_ll,
     xlabel="Number of particles", ylabel="Mean log-likelihood",

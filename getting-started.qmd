@@ -16,17 +16,17 @@ This page helps you set up your computing environment before the course begins.
 ::: {.callout-important}
 ## Julia compiles code on first use
 
-Unlike R or Python, Julia compiles functions the first time you run them. This means:
+Unlike R or Python, Julia compiles functions the first time you call them. This means:
 
-- **First run of any function is slow** (seconds to minutes for complex packages)
-- **Subsequent runs are fast** (compiled code is cached for the session)
-- **Restarting Julia loses the cache** (compilation happens again)
+- **First-time install triggers precompilation** — `Pkg.add` (or any dependency change) precompiles the whole dependency tree, which can take several minutes for large packages like Turing
+- **After that, `using` a package is faster** — precompilation results are cached on disk and persist across sessions, though large packages still take a few seconds to load
+- **First call to a function can be slow** — Julia needs to compile for the specific argument types you pass
+- **Subsequent calls are fast** — compiled code is cached for the rest of the session
 
-This "time to first plot" or "TTFX" is a known Julia trade-off.
+This "time to first plot" or "TTFX" latency is much improved in recent Julia versions but still noticeable with large packages.
 The payoff is that your code runs much faster once compiled.
 During the course:
 
-- Expect the first `using Turing` to take 10-30 seconds
 - Expect the first MCMC sample to take longer than subsequent ones
 - If something seems stuck, wait a minute before assuming it's broken
 :::
@@ -43,15 +43,13 @@ Three ways to engage with the course:
 
 ## Step 1: Install Julia
 
-Download Julia from [julialang.org/downloads](https://julialang.org/downloads/).
-We recommend version 1.11 or later.
+Install Julia using [juliaup](https://github.com/JuliaLang/juliaup), the official version manager.
+Open a terminal (on Windows: search for "PowerShell"; on macOS: open Terminal from Applications/Utilities) and run:
 
-**Installation options:**
+- **Windows**: `winget install julia -s msstore`
+- **macOS/Linux**: `curl -fsSL https://install.julialang.org | sh`
 
-- **juliaup (recommended)**: A version manager that makes it easy to install and switch between Julia versions
-  - Windows: `winget install julia -s msstore`
-  - macOS/Linux: `curl -fsSL https://install.julialang.org | sh`
-- **Direct download**: Get the installer for your platform from the downloads page
+juliaup handles downloading the right version and makes future upgrades easy (`juliaup update`).
 
 After installation, open a terminal and verify Julia is working:
 
