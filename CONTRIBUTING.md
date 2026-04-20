@@ -1,6 +1,6 @@
 # Contributing
 
-Course materials for "Model fitting and inference for infectious disease dynamics" (MFIIDD) at the London School of Hygiene & Tropical Medicine.
+Course materials for "Model fitting and inference for infectious disease dynamics" (MFIIDD).
 
 ## Repository structure
 
