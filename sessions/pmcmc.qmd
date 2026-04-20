@@ -56,9 +56,7 @@ The pre-computed chains (loaded from `data/`) were generated with 500,000 iterat
 #| echo: false
 #| include: false
 
-using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ## Source file

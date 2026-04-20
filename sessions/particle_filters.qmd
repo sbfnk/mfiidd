@@ -59,9 +59,7 @@ If you're on a slower machine, reduce particle counts in the calibration exercis
 #| echo: false
 #| include: false
 
-using Pkg
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(joinpath(@__DIR__, ".."))
 ```
 
 ## Source file
