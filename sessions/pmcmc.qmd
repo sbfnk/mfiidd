@@ -361,6 +361,8 @@ chain_det = sample(model_det, NUTS(), 2000, progress=false)
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Compare posteriors
 p1 = density(chain_det, :R_0, title = "R_0 (Deterministic)", legend = false)
 p2 = density(chain_pmcmc, :R_0, title = "R_0 (Stochastic)", legend = false)

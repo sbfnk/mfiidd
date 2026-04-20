@@ -364,6 +364,8 @@ first(traj, 10)
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Plot the simulated incidence against the data
 p = plot(title = "SEITL Model: Deterministic Simulation",
          xlabel = "Time (days)", ylabel = "Cases")
@@ -381,6 +383,8 @@ plot!(p)
 You can visualise all state variables by plotting them:
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # Plot all state variables
 plot(
     plot(traj.time, traj.S, label = "S", title = "Susceptible", ylabel = "Count"),

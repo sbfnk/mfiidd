@@ -157,6 +157,8 @@ plot(
 ```
 
 ```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
 # For comparison, let's look at the other parameter too
 p1 = plot(
     chain_good[:R_0], title = "R_0 Trace", xlabel = "Iteration",
