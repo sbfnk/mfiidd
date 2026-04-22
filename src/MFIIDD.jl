@@ -12,7 +12,10 @@ using StatsBase
 include("sir_model.jl")
 include("seitl_model.jl")
 include("seitl_particle_filter.jl")
-include("seit4l_particle_filter.jl")
+include("seit4l_gillespie.jl")
+include("seit4l_bootstrap_filter.jl")
+include("seit4l_ssm_interface.jl")
+include("seit4l_runner.jl")
 
 export sir_ode!, simulate_sir
 export seitl_ode!, simulate_seitl_deterministic, simulate_seitl_stochastic

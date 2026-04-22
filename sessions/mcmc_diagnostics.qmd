@@ -86,9 +86,7 @@ using MFIIDD
 ::: {.callout-note collapse="true"}
 ## SIR Model Definition (from `src/sir_model.jl`)
 
-```{julia}
-#| eval: false
-#| file: ../src/sir_model.jl
+```{.julia include="../src/sir_model.jl"}
 ```
 :::
 
