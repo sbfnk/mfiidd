@@ -67,11 +67,7 @@ The remaining sessions build on the SEITL/SEIT4L models introduced here:
 
 ```{julia}
 #| echo: false
-using Pkg
-# Activate the project root (one level up from sessions/)
-project_root = joinpath(@__DIR__, "..")
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(project_root)
 ```
 
 ## Source file
@@ -133,7 +129,7 @@ The dataset of daily incidence can be loaded and plotted as follows:
 # Alternatively, you can load directly from GitHub:
 # flu_tdc_url = "https://raw.githubusercontent.com/sbfnk/mfiidd.julia/main/data/flu_tdc_1971.csv"
 # flu_tdc = CSV.read(download(flu_tdc_url), DataFrame)
-flu_tdc = CSV.read(joinpath(project_root, "data", "flu_tdc_1971.csv"), DataFrame)
+flu_tdc = CSV.read(joinpath(@__DIR__, "..", "data", "flu_tdc_1971.csv"), DataFrame)
 
 # Display first few rows
 first(flu_tdc, 6)

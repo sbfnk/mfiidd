@@ -37,10 +37,7 @@ In this session you will:
 #| echo: false
 #| include: false
 
-using Pkg
-project_root = joinpath(@__DIR__, "..")
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
-Pkg.activate(project_root)
 ```
 
 ## Source file

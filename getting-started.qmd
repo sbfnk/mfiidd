@@ -231,6 +231,13 @@ In VS Code with the Julia extension:
 
 Alternatively, copy code into the Julia REPL.
 
+::: {.callout-tip collapse="true"}
+## Using a different editor?
+
+The Julia extension for VS Code activates the course's project environment automatically when you start a REPL from the workspace.
+If you use another editor, start Julia from the repository root with `julia --project=.` (or `julia --project=@.` from any subdirectory) so it picks up the course packages.
+:::
+
 # Session checklist
 
 Before starting, verify you can:
