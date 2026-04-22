@@ -28,8 +28,6 @@ In this session, you will
 3. manually explore the posterior by trying different parameter values
 4. understand why we need algorithmic approaches (setting up the next session)
 
-::: {.callout-note collapse="true"}
-
 # Setup
 
 ```{julia}
@@ -77,8 +75,6 @@ Setting this ensures that you should get exactly the same results on your comput
 
 Random.seed!(1234)
 ```
-
-:::
 
 # A deterministic SIR model in Julia
 
@@ -349,7 +345,7 @@ ggplot(df, aes(x, y)) + geom_line() + geom_point()
 ```
 :::
 
-::: {.callout-warning title="Exercise: Evaluate the prior predictive trajectories"}
+::: {.callout-tip title="Exercise: Evaluate the prior predictive trajectories"}
 Look at these trajectories. Do they seem reasonable? Are there any that look unrealistic?
 
 - Do any grow too fast or too slow?
@@ -439,7 +435,7 @@ plot!(p)
 
 Priors determine what kinds of epidemics our model considers plausible before seeing data.
 
-::: {.callout-warning title="Exercise: Experiment with priors"}
+::: {.callout-tip title="Exercise: Experiment with priors"}
 Try modifying the priors and re-running the prior predictive simulation above. For example:
 
 1. What happens if you use `R_0_prior = Uniform(1.0, 5.0)` instead of `Uniform(1.0, 20.0)`?
@@ -631,7 +627,7 @@ logpdf.(Poisson.(expected), obs)
 Forgetting the `.` on a vector operation is a common gotcha for R users.
 :::
 
-::: {.callout-warning title="Exercise: Predict the best fit"}
+::: {.callout-tip title="Exercise: Predict the best fit"}
 Before looking at the output above, consider the parameter combinations being tested. Based on your understanding of SIR dynamics and the data plot:
 
 - Which value of $R_0$ do you expect to give the best fit? Why?
@@ -651,7 +647,7 @@ Our likelihood makes specific assumptions about how observations relate to the u
 
 The total log-likelihood is the sum across all time points: if the model predicts well at most times but poorly at one, that one bad fit drags down the total.
 
-::: {.callout-warning title="Exercise: When do these assumptions break down?"}
+::: {.callout-tip title="Exercise: When do these assumptions break down?"}
 Think about when these assumptions might be violated:
 
 - When might variance *not* equal the mean? (Hint: consider overdispersion, or very small/large counts)
@@ -906,7 +902,7 @@ scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :bl
 In the first plot, we fixed the parameters at their best values and only varied the observation noise. In the second plot, we vary *both* the parameters (sampling from the posterior) *and* the observation noise. The second plot shows more variation because it accounts for our uncertainty about the true parameter values.
 :::
 
-::: {.callout-warning title="Exercise: Posterior predictive checking"}
+::: {.callout-tip title="Exercise: Posterior predictive checking"}
 Does the real data look consistent with our simulated datasets? This is *posterior predictive checking* - a key model validation technique that we'll explore in depth in the [model checking](model_checking.qmd) session.
 :::
 
@@ -932,14 +928,6 @@ This shows that the computational cost of grid search, i.e. the number of simula
 In addition, this kind of sampling is wasteful, because most parameter combinations will be far from the ones that lead to a good fit to the data.
 
 Lastly, it is difficult to establish whether the grid is fine enough (or important parameter regions might be in the "gaps"), and whether the limits of the grid are wide enough.
-
-# Summary
-
-*Priors* express our beliefs about parameters before seeing data. Through *prior predictive simulation*, different prior choices lead to different predicted epidemic trajectories - this helps validate whether assumptions are reasonable.
-
-The *likelihood* quantifies how well parameters explain observed data. Our Poisson observation model assumes each data point is an independent draw around the model's predicted prevalence - assumptions worth questioning for real applications.
-
-*Bayes' theorem* combines prior and likelihood to give the *posterior* - updated beliefs after seeing data. Grid search can explore this manually, but becomes computationally infeasible as parameters increase. *Posterior predictive checking* validates that fitted models generate realistic data. This scalability limitation motivates the algorithmic approaches in the next session.
 
 ::: {.callout-tip title="Learning points"}
 

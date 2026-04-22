@@ -29,8 +29,6 @@ In this session you will:
 3. Interpret residual patterns to diagnose model problems
 4. Understand simulation-based calibration for validating inference pipelines
 
-::: {.callout-note collapse="true"}
-
 # Setup
 
 ```{julia}
@@ -65,8 +63,6 @@ using StatsBase
 ```{julia}
 Random.seed!(1234)
 ```
-
-:::
 
 # The Bayesian workflow
 
@@ -184,7 +180,7 @@ plot!(p_prior, ylim=(0, 150))
 
 If prior predictive simulations look unreasonable, revise your priors before fitting data. This is much easier than debugging a fitted model.
 
-::: {.callout-warning title="Exercise: Tighten the priors and compare"}
+::: {.callout-tip title="Exercise: Tighten the priors and compare"}
 The current priors allow $R_0$ up to 10, which is unrealistic for influenza. Try:
 
 1. Change the prior to `R_0 ~ Uniform(1.0, 5.0)` in the model definition above
@@ -308,7 +304,7 @@ plot(p1, p2, p3, layout=(1, 3), size=(900, 300), legend=:topright)
 
 If the observed value (red line) falls in the tails of the posterior predictive distribution, the model struggles to explain that aspect of the data.
 
-::: {.callout-warning title="Exercise: Interpret the posterior predictive checks"}
+::: {.callout-tip title="Exercise: Interpret the posterior predictive checks"}
 1. Look at the three histograms above. For which summary statistics (peak size, peak timing, total cases) does the observed value fall well within the posterior predictive distribution?
 2. For which does it fall in the tails?
 3. What does this tell you about which aspects of the epidemic the SIR model captures well vs poorly?
@@ -473,7 +469,7 @@ There is no universal threshold. All models are wrong — the question is whethe
 A model that misses a second wave is fine if you only care about the first wave's peak. It's not fine if you're trying to understand long-term immunity.
 :::
 
-::: {.callout-warning title="Exercise: Diagnosing the SIR failure"}
+::: {.callout-tip title="Exercise: Diagnosing the SIR failure"}
 The SIR model fails to capture the second wave in the Tristan da Cunha data. Based on the residual patterns and posterior predictive checks above:
 
 1. What biological mechanism might explain a second wave after the first has subsided?
@@ -482,14 +478,6 @@ The SIR model fails to capture the second wave in the Tristan da Cunha data. Bas
 
 The next session on SEITL models explores one potential answer to these questions.
 :::
-
-# Summary
-
-Converged MCMC chains don't guarantee a good model - they only tell us the sampler worked. Model checking asks the deeper question: does our model actually describe the data?
-
-*Prior predictive checks* simulate from priors before seeing observations, catching unreasonable assumptions early. *Posterior predictive checks* simulate from the fitted model and compare to data - systematic discrepancies reveal model misspecification.
-
-Residual patterns diagnose specific problems: trends suggest time-varying parameters, autocorrelation suggests missing dynamics. Model checking is inherently iterative - each failure guides the next improvement.
 
 ::: {.callout-tip title="Learning points"}
 - **Prior predictive checks** validate that your priors generate plausible data before you see observations
