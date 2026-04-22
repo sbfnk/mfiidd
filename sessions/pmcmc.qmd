@@ -86,6 +86,7 @@ using DrWatson
 This loads the `MFIIDD` course package, which provides the helper functions used throughout — including the same particle filter implementation from the [previous session](particle_filters.qmd).
 
 ```{julia}
+#| output: false
 using MFIIDD
 ```
 

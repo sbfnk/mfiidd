@@ -78,6 +78,7 @@ We'll use the same SIR model and epidemic data from previous sessions.
 
 ```{julia}
 #| echo: false
+#| output: false
 using MFIIDD
 ```
 

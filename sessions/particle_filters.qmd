@@ -84,6 +84,7 @@ using DrWatson
 This loads the `MFIIDD` course package, which provides the helper functions used throughout — including the SEIT4L Gillespie simulator and the SSMProblems interface, both shown in the main text below.
 
 ```{julia}
+#| output: false
 using MFIIDD
 ```
 
