@@ -77,8 +77,7 @@ We'll use the same SIR model and epidemic data from the introduction session.
 
 ```{julia}
 #| echo: false
-# Load SIR model definition
-include(joinpath(@__DIR__, "..", "src", "sir_model.jl"))
+using MFIIDD
 ```
 
 ::: {.callout-note collapse="true"}

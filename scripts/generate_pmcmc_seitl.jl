@@ -19,8 +19,7 @@ Random.seed!(5678)  # Different seed from SEIT4L
 # Load data
 flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 
-# Load shared particle filter
-include(joinpath(@__DIR__, "..", "src", "seitl_particle_filter.jl"))
+using MFIIDD
 
 # =============================================================================
 # PMMH Model
