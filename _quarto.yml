@@ -7,7 +7,7 @@ execute:
   freeze: auto
 
 filters:
-  - include-code-files
+  - quarto-ext/include-code-files
 
 website:
   title: "MFIIDD"

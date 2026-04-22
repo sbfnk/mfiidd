@@ -1,7 +1,9 @@
 title: Include Code Files
-author: MFIIDD
-version: 0.1.0
-quarto-required: ">=1.4.0"
+author: Bruno Beaufils
+version: 1.0.0
+quarto-required: ">=1.2"
 contributes:
   filters:
     - include-code-files.lua
+
+
