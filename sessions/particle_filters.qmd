@@ -19,11 +19,6 @@ But what about stochastic models? In the [SEITL session](seitl.qmd), we saw that
 
 This session introduces particle filters — the computational technique that makes Bayesian inference possible for stochastic models.
 
-::: {.callout-note collapse="true"}
-## Coming from R?
-Particle filters weren't covered in the R-based course. If this is your first encounter with them, that's expected — they're a new topic rather than a Julia translation of something you've seen before. In R, the [`pomp`](https://kingaa.github.io/pomp/) package and the [`odin`](https://mrc-ide.github.io/odin/)/[`dust`](https://mrc-ide.github.io/dust/)/[`mcstate`](https://mrc-ide.github.io/mcstate/) ecosystem provide particle filtering capabilities.
-:::
-
 # Objectives
 
 In this session you will:
