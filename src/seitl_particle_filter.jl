@@ -1,12 +1,3 @@
-#=
-SEITL Particle Filter Components
-
-This file contains the Gillespie simulator and bootstrap particle filter
-for the SEITL model. Used by chain generation scripts.
-
-For SEIT4L, see seit4l_particle_filter.jl
-=#
-
 using Random
 using Distributions
 using StatsBase
