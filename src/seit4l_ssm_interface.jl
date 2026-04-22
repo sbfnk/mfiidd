@@ -1,10 +1,3 @@
-#=
-SSMProblems.jl interface for the SEIT4L model.
-
-These types define the SEIT4L model as a state-space model for use with
-GeneralisedFilters.jl particle filtering algorithms.
-=#
-
 using Random
 using Distributions
 using SSMProblems

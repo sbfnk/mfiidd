@@ -81,9 +81,9 @@ using GeneralisedFilters ## for particle filtering
 using DrWatson
 ```
 
-## Load shared particle filter code
+## Load the course package
 
-We use the same particle filter implementation from the [previous session](particle_filters.qmd).
+This loads the `MFIIDD` course package, which provides the helper functions used throughout — including the same particle filter implementation from the [previous session](particle_filters.qmd).
 
 ```{julia}
 using MFIIDD

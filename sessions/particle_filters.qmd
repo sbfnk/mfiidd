@@ -74,9 +74,9 @@ using GeneralisedFilters ## for particle filtering
 using DrWatson
 ```
 
-## Load shared particle filter code
+## Load the course package
 
-The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared file (code shown in main text below).
+This loads the `MFIIDD` course package, which provides the helper functions used throughout — including the SEIT4L Gillespie simulator and the SSMProblems interface, both shown in the main text below.
 
 ```{julia}
 using MFIIDD
@@ -383,7 +383,7 @@ A state-space model has three components:
 2. **Transition dynamics** (`SEIT4LDynamics`) - how does the state evolve? (uses `gillespie_step`)
 3. **Observation process** (`PoissonObservation`) - how do observations relate to the state?
 
-Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl)):
+Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl)). Each type carries a docstring spelling out its state vector and the method it implements — useful for reference once you've read the prose above.
 
 ```{.julia include="../src/seit4l_ssm_interface.jl"}
 ```

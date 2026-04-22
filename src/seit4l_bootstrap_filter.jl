@@ -1,8 +1,3 @@
-#=
-Simple SEIT4L bootstrap particle filter (no SSMProblems dependency).
-Used by chain generation scripts.
-=#
-
 using Distributions
 using StatsBase  # For wsample
 

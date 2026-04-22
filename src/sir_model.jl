@@ -1,11 +1,3 @@
-#=
-SIR Model Definition
-Used in sessions 1-4 (Introduction, MCMC, MCMC Diagnostics, Model Checking)
-
-Usage:
-    include(joinpath(@__DIR__, "..", "src", "sir_model.jl"))
-=#
-
 using DifferentialEquations
 using Distributions
 using DataFrames

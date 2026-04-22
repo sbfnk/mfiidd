@@ -1,9 +1,3 @@
-#=
-SEIT4L Gillespie step.
-
-Used by the bootstrap particle filter and the SSMProblems interface.
-=#
-
 using Random
 
 """

@@ -1,8 +1,3 @@
-#=
-Bootstrap particle filter runner for the SEIT4L model, using the
-SSMProblems interface and GeneralisedFilters.jl.
-=#
-
 using Random
 using GeneralisedFilters
 
