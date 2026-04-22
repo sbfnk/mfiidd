@@ -86,7 +86,7 @@ using DrWatson
 We use the same particle filter implementation from the [previous session](particle_filters.qmd).
 
 ```{julia}
-include(joinpath(@__DIR__, "..", "src", "seit4l_particle_filter.jl"))
+using MFIIDD
 ```
 
 ::: {.callout-note collapse="true"}
