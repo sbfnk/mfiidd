@@ -686,6 +686,11 @@ end
 This function simulates the SIR model and returns both the trajectory and the log-likelihood. We'll use it throughout the rest of this session.
 
 ::: {.callout-tip collapse="true"}
+## Going further: the LogDensityProblems interface
+This log-density function — prior + likelihood as a function of parameters — is the fundamental building block of Bayesian inference. Turing.jl wraps this pattern with convenient syntax, but the same function works with any sampler in the Julia ecosystem via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) standard interface. See the [reference page](../reference/logdensity_interface.qmd) for a worked example using DynamicHMC.jl.
+:::
+
+::: {.callout-tip collapse="true"}
 ## Code explainer: keyword arguments and named tuples
 The semicolon `;` in the function signature separates *positional* arguments (`R_0`, `D_inf`, `data`) from *keyword* arguments (`init_state`, `tspan`). Keyword arguments have defaults and must be passed by name: `simulate_and_loglik(2.5, 2.0, epi1, init_state = [499, 1, 0])`.
 

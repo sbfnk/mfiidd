@@ -357,6 +357,11 @@ model {
 The key advantage of Turing is that the model is written in native Julia, so you can use loops, conditionals, and call any Julia function (like our ODE solver) directly inside the model — no separate modelling language needed.
 :::
 
+::: {.callout-tip collapse="true"}
+## Going further: sampling without Turing
+Turing's `@model` macro is convenient syntax, but it's not the only way to do MCMC in Julia. In the [Introduction](introduction.qmd) you built a log-posterior function by hand — that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface. This gives you access to samplers beyond what Turing offers, with fewer dependencies. See the [reference page](../reference/logdensity_interface.qmd) for a worked example.
+:::
+
 ```{julia}
 #| output: false
 # Sample using Metropolis-Hastings (normal proposals with std 10.0)
