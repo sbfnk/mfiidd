@@ -313,6 +313,13 @@ plot!(p)
 
 Particles predicting values closer to the observation get higher weights.
 
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- `exp.(log_w .- maximum(log_w))` is the *log-sum-exp trick* for numerical stability. The raw log weights might be very negative (e.g. `-500`), and `exp(-500)` underflows to zero. Subtracting the maximum first shifts the largest value to `0`, so at least one weight is `exp(0) = 1`, and the others are smaller but non-zero. Since we normalise by the sum afterwards, the shift cancels out — the *relative* weights are unchanged.
+- `particle_weights ./= sum(particle_weights)` is shorthand for `particle_weights .= particle_weights ./ sum(particle_weights)` — normalise in place so the weights sum to 1.
+:::
+
 ## The resampling step
 
 When weights become too uneven, we resample - drawing particles with replacement according to their weights:
@@ -336,6 +343,14 @@ plot!(p)
 ```
 
 High-weight particles are duplicated, low-weight particles are discarded. This focuses computational effort on plausible trajectories.
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- `1.0 / sum(particle_weights.^2)` is the *effective sample size* (ESS). When all weights are equal, ESS equals the number of particles; when one particle dominates, ESS approaches 1. It tells you how many particles are effectively contributing to the estimate — a common trigger for deciding when to resample.
+- `sample(1:n_particles, Weights(particle_weights), n_particles)` draws `n_particles` indices from `1:n_particles` with replacement, where each index is chosen with probability proportional to its weight. `Weights(...)` is a wrapper from [StatsBase.jl](https://juliastats.org/StatsBase.jl/stable/weights/) that tells `sample` to interpret the vector as sampling weights.
+- `count(==(i), resampled_idx)` counts how many times each original particle was drawn. `==(i)` is *partial application*: it creates a function "does x equal i?" that `count` then applies to every element of `resampled_idx`. This is equivalent to `sum(resampled_idx .== i)` but reads more naturally.
+:::
 
 ::: {.callout-warning title="Exercise: Understand the particle filter steps"}
 Look at the three plots above (propagation, weighting, resampling).
@@ -414,9 +429,19 @@ end
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 
-- `SSMProblems.LatentDynamics` - abstract type for state transition models. Implement `simulate` to define how the state evolves.
-- `SSMProblems.ObservationProcess` - abstract type for observation models. Implement `distribution` to return a `Distributions.jl` distribution.
-- `AbstractRNG` parameter allows reproducible random number generation across particles.
+This block uses a few Julia features worth unpacking:
+
+- `struct SEIT4LDynamics <: SSMProblems.LatentDynamics` defines a new *composite type* — essentially a container that holds some data (here, the parameter dictionary `θ`). The `<:` means "is a subtype of". `SSMProblems.LatentDynamics` is an *abstract type*: a type with no fields of its own, used purely to mark "this thing plays the role of a latent-dynamics model". By declaring our struct a subtype, we tell `SSMProblems.jl` that our type fills that role. The same pattern applies to `SEIT4LInitial <: SSMProblems.StatePrior` and `PoissonObservation <: SSMProblems.ObservationProcess`.
+
+- `function SSMProblems.simulate(rng, dyn::SEIT4LDynamics, step, prev_state; kwargs...)` adds a new *method* to the existing function `SSMProblems.simulate`. The `dyn::SEIT4LDynamics` annotation tells Julia: "use this method when the second argument is of our type". This is [multiple dispatch](https://docs.julialang.org/en/v1/manual/methods/): one function name, many methods, chosen by argument types. `SSMProblems.jl` knows to call `simulate(rng, dynamics_object, ...)` and will pick up our method for `SEIT4LDynamics`. We implement `simulate` for the latent dynamics (how the state evolves one step) and for the initial state (how to draw the first state). For the observation model we instead implement `distribution`, which returns a `Distributions.jl` distribution describing how observations arise from a given state.
+
+- `rng::AbstractRNG` is Julia's abstract random number generator type. Any concrete RNG (the default one, a seeded Mersenne twister, etc.) is a subtype. Threading the `rng` through every simulation step is what lets the particle filter control randomness — set the seed once and you get reproducible particles.
+
+- `kwargs...` at the end of a function signature means "accept any additional keyword arguments and collect them into a named tuple called `kwargs`". We don't use them here, but `SSMProblems.jl` may pass extra keyword arguments (e.g. time steps, metadata) depending on the filter being used, so our methods need to accept them without complaining.
+
+- `vcat(prior.init_state, 0.0)` concatenates vertically — it takes the 8-element state vector and appends `0.0` to make a 9-element vector. We use the 9th slot to track daily incidence, because the observation process needs to see it. `collect(prev_state[1:8])` grabs the first 8 elements (the compartments) and copies them into a plain `Vector` — some inputs arrive as views or other array-like types, and `gillespie_step` wants a concrete vector.
+
+**Coming from R?** Julia structs with `<:` play a similar role to S4 classes, where `setClass("Foo", contains = "Bar")` declares `Foo` as a subclass of `Bar`. Multiple dispatch is like S4's generic functions: you register methods for specific type combinations, and the runtime picks the right one.
 :::
 
 How the pieces fit together:
@@ -450,6 +475,15 @@ end
 ```
 
 This ties everything together: the initial state, Gillespie dynamics, and Poisson observations form a `StateSpaceModel`, which the bootstrap filter (`BF`) processes to estimate the log-likelihood.
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- `StateSpaceModel(initial, dynamics, observation)` is a constructor from `SSMProblems.jl` that bundles the three SSM components into a single object. Constructors in Julia look like function calls with the type's name — there's no explicit `new` keyword as in Python or Java.
+- `BF(n_particles)` constructs a *Bootstrap Filter* object from `GeneralisedFilters.jl`. The bootstrap filter is the simplest particle filter variant: it propagates particles using the model's own dynamics, weights them by the observation likelihood, and resamples. Other variants (e.g. `APF` for auxiliary particle filter, `GPF` for guided) would plug in here without any changes to the model — that's the point of the SSM interface.
+- `GeneralisedFilters.filter(rng, model, algo, obs)` returns a tuple of `(particles_at_final_time, log_likelihood)`. We ignore the particles with `_` and keep only the log-likelihood estimate, which is what MCMC will eventually need.
+- `Random.default_rng()` returns Julia's shared global RNG. If you seed it with `Random.seed!(n)` at the start of the session, every call that uses this RNG becomes reproducible.
+:::
 
 Testing it:
 
