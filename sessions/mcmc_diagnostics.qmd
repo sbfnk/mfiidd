@@ -38,8 +38,6 @@ You will learn to:
 4. Use Turing.jl's built-in diagnostics for automated checking
 5. Apply best practices for robust MCMC in practice
 
-::: {.callout-note collapse = "true"}
-
 # Setup
 
 ```{julia}
@@ -129,8 +127,6 @@ end
 # Create model instance
 model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs)
 ```
-
-:::
 
 # Visual diagnostics
 
@@ -245,7 +241,7 @@ plot(p1, p2, layout = (2, 1), size = (800, 600))
 We can see that autocorrelation drops quickly to near zero and both parameters show good mixing.
 After ~20-30 MCMC steps, samples are essentially independent
 
-::: {.callout-warning title="Exercise: Interpret the visual diagnostics"}
+::: {.callout-tip title="Exercise: Interpret the visual diagnostics"}
 Look back at the trace plots, running mean plots, and autocorrelation plots above.
 
 1. What would a *bad* trace plot look like? Sketch or describe what you would see if the chain was stuck or not mixing well.
@@ -661,7 +657,7 @@ display(DataFrame(ess(chain_problematic)))
 plot(chain_problematic)
 ```
 
-::: {.callout-warning title="Exercise: Diagnose and fix the problematic model"}
+::: {.callout-tip title="Exercise: Diagnose and fix the problematic model"}
 1. Look at the trace plots and quantitative diagnostics above. What specific problems can you identify?
 2. Which parameters show the worst R̂ and ESS values?
 3. Try modifying the `problematic_model` above to improve its behaviour. Hint: Change the prior scales to be more similar across parameters, or remove the correlation structure.
@@ -710,14 +706,6 @@ After three sessions, you now have a complete workflow for Bayesian inference wi
 **The workflow**: Define model → Run MCMC → Check convergence → Check model fit → Iterate
 
 But MCMC convergence doesn't mean your model is correct - that's next in [Model Checking](model_checking.qmd).
-
-# Summary
-
-MCMC always produces numbers, but those numbers might not represent the posterior. *Visual diagnostics* (trace plots, autocorrelation) give quick intuition; *quantitative diagnostics* (R̂, ESS) make assessment rigorous.
-
-R̂ compares within-chain and between-chain variance - values above 1.1 indicate non-convergence. ESS estimates how many independent samples you actually have after accounting for autocorrelation. Even 10,000 samples might give ESS of only 100 if the chain mixes slowly.
-
-Common problems have standard solutions: poor mixing (reparameterise or use NUTS), divergences (increase adapt_delta), multimodality (multiple chains with different starts). Run at least four chains and check diagnostics before trusting any results.
 
 ::: {.callout-tip title = "Learning points"}
 

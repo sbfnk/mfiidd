@@ -47,3 +47,21 @@ This generates HTML in `_site/`. Changes pushed to `main` are automatically depl
 - Use British English in all written content
 - Models follow a standardised structure for educational consistency
 - Cache directories and generated HTML should not be committed
+
+## Callout conventions
+
+Callouts are signals, not decoration. Use prose by default; reach for a callout only if the content would otherwise be missed or skipped. One colour per purpose:
+
+| Role | Syntax | Use for |
+|------|--------|---------|
+| Metadata banner | `callout-note appearance="simple"` | Session-level metadata only (e.g. estimated time). One per session, at the top. |
+| Optional context | `callout-note collapse="true"` | Background a linear reader can skip: "Coming from R/Stan", derivations, code deep-dives, linked implementation files. |
+| Exercise / Hint / Solution | `callout-tip` (`collapse="true"` for hints and solutions) | Anything the student *does* rather than reads. |
+| Gotcha / pitfall | `callout-warning` | "This will bite you": failure modes, computational constraints, common mistakes, stochastic noise to expect. |
+| Key takeaway | `callout-important` | Concepts the student must hold for the rest of the session. Budget: ≤2 per session. |
+
+Other rules:
+
+- End each session with a `callout-tip title="Learning points"` box of bullet points. Do not also write a prose `# Summary` section — pick one.
+- Never wrap section headings (`# Setup`, `# Introduction`, etc.) inside a callout. Callouts are visual; sections are structural. If code blocks are bulky, box the code block with its own title and leave the section heading in the document outline.
+- "Coming from R?" / "Coming from Stan?" is always a collapsed blue note.

@@ -36,8 +36,6 @@ In this session you will:
 4. Compare likelihood-based and distance-based inference approaches
 5. Make informed choices about observation models for your own research
 
-::: {.callout-note collapse="true"}
-
 # Setup
 
 ```{julia}
@@ -73,8 +71,6 @@ We set a random seed for reproducibility.
 ```{julia}
 Random.seed!(1234)
 ```
-
-:::
 
 # Load Tristan da Cunha data
 
@@ -153,10 +149,7 @@ scatter!(flu_tdc.time, flu_tdc.obs,
 
 Not a perfect fit, but good enough for illustration!
 
-::: {.callout-tip}
-## Workflow note
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on observation model choices.
-:::
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on observation model choices.
 
 # Approach 1: Poisson Likelihood (Traditional)
 
@@ -855,14 +848,6 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
 - Check if scientific conclusions change
 - If they don't → observation model choice doesn't matter much
 - If they do → you've learned something about what features of the data drive inference!
-
-# Summary
-
-Observation models are pragmatic choices, not mechanistic truths. Choosing Poisson vs Negative Binomial isn't choosing between truth and falsehood - it's choosing different ways to penalise deviations between model predictions and data. The negative log-likelihood is simply a distance function.
-
-*ABC* makes this explicit by directly specifying distance and threshold. While often called "likelihood-free", ABC uses an implicit likelihood defined by that distance. The boundary between likelihood-based and likelihood-free inference is more philosophical than technical.
-
-The practical implication: run inference with different observation models. If conclusions change, you've learned which data features drive inference. If they don't, your results are robust.
 
 ::: {.callout-tip title="Learning points"}
 - **Parametric likelihoods are pragmatic choices**, not mechanistic truths - we choose Poisson or Negative Binomial for convenience, not because they represent reality
