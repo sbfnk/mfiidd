@@ -86,7 +86,7 @@ using DrWatson
 The SEIT4L Gillespie simulator and SSMProblems interface are defined in a shared file (code shown in main text below).
 
 ```{julia}
-include(joinpath(@__DIR__, "..", "src", "seit4l_particle_filter.jl"))
+using MFIIDD
 ```
 
 ## Initialisation
