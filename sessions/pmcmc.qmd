@@ -48,8 +48,6 @@ PMMH combines particle filters with MCMC, making it computationally demanding. F
 The pre-computed chains (loaded from `data/`) were generated with 500,000 iterations over several hours.
 :::
 
-::: {.callout-note collapse="true"}
-
 # Setup
 
 ```{julia}
@@ -118,8 +116,6 @@ We set a random seed for reproducibility.
 Random.seed!(1234)
 ```
 
-:::
-
 # Recap: Data and particle filter
 
 We load the Tristan da Cunha data and set up initial conditions:
@@ -149,10 +145,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 All these components were loaded via `using MFIIDD` in the setup above (defined in [`src/seit4l_gillespie.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_gillespie.jl), [`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl), and [`src/seit4l_runner.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_runner.jl)). Now we'll use them for full Bayesian inference.
 
-::: {.callout-tip}
-## Workflow note
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on the PMMH algorithm.
-:::
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on the PMMH algorithm.
 
 # Particle MCMC (PMMH) with Turing.jl
 
@@ -242,7 +235,7 @@ Look carefully at the trace plots above. You should see:
 
 With only 500 samples, the chain hasn't had time to properly explore the posterior.
 
-::: {.callout-warning title="Exercise: Run your own short PMMH chain"}
+::: {.callout-tip title="Exercise: Run your own short PMMH chain"}
 Try running a short PMMH chain yourself:
 
 1. Run `sample(model_pmmh, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; check_model=false)` and look at the trace plots
@@ -385,7 +378,7 @@ p4 = density(chain_pmcmc, :α, title = "α (Stochastic)", legend = false)
 plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
 ```
 
-::: {.callout-warning title="Exercise: Interpret the stochastic vs deterministic comparison"}
+::: {.callout-tip title="Exercise: Interpret the stochastic vs deterministic comparison"}
 Look at the posterior density plots above and compare the two models:
 
 1. Which model gives wider posterior distributions? Why would accounting for stochastic variability change the uncertainty in parameter estimates?
@@ -486,7 +479,7 @@ For particle MCMC model comparison:
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
 
-::: {.callout-warning title="Exercise: Posterior predictive comparison"}
+::: {.callout-tip title="Exercise: Posterior predictive comparison"}
 Generate posterior predictive simulations from both SEITL and SEIT4L and compare them visually:
 
 ```julia
@@ -509,14 +502,6 @@ end
 2. Does either model consistently miss the second wave timing?
 3. How does the *spread* of simulations differ between models?
 :::
-
-# Summary
-
-Stochastic epidemic models have transitions that are random events rather than smooth flows. Standard MCMC fails because the likelihood depends on the unknown sequence of random events, which cannot be written analytically.
-
-*Particle MCMC* solves this by embedding particle filters within MCMC. The particle filter estimates the likelihood by simulating many trajectories and weighting them by how well they match data. PMMH uses this noisy but unbiased estimate in a Metropolis-Hastings framework - the noise slows mixing but doesn't bias the posterior.
-
-We fitted both SEITL and SEIT4L to the Tristan da Cunha data. Calibration is critical: too few particles gives high variance (poor mixing), too many wastes computation. RAM adapts proposal covariances automatically, essential for the correlated parameters typical in epidemic models.
 
 ::: {.callout-tip title="Learning points"}
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
