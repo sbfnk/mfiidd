@@ -1,15 +1,3 @@
-#=
-SEITL and SEIT4L Model Definitions
-Used in sessions 5+ (SEITL, Particle Filters, PMCMC, etc.)
-
-Models:
-- SEITL: SIR with Exposed compartment and Temporary/Long-term immunity
-- SEIT4L: SEITL with Erlang-distributed temporary immunity (4 sub-stages)
-
-Usage:
-    include(joinpath(@__DIR__, "..", "src", "seitl_model.jl"))
-=#
-
 using DifferentialEquations
 using Distributions
 using DataFrames
