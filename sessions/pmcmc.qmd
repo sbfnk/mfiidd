@@ -90,11 +90,21 @@ using MFIIDD
 ```
 
 ::: {.callout-note collapse="true"}
-## SEIT4L Particle Filter Implementation (from `src/seit4l_particle_filter.jl`)
+## SEIT4L Particle Filter Implementation
 
-```{julia}
-#| eval: false
-#| file: ../src/seit4l_particle_filter.jl
+Gillespie step (`src/seit4l_gillespie.jl`):
+
+```{.julia include="../src/seit4l_gillespie.jl"}
+```
+
+SSMProblems interface (`src/seit4l_ssm_interface.jl`):
+
+```{.julia include="../src/seit4l_ssm_interface.jl"}
+```
+
+Bootstrap filter runner (`src/seit4l_runner.jl`):
+
+```{.julia include="../src/seit4l_runner.jl"}
 ```
 :::
 
@@ -133,7 +143,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 2. Defined the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface (`SEIT4LDynamics`, `PoissonObservation`, `SEIT4LInitial`)
 3. Calibrated particle count: 128-256 particles gave SD of log-likelihood between 1 and 3
 
-All these components were loaded from `src/seit4l_particle_filter.jl` in the setup above. Now we'll use them for full Bayesian inference.
+All these components were loaded via `using MFIIDD` in the setup above (defined in `src/seit4l_gillespie.jl`, `src/seit4l_ssm_interface.jl`, and `src/seit4l_runner.jl`). Now we'll use them for full Bayesian inference.
 
 In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on the PMMH algorithm.
 
@@ -184,7 +194,7 @@ end
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in `src/seit4l_particle_filter.jl`.
+- **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in `src/seit4l_ssm_interface.jl`.
 - **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood. `Random.default_rng()` provides the global random number generator — this is Julia's way of passing randomness explicitly rather than relying on a hidden global state.
 - [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds the particle filter's log-likelihood estimate to the model. The priors specified with `~` still contribute automatically. This is the [recommended pattern](https://github.com/TuringLang/Turing.jl/issues/2428) for integrating external likelihood estimators with Turing.
 - **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation.

@@ -6,6 +6,9 @@ project:
 execute:
   freeze: auto
 
+filters:
+  - include-code-files
+
 website:
   title: "MFIIDD"
   site-url: https://sbfnk.github.io/mfiidd.julia/

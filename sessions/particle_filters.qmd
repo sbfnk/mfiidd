@@ -383,40 +383,9 @@ A state-space model has three components:
 2. **Transition dynamics** (`SEIT4LDynamics`) - how does the state evolve? (uses `gillespie_step`)
 3. **Observation process** (`PoissonObservation`) - how do observations relate to the state?
 
-Here is the full interface implementation (also available in `src/seit4l_particle_filter.jl`):
+Here is the full interface implementation (defined in `src/seit4l_ssm_interface.jl`):
 
-```julia
-# Initial state: deterministic starting point
-struct SEIT4LInitial <: SSMProblems.StatePrior
-    init_state::Vector{Float64}
-end
-
-function SSMProblems.simulate(rng::AbstractRNG, prior::SEIT4LInitial; kwargs...)
-    vcat(prior.init_state, 0.0)  # Append 0 for initial daily incidence
-end
-
-# Dynamics: Gillespie simulation for one day
-struct SEIT4LDynamics <: SSMProblems.LatentDynamics
-    θ::Dict{Symbol, Float64}
-end
-
-function SSMProblems.simulate(rng::AbstractRNG, dyn::SEIT4LDynamics,
-                              step::Integer, prev_state; kwargs...)
-    state = collect(prev_state[1:8])  # Extract compartments
-    new_state, daily_inc = gillespie_step(rng, state, dyn.θ)
-    return vcat(new_state, daily_inc)  # Return state with incidence appended
-end
-
-# Observation: Poisson likelihood on reported cases
-struct PoissonObservation <: SSMProblems.ObservationProcess
-    ρ::Float64  # Reporting rate
-end
-
-function SSMProblems.distribution(obs::PoissonObservation, step::Integer,
-                                  state; kwargs...)
-    daily_inc = state[end]
-    Poisson(max(obs.ρ * daily_inc, 1e-10))
-end
+```{.julia include="../src/seit4l_ssm_interface.jl"}
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -445,24 +414,7 @@ How the pieces fit together:
 
 The `run_particle_filter` function assembles the SSM components and runs the bootstrap filter:
 
-```julia
-function run_particle_filter(θ, obs, n_particles;
-                             init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
-    # Define SSM components
-    initial = SEIT4LInitial(init_state)
-    dynamics = SEIT4LDynamics(θ)
-    observation = PoissonObservation(θ[:ρ])
-
-    # Create state-space model
-    model = StateSpaceModel(initial, dynamics, observation)
-
-    # Run bootstrap particle filter
-    rng = Random.default_rng()
-    algo = BF(n_particles)  # Bootstrap Filter
-    _, log_lik = GeneralisedFilters.filter(rng, model, algo, obs)
-
-    return log_lik
-end
+```{.julia include="../src/seit4l_runner.jl"}
 ```
 
 This ties everything together: the initial state, Gillespie dynamics, and Poisson observations form a `StateSpaceModel`, which the bootstrap filter (`BF`) processes to estimate the log-likelihood.
