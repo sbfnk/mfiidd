@@ -330,11 +330,13 @@ end
     D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
     ρ ~ Beta(2, 2)
 
-    # Solve ODE
+    # Solve ODE; promote u0 to the parameter element type so ForwardDiff Duals
+    # propagate through the solution
     params = [R_0, D_lat, D_inf, α, D_imm]
-    u0 = [init_state[:S], init_state[:E], init_state[:I],
-          init_state[:T1], init_state[:T2], init_state[:T3], init_state[:T4],
-          init_state[:L], 0.0]
+    T = eltype(params)
+    u0 = T[init_state[:S], init_state[:E], init_state[:I],
+           init_state[:T1], init_state[:T2], init_state[:T3], init_state[:T4],
+           init_state[:L], 0.0]
 
     prob = ODEProblem(seit4l_ode!, u0, (times[1], times[end]), params)
     sol = solve(prob, Tsit5(), saveat=times)
