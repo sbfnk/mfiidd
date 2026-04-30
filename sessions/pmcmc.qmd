@@ -348,9 +348,17 @@ end
     prob = ODEProblem(seit4l_ode!, u0, (times[1], times[end]), params)
     sol = solve(prob, Tsit5(), saveat=times)
 
+    # Reject parameter draws that drive the solver to fail early; the gradient
+    # probe in NUTS init occasionally lands on combinations where the ODE only
+    # saves the initial timepoint.
+    if !SciMLBase.successful_retcode(sol) || length(sol.t) != length(times)
+        Turing.@addlogprob! -Inf
+        return
+    end
+
     # Extract daily incidence
     inc_cumulative = sol[9, :]
-    inc_daily = [0.0; diff(inc_cumulative)]
+    inc_daily = [zero(eltype(inc_cumulative)); diff(inc_cumulative)]
 
     # Likelihood: Poisson observations
     # obs[i] corresponds to inc_daily[i] (times 0-59, indices 1-60)
