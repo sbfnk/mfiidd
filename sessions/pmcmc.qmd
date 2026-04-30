@@ -78,6 +78,7 @@ using StatsBase ## for statistical functions
 using JLD2 ## for loading pre-computed chains
 using SSMProblems ## for state-space model interface
 using GeneralisedFilters ## for particle filtering
+using ForwardDiff ## for stripping Dual numbers in non-differentiable likelihoods
 using DrWatson
 ```
 
@@ -172,9 +173,15 @@ Uses GeneralisedFilters for likelihood estimation.
     D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
     ρ ~ Beta(2, 2)
 
-    # Create parameter dictionary
-    θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
-             :α => α, :D_imm => D_imm, :ρ => ρ)
+    # Create parameter dictionary; extract underlying values so ForwardDiff
+    # Duals (used only by Turing's gradient-based init probe) don't flow into
+    # the particle filter, which is non-differentiable anyway.
+    θ = Dict(:R_0 => ForwardDiff.value(R_0),
+             :D_lat => ForwardDiff.value(D_lat),
+             :D_inf => ForwardDiff.value(D_inf),
+             :α => ForwardDiff.value(α),
+             :D_imm => ForwardDiff.value(D_imm),
+             :ρ => ForwardDiff.value(ρ))
 
     # Build state-space model
     # The SSMProblems interface expects a plain vector, not a Dict
