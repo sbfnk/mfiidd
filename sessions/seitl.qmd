@@ -441,7 +441,7 @@ p = plot(title = "Prior Predictive Simulations",
 for i in 1:5
     # Sample parameters from priors
     seitl_prior = seitl_model(times, init_state_guess, length(times))
-    params = rand(seitl_prior)
+    params = rand(seitl_prior).data
 
     # Create parameter dictionary and simulate
     θ = Dict(:R_0 => params.R_0, :D_lat => params.D_lat, :D_inf => params.D_inf,
