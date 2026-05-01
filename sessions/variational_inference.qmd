@@ -230,20 +230,21 @@ This factorisation means we only need to learn 6 numbers (3 means + 3 variances)
 
 Note: The actual optimisation happens in unconstrained space (using log transforms for positive parameters, logit for bounded parameters), then samples are transformed back.
 
-The function `q_meanfield_gaussian(model)` inspects the Turing model and creates an initial variational distribution: one independent Gaussian per model parameter, in unconstrained space. It sets all means to zero and all standard deviations to one. This is the starting point — the `vi` function then adjusts these means and standard deviations to maximise the ELBO.
+Passing `q_meanfield_gaussian` to `vi` tells Turing to construct an initial mean-field variational distribution: one independent Gaussian per model parameter, in unconstrained space. All means start at zero and all standard deviations at one. The `vi` function then adjusts these means and standard deviations to maximise the ELBO.
 
 ```{julia}
 println("\nRunning Mean-Field VI...")
-q_init_mf = q_meanfield_gaussian(model)
-t_vi_mf = @elapsed (q_mf, stats_mf) = vi(model, q_init_mf, 500; adtype=AutoForwardDiff(), show_progress=false)
+t_vi_mf = @elapsed result_mf = vi(model, q_meanfield_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
+q_mf = result_mf.q
+stats_mf = result_mf.info
 println("Mean-field VI time: $(round(t_vi_mf, digits=1)) seconds")
 println("Final ELBO: ", round(stats_mf[end].elbo, digits=2))
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`q_meanfield_gaussian(model)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - creates an initial mean-field Gaussian variational distribution for the model, with independent Normal distributions for each parameter (all initialised to standard normals in unconstrained space).
-- [`vi(model, q_init, n_iters; ...)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - runs variational inference, optimising the ELBO for `n_iters` steps. Returns the optimised distribution `q` and training statistics.
+- [`q_meanfield_gaussian`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - a constructor passed to `vi` that builds the initial mean-field Gaussian variational family (independent Normals per parameter, standard normals in unconstrained space).
+- [`vi(model, family, n_iters; ...)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - runs variational inference, optimising the ELBO for `n_iters` steps. Returns a `VIResult` whose `.q` field holds the optimised distribution and `.info` holds the training statistics.
 - `adtype=AutoForwardDiff()` - specifies [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for computing gradients. Forward-mode AD is efficient when the number of parameters is small (like here).
 - `stats_mf[end].elbo` - the final ELBO value. Higher (less negative) is better, indicating a closer approximation to the true posterior.
 :::
@@ -339,15 +340,16 @@ The trade-off: more parameters means more to optimise, so full-rank VI is slower
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
-q_init_full = q_fullrank_gaussian(model)
-t_vi_full = @elapsed (q_full, stats_full) = vi(model, q_init_full, 500; adtype=AutoForwardDiff(), show_progress=false)
+t_vi_full = @elapsed result_full = vi(model, q_fullrank_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
+q_full = result_full.q
+stats_full = result_full.info
 println("Full-rank VI time: $(round(t_vi_full, digits=1)) seconds")
 println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`q_fullrank_gaussian(model)`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - creates a full-rank Gaussian variational distribution that can capture correlations between parameters. Uses a lower-triangular Cholesky factor for the covariance matrix.
+- [`q_fullrank_gaussian`](https://turinglang.org/TuringOptimExt.jl/dev/api_reference/) - constructor passed to `vi` that builds a full-rank Gaussian variational family. Captures correlations between parameters via a lower-triangular Cholesky factor for the covariance matrix.
 :::
 
 ```{julia}
@@ -521,15 +523,14 @@ iter_counts = [50, 200, 500, 2000]
 results = []
 
 for n_iter in iter_counts
-    q_init = q_meanfield_gaussian(model)
-    (q_result, stats_result) = vi(model, q_init, n_iter; adtype=AutoForwardDiff(), show_progress=false)
-    samples = rand(q_result, 5_000)
+    res = vi(model, q_meanfield_gaussian, n_iter; adtype=AutoForwardDiff(), show_progress=false)
+    samples = rand(res.q, 5_000)
     push!(results, (
         n_iter = n_iter,
-        final_elbo = stats_result[end].elbo,
+        final_elbo = res.info[end].elbo,
         R0_mean = mean(samples[1, :]),
         R0_std = std(samples[1, :]),
-        elbo_trace = [s.elbo for s in stats_result]
+        elbo_trace = [s.elbo for s in res.info]
     ))
 end
 
