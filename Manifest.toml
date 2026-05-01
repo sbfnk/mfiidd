@@ -2,7 +2,7 @@
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "8bb977197b299f22c62bdf4af5b31408af7e0310"
+project_hash = "83ef3a31cb389dc3d0da9ba95f43fdbdac6d4925"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "bbc22a9a08a0ef6460041086d8a7b27940ed4ffd"
@@ -2084,26 +2084,26 @@ uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
 version = "3.5.1"
 
 [[deps.Lux]]
-deps = ["ADTypes", "Adapt", "ArgCheck", "ArrayInterface", "ChainRulesCore", "ConcreteStructs", "DiffResults", "DispatchDoctor", "EnzymeCore", "FastClosures", "ForwardDiff", "Functors", "GPUArraysCore", "LinearAlgebra", "LuxCore", "LuxLib", "MLDataDevices", "MacroTools", "Markdown", "NNlib", "Optimisers", "PrecompileTools", "Preferences", "Random", "ReactantCore", "Reexport", "SciMLPublic", "Setfield", "Static", "StaticArraysCore", "Statistics", "WeightInitializers"]
-git-tree-sha1 = "18de4fe5e7e9dd7fc363d596fbb8cccdef505d1d"
+deps = ["ADTypes", "Adapt", "ArrayInterface", "ChainRulesCore", "ConcreteStructs", "DiffResults", "DispatchDoctor", "EnzymeCore", "FastClosures", "ForwardDiff", "Functors", "GPUArraysCore", "LinearAlgebra", "LuxCore", "LuxLib", "MLDataDevices", "MacroTools", "Markdown", "NNlib", "Optimisers", "PrecompileTools", "Preferences", "Random", "ReactantCore", "Reexport", "SciMLPublic", "Setfield", "Static", "StaticArraysCore", "Statistics", "UUIDs", "WeightInitializers"]
+git-tree-sha1 = "b7654d9b1144792d7fa165add2e07434329e3193"
 uuid = "b2108857-7c20-44ae-9111-449ecde12c47"
-version = "1.29.0"
+version = "1.31.4"
 
     [deps.Lux.extensions]
-    LuxComponentArraysExt = "ComponentArrays"
-    LuxEnzymeExt = "Enzyme"
-    LuxFluxExt = "Flux"
-    LuxGPUArraysExt = "GPUArrays"
-    LuxLossFunctionsExt = "LossFunctions"
-    LuxMLUtilsExt = "MLUtils"
-    LuxMPIExt = "MPI"
-    LuxMPINCCLExt = ["CUDA", "MPI", "NCCL"]
-    LuxMooncakeExt = "Mooncake"
-    LuxReactantExt = ["Enzyme", "Reactant", "ReactantCore", "LuxLib", "MLDataDevices", "Optimisers", "NNlib", "Statistics"]
-    LuxReverseDiffExt = ["FunctionWrappers", "ReverseDiff"]
-    LuxSimpleChainsExt = "SimpleChains"
-    LuxTrackerExt = "Tracker"
-    LuxZygoteExt = "Zygote"
+    ComponentArraysExt = "ComponentArrays"
+    EnzymeExt = "Enzyme"
+    FluxExt = "Flux"
+    GPUArraysExt = "GPUArrays"
+    LossFunctionsExt = "LossFunctions"
+    MLUtilsExt = "MLUtils"
+    MPIExt = "MPI"
+    MPINCCLExt = ["CUDA", "MPI", "NCCL"]
+    MooncakeExt = "Mooncake"
+    ReactantExt = ["Enzyme", "Reactant"]
+    ReverseDiffExt = ["FunctionWrappers", "ReverseDiff"]
+    SimpleChainsExt = "SimpleChains"
+    TrackerExt = "Tracker"
+    ZygoteExt = "Zygote"
 
     [deps.Lux.weakdeps]
     CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
@@ -2209,7 +2209,7 @@ uuid = "be115224-59cd-429b-ad48-344e309966f0"
 version = "0.3.17"
 
 [[deps.MFIIDD]]
-deps = ["ADTypes", "AdvancedMH", "AdvancedPS", "AdvancedVI", "BoundaryValueDiffEqCore", "CSV", "ComponentArrays", "DataFrames", "DiffEqFlux", "DifferentialEquations", "Distributions", "DrWatson", "DynamicHMC", "ForwardDiff", "GeneralisedFilters", "IJulia", "JLD2", "JumpProcesses", "LanguageServer", "LogDensityProblems", "LogDensityProblemsAD", "Lux", "MCMCChains", "Optimisers", "Optimization", "OptimizationBase", "OptimizationOptimJL", "OptimizationOptimisers", "Plots", "PrecompileTools", "Random", "Revise", "SSMProblems", "StatsBase", "StatsPlots", "SymbolServer", "TransformVariables", "TransformedLogDensities", "Turing", "Zygote"]
+deps = ["ADTypes", "AdvancedMH", "AdvancedPS", "AdvancedVI", "BoundaryValueDiffEqCore", "CSV", "ComponentArrays", "DataFrames", "DiffEqFlux", "DifferentialEquations", "Distributions", "DrWatson", "DynamicHMC", "ForwardDiff", "GeneralisedFilters", "IJulia", "JLD2", "JumpProcesses", "LanguageServer", "LogDensityProblems", "LogDensityProblemsAD", "Lux", "MCMCChains", "Optimisers", "Optimization", "OptimizationOptimJL", "OptimizationOptimisers", "Plots", "PrecompileTools", "Random", "Revise", "SSMProblems", "StatsBase", "StatsPlots", "SymbolServer", "TransformVariables", "TransformedLogDensities", "Turing", "Zygote"]
 path = "."
 uuid = "8bea04d1-6360-4bc3-9119-b4a8429b6d36"
 version = "0.1.0"
@@ -2622,47 +2622,51 @@ version = "0.4.7"
 
 [[deps.Optimization]]
 deps = ["ADTypes", "ArrayInterface", "ConsoleProgressMonitor", "DocStringExtensions", "LinearAlgebra", "Logging", "LoggingExtras", "OptimizationBase", "Printf", "Reexport", "SciMLBase", "SparseArrays", "TerminalLoggers"]
-git-tree-sha1 = "166ff0e9c44c45f26113fef6971b8783d7ce7998"
+git-tree-sha1 = "5366b739224064a03399be1a21a18e4553631181"
 uuid = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
-version = "5.4.0"
+version = "5.5.1"
 
 [[deps.OptimizationBase]]
-deps = ["ADTypes", "ArrayInterface", "DifferentiationInterface", "DocStringExtensions", "FastClosures", "LinearAlgebra", "PDMats", "PrecompileTools", "Reexport", "SciMLBase", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings"]
-git-tree-sha1 = "9d1129ecde9f1773521196bdb2c5f16170bb2f6c"
+deps = ["ADTypes", "ArrayInterface", "DifferentiationInterface", "DocStringExtensions", "FastClosures", "LinearAlgebra", "PDMats", "PrecompileTools", "Reexport", "SciMLBase", "SciMLLogging", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings", "SymbolicIndexingInterface"]
+git-tree-sha1 = "642ea067d729f1f18795a434550b40de0a4fbbc8"
 uuid = "bca83a33-5cc9-4baa-983d-23429ab6bcbb"
-version = "4.2.0"
+version = "5.1.1"
 
     [deps.OptimizationBase.extensions]
-    OptimizationEnzymeExt = "Enzyme"
+    OptimizationChainRulesCoreExt = "ChainRulesCore"
+    OptimizationEnzymeExt = ["ChainRulesCore", "Enzyme"]
     OptimizationFiniteDiffExt = "FiniteDiff"
     OptimizationForwardDiffExt = "ForwardDiff"
     OptimizationMLDataDevicesExt = "MLDataDevices"
     OptimizationMLUtilsExt = "MLUtils"
+    OptimizationMooncakeExt = "Mooncake"
     OptimizationReverseDiffExt = "ReverseDiff"
     OptimizationSymbolicAnalysisExt = "SymbolicAnalysis"
     OptimizationZygoteExt = "Zygote"
 
     [deps.OptimizationBase.weakdeps]
+    ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
     Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
     FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
     ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
     MLDataDevices = "7e8f7934-dd98-4c1a-8fe8-92b47a384d40"
     MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
+    Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
     ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
     SymbolicAnalysis = "4297ee4d-0239-47d8-ba5d-195ecdf594fe"
     Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [[deps.OptimizationOptimJL]]
 deps = ["Optim", "OptimizationBase", "Reexport", "SciMLBase", "SparseArrays"]
-git-tree-sha1 = "dffc6cc3dbe32eb370e297e332153198aa4a201c"
+git-tree-sha1 = "3e6aa79dd37700e32f95e9b312f0742343cd9437"
 uuid = "36348300-93cb-4f02-beb5-3c3902f8871e"
-version = "0.4.9"
+version = "0.4.13"
 
 [[deps.OptimizationOptimisers]]
 deps = ["Logging", "Optimisers", "OptimizationBase", "Reexport", "SciMLBase"]
-git-tree-sha1 = "63737f735d5f3d2e0548ae8831ebb7cebf51758b"
+git-tree-sha1 = "77a34511908489a3eac90d52c9c91ccb3aa2a017"
 uuid = "42dfb2eb-d2b4-4451-abcd-913932933ac1"
-version = "0.3.15"
+version = "0.3.17"
 
 [[deps.Opus_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]

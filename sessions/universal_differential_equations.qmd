@@ -252,15 +252,21 @@ end
 Predict incidence using current UDE parameters.
 """
 function predict_ude(p_all)
-    prob_ude = ODEProblem(sir_ude!, u0, tspan, p_all)
+    # Promote u0 to the parameter element type so ForwardDiff Duals
+    # propagate through the ODE solve into the loss; without this the
+    # solver returns a plain Float64 trajectory and gradient extraction
+    # trips a Lux/ComponentArrays edge case.
+    T = eltype(p_all)
+    u0_promoted = T.(u0)
+    prob_ude = ODEProblem(sir_ude!, u0_promoted, tspan, p_all)
     sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false)
 
     if sol_ude.retcode != :Success
-        return fill(NaN, length(times))
+        return fill(T(NaN), length(times))
     end
 
     S_pred = sol_ude[1, :]
-    incidence_pred = [0.0; -diff(S_pred)]
+    incidence_pred = [zero(T); -diff(S_pred)]
 
     return incidence_pred
 end
