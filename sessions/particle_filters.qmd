@@ -46,8 +46,6 @@ Particle filters are computationally intensive. For this session:
 If you're on a slower machine, reduce particle counts in the calibration exercises (e.g., use 50, 100, 200 instead of 64, 128, 256, 512).
 :::
 
-::: {.callout-note collapse="true"}
-
 # Setup
 
 ```{julia}
@@ -92,12 +90,7 @@ We set a random seed for reproducibility.
 Random.seed!(1234)
 ```
 
-:::
-
-::: {.callout-tip}
-## Workflow note
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on the particle filter mechanics.
-:::
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on the particle filter mechanics.
 
 # Why deterministic likelihood fails for stochastic models
 
@@ -352,7 +345,7 @@ High-weight particles are duplicated, low-weight particles are discarded. This f
 - `count(==(i), resampled_idx)` counts how many times each original particle was drawn. `==(i)` is *partial application*: it creates a function "does x equal i?" that `count` then applies to every element of `resampled_idx`. This is equivalent to `sum(resampled_idx .== i)` but reads more naturally.
 :::
 
-::: {.callout-warning title="Exercise: Understand the particle filter steps"}
+::: {.callout-tip title="Exercise: Understand the particle filter steps"}
 Look at the three plots above (propagation, weighting, resampling).
 
 1. In the propagation plot, why do the particle trajectories spread apart over time?
@@ -525,7 +518,7 @@ In our runs, we typically see:
 Your numbers will differ due to stochastic variability, but the pattern should be similar. For the PMCMC session, we'll use around 128-256 particles based on this calibration.
 :::
 
-::: {.callout-warning title="Exercise: Choose the number of particles"}
+::: {.callout-tip title="Exercise: Choose the number of particles"}
 
 Based on the calibration plots above:
 
@@ -534,7 +527,7 @@ Based on the calibration plots above:
 3. Why might you want to use more particles than the minimum needed?
 :::
 
-::: {.callout-warning title="Exercise: Sensitivity to parameters"}
+::: {.callout-tip title="Exercise: Sensitivity to parameters"}
 
 The particle filter likelihood estimate depends on the parameters. Explore how the log-likelihood changes as you vary R₀:
 
@@ -562,14 +555,6 @@ plot(R0_values, ll_results, xlabel="R_0", ylabel="Log-likelihood",
 3. How does the shape of this likelihood surface compare to what you'd expect from deterministic model fitting?
 
 :::
-
-# Summary
-
-Stochastic models cannot be fitted with standard MCMC because the likelihood requires integrating over all possible trajectories. Particle filters solve this by approximating the integral with Monte Carlo simulation.
-
-The algorithm is elegant: propagate many trajectories (particles) forward, weight them by how well they match observations, resample to focus on plausible trajectories, and accumulate likelihood contributions. The resulting estimate is unbiased, though noisy.
-
-The number of particles is a critical tuning parameter. Too few gives high variance in the likelihood estimate, causing poor MCMC mixing. Too many wastes computation. The optimal choice targets a log-likelihood standard deviation between 1 and 3.
 
 ::: {.callout-tip title="Learning points"}
 

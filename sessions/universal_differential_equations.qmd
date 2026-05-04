@@ -14,7 +14,8 @@ order: 10
 
 > **Do this session if** you want to discover unknown mechanisms from data using neural networks, or you have dynamics that simple parametric models can't capture. Assumes basic familiarity with neural networks.
 
-::: {.callout-warning title="Coming from R?"}
+::: {.callout-note collapse="true"}
+## Coming from R?
 UDEs rely on differentiable programming — automatic differentiation through ODE solvers and neural networks — which is not practically available in R. The Julia ecosystem (SciML, Lux.jl) is currently the most mature platform for this kind of work. If you are an R user, this session is still worth reading for the concepts, but the code cannot be straightforwardly translated.
 :::
 
@@ -122,10 +123,7 @@ Notice the two distinct periods of transmission:
 
 **Question**: What transmission pattern β(t) would produce this? Can we learn it from the data?
 
-::: {.callout-tip}
-## Workflow note
 UDEs use gradient-based optimisation rather than Bayesian inference, so the prior/posterior predictive workflow from [Model Checking](model_checking.qmd) doesn't directly apply. In practice, you should still validate UDE predictions against held-out data and check sensitivity to initialisation (as we do [below](#practical-challenges)).
-:::
 
 # Baseline: SIR with constant β
 
@@ -632,14 +630,6 @@ The workflow often combines both approaches: first use a neural network UDE to c
 For policy applications, the difference matters in principle. A hypothetical finding like "transmission increases when prevalence drops below 5%" would be actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. In practice, recovering clean symbolic expressions from noisy epidemic data is difficult, but symbolic UDEs offer a path from discovery towards interpretation.
 
 For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://www.nature.com/articles/s41540-025-00550-w) for a recent review of UDEs in systems biology.
-
-# Summary
-
-Universal Differential Equations combine mechanistic structure (SIR compartments) with neural networks that learn unknown components (how β varies).
-
-Loss function choice matters. Poisson likelihood forces the model to explain small counts in the second wave; squared errors would be dominated by the first-wave peak. The ODE structure constrains the network — it can only learn β(t) curves that produce valid epidemic trajectories.
-
-If the learned β(t) shows an increase around days 20-25, this is consistent with behavioural relaxation — but it's a hypothesis needing independent validation. An imperfect fit may indicate that SIR structure with time-varying β isn't sufficient.
 
 ::: {.callout-tip title="Learning points"}
 - **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)

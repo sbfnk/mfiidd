@@ -63,7 +63,8 @@ using Statistics: mean, std, cor
 Random.seed!(1234)
 ```
 
-::: {.callout-note title="Coming from Stan?"}
+::: {.callout-note collapse="true"}
+## Coming from Stan?
 The closest equivalent is Stan's ADVI (e.g. `vb()` in rstan, `$variational()` in cmdstanr, or `CmdStanModel.variational()` in cmdstanpy). The interface is similar: define a model and call the VI method instead of the sampling method. The same trade-offs apply — faster than full MCMC but approximate.
 :::
 
@@ -151,10 +152,7 @@ model = sir_model(times, init_state, length(flu_tdc.obs)) | (; obs = flu_tdc.obs
 `obs ~ arraydist(Poisson.(lambdas))` declares a vector of independent Poisson observations, one per time point. The `|` operator, applied when creating the model instance below, conditions the model on the actual data — see the [MCMC session](mcmc.qmd) for a full explanation of this pattern.
 :::
 
-::: {.callout-tip}
-## Workflow note
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip these here to focus on comparing VI with MCMC.
-:::
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on comparing VI with MCMC.
 
 # Baseline: MCMC with NUTS
 
@@ -609,14 +607,6 @@ Look at where the three methods agree and disagree. Typical findings for this mo
 
 If you see substantial disagreement between full-rank VI and MCMC, it may indicate that 500 VI iterations was not enough, or that the posterior has features (e.g., skewness) that even full-rank Gaussian VI cannot capture.
 :::
-
-# Summary
-
-Variational inference reframes Bayesian inference as optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior. This trades some accuracy for speed - useful when MCMC is too slow.
-
-*Mean-field VI* assumes parameter independence. Fast, but it missed the R₀-D_inf correlation in our SIR model, producing overconfident intervals. *Full-rank VI* uses a full covariance matrix, capturing correlations at modest additional cost. For epidemic models with correlated parameters, full-rank is usually worth it.
-
-VI is not a replacement for MCMC - it's a complementary tool. Use VI for rapid exploration and real-time systems; validate against MCMC when accuracy matters.
 
 ::: {.callout-tip title="Learning points"}
 - **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior

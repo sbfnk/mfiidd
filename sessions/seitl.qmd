@@ -61,8 +61,6 @@ The remaining sessions build on the SEITL/SEIT4L models introduced here:
 - [Universal Differential Equations](universal_differential_equations.qmd) (optional): Learning unknown mechanisms with neural networks
 :::
 
-::: {.callout-note collapse="true"}
-
 # Setup
 
 ```{julia}
@@ -96,8 +94,6 @@ We set a random seed for reproducibility.
 ```{julia}
 Random.seed!(1234)
 ```
-
-:::
 
 But first of all, let's have a look at the data.
 
@@ -653,7 +649,7 @@ plot!(p)
 Just like with the deterministic model, you can use the Turing `@model` for prior predictive checks by sampling parameters from priors (without conditioning on data). The same `@model` definitions will be used for inference in the [Particle Filters](particle_filters.qmd) and [Particle MCMC](pmcmc.qmd) sessions — condition with `| (; obs = data)` when fitting, leave unconditioned when simulating. See the [unified approach callout](#sec-unified-approach) at the end of this session for the full pattern.
 :::
 
-::: {.callout-warning title="Exercise: Explore stochastic SEITL dynamics"}
+::: {.callout-tip title="Exercise: Explore stochastic SEITL dynamics"}
 What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?
 :::
 
@@ -782,7 +778,7 @@ This version uses an Erlang-4 distribution for the T compartment.
 end
 ```
 
-::: {.callout-warning title="Exercise: Understand the SEIT4L code"}
+::: {.callout-tip title="Exercise: Understand the SEIT4L code"}
 How does the code above implement the Erlang distribution for the $T$ compartment? What changes from the SEITL version?
 :::
 
@@ -880,14 +876,6 @@ This unified structure enables both:
 You write the model once and use it for all purposes.
 This is the power of probabilistic programming!
 :::
-
-# Summary
-
-We explored the *SEITL model* - an extension of the classic SIR that adds latent periods (E) and temporary immunity (L) to explain the double-wave pattern in the Tristan da Cunha influenza outbreak. The simple SIR can't generate two waves; SEITL can because individuals who recover may become susceptible again.
-
-We implemented two variants: *SEITL* with exponential waiting times (memoryless), and *SEIT4L* with Erlang-distributed temporary immunity (the "4" indicating 4 sub-compartments). The Erlang version is more biologically plausible because immunity loss isn't truly memoryless - individuals recently recovered are unlikely to immediately lose immunity.
-
-The main computational choice was *deterministic vs stochastic* simulation. Deterministic ODEs are fast and smooth but ignore demographic stochasticity. Stochastic simulation (Gillespie algorithm) captures the random nature of individual events, which matters when population sizes are small. We saw how the same parameters can generate very different epidemic trajectories in the stochastic version.
 
 ::: {.callout-tip title="Learning points"}
 

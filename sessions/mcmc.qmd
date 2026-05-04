@@ -35,8 +35,6 @@ In this session, you will:
 1. Learn why NUTS is the modern upgrade that solves some of the problems with Metropolis-Hastings
 1. Apply NUTS to conduct Bayesian inference on the SIR model
 
-::: {.callout-note collapse = "true"}
-
 # Setup
 
 ```{julia}
@@ -106,8 +104,6 @@ epi1 = DataFrame(
     ]
 )
 ```
-
-:::
 
 # From manual exploration to algorithmic sampling
 
@@ -490,7 +486,7 @@ Finding good proposals by hand is difficult. The goal is to experience the chall
 - The frustration is the point: manual tuning doesn't scale to real problems
 :::
 
-::: {.callout-warning title="Exercise: Tune the proposal distribution"}
+::: {.callout-tip title="Exercise: Tune the proposal distribution"}
 
 The trace plot above shows poor mixing - the chain gets stuck and doesn't explore efficiently. Your task is to improve it by adjusting the proposal covariance matrix.
 
@@ -721,14 +717,6 @@ quantile(chain_nuts[:R_0], [0.025, 0.25, 0.5, 0.75, 0.975])
 ```
 
 These summaries give us point estimates and uncertainty, but should we trust these results? The next session (MCMC Diagnostics) teaches you how to check whether your chains converged and whether your model makes sense.
-
-# Summary
-
-We started by seeing why grid search fails in higher dimensions - the curse of dimensionality makes exhaustive exploration impossible. *MCMC* solves this by constructing a random walk that, over time, visits parameter values in proportion to their posterior probability.
-
-The *Metropolis-Hastings* algorithm is the foundation: propose a move, accept or reject based on the posterior ratio. The challenge is choosing good proposals - too small and the chain moves slowly, too large and most moves are rejected. We saw how *Robust Adaptive Metropolis (RAM)* learns the posterior covariance automatically, eliminating manual tuning.
-
-For models with gradients (like our deterministic ODE), *NUTS* goes further - using gradient information to make large, efficient moves through parameter space. Finally, we saw how *Turing.jl* wraps all of this in an elegant interface: define your model with `@model`, call `sample()`, and analyse the results.
 
 ::: {.callout-tip title = "Learning points"}
 
