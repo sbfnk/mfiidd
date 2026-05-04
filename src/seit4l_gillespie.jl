@@ -1,19 +1,20 @@
 using Random
 
 """
-    gillespie_step(rng, state, θ)
+    gillespie_step(rng, state, θ, dt=1.0)
 
-Simulate SEIT4L for one day using the Gillespie algorithm.
+Simulate SEIT4L for `dt` time units using the Gillespie algorithm.
 
 # Arguments
 - `rng`: Random number generator
 - `state`: Vector [S, E, I, T1, T2, T3, T4, L]
 - `θ`: Parameter dictionary with keys :R_0, :D_lat, :D_inf, :α, :D_imm
+- `dt`: Length of the simulation interval (default 1.0, i.e. one day)
 
 # Returns
-- `(new_state, daily_incidence)`: Updated state and number of new cases
+- `(new_state, incidence)`: Updated state and number of new cases over `dt`
 """
-function gillespie_step(rng::AbstractRNG, state::Vector{Float64}, θ::Dict)
+function gillespie_step(rng::AbstractRNG, state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
     β = θ[:R_0] / θ[:D_inf]
     ϵ = 1.0 / θ[:D_lat]
     ν = 1.0 / θ[:D_inf]
@@ -41,16 +42,16 @@ function gillespie_step(rng::AbstractRNG, state::Vector{Float64}, θ::Dict)
         [β*S*I/N, ϵ*E, ν*I, τ*T1, τ*T2, τ*T3, (1-α)*τ*T4, α*τ*T4]
     end
 
-    # Simulate one day
+    # Simulate up to `dt` time units
     t, daily_inc = 0.0, 0
-    while t < 1.0
+    while t < dt
         r = rates(s)
         total_rate = sum(r)
         total_rate ≤ 0 && break
 
         # Time to next event
         τ_wait = randexp(rng) / total_rate
-        t + τ_wait > 1.0 && break
+        t + τ_wait > dt && break
         t += τ_wait
 
         # Select which event occurs
@@ -81,7 +82,7 @@ end
 In-place version for simple bootstrap filter (no RNG argument, uses global RNG).
 """
 function gillespie_step_seit4l!(state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
-    new_state, inc = gillespie_step(Random.default_rng(), state, θ)
+    new_state, inc = gillespie_step(Random.default_rng(), state, θ, dt)
     for i in 1:8
         state[i] = new_state[i]
     end
