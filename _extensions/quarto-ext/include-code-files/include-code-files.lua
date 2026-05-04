@@ -3,9 +3,16 @@
 --- Copyright: © 2020 Bruno BEAUFILS
 --- License:   MIT – see LICENSE file for details
 
---- Dedent a line
+--- Dedent a line by removing up to `n` leading spaces, leaving internal
+--- whitespace untouched.
 local function dedent(line, n)
-  return line:sub(1, n):gsub(" ", "") .. line:sub(n + 1)
+  local k = tonumber(n) or 0
+  if k <= 0 then
+    return line
+  end
+  local leading = line:match("^(%s*)") or ""
+  local remove = math.min(#leading, k)
+  return line:sub(remove + 1)
 end
 
 --- Find snippet start and end.
