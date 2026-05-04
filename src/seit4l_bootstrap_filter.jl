@@ -16,8 +16,9 @@ Used by chain generation scripts.
 # Returns
 - `log_likelihood`: Estimated log-likelihood
 """
-function particle_filter_seit4l(θ, obs, n_particles;
+function particle_filter_seit4l(θ, obs, n_particles::Integer;
                                 init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+    n_particles > 0 || throw(ArgumentError("n_particles must be > 0"))
     n_obs = length(obs)
     ρ = θ[:ρ]
 
