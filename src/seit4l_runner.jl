@@ -1,5 +1,6 @@
 using Random
 using GeneralisedFilters
+using ForwardDiff
 
 """
     run_particle_filter(θ, obs, n_particles; init_state)
@@ -17,10 +18,16 @@ Run bootstrap particle filter for SEIT4L and return log-likelihood.
 """
 function run_particle_filter(θ, obs, n_particles;
                              init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+    # Strip ForwardDiff Duals before constructing the SSM components: the
+    # bootstrap filter is non-differentiable, and SEIT4LDynamics /
+    # PoissonObservation declare concrete Float64 fields. Mirrors the pattern
+    # used in sessions/pmcmc.qmd.
+    θ_f64 = Dict{Symbol,Float64}(k => ForwardDiff.value(v) for (k, v) in θ)
+
     # Define SSM components
     initial = SEIT4LInitial(init_state)
-    dynamics = SEIT4LDynamics(θ)
-    observation = PoissonObservation(θ[:ρ])
+    dynamics = SEIT4LDynamics(θ_f64)
+    observation = PoissonObservation(θ_f64[:ρ])
 
     # Create state-space model
     model = StateSpaceModel(initial, dynamics, observation)
