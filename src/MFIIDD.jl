@@ -1,13 +1,13 @@
 module MFIIDD
 
-using DataFrames
-using DifferentialEquations
-using Distributions
-using GeneralisedFilters
-using PrecompileTools
-using Random
-using SSMProblems
-using StatsBase
+using DataFrames: DataFrame
+using DifferentialEquations: ODEProblem, Tsit5, solve
+using Distributions: Distribution, Poisson, logpdf
+using GeneralisedFilters: BF
+using PrecompileTools: @compile_workload
+using Random: AbstractRNG, randexp
+using SSMProblems: SSMProblems, StateSpaceModel
+using StatsBase: Weights, wsample
 
 include("sir_model.jl")
 include("seitl_model.jl")

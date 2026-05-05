@@ -1,6 +1,7 @@
-using Random
-using GeneralisedFilters
-using ForwardDiff
+using Random: default_rng
+using GeneralisedFilters: BF, filter
+using ForwardDiff: value
+using SSMProblems: StateSpaceModel
 
 """
     run_particle_filter(θ, obs, n_particles; init_state)
@@ -29,7 +30,7 @@ function run_particle_filter(θ, obs, n_particles;
     # bootstrap filter is non-differentiable, and SEIT4LDynamics /
     # PoissonObservation declare concrete Float64 fields. Mirrors the pattern
     # used in sessions/pmcmc.qmd.
-    θ_f64 = Dict{Symbol,Float64}(k => ForwardDiff.value(v) for (k, v) in θ)
+    θ_f64 = Dict{Symbol,Float64}(k => value(v) for (k, v) in θ)
 
     # Define SSM components
     initial = SEIT4LInitial(init_state_f64)
@@ -40,9 +41,9 @@ function run_particle_filter(θ, obs, n_particles;
     model = StateSpaceModel(initial, dynamics, observation)
 
     # Run bootstrap particle filter
-    rng = Random.default_rng()
+    rng = default_rng()
     algo = BF(n_particles)  # Bootstrap Filter
-    _, log_lik = GeneralisedFilters.filter(rng, model, algo, obs)
+    _, log_lik = filter(rng, model, algo, obs)
 
     return log_lik
 end
