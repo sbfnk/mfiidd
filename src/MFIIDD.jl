@@ -1,5 +1,6 @@
 module MFIIDD
 
+using CodeTracking: definition
 using DataFrames: DataFrame
 using DifferentialEquations: ODEProblem, Tsit5, solve
 using Distributions: Distribution, Poisson, logpdf
@@ -24,6 +25,38 @@ export generate_observations
 export gillespie_step, gillespie_step_seitl!, gillespie_step_seit4l!
 export particle_filter_seitl, particle_filter_seit4l, run_particle_filter
 export SEIT4LDynamics, SEIT4LInitial, PoissonObservation
+export source_for
+
+"""
+    source_for(file::AbstractString) -> String
+
+Return the source of `src/<file>` inside the installed `MFIIDD` package.
+Used by the session notebooks in place of static `{.julia include="../src/X.jl"}`
+blocks so the displayed code tracks the live package rather than a path
+relative to the qmd.
+
+    source_for(f::Function) -> String
+
+Return the source of every method of `f`, looked up via CodeTracking. Useful
+when students want to inspect a single function after `using MFIIDD`.
+"""
+function source_for(file::AbstractString)
+    base = pkgdir(@__MODULE__)
+    base === nothing && error("MFIIDD package directory not found")
+    path = joinpath(base, "src", file)
+    isfile(path) || error("source file not found: $path")
+    return read(path, String)
+end
+
+function source_for(f::Function)
+    chunks = String[]
+    for m in methods(f)
+        d = definition(String, m)
+        d === nothing && continue
+        push!(chunks, first(d))
+    end
+    return join(chunks, "\n\n")
+end
 
 @compile_workload begin
     sir_df = simulate_sir(2.0, 4.0, 999.0, 1.0, 0.0:1.0:10.0)

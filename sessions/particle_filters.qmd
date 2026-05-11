@@ -385,7 +385,10 @@ A state-space model has three components:
 
 Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl)). Each type carries a docstring spelling out its state vector and the method it implements — useful for reference once you've read the prose above.
 
-```{.julia include="../src/seit4l_ssm_interface.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("seit4l_ssm_interface.jl"), "\n```")
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -414,7 +417,10 @@ How the pieces fit together:
 
 The `run_particle_filter` function assembles the SSM components and runs the bootstrap filter:
 
-```{.julia include="../src/seit4l_runner.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("seit4l_runner.jl"), "\n```")
 ```
 
 This ties everything together: the initial state, Gillespie dynamics, and Poisson observations form a `StateSpaceModel`, which the bootstrap filter (`BF`) processes to estimate the log-likelihood.
