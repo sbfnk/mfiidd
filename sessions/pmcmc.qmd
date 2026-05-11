@@ -95,17 +95,26 @@ using MFIIDD
 
 Gillespie step ([`src/seit4l_gillespie.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_gillespie.jl)):
 
-```{.julia include="../src/seit4l_gillespie.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("seit4l_gillespie.jl"), "\n```")
 ```
 
 SSMProblems interface ([`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl)):
 
-```{.julia include="../src/seit4l_ssm_interface.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("seit4l_ssm_interface.jl"), "\n```")
 ```
 
 Bootstrap filter runner ([`src/seit4l_runner.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_runner.jl)):
 
-```{.julia include="../src/seit4l_runner.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("seit4l_runner.jl"), "\n```")
 ```
 :::
 

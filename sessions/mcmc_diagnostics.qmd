@@ -84,7 +84,10 @@ using MFIIDD
 ::: {.callout-note collapse="true"}
 ## SIR Model Definition (from [`src/sir_model.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/sir_model.jl))
 
-```{.julia include="../src/sir_model.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("sir_model.jl"), "\n```")
 ```
 :::
 
