@@ -86,7 +86,10 @@ Key functions:
 - `sir_ode!(du, u, p, t)` - ODE system for S, I, R compartments
 - `simulate_sir(R_0, D_inf, S0, I0, times)` - Returns DataFrame with trajectory
 
-```{.julia include="../src/sir_model.jl"}
+```{julia}
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("sir_model.jl"), "\n```")
 ```
 :::
 
