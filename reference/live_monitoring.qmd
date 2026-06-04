@@ -1,0 +1,252 @@
+---
+title: "Watching a fit unfold: streaming callbacks"
+engine: julia
+---
+
+```{julia}
+#| echo: false
+#| include: false
+using Pkg
+ENV["GKSwstype"] = "100"
+Pkg.activate(joinpath(@__DIR__, ".."))
+```
+
+# Why watch a fit live?
+
+In [MCMC Diagnostics](../sessions/mcmc_diagnostics.qmd) we inspect a chain *after* it finishes: trace plots, R̂, ESS, divergence counts.
+That works well for the small models in this course, which fit in seconds.
+For a slow model — a stiff ODE, a particle filter likelihood, a joint model over several data streams — a single fit can take minutes to hours.
+Waiting that long only to discover the chain never moved, got stuck in one mode, or filled up with divergences is a slow way to debug.
+
+The same pathologies usually show up within the first few hundred steps.
+If you can *watch* the log-density climb, the divergences tick up, or the chain stall while the fit is still running, you can stop early and adjust instead of waiting for the whole run.
+This page shows how to stream that information out of a Turing fit using a callback, and how to send it to [TensorBoard](https://www.tensorflow.org/tensorboard) for live curves.
+
+::: {.callout-note collapse="true"}
+## Where this comes from
+
+This pattern was lifted from a real joint model, [epiforecasts/BVDOutbreakSize](https://github.com/epiforecasts/BVDOutbreakSize), where a streaming callback made a multimodal fitting pathology obvious in the first warmup steps rather than only after a long run had finished.
+The version there logs to TensorBoard through a package extension so the heavy dependency stays optional.
+The companion proposals are [epiforecasts/BVDOutbreakSize](https://github.com/epiforecasts/BVDOutbreakSize) and [epiforecasts/EpiBranch.jl#112](https://github.com/epiforecasts/EpiBranch.jl/issues/112).
+:::
+
+# The `callback=` hook
+
+Every Turing sampler runs through [AbstractMCMC.jl](https://github.com/TuringLang/AbstractMCMC.jl), which exposes a per-step `callback` keyword on `sample`.
+The callback is a function fired once per iteration, on every chain, with the current sampler state:
+
+```julia
+callback(rng, model, sampler, transition, state, iteration; kwargs...)
+```
+
+The interesting argument is `transition`.
+For NUTS it carries the per-step statistics we want to stream.
+Let's load Turing and look at what a transition actually contains:
+
+```{julia}
+using Turing
+using Plots
+using Random
+Random.seed!(20260604)
+
+@model function wobble()
+    x ~ Normal(0.0, 1.0)
+    y ~ Normal(x, 1.0)
+end
+```
+
+```{julia}
+#| output: false
+# A callback that just grabs the first transition so we can inspect it
+captured = Ref{Any}(nothing)
+peek = function (rng, model, sampler, transition, state, iteration; kwargs...)
+    iteration == 1 && (captured[] = transition)
+    return nothing
+end
+
+sample(wobble(), NUTS(), 20; callback = peek, progress = false)
+```
+
+```{julia}
+# The per-step statistics NUTS exposes
+keys(captured[].stats)
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- `callback = peek` — the keyword that hooks our function into `sample`. It runs once per kept draw.
+- `transition.stats` — a [named tuple](https://docs.julialang.org/en/v1/manual/functions/#Named-Tuples) of per-step diagnostics. The ones we care about are `logjoint` (the log-density), `numerical_error` (the divergence flag), `step_size`, and `acceptance_rate`.
+- `Ref{Any}(nothing)` — a mutable box. The callback can't return a value to us, so we stash the transition in a `Ref` to look at afterwards.
+
+The exact contents of `transition.stats` depend on the sampler: NUTS reports Hamiltonian diagnostics, while a Metropolis sampler reports far fewer fields. Reading from `transition.stats` rather than reaching into private transition fields keeps the callback working across samplers.
+:::
+
+# A dependency-free progress recorder
+
+We don't need any extra packages to stream progress.
+The following closure records the iteration number, the log-density, and a running count of divergences each time it fires.
+It reads everything from `transition.stats`, and the whole body is wrapped in `try`/`catch` so a transition that doesn't expose these fields can never abort the fit:
+
+```{julia}
+function progress_recorder(; every::Integer = 1)
+    iters = Int[]
+    lps = Float64[]
+    divergences = Int[]
+    ndiv = Ref(0)
+    callback = function (rng, model, sampler, transition, state, iteration;
+            kwargs...)
+        try
+            stats = transition.stats
+            get(stats, :numerical_error, false) === true && (ndiv[] += 1)
+            if iteration % every == 0
+                push!(iters, iteration)
+                push!(lps, get(stats, :logjoint, NaN))
+                push!(divergences, ndiv[])
+            end
+        catch
+            # A progress callback must never bring down a fit.
+        end
+        return nothing
+    end
+    return callback, (; iters, lps, divergences)
+end
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- The function returns *two* things: the `callback` to pass to `sample`, and a named tuple of vectors it writes into as the fit runs.
+- `ndiv = Ref(0)` — a running divergence tally the closure carries between calls. Each divergent transition bumps it.
+- `every` — log only every nth step. Set it higher for long runs so the vectors don't grow without bound.
+- The same closure is called from every thread when you sample chains in parallel with `MCMCThreads()`. For a real parallel fit you'd guard the shared vectors with a `ReentrantLock`; here we keep one chain for clarity.
+:::
+
+By default NUTS discards its warmup, so a callback only sees post-warmup draws.
+Passing `discard_adapt = false` keeps the adaptation steps and streams them too, so we can watch the log-density climb out of its starting point and the step size settle:
+
+```{julia}
+#| output: false
+cb, rec = progress_recorder()
+sample(
+    wobble(), NUTS(), 200;
+    callback = cb, num_warmup = 100, discard_adapt = false, progress = false
+)
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
+p1 = plot(
+    rec.iters, rec.lps, xlabel = "Iteration", ylabel = "log joint density",
+    title = "Log-density climbs during warmup", legend = false, linewidth = 1
+)
+vline!(p1, [100], color = :grey, linestyle = :dash)
+p2 = plot(
+    rec.iters, rec.divergences, xlabel = "Iteration",
+    ylabel = "cumulative divergences",
+    title = "Divergences accumulate", legend = false, linewidth = 2
+)
+plot(p1, p2, layout = (2, 1), size = (800, 600))
+```
+
+The dashed line marks the end of warmup.
+The log-density rises quickly from its arbitrary starting point and then fluctuates around a stable level once the chain reaches the typical set — exactly the "find the posterior, then explore it" behaviour described under [burn-in and warmup](../sessions/mcmc_diagnostics.qmd#burn-in-and-warmup).
+A handful of early divergences during adaptation is normal; a count that keeps climbing after warmup is the warning sign.
+
+# Catching a pathology early
+
+To see what a *bad* fit looks like through the same lens, here is [Neal's funnel](https://mc-stan.org/docs/stan-users-guide/reparameterization.html), a posterior whose neck is so narrow that NUTS cannot navigate it without a tiny step size.
+Watch the divergence count:
+
+```{julia}
+#| output: false
+@model function funnel()
+    v ~ Normal(0, 3)
+    x ~ Normal(0, exp(v / 2))
+end
+
+cb_f, rec_f = progress_recorder()
+sample(funnel(), NUTS(0.6), 400; callback = cb_f, progress = false)
+```
+
+```{julia}
+println("Divergent transitions: $(rec_f.divergences[end]) / 400")
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Plotting code"
+plot(
+    rec_f.iters, rec_f.divergences, xlabel = "Iteration",
+    ylabel = "cumulative divergences",
+    title = "Funnel: divergences pile up from the start",
+    legend = false, linewidth = 2
+)
+```
+
+A large fraction of the steps diverge, and the line climbs steadily from the very first iterations.
+On a fast model you'd just notice this at the end, but on a slow one the streamed count tells you within seconds that the fit is unhealthy and that the funnel needs a [non-centred reparameterisation](https://mc-stan.org/docs/stan-users-guide/reparameterization.html) — long before the run would otherwise finish.
+
+# Going further: live curves with TensorBoard
+
+A recorder that fills vectors is enough to plot *after* a fit.
+For genuinely live curves you can update while a long run is in progress, log to [TensorBoard](https://www.tensorflow.org/tensorboard) through [TensorBoardLogger.jl](https://github.com/JuliaLogging/TensorBoardLogger.jl) and watch the dashboard refresh in your browser.
+
+::: {.callout-note collapse="true"}
+## TensorBoard callback (run this locally)
+
+TensorBoardLogger.jl isn't a dependency of this course, and the dashboard is interactive, so this block is illustrative rather than run when the page builds.
+Add the package to your own environment (`] add TensorBoardLogger`) to try it.
+
+```julia
+using TensorBoardLogger: TBLogger, log_value
+
+# Stream every real-valued statistic to a TensorBoard run directory.
+function tensorboard_callback(logdir; every::Integer = 1)
+    logger = TBLogger(logdir)
+    return function (rng, model, sampler, transition, state, iteration;
+            kwargs...)
+        iteration % every == 0 || return nothing
+        try
+            for (name, value) in pairs(transition.stats)
+                value isa Real && isfinite(value) || continue
+                log_value(
+                    logger, "diagnostics/$(name)", Float64(value);
+                    step = iteration
+                )
+            end
+        catch
+            # Logging must never abort a fit.
+        end
+        return nothing
+    end
+end
+
+cb = tensorboard_callback("logs/run1")
+sample(wobble(), NUTS(), 1000; callback = cb)
+```
+
+Then, in a terminal:
+
+```bash
+tensorboard --logdir logs/run1
+```
+
+Open the printed URL and the log-density, step size, tree depth, and divergence flag stream in as the fit runs.
+Use a single chain for clean live traces; parallel chains share one logger and interleave.
+This mirrors the optional TensorBoard backend in [BVDOutbreakSize](https://github.com/epiforecasts/BVDOutbreakSize), where the logger lives in a package extension so TensorBoardLogger.jl never becomes a hard dependency.
+:::
+
+# When to reach for this
+
+- **Fast models** (everything in the core sessions): the post-hoc diagnostics in [MCMC Diagnostics](../sessions/mcmc_diagnostics.qmd) are simpler and enough.
+- **Slow models** where a fit takes minutes or more: a streaming callback lets you abort a doomed run early instead of waiting it out.
+- **Debugging a new model**: watching the log-density and divergences from the first steps makes stuck chains, bad initialisation, and difficult geometry obvious quickly.
+
+# References
+
+- [AbstractMCMC.jl documentation](https://turinglang.org/AbstractMCMC.jl/stable/) — the `callback` interface used by every Turing sampler
+- [TensorBoardLogger.jl](https://github.com/JuliaLogging/TensorBoardLogger.jl) — logging scalars and histograms to TensorBoard from Julia
+- [Neal (2003), Slice Sampling](https://doi.org/10.1214/aos/1056562461) — introduces the funnel as a hard sampling target
+- [Betancourt (2017), A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434) — why divergences signal geometric problems

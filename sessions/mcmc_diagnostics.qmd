@@ -401,6 +401,14 @@ if haskey(chain_good.info, :divergent_transitions)
 end
 ```
 
+::: {.callout-note collapse="true"}
+## Watching divergences appear live (for slow models)
+
+The check above counts divergences *after* the fit finishes, which is fine for the seconds-long fits in this course.
+For a slow model you can instead stream the divergence count and log-density out of the sampler as it runs, using a per-iteration `callback`, and stop a doomed fit early.
+See [Watching a fit unfold](../reference/live_monitoring.qmd) for the pattern, including an optional TensorBoard dashboard.
+:::
+
 ## Problem 3: Multi-modal posteriors
 
 Some posteriors have multiple peaks, and a single chain can settle into one and never see the others. The standard responses are:

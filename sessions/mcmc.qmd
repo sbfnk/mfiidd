@@ -297,6 +297,58 @@ plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 - **Optimal**: ~23% acceptance rate for random walk Metropolis
 :::
 
+## Watching the chain explore
+
+The trace plots above show the *finished* chains.
+Because our hand-written sampler has the chain state in hand at every step, we can also *watch* it explore by animating the trace as it fills in.
+Side by side, a well-tuned proposal and one that is far too small make the difference between good and sticky mixing obvious:
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Animation code"
+#| output: false
+# Two chains on the same target: a well-tuned step vs one far too small
+n_anim = 300
+samples_tuned, acc_tuned = metropolis_hastings_1d(
+    eval_log_density, n_anim, 0.0, 4.0
+)
+samples_sticky, acc_sticky = metropolis_hastings_1d(
+    eval_log_density, n_anim, 0.0, 0.2
+)
+
+anim = @animate for i in 1:5:n_anim
+    p_tuned = plot(
+        1:i, samples_tuned[1:i], xlim = (0, n_anim), ylim = (-3, 13),
+        title = "Well tuned (step 4.0)", xlabel = "Iteration", ylabel = "x",
+        legend = false, linewidth = 1
+    )
+    hline!(p_tuned, [target_mean], color = :red, linewidth = 2)
+    p_sticky = plot(
+        1:i, samples_sticky[1:i], xlim = (0, n_anim), ylim = (-3, 13),
+        title = "Too small (step 0.2)", xlabel = "Iteration", ylabel = "x",
+        legend = false, linewidth = 1
+    )
+    hline!(p_sticky, [target_mean], color = :red, linewidth = 2)
+    plot(p_tuned, p_sticky, layout = (1, 2), size = (800, 350))
+end
+```
+
+```{julia}
+#| echo: false
+gif(anim, fps = 20)
+```
+
+The well-tuned chain (left) spreads out and rapidly fills the region around the true mean.
+The sticky chain (right) accepts nearly every tiny step but inches along, exploring slowly — high acceptance but poor mixing.
+This is the same "watch good vs bad behaviour as it happens" intuition the post-hoc diagnostics in the [next session](mcmc_diagnostics.qmd) quantify with R̂ and effective sample size.
+
+::: {.callout-note collapse="true"}
+## Watching a Turing fit unfold
+
+Turing's samplers expose the same idea through a per-iteration `callback`, so you can stream live diagnostics out of `sample(...)` — useful for slow models where you want to spot trouble before the run finishes.
+See [Watching a fit unfold](../reference/live_monitoring.qmd) for the pattern, including a TensorBoard dashboard.
+:::
+
 For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
 This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
 
