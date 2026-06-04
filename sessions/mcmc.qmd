@@ -300,7 +300,7 @@ plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 ## Watching the chain explore
 
 The trace plots above show the *finished* chains.
-Because our hand-written sampler has the chain state in hand at every step, we can also *watch* it explore by animating the trace as it fills in.
+We can also *watch* a chain explore by animating its trace as it fills in.
 Side by side, a well-tuned proposal and one that is far too small make the difference between good and sticky mixing obvious:
 
 ```{julia}
@@ -340,17 +340,9 @@ gif(anim, fps = 20)
 
 The well-tuned chain (left) spreads out and rapidly fills the region around the true mean.
 The sticky chain (right) accepts nearly every tiny step but inches along, exploring slowly — high acceptance but poor mixing.
-This is the same "watch good vs bad behaviour as it happens" intuition the post-hoc diagnostics in the [next session](mcmc_diagnostics.qmd) quantify with R̂ and effective sample size.
-
-::: {.callout-note collapse="true"}
-## Watching a Turing fit unfold
-
-Turing's samplers expose the same idea through a per-iteration `callback`, so you can stream live diagnostics out of `sample(...)` — useful for slow models where you want to spot trouble before the run finishes.
-See [Watching a fit unfold](../reference/live_monitoring.qmd) for the pattern, including a TensorBoard dashboard.
-:::
-
-For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
-This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
+Sampling this normal target well is easy once you can see the trace, but for complex posteriors a good proposal distribution is difficult to find by hand.
+This is where more sophisticated algorithms that tune the proposal automatically really help.
+In the [next session](mcmc_diagnostics.qmd) we quantify good versus bad mixing with R̂ and effective sample size.
 
 ::: {.callout-note appearance="simple"}
 ## Good time for a break
@@ -750,6 +742,14 @@ summarystats(chain_nuts)
 | **NUTS** (No U-Turn Sampler) | Continuous parameters with differentiable models (ODEs, most Turing models) | Can't handle discrete parameters; needs gradients |
 
 **Rule of thumb**: Start with `NUTS()`. If your model has discrete parameters or stochastic components that break automatic differentiation, fall back to `MH` or `RAM`.
+:::
+
+::: {.callout-note collapse="true"}
+## Watching a Turing fit unfold
+
+Now that we are calling `sample(...)`, the live-trace idea from the hand-coded sampler carries over: Turing's samplers expose a per-iteration `callback`, so you can stream diagnostics out of a fit as it runs.
+This is mainly useful for slow models where you want to spot trouble before the run finishes.
+See [Watching a fit unfold](../reference/live_monitoring.qmd) for the pattern, including an optional dashboard for watching inference in progress and reviewing the results.
 :::
 
 # Posterior analysis with Turing.jl
