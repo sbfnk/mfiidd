@@ -26,8 +26,6 @@ This page shows how to stream that information out of a Turing fit using a callb
 ## Where this comes from
 
 This pattern was lifted from a real joint model, [epiforecasts/BVDOutbreakSize](https://github.com/epiforecasts/BVDOutbreakSize), where a streaming callback made a multimodal fitting pathology obvious in the first warmup steps rather than only after a long run had finished.
-The version there logs to TensorBoard through a package extension so the heavy dependency stays optional.
-The companion proposals are [epiforecasts/BVDOutbreakSize](https://github.com/epiforecasts/BVDOutbreakSize) and [epiforecasts/EpiBranch.jl#112](https://github.com/epiforecasts/EpiBranch.jl/issues/112).
 :::
 
 # The `callback=` hook
@@ -67,8 +65,9 @@ end
 sample(wobble(), NUTS(), 20; callback = peek, progress = false)
 ```
 
+The per-step statistics NUTS exposes are:
+
 ```{julia}
-# The per-step statistics NUTS exposes
 keys(captured[].stats)
 ```
 
@@ -82,9 +81,8 @@ keys(captured[].stats)
 The exact contents of `transition.stats` depend on the sampler: NUTS reports Hamiltonian diagnostics, while a Metropolis sampler reports far fewer fields. Reading from `transition.stats` rather than reaching into private transition fields keeps the callback working across samplers.
 :::
 
-# A dependency-free progress recorder
+# A simple progress recorder
 
-We don't need any extra packages to stream progress.
 The following closure records the iteration number, the log-density, and a running count of divergences each time it fires.
 It reads everything from `transition.stats`, and the whole body is wrapped in `try`/`catch` so a transition that doesn't expose these fields can never abort the fit:
 
@@ -122,6 +120,14 @@ end
 - The same closure is called from every thread when you sample chains in parallel with `MCMCThreads()`. For a real parallel fit you'd guard the shared vectors with a `ReentrantLock`; here we keep one chain for clarity.
 :::
 
+::: {.callout-note collapse="true"}
+## Isn't there a built-in for this?
+
+Recent [AbstractMCMC.jl](https://github.com/TuringLang/AbstractMCMC.jl) (≥ 5.13) adds `mcmc_callback`, including a ready-made TensorBoard logging callback, so you don't have to write the closure yourself.
+It relies on a newer `getparams`/`getstats` state interface than the Turing version pinned in this course implements, so it errors here — which is why we read `transition.stats` directly.
+The hand-written version is also easier to read when the point is to *see* what a callback does.
+:::
+
 By default NUTS discards its warmup, so a callback only sees post-warmup draws.
 Passing `discard_adapt = false` keeps the adaptation steps and streams them too, so we can watch the log-density climb out of its starting point and the step size settle:
 
@@ -153,6 +159,48 @@ plot(p1, p2, layout = (2, 1), size = (800, 600))
 The dashed line marks the end of warmup.
 The log-density rises quickly from its arbitrary starting point and then fluctuates around a stable level once the chain reaches the typical set — exactly the "find the posterior, then explore it" behaviour described under [burn-in and warmup](../sessions/mcmc_diagnostics.qmd#burn-in-and-warmup).
 A handful of early divergences during adaptation is normal; a count that keeps climbing after warmup is the warning sign.
+
+::: {.callout-tip collapse="true"}
+## Going further: animate the fit as it samples
+
+The recorder above fills vectors to plot once the fit has finished.
+Because the callback fires every step, you can also draw *inside* it, capturing a frame each time so the trace grows as the sampler runs:
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Animation code"
+#| output: false
+anim = Animation()
+lp_live = Float64[]
+animate_cb = function (rng, model, sampler, transition, state, iteration;
+        kwargs...)
+    push!(lp_live, get(transition.stats, :logjoint, NaN))
+    if iteration % 5 == 0
+        plot(
+            lp_live, xlim = (0, 200), xlabel = "Iteration",
+            ylabel = "log joint density",
+            title = "Fit in progress (step $iteration)",
+            legend = false, linewidth = 1
+        )
+        frame(anim)
+    end
+    return nothing
+end
+sample(
+    wobble(), NUTS(), 200;
+    callback = animate_cb, num_warmup = 100, discard_adapt = false,
+    progress = false
+)
+```
+
+```{julia}
+#| echo: false
+gif(anim, fps = 15)
+```
+
+Live in a session this redraws a plot window as the fit runs; here it renders as the animation above.
+For a long fit, throttle the redraw (a larger `every`) so plotting doesn't slow the sampler.
+:::
 
 # Catching a pathology early
 
@@ -190,38 +238,21 @@ On a fast model you'd just notice this at the end, but on a slow one the streame
 
 # Going further: live curves with TensorBoard
 
-A recorder that fills vectors is enough to plot *after* a fit.
-For genuinely live curves you can update while a long run is in progress, log to [TensorBoard](https://www.tensorflow.org/tensorboard) through [TensorBoardLogger.jl](https://github.com/JuliaLogging/TensorBoardLogger.jl) and watch the dashboard refresh in your browser.
+A recorder that fills vectors is enough to plot once a fit has finished.
+[TensorBoard](https://www.tensorflow.org/tensorboard) gives you the same curves *as the fit runs*, in a browser dashboard you can pan and zoom — and the same dashboard is a quick way to explore an **already-finished** fit without writing any plotting code, since it draws every logged scalar and a histogram of each for you.
+
+The course ships a small helper, [`src/tensorboard_callback.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/tensorboard_callback.jl), that logs each parameter and diagnostic to TensorBoard through [TensorBoardLogger.jl](https://github.com/JuliaLogging/TensorBoardLogger.jl).
+It is opt-in: TensorBoardLogger isn't a course dependency, so you install it once (`] add TensorBoardLogger`) and load it before including the file.
+Being a plain source file, it is reusable anywhere the course calls `sample(...)` — drop it into the [Particle MCMC](../sessions/pmcmc.qmd) session, for instance, to watch a PMMH run's log-posterior and acceptance live.
 
 ::: {.callout-note collapse="true"}
-## TensorBoard callback (run this locally)
+## Using the TensorBoard helper (run this locally)
 
-TensorBoardLogger.jl isn't a dependency of this course, and the dashboard is interactive, so this block is illustrative rather than run when the page builds.
-Add the package to your own environment (`] add TensorBoardLogger`) to try it.
+The dashboard is interactive, so this is run on your own machine rather than when the page builds.
 
 ```julia
-using TensorBoardLogger: TBLogger, log_value
-
-# Stream every real-valued statistic to a TensorBoard run directory.
-function tensorboard_callback(logdir; every::Integer = 1)
-    logger = TBLogger(logdir)
-    return function (rng, model, sampler, transition, state, iteration;
-            kwargs...)
-        iteration % every == 0 || return nothing
-        try
-            for (name, value) in pairs(transition.stats)
-                value isa Real && isfinite(value) || continue
-                log_value(
-                    logger, "diagnostics/$(name)", Float64(value);
-                    step = iteration
-                )
-            end
-        catch
-            # Logging must never abort a fit.
-        end
-        return nothing
-    end
-end
+using TensorBoardLogger
+include(joinpath(@__DIR__, "..", "src", "tensorboard_callback.jl"))
 
 cb = tensorboard_callback("logs/run1")
 sample(wobble(), NUTS(), 1000; callback = cb)
@@ -233,9 +264,17 @@ Then, in a terminal:
 tensorboard --logdir logs/run1
 ```
 
-Open the printed URL and the log-density, step size, tree depth, and divergence flag stream in as the fit runs.
-Use a single chain for clean live traces; parallel chains share one logger and interleave.
-This mirrors the optional TensorBoard backend in [BVDOutbreakSize](https://github.com/epiforecasts/BVDOutbreakSize), where the logger lives in a package extension so TensorBoardLogger.jl never becomes a hard dependency.
+Open the printed URL and the parameters and diagnostics (log-density, step size, tree depth, divergence flag) stream in as the fit runs, each as a scalar trace and a running histogram.
+To compare several chains, give each its own run directory (`logs/run1/chain1`, `logs/run1/chain2`, ...) and point TensorBoard at the parent — it overlays the runs on one axis.
+:::
+
+::: {.callout-note collapse="true"}
+## The helper, for reference
+
+```{julia}
+#| eval: false
+#| file: ../src/tensorboard_callback.jl
+```
 :::
 
 # When to reach for this
