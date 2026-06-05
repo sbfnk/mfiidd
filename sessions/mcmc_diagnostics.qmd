@@ -59,7 +59,7 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
+using FlexiChains ## for MCMC diagnostics
 using StatsBase ## for autocorrelation
 ```
 
@@ -304,7 +304,7 @@ chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, n_chains)
 # Check what each individual chain found
 println("Individual chain summaries:")
 for i in 1:n_chains
-    chain_i = chain_multi[:, :, i]
+    chain_i = chain_multi[chain = i]
     r0_mean = mean(chain_i[:R_0])
     dinf_mean = mean(chain_i[:D_inf])
     println(
@@ -315,9 +315,9 @@ end
 
 # Calculate R̂
 println("\nR̂ values:")
-rhat_values = DataFrame(rhat(chain_multi))
-for row in eachrow(rhat_values)
-    param = row.parameters
+summary_values = DataFrame(summarystats(chain_multi))
+for row in eachrow(summary_values)
+    param = row.param
     value = row.rhat
     status = value < 1.1 ? "good" : "bad"
     println("  $param: $(round(value, digits = 3)) $status")
@@ -326,8 +326,8 @@ end
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- `chain_multi[:, :, i]` - extracts the i-th chain from a multi-chain object. The three dimensions are: samples × parameters × chains.
-- [`rhat(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates the R̂ (Gelman-Rubin) diagnostic. Compares variance within chains to variance between chains. Values < 1.1 indicate convergence; < 1.01 is even better.
+- `chain_multi[chain = i]` - extracts the i-th chain from a multi-chain object. A multi-chain `FlexiChain` is indexed by iteration and chain.
+- `summarystats(chain)` - produces a summary table of diagnostics. `DataFrame(summarystats(chain))` has a `:rhat` column holding the R̂ (Gelman-Rubin) diagnostic, which compares variance within chains to variance between chains. Values < 1.1 indicate convergence; < 1.01 is even better.
 :::
 
 ```{julia}
@@ -340,20 +340,20 @@ plot(chain_multi)
 ESS tells you how many independent samples your correlated MCMC samples are equivalent to:
 
 ```{julia}
-ess_values = DataFrame(ess(chain_multi))
-n_samples = length(chain_multi)
+ess_values = DataFrame(summarystats(chain_multi))
+n_samples = size(chain_multi, 1)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`ess(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates Effective Sample Size. MCMC samples are correlated, so N samples don't give you N independent draws. ESS estimates how many independent samples your chain is equivalent to.
+- `summarystats(chain)` - its `DataFrame` has an `:ess_bulk` column holding the Effective Sample Size. MCMC samples are correlated, so N samples don't give you N independent draws. ESS estimates how many independent samples your chain is equivalent to.
 :::
 
 ```{julia}
 println("Effective Sample Size:")
 for row in eachrow(ess_values)
-    param = row.parameters
-    value = row.ess
+    param = row.param
+    value = row.ess_bulk
     efficiency = value / n_samples * 100
     status = value > 100 ? "good" : "bad"  # Rule of thumb: ESS > 100
     println(
@@ -374,15 +374,14 @@ ESS interpretation:
 MCSE quantifies uncertainty in your posterior estimates due to finite sampling:
 
 ```{julia}
-mcse_values = DataFrame(mcse(chain_multi))
-posterior_means = DataFrame(mean(chain_multi))
+mcse_values = DataFrame(summarystats(chain_multi))
 
 println("Posterior means ± MCSE:")
 for row in eachrow(mcse_values)
-    param = row.parameters
+    param = row.param
     mcse_val = row.mcse
-    # Get mean for this parameter
-    mean_val = posterior_means[posterior_means.parameters .== param, :mean][1]
+    # Mean for this parameter is in the same summary row
+    mean_val = row.mean
     rel_error = mcse_val / abs(mean_val) * 100
     println(
         "  $param: $(round(mean_val, digits = 3)) ± ",
@@ -424,14 +423,12 @@ A small number of divergences (say <1% of samples) may be acceptable, but many d
 
 ```{julia}
 # Check for divergent transitions
-if haskey(chain_good.info, :divergent_transitions)
-    n_divergent = sum(chain_good.info[:divergent_transitions])
-    println("Divergent transitions: $n_divergent / $(length(chain_good))")
-    if n_divergent > 0
-        println("Consider increasing adapt_delta or reparameterizing")
-    else
-        println("No divergent transitions")
-    end
+n_divergent = sum(skipmissing(vec(chain_good[:numerical_error])))
+println("Divergent transitions: $n_divergent / $(size(chain_good, 1))")
+if n_divergent > 0
+    println("Consider increasing adapt_delta or reparameterizing")
+else
+    println("No divergent transitions")
 end
 ```
 
@@ -523,7 +520,7 @@ p = plot(title = "Posterior Predictive Check", xlabel = "Time", ylabel = "Cases"
 # Plot multiple posterior predictive samples
 for i in 1:50
     # Extract predictions for each time point
-    pred_obs = [predictions[Symbol("obs[$j]")][i, 1] for j in 1:length(epi1.obs)]
+    pred_obs = [predictions[@varname(obs[j])][i, 1] for j in 1:length(epi1.obs)]
     plot!(p, epi1.time, pred_obs, alpha = 0.3, color = :lightblue, label = "")
 end
 
@@ -540,9 +537,9 @@ plot!(p)
 2. **`predict(decondition(model), chain_multi)`** uses parameters from the posterior chain to simulate new data
    - For each MCMC sample: takes R₀ and D_inf from the chain → solves ODE → samples new obs from Poisson
 
-3. **The result** is stored with keys like `Symbol("obs[1]")`, `Symbol("obs[2]")`, etc.
-   - Because our model uses `obs ~ arraydist(Poisson.(lambdas))`, Turing names each element of the predicted vector `obs[1]`, `obs[2]`, etc. To access these in Julia, we convert the string to a `Symbol`: `Symbol("obs[$j]")` becomes `:obs[1]`, `:obs[2]`, etc.
-   - `predictions[Symbol("obs[$j]")][i, 1]` then extracts the `i`-th posterior sample for the `j`-th observation. The `1` is the chain index (we have one chain here).
+3. **The result** is stored with keys like `@varname(obs[1])`, `@varname(obs[2])`, etc.
+   - Because our model uses `obs ~ arraydist(Poisson.(lambdas))`, Turing names each element of the predicted vector `obs[1]`, `obs[2]`, etc. To access these in Julia, we build the variable name with `@varname(obs[j])`, where the runtime value of `j` is interpolated.
+   - `predictions[@varname(obs[j])][i, 1]` then extracts the `i`-th posterior sample for the `j`-th observation. The `1` is the chain index (we have one chain here).
 
 :::
 
@@ -571,11 +568,11 @@ This section covers refinements to the basic diagnostics above. If you're short 
 Modern R̂ splits each chain in half for more robust diagnostics:
 
 ```{julia}
-# This is what rhat() actually computes - split chains for better diagnostics
-rhat_split = DataFrame(rhat(chain_multi))
+# This is what summarystats() reports - split chains for better diagnostics
+rhat_split = DataFrame(summarystats(chain_multi))
 println("Split-R̂ values (recommended):")
 for row in eachrow(rhat_split)
-    println("  $(row.parameters): $(round(row.rhat, digits = 4))")
+    println("  $(row.param): $(round(row.rhat, digits = 4))")
 end
 ```
 
@@ -584,18 +581,17 @@ end
 Turing.jl provides different ESS measures:
 
 ```{julia}
-# Different types of ESS
-ess_bulk = DataFrame(ess(chain_multi, kind = :bulk))    # Central part of distribution
-ess_tail = DataFrame(ess(chain_multi, kind = :tail))    # Tails of distribution
+# Different types of ESS, both columns of the summary table
+ess_summary = DataFrame(summarystats(chain_multi))
 
 println("Bulk ESS (central posterior):")
-for row in eachrow(ess_bulk)
-    println("  $(row.parameters): $(round(row.ess, digits = 0))")
+for row in eachrow(ess_summary)
+    println("  $(row.param): $(round(row.ess_bulk, digits = 0))")
 end
 
 println("\nTail ESS (posterior tails):")
-for row in eachrow(ess_tail)
-    println("  $(row.parameters): $(round(row.ess, digits = 0))")
+for row in eachrow(ess_summary)
+    println("  $(row.param): $(round(row.ess_tail, digits = 0))")
 end
 ```
 
@@ -606,10 +602,8 @@ Energy plots help diagnose geometric problems:
 
 ```{julia}
 # Energy diagnostic plot
-if haskey(chain_good.info, :energy)
-    energy = chain_good.info[:energy]
-    histogram(energy, title = "Energy Distribution", xlabel = "Energy", ylabel = "Frequency", alpha = 0.7)
-end
+energy = vec(chain_good[:hamiltonian_energy])
+histogram(energy, title = "Energy Distribution", xlabel = "Energy", ylabel = "Frequency", alpha = 0.7)
 ```
 
 # Troubleshooting guide
@@ -652,11 +646,8 @@ chain_problematic = sample(problematic_model(), NUTS(), 1000)
 
 ```{julia}
 # Diagnose it
-println("R̂ values:")
-display(DataFrame(rhat(chain_problematic)))
-
-println("\nESS values:")
-display(DataFrame(ess(chain_problematic)))
+println("R̂ and ESS values:")
+display(DataFrame(summarystats(chain_problematic)))
 ```
 
 ```{julia}

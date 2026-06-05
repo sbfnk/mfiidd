@@ -123,9 +123,9 @@ end
 ::: {.callout-note collapse="true"}
 ## Isn't there a built-in for this?
 
-Recent [AbstractMCMC.jl](https://github.com/TuringLang/AbstractMCMC.jl) (≥ 5.13) adds `mcmc_callback`, including a ready-made TensorBoard logging callback, so you don't have to write the closure yourself.
-It relies on a newer `getparams`/`getstats` state interface than the Turing version pinned in this course implements, so it errors here — which is why we read `transition.stats` directly.
-The hand-written version is also easier to read when the point is to *see* what a callback does.
+[AbstractMCMC.jl](https://github.com/TuringLang/AbstractMCMC.jl) ships `mcmc_callback`, including a ready-made TensorBoard logging callback (`mcmc_callback(logger = TBLogger(...))`, see [below](#going-further-live-curves-with-tensorboard)), so you don't have to write a callback yourself.
+Out of the box it logs the sampled parameters; for the grouped, histogram-rich dashboard further down we use a small custom callback instead.
+The hand-written recorder here is also the clearest way to *see* what a callback does, which is why we keep it for the in-memory plots.
 :::
 
 By default NUTS discards its warmup, so a callback only sees post-warmup draws.
@@ -241,14 +241,25 @@ On a fast model you'd just notice this at the end, but on a slow one the streame
 A recorder that fills vectors is enough to plot once a fit has finished.
 [TensorBoard](https://www.tensorflow.org/tensorboard) gives you the same curves *as the fit runs*, in a browser dashboard you can pan and zoom — and the same dashboard is a quick way to explore an **already-finished** fit without writing any plotting code, since it draws every logged scalar and a histogram of each for you.
 
-The course ships a small helper, [`src/tensorboard_callback.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/tensorboard_callback.jl), that logs each parameter and diagnostic to TensorBoard through [TensorBoardLogger.jl](https://github.com/JuliaLogging/TensorBoardLogger.jl).
-It is opt-in: TensorBoardLogger isn't a course dependency, so you install it once (`] add TensorBoardLogger`) and load it before including the file.
+The quickest way in is the built-in callback from [AbstractMCMC.jl](https://github.com/TuringLang/AbstractMCMC.jl): hand it a `TBLogger` and it logs the sampled parameters for you.
+
+```julia
+using TensorBoardLogger
+using Turing: AbstractMCMC
+
+cb = AbstractMCMC.mcmc_callback(logger = TBLogger("logs/run1"))
+sample(wobble(), NUTS(), 1000; callback = cb)
+```
+
+That logs the parameters but nothing else, all under one flat list.
+For a navigable dashboard — parameters and diagnostics in separate collapsible groups, each with a scalar trace *and* a running histogram — the course ships a small helper, [`src/tensorboard_callback.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/tensorboard_callback.jl).
+It reads everything through the same sampler-agnostic `AbstractMCMC.ParamsWithStats` interface and logs to two tag groups, `params/<name>` and `diagnostics/<name>`, populating the SCALARS, HISTOGRAMS and DISTRIBUTIONS tabs.
 Being a plain source file, it is reusable anywhere the course calls `sample(...)` — drop it into the [Particle MCMC](../sessions/pmcmc.qmd) session, for instance, to watch a PMMH run's log-posterior and acceptance live.
 
 ::: {.callout-note collapse="true"}
 ## Using the TensorBoard helper (run this locally)
 
-The dashboard is interactive, so this is run on your own machine rather than when the page builds.
+TensorBoardLogger is in the course environment, but the dashboard is interactive, so this is run on your own machine rather than when the page builds.
 
 ```julia
 using TensorBoardLogger

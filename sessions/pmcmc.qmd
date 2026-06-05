@@ -71,7 +71,7 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
+using FlexiChains ## for MCMC diagnostics
 using AdvancedMH ## for custom MH proposals
 using CSV ## for CSV file reading
 using StatsBase ## for statistical functions
@@ -476,7 +476,7 @@ Generate posterior predictive simulations from both SEITL and SEIT4L and compare
 # For each model chain, sample parameters and simulate trajectories
 function posterior_predictive_sims(chain, simulate_fn, init_state, times, n_sims=50)
     plots_data = []
-    for i in rand(1:length(chain), n_sims)
+    for i in rand(1:size(chain, 1), n_sims)
         θ = Dict(:R_0 => chain[:R_0][i], :D_lat => chain[:D_lat][i],
                  :D_inf => chain[:D_inf][i], :α => chain[:α][i],
                  :D_imm => chain[:D_imm][i], :ρ => chain[:ρ][i])

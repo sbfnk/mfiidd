@@ -57,7 +57,7 @@ using CSV
 using Plots
 using StatsPlots
 using Turing
-using MCMCChains
+using FlexiChains
 using Random
 using LinearAlgebra
 using DrWatson

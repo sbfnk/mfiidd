@@ -56,7 +56,7 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
+using FlexiChains ## for MCMC diagnostics
 using AdvancedMH ## for adaptive MCMC samplers
 ```
 
@@ -416,23 +416,23 @@ println("Manual M-H:")
 println("  Mean: $(round(mean(samples_mh), digits = 2))")
 println("  Std: $(round(std(samples_mh), digits = 2))")
 println("\nTuring.jl M-H:")
-describe(chain_normal_mh)
+summarystats(chain_normal_mh)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`describe(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/) - prints summary statistics for all parameters in the chain, including mean, standard deviation, and quantiles.
+- [`summarystats(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/) - prints summary statistics for all parameters in the chain, including mean, standard deviation, and quantiles.
 - `chain[:x]` - extracts the samples for parameter `x` from the chain. You can use this to access any parameter defined in your `@model` function.
 :::
 
 ::: {.callout-note collapse="true"}
 ## Coming from Stan?
-If you've used Stan, the workflow is similar: `sample()` runs inference and returns a chain object, `describe()` gives summary statistics, and `chain[:x]` extracts samples for a parameter.
+If you've used Stan, the workflow is similar: `sample()` runs inference and returns a chain object, `summarystats()` gives summary statistics, and `chain[:x]` extracts samples for a parameter.
 
 | Action | rstan | cmdstanr | Turing.jl |
 |--------|-------|----------|-----------|
 | Run sampler | `sampling(model, ...)` | `model$sample(...)` | `sample(model, NUTS(), n)` |
-| Summary | `summary(fit)` | `fit$summary()` | `describe(chain)` |
+| Summary | `summary(fit)` | `fit$summary()` | `summarystats(chain)` |
 | Extract parameter | `as.array(fit, pars="x")` | `fit$draws("x")` | `chain[:x]` |
 :::
 
@@ -512,7 +512,7 @@ chain_mh = sample(model, MH([1.0 0.0; 0.0 1.0]), 5000)
 
 ```{julia}
 println("Turing.jl Metropolis-Hastings results:")
-describe(chain_mh)
+summarystats(chain_mh)
 ```
 
 ```{julia}
@@ -673,7 +673,7 @@ chain_nuts = sample(model, NUTS(), 2000)
 
 ```{julia}
 println("NUTS results:")
-describe(chain_nuts)
+summarystats(chain_nuts)
 ```
 
 ```{julia}
@@ -723,7 +723,7 @@ What NUTS gives you automatically:
 
 ```{julia}
 # Built-in convergence diagnostics
-using MCMCChains
+using FlexiChains
 summarystats(chain_nuts)
 ```
 
@@ -758,12 +758,15 @@ Now we can analyse the posterior distribution:
 
 ```{julia}
 # Parameter correlations
-corner_plot = corner(chain_nuts, [:R_0, :D_inf])
+corner_plot = cornerplot(
+    hcat(vec(chain_nuts[:R_0]), vec(chain_nuts[:D_inf])),
+    label = ["R_0", "D_inf"]
+)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`corner(chain, params)`](https://turinglang.org/MCMCChains.jl/stable/statsplots/) - creates a "corner plot" showing the marginal distributions (diagonal) and pairwise joint distributions (off-diagonal) for the selected parameters. This visualises parameter correlations.
+- [`cornerplot(data, label = ...)`](https://docs.juliaplots.org/latest/generated/statsplots/) - a StatsPlots recipe that creates a "corner plot" showing the marginal distributions (diagonal) and pairwise joint distributions (off-diagonal) for the selected parameters. We pass a matrix built with `hcat(vec(chain[:R_0]), vec(chain[:D_inf]))`, one column per parameter. This visualises parameter correlations.
 :::
 
 ```{julia}
