@@ -88,6 +88,7 @@ using ComponentArrays
 using Optimization
 using OptimizationOptimisers
 using Optimisers  # For Adam optimizer
+using SciMLSensitivity  # adjoints for reverse-mode AD through the ODE solve
 
 Random.seed!(1234)
 ```
@@ -182,7 +183,7 @@ We'll use a small network - remember, we only have 60 data points!
 rng = Random.default_rng()
 Random.seed!(rng, 1234)
 
-# Define network structure - small for fast ForwardDiff autodiff
+# Define network structure - small and fast to train
 nn_architecture = Chain(
     Dense(2 => 8, tanh),       # Input: [I/N, t/tmax]
     Dense(8 => 1, softplus)     # Output: β > 0 (softplus ensures positivity)
@@ -255,7 +256,7 @@ function predict_ude(p_all)
     prob_ude = ODEProblem(sir_ude!, u0, tspan, p_all)
     sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false)
 
-    if sol_ude.retcode != :Success
+    if !SciMLBase.successful_retcode(sol_ude)
         return fill(NaN, length(times))
     end
 
@@ -318,8 +319,8 @@ println("="^60)
 # Initial loss (before any training)
 println("Initial loss: ", round(loss_ude(p_all, nothing), digits=2))
 
-# Set up optimisation with ForwardDiff for gradient computation
-opt_func = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
+# Set up optimisation with reverse-mode AD (Zygote) for gradient computation
+opt_func = OptimizationFunction(loss_ude, Optimization.AutoZygote())
 opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 
 # Train using Adam optimiser — store loss history for convergence check
@@ -339,7 +340,7 @@ println("\nTraining with Adam optimiser (500 iterations)...")
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`OptimizationFunction(loss, ad_backend)`](https://docs.sciml.ai/Optimization/stable/) - wraps a loss function with automatic differentiation for gradient computation.
-- `Optimization.AutoForwardDiff()` - uses [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/) for forward-mode automatic differentiation. Efficient when the number of parameters is small (~33 here). For larger networks, reverse-mode (Zygote.jl) would be faster.
+- `Optimization.AutoZygote()` - uses [Zygote.jl](https://fluxml.ai/Zygote.jl/) for reverse-mode automatic differentiation, with [SciMLSensitivity.jl](https://docs.sciml.ai/SciMLSensitivity/stable/) providing the adjoint that propagates gradients back through the ODE solve. Reverse-mode is the usual choice for training neural networks, where one scalar loss depends on many parameters.
 - [`Adam(learning_rate)`](https://fluxml.ai/Optimisers.jl/stable/api/#Optimisers.Adam) - adaptive gradient descent optimiser that adjusts per-parameter learning rates and uses momentum.
 - `callback` - function called after each iteration. Returns `true` to stop early, `false` to continue. Useful for monitoring progress.
 :::
@@ -362,7 +363,7 @@ plot(loss_history, xlabel="Iteration", ylabel="Loss",
 
 A few things to understand about this training process:
 
-Automatic differentiation computes exact gradients of the loss with respect to parameters. We use [ForwardDiff.jl](https://juliadiff.org/ForwardDiff.jl/stable/), which is efficient for small networks like ours (33 parameters).
+Automatic differentiation computes exact gradients of the loss with respect to parameters. We use reverse-mode AD ([Zygote.jl](https://fluxml.ai/Zygote.jl/), with [SciMLSensitivity.jl](https://docs.sciml.ai/SciMLSensitivity/stable/) handling the gradient through the ODE solve), the standard choice for training neural networks.
 
 **The Adam optimiser** is a gradient descent variant that adapts learning rates for each parameter and uses momentum to smooth updates. The learning rate (0.01) controls step size: too large and training becomes unstable; too small and convergence is slow. Adam is widely used for neural network training because it works well across many problems without much tuning.
 
@@ -505,7 +506,7 @@ for seed in [1234, 5678, 9012]
         tmax = maximum(times)
     )
 
-    opt_func_test = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
+    opt_func_test = OptimizationFunction(loss_ude, Optimization.AutoZygote())
     opt_prob_test = OptimizationProblem(opt_func_test, p_test, nothing)
     result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=500,
                         callback = (state, l) -> false)
