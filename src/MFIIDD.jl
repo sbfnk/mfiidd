@@ -1,6 +1,7 @@
 module MFIIDD
 
 using CodeTracking: definition
+using CSV: CSV
 using DataFrames: DataFrame
 using DifferentialEquations: ODEProblem, Tsit5, solve
 using Distributions: Distribution, Poisson, logpdf
@@ -26,6 +27,7 @@ export gillespie_step, gillespie_step_seitl!, gillespie_step_seit4l!
 export particle_filter_seitl, particle_filter_seit4l, run_particle_filter
 export SEIT4LDynamics, SEIT4LInitial, PoissonObservation
 export source_for
+export load_flu_tdc, load_epi1, load_pmcmc_seit4l_chain, load_pmcmc_seitl_chain
 
 """
     source_for(file::AbstractString) -> String
@@ -57,6 +59,41 @@ function source_for(f::Function)
     end
     return join(chunks, "\n\n")
 end
+
+_read_data(file::AbstractString) =
+    CSV.read(joinpath(pkgdir(@__MODULE__), "data", file), DataFrame)
+
+"""
+    load_flu_tdc() -> DataFrame
+
+Tristan da Cunha 1971 influenza outbreak: 59 days of daily incidence
+(Mantle & Tyrrell 1973). Columns: `date`, `time`, `obs`.
+"""
+load_flu_tdc() = _read_data("flu_tdc_1971.csv")
+
+"""
+    load_epi1() -> DataFrame
+
+Synthetic SIR epidemic used in the introduction session. Columns:
+`time`, `obs`.
+"""
+load_epi1() = _read_data("epi1_synthetic.csv")
+
+"""
+    load_pmcmc_seit4l_chain() -> DataFrame
+
+Pre-computed PMMH chain for the stochastic SEIT4L model fit to the
+Tristan da Cunha 1971 outbreak.
+"""
+load_pmcmc_seit4l_chain() = _read_data("pmcmc_seit4l_chain.csv")
+
+"""
+    load_pmcmc_seitl_chain() -> DataFrame
+
+Pre-computed PMMH chain for the stochastic SEITL model fit to the
+Tristan da Cunha 1971 outbreak.
+"""
+load_pmcmc_seitl_chain() = _read_data("pmcmc_seitl_chain.csv")
 
 @compile_workload begin
     sir_df = simulate_sir(2.0, 4.0, 999.0, 1.0, 0.0:1.0:10.0)

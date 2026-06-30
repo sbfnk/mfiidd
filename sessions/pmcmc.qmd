@@ -73,13 +73,11 @@ using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
 using MCMCChains ## for MCMC diagnostics
 using AdvancedMH ## for custom MH proposals
-using CSV ## for CSV file reading
 using StatsBase ## for statistical functions
 using JLD2 ## for loading pre-computed chains
 using SSMProblems ## for state-space model interface
 using GeneralisedFilters ## for particle filtering
 using ForwardDiff ## for stripping Dual numbers in non-differentiable likelihoods
-using DrWatson
 ```
 
 ## Load the course package
@@ -132,7 +130,7 @@ We load the Tristan da Cunha data and set up initial conditions:
 
 ```{julia}
 # Load Tristan da Cunha data
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+flu_tdc = load_flu_tdc()
 
 # Initial state for SEIT4L
 init_state = Dict(
@@ -273,7 +271,7 @@ Running PMMH with RAM for good mixing takes several hours. We load pre-computed 
 
 ```{julia}
 # Load pre-computed SEIT4L chain with good mixing
-chain_df = CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame)
+chain_df = load_pmcmc_seit4l_chain()
 chain_pmcmc = Chains(Matrix(chain_df[:, [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]]),
                      [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ])
 ```
@@ -432,7 +430,7 @@ Both models were fitted using RAM with 500,000 iterations, 50,000 burn-in, and t
 
 ```{julia}
 # Load pre-computed SEITL chain
-chain_seitl_df = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame)
+chain_seitl_df = load_pmcmc_seitl_chain()
 chain_seitl = Chains(Matrix(chain_seitl_df[:, [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]]),
                      [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ])
 ```

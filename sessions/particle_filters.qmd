@@ -67,11 +67,9 @@ using Distributions ## for probability distributions
 using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
-using CSV ## for CSV file reading
 using StatsBase ## for statistical functions
 using SSMProblems ## for state-space model interface
 using GeneralisedFilters ## for particle filtering
-using DrWatson
 ```
 
 ## Load the course package
@@ -112,7 +110,7 @@ This integral is intractable - we can't enumerate all possible trajectories. Par
 
 ```{julia}
 # Load Tristan da Cunha data
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+flu_tdc = load_flu_tdc()
 
 # Parameters (reasonable values from literature)
 θ_example = Dict(

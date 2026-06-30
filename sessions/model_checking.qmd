@@ -53,9 +53,8 @@ using Plots
 using StatsPlots
 using Turing
 using MCMCChains
-using CSV
-using DrWatson
 using StatsBase
+using MFIIDD
 ```
 
 ## Initialisation
@@ -206,7 +205,7 @@ The SIR model we're about to fit will not capture the Tristan da Cunha data well
 
 ```{julia}
 # Load data and fit model
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+flu_tdc = load_flu_tdc()
 
 model = sir_model(times, S0, I0, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
 chain = sample(model, NUTS(), 1000, progress=false)

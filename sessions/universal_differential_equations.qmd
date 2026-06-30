@@ -78,16 +78,15 @@ ENV["GKSwstype"] = "100"  # Suppress plot windows during render
 using DifferentialEquations
 using Distributions
 using DataFrames
-using CSV
 using Plots
 using Random
 using LinearAlgebra
-using DrWatson
 using Lux  # Modern neural network framework (https://lux.csail.mit.edu/)
 using ComponentArrays
 using Optimization
 using OptimizationOptimisers
 using Optimisers  # For Adam optimizer
+using MFIIDD
 
 Random.seed!(1234)
 ```
@@ -95,7 +94,7 @@ Random.seed!(1234)
 # Load Tristan da Cunha data
 
 ```{julia}
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+flu_tdc = load_flu_tdc()
 
 scatter(
     flu_tdc.time, flu_tdc.obs,

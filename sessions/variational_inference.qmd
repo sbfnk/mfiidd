@@ -48,7 +48,6 @@ ENV["GKSwstype"] = "100"  # Suppress plot windows during render
 using DifferentialEquations
 using Distributions
 using DataFrames
-using CSV
 using Plots
 using StatsPlots
 using Turing
@@ -57,8 +56,8 @@ using ADTypes: AutoForwardDiff
 using MCMCChains
 using Random
 using LinearAlgebra
-using DrWatson
 using Statistics: mean, std, cor
+using MFIIDD
 
 Random.seed!(1234)
 ```
@@ -71,7 +70,7 @@ The closest equivalent is Stan's ADVI (e.g. `vb()` in rstan, `$variational()` in
 # Load Tristan da Cunha data
 
 ```{julia}
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+flu_tdc = load_flu_tdc()
 
 scatter(
     flu_tdc.time, flu_tdc.obs,

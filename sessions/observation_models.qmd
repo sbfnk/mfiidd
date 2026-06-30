@@ -53,15 +53,14 @@ The source file of this session is located at `sessions/observation_models.qmd`.
 using DifferentialEquations
 using Distributions
 using DataFrames
-using CSV
 using Plots
 using StatsPlots
 using Turing
 using MCMCChains
 using Random
 using LinearAlgebra
-using DrWatson
 using StatsBase  # For Weights in ABC-SMC
+using MFIIDD
 ```
 
 ## Initialisation
@@ -78,7 +77,7 @@ We'll use the same influenza outbreak data from 1971:
 
 ```{julia}
 # Load data
-flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
+flu_tdc = load_flu_tdc()
 
 # Plot
 scatter(
