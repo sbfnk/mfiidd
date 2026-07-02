@@ -18,11 +18,3 @@ makedocs(;
         "API" => "api.md",
     ],
 )
-
-deploydocs(;
-    repo="github.com/sbfnk/mfiidd",
-    devbranch="main",
-    target="build",
-    dirname="api",
-    push_preview=false,
-)
