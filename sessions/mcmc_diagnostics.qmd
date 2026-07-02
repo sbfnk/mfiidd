@@ -13,28 +13,22 @@ order: 3
 
 # Introduction
 
-In the previous session, you learned how MCMC algorithms explore posterior distributions by taking random walks through parameter space.
-You implemented Metropolis-Hastings yourself and saw how [Turing.jl](https://turinglang.org/stable/)'s NUTS algorithm automates everything with gradient-based sampling.
-But there's a critical question we haven't yet fully addressed: How do you know if the inference procedure has worked?
+In the previous session, you saw how MCMC algorithms explore posterior distributions by taking random walks through parameter space.
+You implemented Metropolis-Hastings yourself and used [Turing.jl](https://turinglang.org/stable/)'s NUTS to do the same thing with gradients. What we haven't addressed: how do you know the sampler actually worked?
 
-MCMC algorithms don't come with guarantees.
-A chain will always give you numbers, but those numbers might not be representative posterior samples. The chain could be stuck exploring only part of the parameter space, still working towards the target distribution, or mixing so slowly that your "samples" are nearly duplicates. MCMC only guarantees unbiased sampling in the limit of infinitely many samples.
-Using unreliable MCMC output leads to incorrect inference - wrong parameter estimates, overconfident intervals, and bad scientific conclusions.
+MCMC comes with weak guarantees. A chain always returns numbers, but nothing forces those numbers to be representative samples from the posterior. Chains get stuck, wander with no clear trend, or mix so slowly that a thousand "samples" are effectively a dozen. The convergence theorems only kick in as the number of iterations goes to infinity, which is not a length of run anyone actually does. Take unreliable output at face value and you end up with the wrong point estimates and overconfident intervals.
 
-This session teaches you how to diagnose MCMC chains systematically.
-You will learn to spot problems visually with trace plots, quantify convergence with R̂ and effective sample size, and understand when your posterior samples are trustworthy.
-These diagnostic skills are essential for any serious Bayesian analysis.
+This session covers how to catch those failures before they end up in a paper: trace plots for the visual check, R̂ and effective sample size for the numerical ones, and a few standard failure modes worth keeping in mind.
 
 # Objectives
 
-In this session, you will learn how to assess whether your MCMC chains have converged and whether your posterior samples are reliable.
-This is an important component of trustworthy Bayesian analysis.
+The aim is to learn how to assess whether your MCMC chains have converged and whether your posterior samples are reliable enough to base conclusions on.
 
-You will learn to:
+In this session, you will:
 
-1. Visually diagnose chains using trace plots and other visualisations
+1. Diagnose chains visually using trace plots and other visualisations
 2. Calculate quantitative diagnostics like R̂ and effective sample size
-3. Identify common problems and how to fix them
+3. Identify common failure modes and how to fix them
 4. Use Turing.jl's built-in diagnostics for automated checking
 5. Apply best practices for robust MCMC in practice
 
@@ -166,17 +160,7 @@ p2 = plot(
 plot(p1, p2, layout = (2, 1), size = (800, 600))
 ```
 
-The features that you'll want to look out for in trace plots are:
-
-- **Good mixing**: Chain moves freely around parameter space
-- **Stationarity**: No obvious trends or drifts
-- **Fat hairy caterpillar**: Rapid exploration of the posterior
-
-The kind of features to avoid are:
-
-- **Poor mixing**: Chain gets stuck in regions
-- **Trends**: Chain still climbing/descending
-- **Thin worm**: Chain not exploring enough
+Look for a chain that moves freely around parameter space, shows no obvious trend or drift, and stays visually "fat" — rapid up-and-down fluctuations rather than a thin worm-like track. The opposites are what you want to avoid: a chain stuck in one region, still climbing or descending after warmup, or exploring only a narrow band.
 
 ## 2. Running averages
 
@@ -363,11 +347,7 @@ for row in eachrow(ess_values)
 end
 ```
 
-ESS interpretation:
-
-- **ESS ≈ N**: Very efficient, little autocorrelation
-- **ESS << N**: High autocorrelation, need more samples
-- **ESS < 100**: Generally insufficient for reliable inference
+An ESS close to N means little autocorrelation and efficient sampling. An ESS much smaller than N means the samples are highly correlated and you need to run longer. As a rule of thumb, ESS below 100 is generally not enough for reliable inference.
 
 ## 3. Monte Carlo Standard Error (MCSE)
 
@@ -396,25 +376,11 @@ end
 
 ## Problem 1: Poor mixing (chain gets stuck)
 
-**Common causes:**
+Chains get stuck for a few common reasons: a sampler too basic for the geometry, proposal steps that are the wrong size, correlated parameters or narrow ridges in the posterior, or multimodality trapping the chain in one mode.
 
-- **Algorithm too slow**: Basic samplers get stuck in regions
-- **Poor step size**: Proposals too small or too large
-- **Difficult geometry**: Highly correlated parameters, narrow ridges
-- **Multimodality**: Chain trapped in one mode
+The first thing to try is a better algorithm — NUTS handles most well-behaved posteriors — and running longer. If that isn't enough, reparametrise the model to give the posterior a friendlier shape, and run multiple chains from different starting points so stuck chains show up as outliers.
 
-**Solutions:**
-
-1. **Use better algorithms**: NUTS (which we're using!) is usually excellent
-2. **Run longer**: Increase number of samples if mixing is just slow
-3. **Reparametrise**: Transform parameters to improve geometry
-4. **Multiple chains**: Run several chains to detect stuck chains
-
-For modern gradient-based samplers like NUTS, poor mixing is rare if:
-
-- Your model is specified correctly
-- The posterior is reasonably well-behaved
-- You're using appropriate priors
+With gradient-based samplers like NUTS, mixing problems are uncommon when the model is specified correctly, the posterior is reasonably well-behaved, and the priors aren't pathological.
 
 ## Problem 2: Divergent transitions (for HMC/NUTS)
 
@@ -437,13 +403,11 @@ end
 
 ## Problem 3: Multi-modal posteriors
 
-Sometimes posteriors have multiple peaks, and chains might get trapped in one mode.
-Running multiple chains with different starting points helps detect this - if chains converge to different modes, R̂ will be high.
+Some posteriors have multiple peaks, and a single chain can settle into one and never see the others. The standard responses are:
 
-**Solutions for multimodal posteriors:**
-1. **Run multiple chains** with different starting points
-2. **Use more advanced samplers** (parallel tempering, etc.)
-3. **Check R̂**: Will be high if chains are in different modes
+- Run multiple chains from different starting points
+- Use more advanced samplers (parallel tempering, etc.)
+- Watch R̂ — it will flag chains that end up in different modes
 
 ::: {.callout-note title = "Example: Detecting multimodality" collapse = "true"}
 
@@ -546,12 +510,12 @@ If they don't, your model needs improvement - no amount of MCMC will fix a funda
 
 ## The complete workflow
 
-1. **Run multiple chains** (at least 4)
-2. **Check trace plots** visually
-3. **Calculate R̂ and ESS**
-4. **Check for divergences** (NUTS)
-5. **Do posterior predictive checks**
-6. **Re-run if needed** with more samples or different settings
+1. Run multiple chains (at least 4)
+2. Check the trace plots
+3. Calculate R̂ and ESS
+4. Check for divergences (NUTS)
+5. Run a posterior predictive check
+6. Rerun with more samples or different settings if any of these come back badly
 
 # Advanced diagnostics
 
@@ -692,12 +656,12 @@ plot(chain_fixed)
 After fixing the scales, R̂ should be much closer to 1.0 and ESS should increase substantially.
 :::
 
-**How to fix problematic models:**
+The general recipe:
 
-1. **Reparametrise**: Use centered parameterizations
-2. **Better priors**: Match scales of parameters
-3. **Longer adaptation**: Increase warmup period
-4. **Check model**: Maybe the model specification is wrong
+1. Reparametrise (e.g. centered parameterisations)
+2. Match prior scales across parameters
+3. Extend the warmup period
+4. Check whether the model specification itself is doing something wrong
 
 # How the pieces fit together
 
