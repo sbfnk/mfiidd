@@ -48,7 +48,7 @@ jobs:
       - name: Bundle API reference into site
         run: cp -r docs/build _site/api
 
-      - name: Upload website
+      - name: Upload website (PR artifact)
         uses: actions/upload-artifact@v4
         if: github.event_name == 'pull_request'
         with:
@@ -56,11 +56,22 @@ jobs:
           retention-days: 5
           path: _site
 
+      - name: Deploy PR preview 🚀
+        if: github.event_name == 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        with:
+          branch: gh-pages
+          folder: _site
+          target-folder: previews/PR-${{ github.event.pull_request.number }}
+          clean: false
+
       - name: Deploy to GitHub pages 🚀
-        if: github.ref_name == 'main'
+        if: github.event_name == 'push' && github.ref_name == 'main'
         uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           branch: gh-pages
           folder: _site
           single-commit: true
           clean: true
+          clean-exclude: |
+            previews
