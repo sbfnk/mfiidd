@@ -34,7 +34,7 @@ jobs:
           version: '1.12.6'
 
       - name: Install Julia dependencies
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
+        run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.resolve()'
 
       - name: Render site
         run: quarto render
