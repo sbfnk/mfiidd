@@ -52,9 +52,9 @@ function simulate_sir(R_0, D_inf, S0, I0, times)
 
     df = DataFrame(
         time = sol.t,
-        S = [sol.u[i][1] for i in 1:length(sol)],
-        I = [sol.u[i][2] for i in 1:length(sol)],
-        R = [sol.u[i][3] for i in 1:length(sol)]
+        S = [u[1] for u in sol.u],
+        I = [u[2] for u in sol.u],
+        R = [u[3] for u in sol.u]
     )
 
     # Compute daily incidence from change in R
