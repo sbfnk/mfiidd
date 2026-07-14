@@ -39,9 +39,6 @@ jobs:
       - name: Render site
         run: quarto render
 
-      - name: Instantiate docs environment
-        run: julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-
       - name: Build API reference
         run: julia --project=docs docs/make.jl
 
