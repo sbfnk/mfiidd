@@ -13,13 +13,13 @@ order: 2
 
 # Introduction
 
-In the previous session, you learned Bayesian inference through manual calculations - computing priors, likelihoods, and posteriors and exploring the posterior distribution using grid search. 
+In the previous session, you learned Bayesian inference through manual calculations: computing priors, likelihoods, and posteriors and exploring the posterior distribution using grid search.
 This approach introduced you to the core components of conducting inference, but it also exposed a fundamental problem: grid search doesn't scale.
 
 This session introduces Markov Chain Monte Carlo (MCMC), the algorithmic solution that makes Bayesian inference practical for real problems.
 Rather than exhaustively searching parameter space, MCMC intelligently explores it by taking random walks that spend more time in high-probability regions.
 
-You'll build understanding by coding a simple MCMC algorithm yourself, then see how modern tools like [Turing.jl](https://turinglang.org/stable/) automate everything with state-of-the-art methods.
+You'll build understanding by walking through a simple MCMC implementation, then see how modern tools like [Turing.jl](https://turinglang.org/stable/) automate everything with state-of-the-art methods.
 By the end, you'll understand both what MCMC does under the hood and how to use it effectively in practice.
 
 # Objectives
@@ -39,6 +39,7 @@ In this session, you will:
 
 ```{julia}
 #| echo: false
+#| output: false
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
 ```
 
@@ -115,16 +116,18 @@ This worked for our simple SIR model with 2 parameters, but we also saw that the
 
 Instead of trying all combinations, Markov chain Monte Carlo works in the following way:
 
-1. **Start somewhere** in parameter space
-2. **Propose a small move** to nearby parameters
-3. **Accept or reject** the move based on how much better/worse the posterior is
-4. **Repeat** many times to build up a sample
+1. Start somewhere in parameter space
+2. Propose a small move to nearby parameters
+3. Accept or reject the move based on how much better or worse the posterior is
+4. Repeat many times to build up a sample
 
-This is the **Metropolis-Hastings algorithm** - let's implement it ourselves!
+This is the Metropolis-Hastings algorithm.
 
 ## Metropolis-Hastings for a simple case
 
-Let's start by sampling from a simple 1D Normal distribution to understand the algorithm:
+At its heart, Metropolis-Hastings is a method for drawing samples from any probability distribution we can *evaluate* at every point — even when we can't sample from it directly.
+That includes posteriors, but also familiar distributions like the Gaussian.
+Before we point it at anything complicated, let's run it on `Normal(5, 2)` so we can compare the samples against a known truth:
 
 ```{julia}
 # Target distribution: Normal(5, 2)
@@ -191,14 +194,14 @@ println("Sample std: $(round(std(samples_mh), digits = 2)) (true: $(target_std))
 ```{julia}
 # Visualise the results
 p1 = plot(
-    samples_mh[1:1000], title = "Trace Plot (first 1000 samples)", 
-    xlabel = "Iteration", ylabel = "x", linewidth = 1
+    samples_mh, title = "Trace plot", xlabel = "Iteration", ylabel = "x",
+    linewidth = 1, label = ""
 )
 hline!(p1, [target_mean], color = :red, linewidth = 2, label = "True mean")
 
 p2 = histogram(
-    samples_mh[1001:end], normalize = :pdf, alpha = 0.7, 
-    title = "Sampled Distribution", xlabel = "x", ylabel = "Density",
+    samples_mh, normalize = :pdf, alpha = 0.7,
+    title = "Sampled distribution", xlabel = "x", ylabel = "Density",
     label = "MCMC samples"
 )
 
@@ -211,6 +214,64 @@ plot!(
 
 plot(p1, p2, layout = (2, 1), size = (800, 600))
 ```
+
+The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a "fat, hairy caterpillar" that fills the vertical band around its target.
+The histogram of samples closely matches the true density.
+
+::: {.callout-tip title="Exercise: What is the proposal distribution?"}
+Look back at `metropolis_hastings_1d`.
+Which line draws the proposed new state, and what distribution does it use?
+What role does the `proposal_std` argument play?
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+The line `proposal_x = current_x + randn() * proposal_std` draws a proposed new state.
+`randn()` returns a standard Normal sample, so `current_x + randn() * proposal_std` is a draw from `Normal(current_x, proposal_std)` — the proposal distribution is a Normal centred on the current state.
+`proposal_std` controls how far the sampler tries to jump on each step.
+The next subsection explores what happens when we make it too small or too large.
+:::
+
+::: {.callout-note collapse="true"}
+## Coming from R? The same sampler in R
+
+The Julia MH sampler above translates directly:
+
+```r
+target_mean <- 5.0
+target_std <- 2.0
+
+eval_log_density <- function(x) {
+  dnorm(x, mean = target_mean, sd = target_std, log = TRUE)
+}
+
+metropolis_hastings_1d <- function(log_density_fn, n_samples,
+                                   initial_value, proposal_std) {
+  samples <- numeric(n_samples)
+  current_x <- initial_value
+  current_log_prob <- log_density_fn(current_x)
+  n_accepted <- 0
+
+  for (i in 1:n_samples) {
+    proposal_x <- current_x + rnorm(1, mean = 0, sd = proposal_std)
+    proposal_log_prob <- log_density_fn(proposal_x)
+
+    log_alpha <- proposal_log_prob - current_log_prob
+    if (runif(1) < exp(log_alpha)) {
+      current_x <- proposal_x
+      current_log_prob <- proposal_log_prob
+      n_accepted <- n_accepted + 1
+    }
+    samples[i] <- current_x
+  }
+
+  list(samples = samples, acceptance_rate = n_accepted / n_samples)
+}
+
+result <- metropolis_hastings_1d(eval_log_density, 5000, 0.0, 1.0)
+```
+
+The core algorithm is identical; only syntax differs.
+:::
 
 ## The general principle: MCMC as a universal random number generator
 
@@ -302,7 +363,7 @@ This is where more sophisticated algorithms that tune the proposal distribution 
 
 ::: {.callout-note appearance="simple"}
 ## Good time for a break
-You've now implemented Metropolis-Hastings from scratch and understand its core mechanics. The next sections show how modern tools automate this. If you're working through this in one sitting, this is a natural pause point.
+You've now seen Metropolis-Hastings from scratch and understand its core mechanics. The next sections show how modern tools automate this. If you're working through this in one sitting, this is a natural pause point.
 :::
 
 # Automating MCMC with Turing.jl
@@ -349,10 +410,7 @@ model {
 The key advantage of Turing is that the model is written in native Julia, so you can use loops, conditionals, and call any Julia function (like our ODE solver) directly inside the model — no separate modelling language needed.
 :::
 
-::: {.callout-tip collapse="true"}
-## Going further: sampling without Turing
-Turing's `@model` macro is convenient syntax, but it's not the only way to do MCMC in Julia. In the [Introduction](introduction.qmd) you built a log-posterior function by hand — that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface. This gives you access to samplers beyond what Turing offers, with fewer dependencies. See the [reference page](../reference/logdensity_interface.qmd) for a worked example.
-:::
+Now let's run the same Metropolis-Hastings algorithm as before, but with Turing handling the plumbing:
 
 ```{julia}
 #| output: false
@@ -412,7 +470,7 @@ Turing.jl did exactly what we coded earlier, but in a single call to the `sample
 ## Applying Turing.jl to the SIR model
 
 Turing.jl uses the `@model` macro to define Bayesian models.
-This is the same structure we've been using manually - priors, simulation, and likelihood - but now in a form that Turing can automatically sample from:
+This is the same structure we've been using manually (priors, simulation, likelihood) but now in a form that Turing can automatically sample from:
 
 ```{julia}
 # Define our SIR model in Turing.jl
@@ -479,21 +537,22 @@ plot(
 )
 ```
 
-::: {.callout-note}
-## What to expect from the exercise below
-Finding good proposals by hand is difficult. The goal is to experience the challenge, not to find a perfect solution.
-
-**Suggested approach:**
-- Spend 5-10 minutes experimenting with different proposal matrices
-- If you're stuck after 10 minutes, reveal the solution - you've learned the key lesson
-- The frustration is the point: manual tuning doesn't scale to real problems
-:::
+The trace looks poor: the chain gets stuck at single values for long stretches instead of exploring freely.
+Compare this against the healthy trace from the Normal example above — that's the target shape.
+The identity proposal we passed is a bad match for this posterior, and we can do better by tuning the proposal covariance.
 
 ::: {.callout-tip title="Exercise: Tune the proposal distribution"}
 
-The trace plot above shows poor mixing - the chain gets stuck and doesn't explore efficiently. Your task is to improve it by adjusting the proposal covariance matrix.
+Your task is to improve the mixing above by adjusting the proposal covariance matrix.
+Finding good proposals by hand is hard; the goal is to experience the challenge, not to find a perfect solution.
 
-**The proposal covariance matrix** controls how the sampler proposes new parameter values:
+Suggested approach:
+
+- Spend 5–10 minutes experimenting with different proposal matrices.
+- If you're stuck after 10 minutes, reveal the solution — you've learned the key lesson.
+- The frustration is the point: manual tuning doesn't scale to real problems.
+
+The proposal covariance matrix controls how the sampler proposes new parameter values:
 
 ```julia
 # Current: identity matrix (proposal std = 1.0 for both parameters)
@@ -504,47 +563,44 @@ MH([1.0 0.0; 0.0 1.0])
 # Off-diagonal = covariance between parameters
 ```
 
-**Try these experiments** (run each for 5000 samples):
+Try these experiments (run each for 5000 samples):
 
-1. **Smaller proposals**: `MH([0.1 0.0; 0.0 0.1])` - what happens to acceptance rate?
-2. **Larger proposals**: `MH([5.0 0.0; 0.0 5.0])` - does it explore faster or slower?
-3. **Different scales**: `MH([0.5 0.0; 0.0 0.1])` - R₀ and D_inf may need different step sizes
-4. **Add correlation**: `MH([1.0 0.5; 0.5 1.0])` - if parameters are correlated in the posterior, correlated proposals may help
+1. Smaller proposals: `MH([0.01 0.0; 0.0 0.01])` — what happens to acceptance rate?
+2. Larger proposals: `MH([5.0 0.0; 0.0 5.0])` — does it explore faster or slower?
+3. Even smaller: `MH([0.001 0.0; 0.0 0.001])` — the posterior turns out to be very concentrated for this dataset.
+4. Add correlation: `MH([0.001 -0.0005; -0.0005 0.001])` — if parameters are correlated in the posterior, correlated proposals may help.
 
-**Questions to answer:**
+Questions to answer:
 
-- What acceptance rate gives the best mixing? (Hint: aim for ~23% for random walk MH)
+- What acceptance rate gives the best mixing? (Hint: aim for ~23% for random walk MH.)
 - Can you find settings that give a well-mixed trace for *both* parameters simultaneously?
-- How long did tuning take you? Imagine doing this for 10+ parameters...
+- How long did tuning take you? Imagine doing this for 10+ parameters.
 
+::: {.callout-tip title="Hint 1: interpreting acceptance rates" collapse="true"}
+Acceptance rate too high (>50%)? Your proposals are too small. The chain accepts most moves but takes tiny steps; you'll see the trace plot moving very slowly.
+
+Acceptance rate too low (<10%)? Your proposals are too large. Most proposed jumps land in low-probability regions and get rejected; you'll see the trace plot stuck for many iterations.
+
+Sweet spot (~20–30%): a healthy balance of exploration and acceptance.
+
+Check your acceptance rate with: `mean(diff(vec(chain[:R_0])) .!= 0)`
 :::
 
-::: {.callout-tip title="Hint 1: Interpreting acceptance rates (click if stuck after 2-3 attempts)" collapse="true"}
-**Acceptance rate too high (>50%)?** Your proposals are too small. The chain accepts most moves but takes tiny steps - you'll see the trace plot moving very slowly.
+::: {.callout-tip title="Hint 2: matching proposal scale to posterior scale" collapse="true"}
+The identity proposal we started with uses `std = 1.0` for each parameter, but this posterior is very concentrated (both parameters have std around 0.04 once you get there).
+Proposal std much larger than the posterior width means almost every jump lands in a low-density region and gets rejected.
 
-**Acceptance rate too low (<10%)?** Your proposals are too large. Most proposed jumps land in low-probability regions and get rejected - you'll see the trace plot "stuck" for many iterations.
-
-**Sweet spot (~20-30%)**: A healthy balance of exploration and acceptance.
-
-Check your acceptance rate with: `mean(diff(chain[:R_0].data) .!= 0)`
+Rule of thumb: proposal std ≈ 0.5–1× posterior std, i.e. proposal variance around 0.001 for each parameter here.
 :::
 
-::: {.callout-tip title="Hint 2: Why do R₀ and D_inf need different scales? (click if one parameter mixes well but not the other)" collapse="true"}
-Look at the posterior uncertainty for each parameter:
-- R₀ might range from ~1.5 to ~3.5 (spread of ~2)
-- D_inf might range from ~1.5 to ~3.0 (spread of ~1.5)
-
-If you use the same proposal std for both, one will be well-tuned while the other is either too large or too small. Try making the proposal std roughly proportional to the posterior width.
-
-**Rule of thumb**: proposal std ≈ 0.1-0.3 × posterior width
-:::
-
-::: {.callout-tip title="Hint 3: Why might correlation help? (click if diagonal proposals aren't working)" collapse="true"}
+::: {.callout-tip title="Hint 3: why correlation might help" collapse="true"}
 Run the chain and look at a scatter plot of R₀ vs D_inf samples. If they're negatively correlated (higher R₀ → lower D_inf), then independent proposals are inefficient.
 
 Imagine the posterior is a narrow diagonal ridge. Independent proposals move horizontally or vertically, often stepping off the ridge. Correlated proposals can move *along* the ridge.
 
-Try a small negative off-diagonal value: `MH([0.3 -0.05; -0.05 0.1])`
+Try a small negative off-diagonal value, e.g. `MH([0.001 -0.0005; -0.0005 0.001])`.
+:::
+
 :::
 
 ```{julia}
@@ -553,51 +609,59 @@ Try a small negative off-diagonal value: `MH([0.3 -0.05; -0.05 0.1])`
 # plot(chain_tuned)
 ```
 
-::: {.callout-tip title="Solution: A reasonable proposal (click to reveal)" collapse="true"}
+::: {.callout-tip title="Solution: A reasonable proposal" collapse="true"}
 
 After experimentation, a proposal like this works reasonably well:
 
 ```julia
-# Different scales for each parameter, with negative correlation
-chain_tuned = sample(model, MH([0.3 -0.1; -0.1 0.1]), 5000)
+# Proposal variance ~0.001, with a small negative correlation
+chain_tuned = sample(model, MH([0.001 -0.0005; -0.0005 0.001]), 5000)
 ```
 
-**Why this works:**
+Why this works:
 
-1. **Smaller proposals** (0.3 for R₀, 0.1 for D_inf): The posterior is concentrated in a small region. Large proposals jump outside this region and get rejected.
+1. Small proposals (variance 0.001, std ≈ 0.03): the posterior for both parameters has standard deviation ≈ 0.04 for this dataset — much narrower than the priors suggest. Any proposal much wider than that gets rejected almost every time.
+2. Negative correlation: higher R₀ values are consistent with lower D_inf values (both increase transmission rate). Correlated proposals explore this diagonal ridge more efficiently.
 
-2. **Different scales**: R₀ has a larger range (~1-20) than D_inf (~1-14), and the posterior uncertainty differs. Matching proposal scale to posterior scale improves efficiency.
-
-3. **Negative correlation** (-0.1): Higher R₀ values are consistent with lower D_inf values (both increase transmission rate). Correlated proposals explore this ridge more efficiently.
-
-**The key insight**: Finding these values required trial and error. Now imagine doing this for a model with 10 parameters (55 covariance values to tune). This is why adaptive methods like RAM and gradient-based methods like NUTS exist.
+The key insight: finding these values required trial and error, *and* required knowing the posterior scale in advance. In practice you don't know that scale up front. Now imagine doing this for a model with 10 parameters (55 covariance values to tune). This is why adaptive methods like RAM and gradient-based methods like NUTS exist.
 
 :::
 
 The difficulty you just experienced is why manual tuning doesn't scale. With 2 parameters, you have 3 values to tune (two variances, one covariance). With 10 parameters, you'd have 55 values. This motivates *adaptive* methods that learn the proposal automatically.
 
-## Adaptive MCMC - Learning better proposals
+## Adaptive MCMC: learning better proposals
 
 The problem with standard MH is that we need to manually tune the proposal covariance. If parameters are correlated, independent proposals (diagonal covariance) will mix poorly.
 
-*Robust Adaptive Metropolis (RAM)* solves this by automatically learning the posterior covariance during sampling:
+*Adaptive* Metropolis methods sidestep this by learning the proposal covariance from the samples themselves as the chain runs.
+The classical version (Haario et al., 2001) uses the empirical covariance of the samples seen so far.
+*Robust Adaptive Metropolis* (RAM; Vihola, 2012) instead adjusts a lower-triangular scaling matrix by comparing each iteration's acceptance probability to a target rate — this behaves more reliably in the tails of the posterior than the empirical-covariance approach.
+
+Let's run it on our SIR model:
 
 ```{julia}
 #| output: false
-# Adaptive MCMC - learns proposal covariance automatically
+using LinearAlgebra
+# Adaptive MCMC - learns proposal covariance automatically.
+# Seed the adaptation with a reasonable initial scale so it doesn't spend
+# thousands of steps trying to find the posterior region, and discard the
+# first 5000 samples as warmup while the covariance is still adapting.
+initial_scale = 0.05 .* Matrix{Float64}(I, 2, 2)
 chain_ram = sample(
     model,
-    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis(S = initial_scale)),
     5000;
-    check_model=false
+    discard_initial = 5000,
+    check_model = false
 )
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`RobustAdaptiveMetropolis()`](https://turinglang.org/AdvancedMH.jl/dev/) - from AdvancedMH.jl, this sampler adapts its proposal covariance based on the samples seen so far. It learns the correlation structure of the posterior and proposes moves that respect it.
+- [`RobustAdaptiveMetropolis(S = ...)`](https://turinglang.org/AdvancedMH.jl/dev/) - from AdvancedMH.jl. `S` is a lower-triangular Cholesky factor of the initial proposal covariance; the sampler updates it as it goes, growing or shrinking to hit a target acceptance rate.
 - `externalsampler()` - wraps an external sampler (from AdvancedMH.jl) for use with Turing models.
-- `check_model=false` - skips model validation (needed for some external samplers).
+- `discard_initial = 5000` - drops the first 5000 samples as warmup, so the returned chain is only from after adaptation has settled.
+- `check_model = false` - skips model validation (needed for some external samplers).
 :::
 
 ```{julia}
@@ -609,9 +673,19 @@ plot(p1, p2, layout=(1, 2), size=(800, 300))
 
 Notice how the adaptive sampler explores the parameter space more efficiently.
 
-## NUTS - A gradient-based upgrade
+## NUTS: a gradient-based upgrade
 
-For models where we can compute gradients (like our ODE model), NUTS (No U-Turn Sampler) offers even better efficiency:
+Even with adaptation, random-walk proposals are limited: they don't use any information about which direction the posterior is denser in.
+For any model built from operations we can *differentiate* — which includes our ODE model, since ODE solvers propagate derivatives — we can compute the *gradient* of the log-posterior with respect to the parameters.
+The gradient points from the current parameter values toward regions of higher posterior density.
+
+Hamiltonian Monte Carlo (HMC) uses those gradients to construct proposals that move along the shape of the posterior instead of jumping around blindly.
+Intuitively, it simulates a puck rolling on the negative log-posterior surface: gradients pull it into high-density regions and momentum lets it travel a long way before proposing a new state.
+This solves the two big problems of random-walk MH — poorly aligned proposals and short steps — because both the direction and the length of each move come from the posterior itself.
+
+*NUTS* (the No U-Turn Sampler) is the algorithm we actually run.
+It's HMC with two things automated: the step size (adapted during warmup) and the trajectory length (stopped when the simulated puck starts turning back on itself, hence the name).
+The result is a sampler that usually just works, with no tuning to speak of:
 
 ```{julia}
 #| output: false
@@ -659,9 +733,9 @@ plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
 
 Notice that:
 
-- NUTS mixes better (explores parameter space more efficiently)
-- NUTS needs fewer samples for same quality
-- NUTS had automatic warmup (no manual burn-in needed — see below)
+- NUTS mixes better: it explores the parameter space more efficiently.
+- NUTS needs fewer samples for the same quality.
+- NUTS had automatic warmup: no manual burn-in needed, see below.
 
 ::: {.callout-tip collapse="true"}
 ## What is burn-in?
@@ -672,10 +746,10 @@ With Metropolis-Hastings, you need to decide how many burn-in samples to discard
 
 What NUTS gives you automatically:
 
-1. No tuning required - automatically adapts step size and mass matrix during warmup
-2. Efficient exploration - uses gradients to navigate parameter space intelligently
-3. Automatic warmup - built-in adaptation period (no manual burn-in decisions)
-4. Better convergence - typically needs far fewer samples than Metropolis-Hastings
+1. No tuning required: adapts step size and mass matrix during warmup.
+2. Efficient exploration: uses gradients to navigate parameter space intelligently.
+3. Automatic warmup: built-in adaptation period, no manual burn-in decisions.
+4. Better convergence: typically needs far fewer samples than Metropolis-Hastings.
 
 ```{julia}
 # Built-in convergence diagnostics
@@ -694,10 +768,15 @@ summarystats(chain_nuts)
 | Sampler | Best for | Limitations |
 |---------|----------|-------------|
 | **MH** (Metropolis-Hastings) | Simple models, discrete parameters, learning MCMC | Requires manual tuning, slow for many parameters |
-| **RAM** (Robust Adaptive Metropolis) | Models where gradients aren't available (e.g. stochastic simulations) | Still random-walk, less efficient than gradient methods |
+| **RAM** (Robust Adaptive Metropolis) | Low-dimensional models where gradients aren't available. For stochastic simulators like the particle filter we meet later in the course, gradient-free methods like this are typically what you fall back on. | Still random-walk, less efficient than gradient methods |
 | **NUTS** (No U-Turn Sampler) | Continuous parameters with differentiable models (ODEs, most Turing models) | Can't handle discrete parameters; needs gradients |
 
 **Rule of thumb**: Start with `NUTS()`. If your model has discrete parameters or stochastic components that break automatic differentiation, fall back to `MH` or `RAM`.
+:::
+
+::: {.callout-tip collapse="true"}
+## Going further: sampling without Turing
+Turing's `@model` macro is convenient syntax, but it isn't the only way to do MCMC in Julia. In the [Introduction](introduction.qmd) you built a log-posterior function by hand; that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface, giving you access to samplers beyond what Turing offers, with fewer dependencies. See the [reference page](../reference/logdensity_interface.qmd) for a worked example.
 :::
 
 # Posterior analysis with Turing.jl
@@ -740,49 +819,4 @@ These summaries give us point estimates and uncertainty, but should we trust the
 - Betancourt (2017). [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434). *arXiv*. (Excellent intuition for HMC/NUTS)
 - [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/stable/) - Chain analysis and diagnostics
 
-**Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd) - how to tell if your chains have converged and your results are trustworthy!
-
-# Appendix: Coming from R?
-
-::: {.callout-note collapse="true"}
-## Metropolis-Hastings in R
-
-The Julia MH sampler above translates to R as follows:
-
-```r
-# Target distribution: Normal(5, 2)
-target_mean <- 5.0
-target_std <- 2.0
-
-eval_log_density <- function(x) {
-  dnorm(x, mean = target_mean, sd = target_std, log = TRUE)
-}
-
-metropolis_hastings_1d <- function(log_density_fn, n_samples,
-                                   initial_value, proposal_std) {
-  samples <- numeric(n_samples)
-  current_x <- initial_value
-  current_log_prob <- log_density_fn(current_x)
-  n_accepted <- 0
-
-  for (i in 1:n_samples) {
-    proposal_x <- current_x + rnorm(1, mean = 0, sd = proposal_std)
-    proposal_log_prob <- log_density_fn(proposal_x)
-
-    log_alpha <- proposal_log_prob - current_log_prob
-    if (runif(1) < exp(log_alpha)) {
-      current_x <- proposal_x
-      current_log_prob <- proposal_log_prob
-      n_accepted <- n_accepted + 1
-    }
-    samples[i] <- current_x
-  }
-
-  list(samples = samples, acceptance_rate = n_accepted / n_samples)
-}
-
-result <- metropolis_hastings_1d(eval_log_density, 5000, 0.0, 1.0)
-```
-
-The core algorithm is identical - only syntax differs.
-:::
+**Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd) — how to tell if your chains have converged and your results are trustworthy.
