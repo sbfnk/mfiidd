@@ -215,7 +215,7 @@ plot!(
 plot(p1, p2, layout = (2, 1), size = (800, 600))
 ```
 
-The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a fat, hairy caterpillar ([beware in the wild!](https://en.wikipedia.org/wiki/Oak_processionary_moth)) that fills the vertical band around its target.
+The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a fat, hairy [caterpillar](https://en.wikipedia.org/wiki/Pyrrharctia_isabella) that fills the vertical band around its target.
 The histogram of samples closely matches the true density.
 
 ::: {.callout-tip title="Exercise: What is the proposal distribution?"}
