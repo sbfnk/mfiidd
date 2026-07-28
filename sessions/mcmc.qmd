@@ -125,7 +125,7 @@ This is the Metropolis-Hastings algorithm.
 
 ## Metropolis-Hastings for a simple case
 
-At its heart, Metropolis-Hastings is a method for drawing samples from any probability distribution we can *evaluate* at every point — even when we can't sample from it directly.
+At its heart, Metropolis-Hastings is a method for drawing samples from any probability distribution we can evaluate at every point, even when we can't sample from it directly.
 That includes posteriors, but also familiar distributions like the Gaussian.
 Before we point it at anything complicated, let's run it on `Normal(5, 2)` so we can compare the samples against a known truth:
 
@@ -215,13 +215,12 @@ plot!(
 plot(p1, p2, layout = (2, 1), size = (800, 600))
 ```
 
-The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a "fat, hairy caterpillar" that fills the vertical band around its target.
+The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a fat, hairy [caterpillar](https://en.wikipedia.org/wiki/Woolly_bear) (beware in the wild!) that fills the vertical band around its target.
 The histogram of samples closely matches the true density.
 
 ::: {.callout-tip title="Exercise: What is the proposal distribution?"}
 Look back at `metropolis_hastings_1d`.
 Which line draws the proposed new state, and what distribution does it use?
-What role does the `proposal_std` argument play?
 :::
 
 ::: {.callout-tip title="Solution" collapse="true"}
@@ -269,8 +268,6 @@ metropolis_hastings_1d <- function(log_density_fn, n_samples,
 
 result <- metropolis_hastings_1d(eval_log_density, 5000, 0.0, 1.0)
 ```
-
-The core algorithm is identical; only syntax differs.
 :::
 
 ## The general principle: MCMC as a universal random number generator
@@ -538,7 +535,7 @@ plot(
 ```
 
 The trace looks poor: the chain gets stuck at single values for long stretches instead of exploring freely.
-Compare this against the healthy trace from the Normal example above — that's the target shape.
+Compare this against the healthy trace from the Normal example above; that's the target shape.
 The identity proposal we passed is a bad match for this posterior, and we can do better by tuning the proposal covariance.
 
 ::: {.callout-tip title="Exercise: Tune the proposal distribution"}
@@ -623,8 +620,6 @@ Why this works:
 1. Small proposals (variance 0.001, std ≈ 0.03): the posterior for both parameters has standard deviation ≈ 0.04 for this dataset — much narrower than the priors suggest. Any proposal much wider than that gets rejected almost every time.
 2. Negative correlation: higher R₀ values are consistent with lower D_inf values (both increase transmission rate). Correlated proposals explore this diagonal ridge more efficiently.
 
-The key insight: finding these values required trial and error, *and* required knowing the posterior scale in advance. In practice you don't know that scale up front. Now imagine doing this for a model with 10 parameters (55 covariance values to tune). This is why adaptive methods like RAM and gradient-based methods like NUTS exist.
-
 :::
 
 The difficulty you just experienced is why manual tuning doesn't scale. With 2 parameters, you have 3 values to tune (two variances, one covariance). With 10 parameters, you'd have 55 values. This motivates *adaptive* methods that learn the proposal automatically.
@@ -634,8 +629,8 @@ The difficulty you just experienced is why manual tuning doesn't scale. With 2 p
 The problem with standard MH is that we need to manually tune the proposal covariance. If parameters are correlated, independent proposals (diagonal covariance) will mix poorly.
 
 *Adaptive* Metropolis methods sidestep this by learning the proposal covariance from the samples themselves as the chain runs.
-The classical version (Haario et al., 2001) uses the empirical covariance of the samples seen so far.
-*Robust Adaptive Metropolis* (RAM; Vihola, 2012) instead adjusts a lower-triangular scaling matrix by comparing each iteration's acceptance probability to a target rate — this behaves more reliably in the tails of the posterior than the empirical-covariance approach.
+The classical version ([Haario et al., 2001](https://projecteuclid.org/journals/bernoulli/volume-7/issue-2/An-adaptive-Metropolis-algorithm/bj/1080222083.full)) uses the running empirical covariance of the samples seen so far.
+*Robust Adaptive Metropolis* (RAM; [Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)) instead scales the proposal to hit a target acceptance rate, which handles heavy-tailed posteriors better.
 
 Let's run it on our SIR model:
 
@@ -676,14 +671,14 @@ Notice how the adaptive sampler explores the parameter space more efficiently.
 ## NUTS: a gradient-based upgrade
 
 Even with adaptation, random-walk proposals are limited: they don't use any information about which direction the posterior is denser in.
-For any model built from operations we can *differentiate* — which includes our ODE model, since ODE solvers propagate derivatives — we can compute the *gradient* of the log-posterior with respect to the parameters.
+For any model built from operations we can differentiate (which includes our ODE model, since ODE solvers propagate derivatives) we can compute the gradient of the log-posterior with respect to the parameters.
 The gradient points from the current parameter values toward regions of higher posterior density.
 
 Hamiltonian Monte Carlo (HMC) uses those gradients to construct proposals that move along the shape of the posterior instead of jumping around blindly.
 Intuitively, it simulates a puck rolling on the negative log-posterior surface: gradients pull it into high-density regions and momentum lets it travel a long way before proposing a new state.
-This solves the two big problems of random-walk MH — poorly aligned proposals and short steps — because both the direction and the length of each move come from the posterior itself.
+This solves the two big problems of random-walk MH (poorly aligned proposals and short steps) because both the direction and the length of each move come from the posterior itself.
 
-*NUTS* (the No U-Turn Sampler) is the algorithm we actually run.
+NUTS (the No U-Turn Sampler) is the algorithm we actually run.
 It's HMC with two things automated: the step size (adapted during warmup) and the trajectory length (stopped when the simulated puck starts turning back on itself, hence the name).
 The result is a sampler that usually just works, with no tuning to speak of:
 
@@ -819,4 +814,4 @@ These summaries give us point estimates and uncertainty, but should we trust the
 - Betancourt (2017). [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434). *arXiv*. (Excellent intuition for HMC/NUTS)
 - [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/stable/) - Chain analysis and diagnostics
 
-**Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd) — how to tell if your chains have converged and your results are trustworthy.
+**Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd), how to tell if your chains have converged and your results are trustworthy.
