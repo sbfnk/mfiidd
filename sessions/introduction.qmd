@@ -14,19 +14,19 @@ order: 1
 # Introduction
 
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
-We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms for doing so more efficiently in the next session.
+We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms that explore the posterior systematically in the next session.
 
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
-We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for elegant statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
 
 In this session, you will
 
 1. understand priors, likelihood, and posterior through simulation
-2. calculate posterior distributions through manual grid search
-3. manually explore the posterior by trying different parameter values
-4. understand why we need algorithmic approaches (setting up the next session)
+2. manually try parameter combinations to see how they shape the posterior
+3. explore the posterior systematically through grid search
+4. see why we will need algorithmic approaches in later sessions
 
 # Setup
 
@@ -67,20 +67,17 @@ library(ggplot2)
 
 ## Initialisation
 
-We set a random seed for reproducibility. 
+We set a random seed for reproducibility.
 Setting this ensures that you should get exactly the same results on your computer as we do.
 
 ```{julia}
-#| include: false
-
 Random.seed!(1234)
 ```
 
 # A deterministic SIR model in Julia
 
 We'll work with a simple deterministic SIR model.
-The model has two parameters: the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$.
-The model equations are:
+We parameterise it with the basic reproductive number $R_0$ and the infectious period $D_\mathrm{inf}$, from which we derive the transmission rate $\beta = R_0/D_\mathrm{inf}$ and the recovery rate $\nu = 1/D_\mathrm{inf}$ that appear in the equations:
 
 $$
 \begin{cases}
@@ -91,8 +88,6 @@ $$
 \end{aligned}
 \end{cases}
 $$
-
-where $\beta=R_0/D_\mathrm{inf}$ and $\nu = 1/D_\mathrm{inf}$.
 
 To use this model in Julia we first define a function that represents the ODEs:
 
@@ -234,6 +229,11 @@ In our SIR model:
 - $R_0 \sim \text{Uniform}(1, 20)$: We believe $R_0$ could be anywhere from 1 to 20, with all values equally likely
 - $D_\mathrm{inf} \sim \text{Uniform}(1, 14)$: We believe infectious periods from 1 to 14 days are equally plausible
 
+::: {.callout-warning}
+Uniform distributions are a common first choice, but the hard boundary at the edges (in our case, zero probability for $R_0 = 0.99$ but $1/19$ of a unit of density for $R_0 = 1.01$) can cause numerical problems for many samplers.
+We use them here for simplicity; we'll introduce better-behaved priors below.
+:::
+
 We can explore what these priors mean through simulation:
 
 ```{julia}
@@ -266,7 +266,7 @@ println(
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-R uses function families for each distribution: `runif`/`dunif`/`punif`/`qunif` for random draws, density, CDF, and quantiles respectively. In Julia, you create a single distribution object and use generic functions:
+R uses function families for each distribution: `runif`/`dunif`/`punif`/`qunif` for random draws, density, CDF, and quantiles respectively. In Distributions.jl, you create a single distribution object and use generic functions:
 
 | Operation | R | Julia |
 |-----------|---|-------|
@@ -296,7 +296,11 @@ plot(p1, p2, layout = (1,2))
 
 ## Prior predictive simulation
 
-An important question is: what trajectories do our priors represent? We can find out by simulating epidemics using random draws from our priors:
+Priors encode our beliefs about parameters, but we usually also have expectations about the kinds of outcomes the model should produce.
+A *prior predictive check* connects the two: we draw parameter values from the priors, simulate the model, and inspect the resulting trajectories.
+If those trajectories look implausible, our priors are placing weight on parameter values we don't actually believe are reasonable.
+
+Let's do this for our SIR model by simulating epidemics using random draws from our priors:
 
 ```{julia}
 # Prepare plot where we'll add the individual trajectories
@@ -346,13 +350,12 @@ ggplot(df, aes(x, y)) + geom_line() + geom_point()
 :::
 
 ::: {.callout-tip title="Exercise: Evaluate the prior predictive trajectories"}
-Look at these trajectories. Do they seem reasonable? Are there any that look unrealistic?
+Imagine these trajectories are for a flu-like respiratory infection in a closed population of 1000 people.
+Are there any that don't look like how you would expect such an epidemic to unfold?
 
 - Do any grow too fast or too slow?
-- Are the peak sizes reasonable for a population of 1000?
+- Are the peak sizes plausible for a population of 1000?
 - Do any last too long or too short?
-
-This is *prior predictive checking* - validating that our priors produce scientifically plausible trajectories.
 :::
 
 ## Choosing different priors
@@ -369,14 +372,12 @@ R_0_informed_samples = rand(R_0_informed, 1000)
 D_inf_informed_samples = rand(D_inf_informed, 1000)
 
 p1 = histogram(
-    R_0_samples, title = "Flat Prior", xlabel = "R_0", alpha = 0.7,
-    label = "Uniform(1, 20)"
+    R_0_samples, xlabel = "R_0", alpha = 0.7, label = "Uniform(1, 20)"
 )
 histogram!(p1, R_0_informed_samples, alpha = 0.7, label = "Normal(2.5, 0.8)")
 
 p2 = histogram(
-    D_inf_samples, title = "Flat Prior", xlabel = "D_inf", alpha = 0.7,
-    label = "Uniform(1, 14)"
+    D_inf_samples, xlabel = "D_inf", alpha = 0.7, label = "Uniform(1, 14)"
 )
 histogram!(p2, D_inf_informed_samples, alpha = 0.7, label = "Gamma(2, 1)")
 
@@ -433,19 +434,23 @@ end
 plot!(p)
 ```
 
+The informed priors are not just narrower — they are also better behaved, avoiding the hard boundaries of the uniforms.
+(One imperfection remains: a Normal for $R_0$ technically places tiny probability on negative values.
+In practice you'd choose a `LogNormal` or a `truncated` Normal to guarantee positivity — we'll pick this up in later sessions.)
+
 Priors determine what kinds of epidemics our model considers plausible before seeing data.
 
 ::: {.callout-tip title="Exercise: Experiment with priors"}
 Try modifying the priors and re-running the prior predictive simulation above. For example:
 
 1. What happens if you use `R_0_prior = Uniform(1.0, 5.0)` instead of `Uniform(1.0, 20.0)`?
-2. What if you use `LogNormal(log(2.5), 0.3)` for $R_0$? (Hint: this centres the prior around 2.5 but on a log scale)
+2. What if you use `LogNormal(log(2.5), 0.3)` for $R_0$? (Hint: this centres the prior around 2.5 but on a logarithmic scale)
 3. Can you find a prior that produces only "realistic-looking" epidemic curves?
 
 There is no single right answer — the point is to build intuition for how prior choices affect the range of predictions.
 :::
 
-::: {.callout-tip}
+::: {.callout-note}
 ## Principles for choosing priors
 
 1. Use domain knowledge: What do published studies say about plausible parameter ranges? For infectious diseases, systematic reviews often provide estimates.
@@ -525,14 +530,13 @@ It asks: "If the parameters were X, how likely would we be to see the data we ac
 
 The prior predictive trajectories we looked at earlier were purely a function of the model and its specification.
 The likelihood, on the other hand, is about comparing the model to data.
-We start by loading some observed epidemic data (simulated from the model, but in principle this could be any data) representing the number of infectious individuals at different time points:
+We start by loading some observed epidemic data (which we simulated from the model, but in principle this could be any data) representing the number of infectious individuals at different time points:
 
 ```{julia}
 # Load epidemic data from CSV
 epi1 = CSV.read(datadir("epi1_synthetic.csv"), DataFrame)
 
-println("Data overview:")
-first(epi1, 8)
+first(epi1, 5)
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -551,11 +555,17 @@ scatter(
 ```
 
 This data was generated from an SIR model with $R_0 ≈ 2.5$ and $D_\mathrm{inf} = 2$ days.
-Can we figure this out by exploring the likelihood?
+If we didn't know this, could we figure it out by exploring the likelihood?
 
 ## Exploring likelihood through simulation
 
-The likelihood asks: "How probable is our observed data, given specific parameter values?" We explore this by trying the parameter combinations from before:
+The likelihood asks: "How probable is our observed data, given specific parameter values?"
+Before we compute it, we need to decide how observations relate to the model's output.
+Here we assume each observation is drawn from a *Poisson distribution* whose mean is the number of infectious individuals predicted by the model at that time point — a common choice for count data.
+Assuming the observations are conditionally independent given the model, the total log-likelihood is then the sum of log-likelihoods at each time point.
+We revisit both assumptions in the observation-model section below.
+
+With that in mind, we explore the likelihood by trying the parameter combinations from before:
 
 ```{julia}
 # Calculate and store likelihood values for our test parameters
@@ -676,11 +686,6 @@ end
 ```
 
 This function simulates the SIR model and returns both the trajectory and the log-likelihood. We'll use it throughout the rest of this session.
-
-::: {.callout-tip collapse="true"}
-## Going further: the LogDensityProblems interface
-This log-density function — prior + likelihood as a function of parameters — is the fundamental building block of Bayesian inference. Turing.jl wraps this pattern with convenient syntax, but the same function works with any sampler in the Julia ecosystem via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) standard interface. See the [reference page](../reference/logdensity_interface.qmd) for a worked example using DynamicHMC.jl.
-:::
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer: keyword arguments and named tuples
@@ -832,18 +837,20 @@ Apart from finding the best parameters we can also use our results to visualise 
 
 ```{julia}
 # Visualise the posterior surface
-R_0_grid = [r.R_0 for r in results]
-D_inf_grid = [r.D_inf for r in results]
-log_post_grid = [r.log_posterior for r in results]
+R_0_unique = unique(r.R_0 for r in results)
+D_inf_unique = unique(r.D_inf for r in results)
 
-# Reshape for heatmap
-R_0_unique = unique(R_0_grid)
-D_inf_unique = unique(D_inf_grid)
-post_matrix = reshape(log_post_grid, length(R_0_unique), length(D_inf_unique))
+# The loop above iterates R_0 outer, D_inf inner. Column-major reshape into
+# (n_D_inf, n_R_0) then gives a matrix whose rows index D_inf and columns
+# index R_0 — the orientation heatmap expects for (x = R_0, y = D_inf).
+post_matrix = reshape(
+    [r.log_posterior for r in results],
+    length(D_inf_unique), length(R_0_unique)
+)
 
 heatmap(
-    D_inf_unique, R_0_unique, post_matrix,
-    xlabel = "D_inf (days)", ylabel = "R_0",
+    R_0_unique, D_inf_unique, post_matrix,
+    xlabel = "R_0", ylabel = "D_inf (days)",
     title = "Log-Posterior Surface", color = :viridis
 )
 ```
@@ -914,7 +921,7 @@ But we have done so using grid search, which has serious limitations:
 ```{julia}
 # The curse of dimensionality
 n_params = [2, 3, 4, 5, 6, 10]
-n_values_per_param = 15  # Reasonable resolution
+n_values_per_param = 15
 
 println("Grid search scaling problems:")
 for n in n_params
@@ -944,7 +951,7 @@ Lastly, it is difficult to establish whether the grid is fine enough (or importa
 
 - [Distributions.jl documentation](https://juliastats.org/Distributions.jl/stable/) - Probability distributions in Julia
 - [DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/) - ODE solving in Julia
-- Gelman et al. (2013). [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/), 3rd ed. Chapman & Hall/CRC. (The classic reference)
-- McElreath (2020). [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/), 2nd ed. CRC Press. (Excellent introduction with simulation-based approach)
+
+See the [further reading](../reference/further_reading.qmd) page for course-wide references on Bayesian inference, infectious disease modelling, and Julia.
 
 **Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how [Turing.jl](https://turinglang.org/stable/) automates everything with state-of-the-art methods.

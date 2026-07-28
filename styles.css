@@ -1,5 +1,11 @@
 /* Custom styles for MFIIDD course materials */
 
+/* DataFrame tables: shrink to content width instead of stretching to fill
+   the text column, which leaves a lot of whitespace for narrow tables. */
+table.data-frame {
+  width: auto !important;
+}
+
 /* Code output: lighter grey than code blocks with subtle border */
 .cell-output-stdout pre,
 .cell-output-display pre {
