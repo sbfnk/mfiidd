@@ -14,7 +14,7 @@ order: 1
 # Introduction
 
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
-We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms that explore the posterior systematically in the next session.
+We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms that explore the posterior in the next session.
 
 # Objectives
 
@@ -230,7 +230,7 @@ In our SIR model:
 - $D_\mathrm{inf} \sim \text{Uniform}(1, 14)$: We believe infectious periods from 1 to 14 days are equally plausible
 
 ::: {.callout-warning}
-Uniform distributions are a common first choice, but the hard boundary at the edges (in our case, zero probability for $R_0 = 0.99$ but $1/19$ of a unit of density for $R_0 = 1.01$) can cause numerical problems for many samplers.
+Uniform distributions are a common first choice, but the hard boundary at the edges can cause numerical problems for many samplers.
 We use them here for simplicity; we'll introduce better-behaved priors below.
 :::
 
@@ -297,8 +297,8 @@ plot(p1, p2, layout = (1,2))
 ## Prior predictive simulation
 
 Priors encode our beliefs about parameters, but we usually also have expectations about the kinds of outcomes the model should produce.
-A *prior predictive check* connects the two: we draw parameter values from the priors, simulate the model, and inspect the resulting trajectories.
-If those trajectories look implausible, our priors are placing weight on parameter values we don't actually believe are reasonable.
+A prior predictive check connects the two: we draw parameter values from the priors, simulate the model, and inspect the resulting trajectories.
+If those trajectories look implausible, that tells us to reconsider either the priors themselves or how the model uses the parameters to produce outcomes.
 
 Let's do this for our SIR model by simulating epidemics using random draws from our priors:
 
@@ -364,8 +364,8 @@ What if we had different beliefs? Here are more informative (narrower) priors:
 
 ```{julia}
 # More informative priors based on epidemiological knowledge
-R_0_informed = Normal(2.5, 0.8)  # Most respiratory diseases have R_0 around 2-3
-D_inf_informed = Gamma(2, 1)     # Infectious period likely 1-4 days for common infections
+R_0_informed = truncated(Normal(2.5, 0.8), lower = 0.0)  # Most respiratory diseases have R_0 around 2-3
+D_inf_informed = Gamma(2, 1)                             # Infectious period likely 1-4 days for common infections
 
 # Sample and visualise
 R_0_informed_samples = rand(R_0_informed, 1000)
@@ -374,7 +374,7 @@ D_inf_informed_samples = rand(D_inf_informed, 1000)
 p1 = histogram(
     R_0_samples, xlabel = "R_0", alpha = 0.7, label = "Uniform(1, 20)"
 )
-histogram!(p1, R_0_informed_samples, alpha = 0.7, label = "Normal(2.5, 0.8)")
+histogram!(p1, R_0_informed_samples, alpha = 0.7, label = "truncated Normal(2.5, 0.8)")
 
 p2 = histogram(
     D_inf_samples, xlabel = "D_inf", alpha = 0.7, label = "Uniform(1, 14)"
@@ -435,8 +435,7 @@ plot!(p)
 ```
 
 The informed priors are not just narrower — they are also better behaved, avoiding the hard boundaries of the uniforms.
-(One imperfection remains: a Normal for $R_0$ technically places tiny probability on negative values.
-In practice you'd choose a `LogNormal` or a `truncated` Normal to guarantee positivity — we'll pick this up in later sessions.)
+Truncating the Normal at zero keeps $R_0$ positive, and the Gamma is naturally supported on the positive reals.
 
 Priors determine what kinds of epidemics our model considers plausible before seeing data.
 
@@ -489,7 +488,7 @@ for theta in test_params
     push!(log_priors_flat, flat_prior)
 
     # Informed priors
-    informed_prior = logpdf(Normal(2.5, 0.8), theta.R_0) + logpdf(Gamma(2, 1), theta.D_inf)
+    informed_prior = logpdf(R_0_informed, theta.R_0) + logpdf(D_inf_informed, theta.D_inf)
     push!(log_priors_informed, informed_prior)
 
     println(
@@ -530,7 +529,7 @@ It asks: "If the parameters were X, how likely would we be to see the data we ac
 
 The prior predictive trajectories we looked at earlier were purely a function of the model and its specification.
 The likelihood, on the other hand, is about comparing the model to data.
-We start by loading some observed epidemic data (which we simulated from the model, but in principle this could be any data) representing the number of infectious individuals at different time points:
+We start by loading some observed epidemic data (which we simulated from the model for you, but in principle this could be any data) representing the number of infectious individuals at different time points:
 
 ```{julia}
 # Load epidemic data from CSV
@@ -561,7 +560,7 @@ If we didn't know this, could we figure it out by exploring the likelihood?
 
 The likelihood asks: "How probable is our observed data, given specific parameter values?"
 Before we compute it, we need to decide how observations relate to the model's output.
-Here we assume each observation is drawn from a *Poisson distribution* whose mean is the number of infectious individuals predicted by the model at that time point — a common choice for count data.
+Here we assume each observation is drawn from a Poisson distribution whose mean is the number of infectious individuals predicted by the model at that time point — a common choice for count data.
 Assuming the observations are conditionally independent given the model, the total log-likelihood is then the sum of log-likelihoods at each time point.
 We revisit both assumptions in the observation-model section below.
 
@@ -888,7 +887,7 @@ But we don't know the true parameters - we have a distribution of plausible valu
 
 ```{julia}
 # Find parameter combinations in the top 10% of posterior density
-threshold = quantile(log_post_grid, 0.9)
+threshold = quantile([r.log_posterior for r in results], 0.9)
 good_results = filter(r -> r.log_posterior > threshold, results)
 println("$(length(good_results)) parameter combinations in top 10% of posterior")
 
