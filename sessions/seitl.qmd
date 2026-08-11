@@ -65,6 +65,8 @@ The remaining sessions build on the SEITL/SEIT4L models introduced here:
 
 ```{julia}
 #| echo: false
+#| include: false
+
 ENV["GKSwstype"] = "100"  # Suppress plot windows during render
 ```
 
