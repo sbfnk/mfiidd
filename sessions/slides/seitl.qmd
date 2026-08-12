@@ -1,4 +1,5 @@
 ---
+footer: "Putting it all together"
 title: "Putting it all together"
 subtitle: "Stochastic models and the state-space view"
 ---
@@ -96,3 +97,7 @@ In the practical you will
 - build the SEITL model, which adds a latent state to the SIR structure
 - simulate it both deterministically and stochastically
 - see why the stochastic version needs different inference machinery
+
+#
+
+[Return to the session](../seitl.qmd)

@@ -1,4 +1,5 @@
 ---
+footer: "Markov chain Monte Carlo"
 title: "Introduction to Markov Chain Monte Carlo"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
@@ -304,3 +305,7 @@ In the practical you will
 
 ::: {#refs}
 :::
+
+#
+
+[Return to the session](../mcmc.qmd)

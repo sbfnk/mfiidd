@@ -1,4 +1,5 @@
 ---
+footer: "Fitting stochastic models"
 title: "Fitting stochastic models"
 subtitle: "Sequential Monte Carlo and particle filters"
 ---
@@ -116,16 +117,32 @@ the same $\theta$ and you get two different numbers. That has consequences we
 deal with in the next session.
 :::
 
+## The whole thing, in code {.smaller}
+
+This is the actual implementation you will use in the practical — propagate,
+weight, resample, accumulate:
+
+```{.julia include="../../src/seit4l_bootstrap_filter.jl" start-line="19" end-line="52"}
+```
+
+::: {.footer}
+`src/seit4l_bootstrap_filter.jl`
+:::
+
 ## Over to you
 
 In the practical you will
 
 - see why a deterministic likelihood fails for a stochastic model
 - watch particles propagate, get weighted, and be resampled
-- read and run a particle filter implementation line by line
+- read that filter line by line and work out what each step does
 - explore how the number of particles affects the likelihood estimate
 
 ## References {.smaller}
 
 ::: {#refs}
 :::
+
+#
+
+[Return to the session](../particle_filters.qmd)

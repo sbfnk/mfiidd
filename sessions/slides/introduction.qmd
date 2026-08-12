@@ -1,7 +1,17 @@
 ---
+footer: "Introduction"
 title: "Model fitting and inference for infectious disease dynamics"
 subtitle: "Introduction"
+engine: julia
 ---
+
+```{julia}
+#| echo: false
+#| include: false
+
+ENV["GKSwstype"] = "100"
+using Distributions
+```
 
 # Introduction
 
@@ -126,14 +136,25 @@ Continuous, e.g. **normal**: the temperature in London tomorrow.
 ::::
 
 ::: {.fragment}
-1. [**Evaluate**]{.alert} the probability (or density) of a value —
-   `pdf(Poisson(0.61), 2)`
-2. [**Sample**]{.alert} a value at random — `rand(Normal(23, 2))`
+[**Evaluate**]{.alert} the probability of a value:
+
+```{julia}
+#| echo: true
+pdf(Poisson(0.61), 2)
+```
 :::
 
 ::: {.fragment}
-Both directions matter. We evaluate to compute likelihoods; we sample to
-simulate.
+[**Sample**]{.alert} a value at random:
+
+```{julia}
+#| echo: true
+rand(Normal(23, 2))
+```
+:::
+
+::: {.fragment}
+We evaluate to compute likelihoods; we sample to simulate.
 :::
 
 ## Example: observation uncertainty {.smaller}
@@ -338,3 +359,7 @@ For continuous variables, sums become integrals:
 
 The two directions are unchanged: `pdf(Normal(23, 2), 30)` evaluates a density,
 `rand(Normal(23, 2))` draws a sample.
+
+#
+
+[Return to the session](../introduction.qmd)

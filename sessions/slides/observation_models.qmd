@@ -1,4 +1,5 @@
 ---
+footer: "Observation models and ABC"
 title: "Observation models and Approximate Bayesian Computation"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
@@ -214,3 +215,7 @@ In the practical you will
 - see the likelihood plotted explicitly as a distance function
 - implement ABC rejection sampling and ABC-SMC from scratch
 - compare the posteriors, and test how each approach responds to an outlier
+
+#
+
+[Return to the session](../observation_models.qmd)
