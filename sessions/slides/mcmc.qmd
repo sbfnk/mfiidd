@@ -292,7 +292,7 @@ discrete parameters or a stochastic simulator that breaks differentiation — as
 the particle filter will later in the course.
 :::
 
-## Your turn {background-color="#447099" transition="fade-in"}
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will
 

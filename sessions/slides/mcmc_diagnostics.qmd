@@ -244,7 +244,7 @@ you need samplers designed to cross between modes.
 5. Run a posterior predictive check — next session
 6. Rerun with more samples or a revised model if any of these fail
 
-## Your turn {background-color="#447099" transition="fade-in"}
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will
 

@@ -144,7 +144,7 @@ sampled state path, which is **state estimation** alongside parameter
 estimation.
 :::
 
-## Your turn {background-color="#447099" transition="fade-in"}
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will
 

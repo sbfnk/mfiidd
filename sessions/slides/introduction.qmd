@@ -303,7 +303,7 @@ We want to generate **samples** of $\theta$ from this distribution.
 ![](images/Big_picture_simple_deterministic_models.png){.step .fragment .current-visible fragment-index=1}
 ![](images/Big_picture_simple_deterministic_model_functions.png){.step .fragment fragment-index=2}
 
-## Your turn {background-color="#447099" transition="fade-in"}
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
 [sbfnk.github.io/mfiidd](https://sbfnk.github.io/mfiidd/)
 

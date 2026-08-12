@@ -500,7 +500,7 @@ Notice that choosing a distance metric in ABC is philosophically similar to choo
 
 The rejection sampler above is inefficient - most samples from the prior are rejected, wasting computation. ABC-SMC (Sequential Monte Carlo ABC) dramatically improves efficiency by gradually tightening the acceptance threshold across multiple generations.
 
-The key idea, introduced by [Toni et al. (2009)](https://pmc.ncbi.nlm.nih.gov/articles/PMC2658655/), is:
+The key idea, introduced by [Toni et al. (2009)](https://doi.org/10.1098/rsif.2008.0172), is:
 
 1. *Start permissive*: Begin with a loose threshold that accepts many samples
 2. *Gradually tighten*: Reduce the threshold across generations
@@ -918,10 +918,10 @@ For ABC with outliers or model misspecification, consider robust distances:
 
 # References
 
-- Toni, T. et al. (2009). [Approximate Bayesian computation scheme for parameter inference and model selection in dynamical systems](https://pmc.ncbi.nlm.nih.gov/articles/PMC2658655/). *J. R. Soc. Interface* 6(31), 187-202. (The ABC-SMC paper - highly readable introduction)
-- Wood, S.N. (2010). [Statistical inference for noisy nonlinear ecological dynamic systems](https://www.nature.com/articles/nature09319). *Nature* 466, 1102-1104. (Synthetic likelihood approach)
-- Marin, J.-M. et al. (2012). [Approximate Bayesian computational methods](https://link.springer.com/article/10.1007/s11222-011-9288-2). *Statistics and Computing* 22, 1167-1180.
-- Cranmer, K. et al. (2020). [The frontier of simulation-based inference](https://www.pnas.org/doi/10.1073/pnas.1912789117). *PNAS* 117(48), 30055-30062. (Comprehensive review of modern likelihood-free methods)
+- Toni, T. et al. (2009). [Approximate Bayesian computation scheme for parameter inference and model selection in dynamical systems](https://doi.org/10.1098/rsif.2008.0172). *J. R. Soc. Interface* 6(31), 187-202. (The ABC-SMC paper - highly readable introduction)
+- Wood, S.N. (2010). [Statistical inference for noisy nonlinear ecological dynamic systems](https://doi.org/10.1038/nature09319). *Nature* 466, 1102-1104. (Synthetic likelihood approach)
+- Marin, J.-M. et al. (2012). [Approximate Bayesian computational methods](https://doi.org/10.1007/s11222-011-9288-2). *Statistics and Computing* 22, 1167-1180.
+- Cranmer, K. et al. (2020). [The frontier of simulation-based inference](https://doi.org/10.1073/pnas.1912789117). *PNAS* 117(48), 30055-30062. (Comprehensive review of modern likelihood-free methods)
 
 # Next sessions
 
