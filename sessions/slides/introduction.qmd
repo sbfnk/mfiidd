@@ -320,17 +320,23 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 ![](images/Big_picture_simple_deterministic_models.png)
 
-## The pieces in Julia {.smaller}
+## The same arrows, in Julia {.smaller}
 
-Each part of that diagram is something you will write this afternoon:
+Every blue arrow is one line you will write this afternoon — and they are all
+either an *evaluate* or a *sample*:
 
-| Piece | In Julia |
+| Arrow | In Julia |
 |---|---|
-| Prior | `R_0 ~ Uniform(1, 20)` |
-| Model | `solve(ODEProblem(sir_ode!, u0, tspan, p))` |
-| Simulate an observation | `rand(Poisson(λ))` |
-| Evaluate an observation | `logpdf(Poisson(λ), obs)` |
-| Posterior | prior + likelihood, summed on the log scale |
+| sample the prior | `rand(Uniform(1, 20))` |
+| evaluate the prior | `logpdf(Uniform(1, 20), R_0)` |
+| simulate | `solve(ODEProblem(sir_ode!, u0, tspan, p))` |
+| sample an observation | `rand(Poisson(λ))` |
+| evaluate the likelihood | `logpdf(Poisson(λ), obs)` |
+
+::: {.fragment}
+Adding the last two on the log scale, across all time points, gives the
+posterior up to a constant.
+:::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
