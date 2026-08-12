@@ -38,17 +38,17 @@ This session is about the second row.
 Model checking is not a step at the end. @gelman2020 describe fitting as an
 iterative **workflow**:
 
-```{mermaid}
-%%| fig-width: 9
-flowchart LR
-  A[Specify model] --> B[Prior predictive check]
-  B --> C[Fit]
-  C --> D[Diagnose sampler]
-  D --> E[Posterior predictive check]
-  E --> F{Checks pass?}
-  F -- no --> A
-  F -- yes --> G[Use the model]
-```
+::: {.workflow}
+[Specify model]{.wf-box}
+[Prior predictive check]{.wf-box}
+[Fit]{.wf-box}
+[Diagnose sampler]{.wf-box}
+[Posterior predictive check]{.wf-box}
+:::
+
+::: {.wf-loop}
+↺ if the checks fail, revise the model and go round again
+:::
 
 ::: {.fragment}
 So far the course has covered specifying, fitting and diagnosing. This session

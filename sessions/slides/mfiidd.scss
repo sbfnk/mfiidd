@@ -118,6 +118,55 @@ $presentation-font-size-root: 34px;
   background: #ffffff;
 }
 
+// Workflow strip: a row of boxes joined by arrows. Plain CSS rather than a
+// rendered diagram, so it cannot fail to draw in a lecture room.
+// Pandoc wraps the boxes in a paragraph, so the flex row lives on that.
+.reveal .workflow p {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 1.1em;
+  margin: 0.8em 0 0.5em;
+}
+
+.reveal .workflow .wf-box {
+  flex: 1 1 0;
+  min-width: 5em;
+  background: #eef4fb;
+  border: 2px solid #2a6fb5;
+  border-radius: 6px;
+  padding: 0.45em 0.5em;
+  font-size: 0.55em;
+  line-height: 1.3;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reveal .workflow .wf-box + .wf-box {
+  position: relative;
+}
+
+.reveal .workflow .wf-box + .wf-box::before {
+  content: "→";
+  position: absolute;
+  left: -0.95em;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2a6fb5;
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.reveal .wf-loop {
+  text-align: center;
+  color: #2a6fb5;
+  font-size: 0.5em;
+  margin-top: 0.2em;
+}
+
 .annotated-figure .label {
   position: absolute;
   color: #1f7ae0;
