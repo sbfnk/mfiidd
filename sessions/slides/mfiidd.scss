@@ -40,18 +40,44 @@ $presentation-font-size-root: 34px;
 
 // Stop a tall figure pushing the rest of a slide off-screen.
 .reveal .slides section img {
-  max-height: 62vh;
+  max-height: 58vh;
+  max-width: 100%;
   width: auto;
   margin: 0 auto;
   display: block;
+  object-fit: contain;
 }
 
 // Sequences of near-identical figures (the rejection-sampling and
 // Metropolis-Hastings walkthroughs) look jumpy if each frame is sized to its
-// own content, so pin them to a fixed box.
+// own content, so pin them to a consistent box. `max-height` rather than
+// `height` so a wide figure shrinks to fit the slide width instead of
+// overflowing sideways.
 .reveal .slides section img.step {
-  height: 52vh;
-  object-fit: contain;
+  max-height: 52vh;
+}
+
+// Images swapped in place live in an `.r-stack`, which overlays its children
+// absolutely. Without a height the stack collapses, so give it the same box the
+// figures use.
+.reveal .slides section .r-stack {
+  min-height: 52vh;
+  width: 100%;
+}
+
+// Inside a two-column layout the box has to be shorter, or the columns push
+// past the bottom of the slide.
+.reveal .slides section .columns .r-stack {
+  min-height: 42vh;
+}
+
+.reveal .slides section .columns img {
+  max-height: 42vh;
+}
+
+// Full-bleed diagram slides: let the figure use the height it needs.
+.reveal .slides section.center img {
+  max-height: 72vh;
 }
 
 .reveal .footer {
