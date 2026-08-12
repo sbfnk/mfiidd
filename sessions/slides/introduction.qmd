@@ -87,15 +87,9 @@ Given a set of potential models, how do we decide which is the right one?
 
 ##  {.center}
 
-![](images/Big_picture_simplest.png)
-
-##  {.center}
-
-![](images/Big_picture_empty.png)
-
-##  {.center}
-
-![](images/Big_picture_empty_question.png)
+![](images/Big_picture_simplest.png){.step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_empty.png){.step .fragment .current-visible fragment-index=2}
+![](images/Big_picture_empty_question.png){.step .fragment fragment-index=3}
 
 ## Assessing the "closeness" of model output and data
 
@@ -116,158 +110,31 @@ Given a set of potential models, how do we decide which is the right one?
 
   $$p(\text{data} \mid \text{model output})$$
 
-## Interlude: probabilities {.smaller}
-
-- If $A$ is a random variable, we write $p(A = a)$ for the **probability** that
-  $A$ takes value $a$. We often shorten this to $p(a)$.
-
-- Example: the probability that Novak Djokovic wins Wimbledon,
-  $p(\mathrm{W} = \mathrm{Djokovic}) = p(\mathrm{Djokovic})$
-
-- Normalisation: $\sum_{a} p(a) = 1$
-
-## Joint and marginal probabilities {.smaller}
-
-- For two random variables we write $p(A = a, B = b) = p(a, b)$ for the
-  **joint probability** that $A$ takes value $a$ and $B$ takes value $b$.
-
-- Example: the probability that Djokovic wins Wimbledon *and* it is sunny on the
-  final day.
-
-- We obtain a **marginal probability** from joint probabilities by summing:
-
-  $$p(a) = \sum_{b} p(a, b)$$
-
-## Conditional probabilities {.smaller}
-
-- The **conditional probability** of outcome $a$ given that $B$ took value $b$
-  is written $p(a \mid b)$.
-
-- Example: the probability that Djokovic wins Wimbledon if it is sunny on the
-  final day.
-
-- Conditional probabilities relate to joint probabilities as
-
-  $$p(a \mid b) = \frac{p(a, b)}{p(b)}$$
-
-- These combine in the **chain rule**:
-
-  $$p(a, b, c) = p(a \mid b, c)\, p(b \mid c)\, p(c)$$
-
-## Probability distributions (discrete)
-
-- E.g. how many people die of horse kicks if there are 0.61 kicks per year
-- Described by the **Poisson** distribution
+## Two things you can do with a distribution {.smaller}
 
 :::: {.columns}
-::: {.column width="55%"}
+::: {.column width="50%"}
 ![](images/poisson_likelihood.png){.step}
+
+Discrete, e.g. **Poisson**: how many die of horse kicks at 0.61 kicks per year?
 :::
-::: {.column width="45%"}
-Two directions:
-
-1. Evaluate the probability
-2. Randomly sample
-:::
-::::
-
-## Evaluating under the Poisson distribution
-
-:::: {.columns}
-::: {.column width="55%"}
-![](images/poisson_likelihood.png){.step}
-:::
-::: {.column width="45%"}
-What is the probability of 2 deaths in a year?
-
-```julia
-using Distributions
-pdf(Poisson(0.61), 2)
-```
-
-Two directions:
-
-1. [**Evaluate the probability**]{.alert}
-2. Randomly sample
-:::
-::::
-
-## Sampling from the Poisson distribution
-
-:::: {.columns}
-::: {.column width="55%"}
-![](images/poisson_likelihood.png){.step}
-:::
-::: {.column width="45%"}
-Give me a random sample from the distribution.
-
-```julia
-using Distributions
-rand(Poisson(0.61))
-```
-
-Two directions:
-
-1. Evaluate the probability
-2. [**Randomly sample**]{.alert}
-:::
-::::
-
-## Probability distributions (continuous)
-
-- Extension of probabilities to **continuous** variables
-- E.g. the temperature in London tomorrow
-
-:::: {.columns}
-::: {.column width="55%"}
+::: {.column width="50%"}
 ![](images/weather.png){.step}
-:::
-::: {.column width="45%"}
-Normalisation: $\int p(a)\, da = 1$
 
-Marginals: $p(a) = \int p(a, b)\, db$
+Continuous, e.g. **normal**: the temperature in London tomorrow.
 :::
 ::::
 
-## Evaluating under the normal distribution
-
-:::: {.columns}
-::: {.column width="55%"}
-![](images/weather.png){.step}
+::: {.fragment}
+1. [**Evaluate**]{.alert} the probability (or density) of a value —
+   `pdf(Poisson(0.61), 2)`
+2. [**Sample**]{.alert} a value at random — `rand(Normal(23, 2))`
 :::
-::: {.column width="45%"}
-What is the probability density of $30^\circ$C tomorrow?
 
-```julia
-pdf(Normal(23, 2), 30)
-```
-
-Two directions:
-
-1. [**Evaluate the density**]{.alert}
-2. Randomly sample
+::: {.fragment}
+Both directions matter. We evaluate to compute likelihoods; we sample to
+simulate.
 :::
-::::
-
-## Sampling from the normal distribution
-
-:::: {.columns}
-::: {.column width="55%"}
-![](images/weather.png){.step}
-:::
-::: {.column width="45%"}
-Give me a random sample from the distribution.
-
-```julia
-rand(Normal(23, 2))
-```
-
-Two directions:
-
-1. Evaluate the density
-2. [**Randomly sample**]{.alert}
-:::
-::::
 
 ## Example: observation uncertainty {.smaller}
 
@@ -316,11 +183,8 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 
 ##  {.center}
 
-![](images/Big_picture_deterministic_models_with_observations_simple.png)
-
-##  {.center}
-
-![](images/Big_picture_deterministic_models_with_observations.png)
+![](images/Big_picture_deterministic_models_with_observations_simple.png){.step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations.png){.step .fragment fragment-index=2}
 
 ## The likelihood {.smaller}
 
@@ -421,3 +285,56 @@ We want to generate **samples** of $\theta$ from this distribution.
 ## Over to you
 
 [sbfnk.github.io/mfiidd](https://sbfnk.github.io/mfiidd/)
+
+# Appendix: probability refresher {visibility="uncounted"}
+
+::: {.callout-note}
+The slides that follow are held in reserve. Skip them if the room is
+comfortable with probability notation, or come back to them if questions come up
+during the practical.
+:::
+
+## Probabilities {.smaller visibility="uncounted"}
+
+- If $A$ is a random variable, we write $p(A = a)$ for the **probability** that
+  $A$ takes value $a$. We often shorten this to $p(a)$.
+
+- Example: the probability that Novak Djokovic wins Wimbledon,
+  $p(\mathrm{W} = \mathrm{Djokovic}) = p(\mathrm{Djokovic})$
+
+- Normalisation: $\sum_{a} p(a) = 1$
+
+## Joint and marginal probabilities {.smaller visibility="uncounted"}
+
+- For two random variables we write $p(A = a, B = b) = p(a, b)$ for the
+  **joint probability** that $A$ takes value $a$ and $B$ takes value $b$.
+
+- Example: the probability that Djokovic wins Wimbledon *and* it is sunny on the
+  final day.
+
+- We obtain a **marginal probability** from joint probabilities by summing:
+
+  $$p(a) = \sum_{b} p(a, b)$$
+
+## Conditional probabilities {.smaller visibility="uncounted"}
+
+- The **conditional probability** of outcome $a$ given that $B$ took value $b$
+  is written $p(a \mid b)$.
+
+- Conditional probabilities relate to joint probabilities as
+
+  $$p(a \mid b) = \frac{p(a, b)}{p(b)}$$
+
+- These combine in the **chain rule**:
+
+  $$p(a, b, c) = p(a \mid b, c)\, p(b \mid c)\, p(c)$$
+
+## Continuous distributions {.smaller visibility="uncounted"}
+
+For continuous variables, sums become integrals:
+
+- Normalisation: $\int p(a)\, da = 1$
+- Marginals: $p(a) = \int p(a, b)\, db$
+
+The two directions are unchanged: `pdf(Normal(23, 2), 30)` evaluates a density,
+`rand(Normal(23, 2))` draws a sample.

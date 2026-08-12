@@ -9,6 +9,8 @@ order: 6
 **Estimated time**: 2-2.5 hours (includes computation time for calibration)
 :::
 
+[Lecture slides](slides/particle_filters.qmd)
+
 # Introduction
 
 > **Where we are**: You've completed the core workflow (Introduction → MCMC → Diagnostics → Model Checking) and seen the SEITL model. Now we tackle stochastic models, where the same parameters produce different trajectories each run.
