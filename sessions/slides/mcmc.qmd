@@ -237,7 +237,7 @@ And you generally do not know the posterior scale before you have sampled it.
 :::
 ::::
 
-::: {.footer}
+::: {.cite}
 Classical adaptive Metropolis: @haario2001. Robust adaptive Metropolis (RAM), which we
 use in the practical: @vihola2012.
 :::
@@ -282,7 +282,7 @@ The result usually just works, with no proposal tuning at all. It is the default
 you should reach for.
 :::
 
-::: {.footer}
+::: {.cite}
 @hoffman2014; see @betancourt2017 for the intuition.
 :::
 

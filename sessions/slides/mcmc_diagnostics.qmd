@@ -167,7 +167,7 @@ $$\hat{R} \approx \sqrt{\frac{\text{between-chain} + \text{within-chain}}{\text{
 Rule of thumb: $\hat{R} < 1.01$. Anything above 1.1 is a red flag.
 :::
 
-::: {.footer}
+::: {.cite}
 Modern rank-normalised R̂ and ESS: @vehtari2021.
 :::
 

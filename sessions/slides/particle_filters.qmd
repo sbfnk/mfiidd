@@ -125,7 +125,7 @@ weight, resample, accumulate:
 ```{.julia include="../../src/seit4l_bootstrap_filter.jl" start-line="19" end-line="52"}
 ```
 
-::: {.footer}
+::: {.cite}
 `src/seit4l_bootstrap_filter.jl`
 :::
 

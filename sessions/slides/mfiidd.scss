@@ -95,6 +95,22 @@ $presentation-font-size-root: 34px;
   color: #6a737d;
 }
 
+// Source note for a figure or claim. Kept in the flow rather than in reveal's
+// `.footer`, which is a per-slide override that displaces the deck footer and
+// collides with the slide number.
+.reveal .slides section .cite {
+  font-size: 0.4em;
+  color: #6a737d;
+  text-align: right;
+  margin-top: 0.5em;
+  line-height: 1.3;
+}
+
+.reveal .slides section .cite a {
+  color: #6a737d;
+  text-decoration: underline;
+}
+
 // Annotated figure: the hand-drawn "big picture" diagram carries blue labels
 // naming the function behind each arrow. The original was drawn for the R
 // course, so the labels are masked and relabelled here with their Julia

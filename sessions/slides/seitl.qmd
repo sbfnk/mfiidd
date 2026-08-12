@@ -23,7 +23,7 @@ This kind of model is sometimes called a **Bayesian hierarchical model**.
 
 ![](images/DAG.png){.step .tall}
 
-::: {.footer}
+::: {.cite}
 Baguelin et al. (2013)
 :::
 

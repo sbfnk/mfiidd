@@ -64,7 +64,7 @@ has the posterior we wanted.
 ::: {.fragment}
 The noise costs us **efficiency**, never **correctness**.
 
-::: {.footer}
+::: {.cite}
 @andrieu2010
 :::
 :::
@@ -99,7 +99,7 @@ There is a genuine trade-off:
 The standard guidance is to tune $J$ so that the **standard deviation of the log
 likelihood estimate** is roughly 1 to 3 at a representative $\theta$.
 
-::: {.footer}
+::: {.cite}
 @pitt2012; @doucet2015
 :::
 :::
