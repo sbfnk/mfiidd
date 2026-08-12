@@ -9,6 +9,8 @@ order: 1
 **Estimated time**: 2-2.5 hours
 :::
 
+[Lecture slides](slides/introduction.qmd)
+
 # Introduction
 
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.

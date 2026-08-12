@@ -1,0 +1,423 @@
+---
+title: "Model fitting and inference for infectious disease dynamics"
+subtitle: "Introduction"
+---
+
+# Introduction
+
+## *Model* fitting and inference for infectious disease dynamics
+
+> A simplified description, especially a **mathematical** one, of a system or
+> process, **to assist calculations and predictions**
+>
+> — Oxford English Dictionary
+
+::: {.fragment}
+### Mathematical model
+
+Takes *parameters* and produces *output*, using some set of rules or equations.
+:::
+
+## Model fitting and inference for *infectious disease dynamics*
+
+![](images/traditional_sir.png)
+
+## SIR-type models
+
+:::: {.columns}
+::: {.column width="38%"}
+$$
+\begin{aligned}
+\frac{dS}{dt} &= -\beta I \frac{S}{N}\\
+\frac{dI}{dt} &= \beta I \frac{S}{N} - \gamma I\\
+\frac{dR}{dt} &= \gamma I
+\end{aligned}
+$$
+:::
+::: {.column width="62%"}
+![](images/sir_ode_noinfo.png)
+:::
+::::
+
+::: {.fragment}
+Mechanistic models: **description** vs **mechanism**.
+:::
+
+## Model *fitting*: parameter estimation
+
+Given a model, what are the parameter combinations that best **fit** the data?
+
+::: {.fragment}
+### Why are we doing this?
+
+- **Learn** something about the system
+  - test a scientific hypothesis — e.g. why did the UK H1N1 epidemic wane in
+    summer 2009?
+  - estimate parameters — e.g. what fraction of cholera infections in
+    Bangladesh are asymptomatic?
+  - sometimes in real time
+- **Validate** the model, especially for prediction
+:::
+
+## What do we mean by "best fit the data"?
+
+![](images/model_fitting_sketch_1.png){.step .fragment .current-visible fragment-index=1}
+![](images/model_fitting_sketch_2.png){.step .fragment .current-visible fragment-index=2}
+![](images/model_fitting_sketch_3.png){.step .fragment .current-visible fragment-index=3}
+![](images/model_fitting_sketch_4.png){.step .fragment .current-visible fragment-index=4}
+![](images/model_fitting_sketch_5.png){.step .fragment fragment-index=5}
+
+## Model *inference*: state estimation
+
+Given what we observe, what is the **state** of the system?
+
+![](images/state_estimation.png)
+
+## Model *inference*: model selection
+
+Given a set of potential models, how do we decide which is the right one?
+
+![](images/model_comparison_1.png){.step .fragment .current-visible fragment-index=1}
+![](images/model_comparison_2.png){.step .fragment .current-visible fragment-index=2}
+![](images/model_comparison_3.png){.step .fragment .current-visible fragment-index=3}
+![](images/model_comparison_4.png){.step .fragment .current-visible fragment-index=4}
+![](images/model_comparison_5.png){.step .fragment fragment-index=5}
+
+# Linking models to data
+
+##  {.center}
+
+![](images/Big_picture_simplest.png)
+
+##  {.center}
+
+![](images/Big_picture_empty.png)
+
+##  {.center}
+
+![](images/Big_picture_empty_question.png)
+
+## Assessing the "closeness" of model output and data
+
+![](images/least_squares_bad_1.png){.step .fragment .current-visible fragment-index=1}
+![](images/least_squares_bad_2.png){.step .fragment .current-visible fragment-index=2}
+![](images/least_squares_bad_3.png){.step .fragment fragment-index=3}
+
+## Probabilistic formulation
+
+- Often we know something about how the data were taken, so observations
+  introduce uncertainty.
+
+- We can express the uncertainty in observing the process as a probability
+
+  $$p(\text{data} \mid \text{underlying process})$$
+
+- Including this in our model gives
+
+  $$p(\text{data} \mid \text{model output})$$
+
+## Interlude: probabilities {.smaller}
+
+- If $A$ is a random variable, we write $p(A = a)$ for the **probability** that
+  $A$ takes value $a$. We often shorten this to $p(a)$.
+
+- Example: the probability that Novak Djokovic wins Wimbledon,
+  $p(\mathrm{W} = \mathrm{Djokovic}) = p(\mathrm{Djokovic})$
+
+- Normalisation: $\sum_{a} p(a) = 1$
+
+## Joint and marginal probabilities {.smaller}
+
+- For two random variables we write $p(A = a, B = b) = p(a, b)$ for the
+  **joint probability** that $A$ takes value $a$ and $B$ takes value $b$.
+
+- Example: the probability that Djokovic wins Wimbledon *and* it is sunny on the
+  final day.
+
+- We obtain a **marginal probability** from joint probabilities by summing:
+
+  $$p(a) = \sum_{b} p(a, b)$$
+
+## Conditional probabilities {.smaller}
+
+- The **conditional probability** of outcome $a$ given that $B$ took value $b$
+  is written $p(a \mid b)$.
+
+- Example: the probability that Djokovic wins Wimbledon if it is sunny on the
+  final day.
+
+- Conditional probabilities relate to joint probabilities as
+
+  $$p(a \mid b) = \frac{p(a, b)}{p(b)}$$
+
+- These combine in the **chain rule**:
+
+  $$p(a, b, c) = p(a \mid b, c)\, p(b \mid c)\, p(c)$$
+
+## Probability distributions (discrete)
+
+- E.g. how many people die of horse kicks if there are 0.61 kicks per year
+- Described by the **Poisson** distribution
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/poisson_likelihood.png){.step}
+:::
+::: {.column width="45%"}
+Two directions:
+
+1. Evaluate the probability
+2. Randomly sample
+:::
+::::
+
+## Evaluating under the Poisson distribution
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/poisson_likelihood.png){.step}
+:::
+::: {.column width="45%"}
+What is the probability of 2 deaths in a year?
+
+```julia
+using Distributions
+pdf(Poisson(0.61), 2)
+```
+
+Two directions:
+
+1. [**Evaluate the probability**]{.alert}
+2. Randomly sample
+:::
+::::
+
+## Sampling from the Poisson distribution
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/poisson_likelihood.png){.step}
+:::
+::: {.column width="45%"}
+Give me a random sample from the distribution.
+
+```julia
+using Distributions
+rand(Poisson(0.61))
+```
+
+Two directions:
+
+1. Evaluate the probability
+2. [**Randomly sample**]{.alert}
+:::
+::::
+
+## Probability distributions (continuous)
+
+- Extension of probabilities to **continuous** variables
+- E.g. the temperature in London tomorrow
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/weather.png){.step}
+:::
+::: {.column width="45%"}
+Normalisation: $\int p(a)\, da = 1$
+
+Marginals: $p(a) = \int p(a, b)\, db$
+:::
+::::
+
+## Evaluating under the normal distribution
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/weather.png){.step}
+:::
+::: {.column width="45%"}
+What is the probability density of $30^\circ$C tomorrow?
+
+```julia
+pdf(Normal(23, 2), 30)
+```
+
+Two directions:
+
+1. [**Evaluate the density**]{.alert}
+2. Randomly sample
+:::
+::::
+
+## Sampling from the normal distribution
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/weather.png){.step}
+:::
+::: {.column width="45%"}
+Give me a random sample from the distribution.
+
+```julia
+rand(Normal(23, 2))
+```
+
+Two directions:
+
+1. Evaluate the density
+2. [**Randomly sample**]{.alert}
+:::
+::::
+
+## Example: observation uncertainty {.smaller}
+
+SIR model, assuming cases are detected with independent reporting probability
+$\rho = 0.5$.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/likelihood_data.png){.step .fragment .current-visible fragment-index=1}
+![](images/likelihood_data_model.png){.step .fragment .current-visible fragment-index=2}
+![](images/likelihood_data_model_10.png){.step .fragment .current-visible fragment-index=3}
+![](images/likelihood_data_model_10_x.png){.step .fragment .current-visible fragment-index=4}
+![](images/likelihood_data_model_dist.png){.step .fragment fragment-index=5}
+:::
+::: {.column width="50%"}
+::: {.fragment fragment-index=3}
+At time 10, 18 cases observed.
+:::
+
+::: {.fragment fragment-index=4}
+In the model, 31.1 cases.
+:::
+
+![](images/point_likelihood.png){.step .fragment .current-visible fragment-index=5}
+![](images/point_likelihood_18.png){.step .fragment fragment-index=6}
+
+::: {.fragment fragment-index=6}
+$p(\text{data point } 10 \mid \theta) = 0.078$
+:::
+:::
+::::
+
+## From one point to the whole trajectory
+
+::: {.fragment}
+Multiply across the data to get the probability of the whole trajectory:
+
+$$p(\text{data} \mid \theta) = \prod_{i} p(\text{data point } i \mid \theta)$$
+:::
+
+::: {.fragment}
+Or sum on the log scale, which is numerically better behaved:
+
+$$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \theta)$$
+:::
+
+##  {.center}
+
+![](images/Big_picture_deterministic_models_with_observations_simple.png)
+
+##  {.center}
+
+![](images/Big_picture_deterministic_models_with_observations.png)
+
+## The likelihood {.smaller}
+
+- We compare models to data using **probabilities**:
+
+  $$p(\text{data} \mid \text{model output})$$
+
+- For a given model this depends on the parameters $\theta$:
+
+  $$L(\theta) = p(\text{data} \mid \theta)$$
+
+  is called the **likelihood** of parameters $\theta$. Here $\theta$ encompasses
+  all parameters, e.g. $\theta = \{\beta, \gamma\}$.
+
+- Likelihoods can span a wide range of orders of magnitude, which causes
+  numerical problems. Taking the **logarithm** gives the **log-likelihood**.
+
+## Frequentist vs Bayesian inference {.smaller}
+
+### Frequentist inference
+
+- There are *true* parameters in the world; the uncertainty comes from the data
+- Encoded in the **likelihood**: $L(\theta) = p(\text{data} \mid \theta)$
+- Inference tries to estimate these parameters
+- Probabilities express outcomes of repeated experiments
+
+::: {.fragment}
+### Bayesian inference
+
+- There are no true parameters; the *data* are true, and uncertainty is in the
+  parameters and hypotheses
+- Encoded in the **posterior**: $p(\theta \mid \text{data})$
+- Probabilities express belief in a given parameter value
+- The posterior is the *probability distribution* of a *random variable* $\theta$
+:::
+
+# Bayesian inference
+
+## Bayes' rule {.smaller}
+
+In Bayesian inference we need $p(\theta \mid \text{data})$. Applying the rule of
+conditional probabilities:
+
+$$p(\theta \mid \text{data}) = \frac{p(\text{data} \mid \theta)\, p(\theta)}{p(\text{data})}$$
+
+- $p(\theta \mid \text{data})$ is the *posterior*
+- $p(\text{data} \mid \theta)$ is the *likelihood*
+- $p(\theta)$ is the *prior*
+- $p(\text{data})$ is a *normalisation constant*
+
+In words,
+
+$$\text{(posterior)} \propto \text{(normalised likelihood)} \times \text{(prior)}$$
+
+## Prior probabilities
+
+$p(\theta)$ quantifies our degree of **belief** via a probability distribution,
+before confronting the model with data — from previous measurements, the
+literature, experts and so on.
+
+Example: $R_0$ of measles
+
+![](images/R0plot.png){.step}
+
+## Example: estimating $R_0$ of measles
+
+![](images/r0_likelihood.png){.step .fragment .current-visible fragment-index=1}
+![](images/r0_likelihood_prior.png){.step .fragment .current-visible fragment-index=2}
+![](images/r0_posterior.png){.step .fragment fragment-index=3}
+
+## Sampling from the posterior
+
+Parameters $\theta$ are interpreted as a *random* variable, distributed
+according to the posterior:
+
+$$p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta)\, p(\theta)$$
+
+::: {.fragment}
+We want to generate **samples** of $\theta$ from this distribution.
+:::
+
+##  {.center}
+
+![](images/Big_picture_deterministic_models_no_init.png)
+
+##  {.center}
+
+![](images/Course_outline_day_12.png){.step .fragment .current-visible fragment-index=1}
+![](images/Course_outline.png){.step .fragment fragment-index=2}
+
+# Practical session
+
+##  {.center}
+
+![](images/Big_picture_simple_deterministic_models.png){.step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_simple_deterministic_model_functions.png){.step .fragment fragment-index=2}
+
+## Over to you
+
+[sbfnk.github.io/mfiidd](https://sbfnk.github.io/mfiidd/)
