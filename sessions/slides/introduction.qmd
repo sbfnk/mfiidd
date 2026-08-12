@@ -318,7 +318,20 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 ##  {.center}
 
-![](images/Big_picture_simple_deterministic_models.png)
+::: {.annotated-figure}
+![](images/big_picture_functions_base.png)
+
+[]{.mask style="left:16.4%; top:11.2%; width:9.4%;  height:6.2%;"}
+[]{.mask style="left:31.0%; top:20.0%; width:28.5%; height:18.0%;"}
+[]{.mask style="left:32.8%; top:49.1%; width:12.7%; height:6.0%;"}
+[]{.mask style="left:69.6%; top:23.0%; width:14.6%; height:6.2%;"}
+[]{.mask style="left:68.6%; top:76.4%; width:14.9%; height:6.2%;"}
+
+[`logpdf`]{.label style="left:16.4%; top:11.4%;"}
+[`solve`]{.label style="left:32.8%; top:49.3%;"}
+[`rand(Poisson(λ))`]{.label style="left:65.0%; top:23.2%;"}
+[`logpdf(Poisson(λ), obs)`]{.label style="left:60.5%; top:76.6%;"}
+:::
 
 ## The same arrows, in Julia {.smaller}
 
