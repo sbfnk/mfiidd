@@ -9,6 +9,8 @@ order: 7
 **Estimated time**: 1.5-2 hours
 :::
 
+[Lecture slides](slides/pmcmc.qmd)
+
 # Introduction
 
 In the [previous session](particle_filters.qmd), we learned how particle filters estimate likelihoods for stochastic models by simulating many trajectories and weighting them by how well they match observations. We also calibrated the number of particles needed for reliable inference.

@@ -1,0 +1,163 @@
+---
+footer: "Particle MCMC"
+title: "Particle MCMC"
+subtitle: "Fitting parameters of stochastic models"
+---
+
+## Where we got to
+
+The particle filter gives us an estimate of the marginal likelihood for **one**
+value of $\theta$:
+
+$$\hat{p}(y \mid \theta) \approx \frac{1}{J}\sum_{j=1}^{J} p(y \mid x_j, \theta)$$
+
+::: {.fragment}
+But we do not want the likelihood at one $\theta$. We want the **posterior**
+over $\theta$.
+:::
+
+## The obvious idea
+
+We already have an algorithm that explores a posterior using nothing but
+likelihood evaluations: Metropolis-Hastings.
+
+::: {.fragment}
+So: propose $\theta^*$, run a particle filter to get $\hat{p}(y \mid \theta^*)$,
+and accept or reject as usual.
+
+$$r = \min\left(1, \frac{\hat{p}(y \mid \theta^*)\, p(\theta^*)}{\hat{p}(y \mid \theta)\, p(\theta)}\right)$$
+:::
+
+::: {.fragment}
+This is [particle marginal Metropolis-Hastings]{.alert} (PMMH).
+:::
+
+## Why should that work at all?
+
+We are plugging a **noisy, random** likelihood estimate into an algorithm
+derived assuming the **exact** likelihood.
+
+::: {.fragment}
+Run the filter twice at the same $\theta$ and you get two different numbers. It
+looks like this should break the chain.
+:::
+
+::: {.fragment}
+It does not. The chain still targets the correct posterior — exactly, not
+approximately.
+:::
+
+## The reason it works {.smaller}
+
+The particle filter estimate is [unbiased]{.alert}:
+
+$$\mathbb{E}\big[\hat{p}(y \mid \theta)\big] = p(y \mid \theta)$$
+
+::: {.fragment}
+Treat the random numbers used inside the filter as **auxiliary variables** and
+run Metropolis-Hastings on the enlarged space of $(\theta, \text{particles})$.
+
+That extended chain has the right invariant distribution, and $\theta$ marginally
+has the posterior we wanted.
+:::
+
+::: {.fragment}
+The noise costs us **efficiency**, never **correctness**.
+
+::: {.footer}
+@andrieu2010
+:::
+:::
+
+# The practical problem
+
+## Noise makes the chain sticky
+
+When the filter happens to return an unusually **high** estimate, that value sits
+in the denominator of every subsequent acceptance ratio.
+
+::: {.fragment}
+The chain then rejects good proposals for a long stretch, because it is
+comparing them against a lucky number rather than the truth.
+:::
+
+::: {.fragment}
+The result is the flat plateaus you will see in the trace plots — much worse
+mixing than any chain we have run so far.
+:::
+
+## Choosing the number of particles {.smaller}
+
+There is a genuine trade-off:
+
+- **Too few particles**: the likelihood estimate is noisy, the chain sticks, and
+  mixing collapses.
+- **Too many particles**: every single MCMC iteration costs a full particle
+  filter run, so the chain crawls.
+
+::: {.fragment}
+The standard guidance is to tune $J$ so that the **standard deviation of the log
+likelihood estimate** is roughly 1 to 3 at a representative $\theta$.
+
+::: {.footer}
+@pitt2012; @doucet2015
+:::
+:::
+
+## Why RAM rather than NUTS
+
+We cannot use gradients: the particle filter involves resampling and discrete
+event simulation, so the likelihood is not differentiable.
+
+::: {.fragment}
+That rules out NUTS and leaves us with random-walk methods, which is exactly the
+fallback flagged in the MCMC session.
+
+We use **robust adaptive Metropolis**, so at least the proposal covariance is
+learned rather than hand-tuned [@vihola2012].
+:::
+
+## What to expect when you run it
+
+- Acceptance rates lower than you are used to
+- Long flat stretches in the trace
+- Convergence needing **far** more iterations than the deterministic fits
+
+::: {.fragment}
+The pre-computed chain in the practical used 500,000 samples, 50,000 burn-in,
+thinned by 50, and took hours. This is normal for PMCMC, and it is the price of
+fitting a genuinely stochastic model.
+:::
+
+## The pay-off
+
+Everything from the deterministic part of the course now carries over to
+stochastic models:
+
+- posterior distributions over parameters
+- credible intervals
+- posterior predictive checks
+
+::: {.fragment}
+And we get the latent trajectories for free: each accepted $\theta$ comes with a
+sampled state path, which is **state estimation** alongside parameter
+estimation.
+:::
+
+## Over to you
+
+In the practical you will
+
+- assemble the particle filter and Metropolis-Hastings into PMMH
+- run a short chain and see the poor mixing for yourself
+- vary the particle count and watch the trade-off appear
+- work with a pre-computed long chain, and compare against the deterministic fit
+
+## References {.smaller}
+
+::: {#refs}
+:::
+
+#
+
+[Return to the session](../pmcmc.qmd)
