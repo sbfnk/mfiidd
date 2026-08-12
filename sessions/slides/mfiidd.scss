@@ -1,0 +1,60 @@
+/*-- scss:defaults --*/
+
+// Match the course site's light theme (brite) rather than reveal's default,
+// so slides and notes read as one set of materials.
+$body-bg: #ffffff;
+$body-color: #1f2328;
+$link-color: #2a6fb5;
+
+$presentation-heading-color: #1a3a5c;
+$presentation-heading-font-weight: 600;
+$presentation-font-size-root: 34px;
+
+/*-- scss:rules --*/
+
+.reveal .slides section {
+  text-align: left;
+}
+
+// Title slide stays centred.
+.reveal .title-slide {
+  text-align: center;
+}
+
+.reveal h1,
+.reveal h2 {
+  text-transform: none;
+}
+
+// Alerts: the Beamer decks used \alert{} heavily for the key term in a
+// sentence. `[text]{.alert}` reproduces it.
+.reveal .alert {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+// Two-column layouts used throughout the ported decks.
+.reveal .columns {
+  align-items: center;
+}
+
+// Stop a tall figure pushing the rest of a slide off-screen.
+.reveal .slides section img {
+  max-height: 62vh;
+  width: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+// Sequences of near-identical figures (the rejection-sampling and
+// Metropolis-Hastings walkthroughs) look jumpy if each frame is sized to its
+// own content, so pin them to a fixed box.
+.reveal .slides section img.step {
+  height: 52vh;
+  object-fit: contain;
+}
+
+.reveal .footer {
+  font-size: 0.5em;
+  color: #6a737d;
+}

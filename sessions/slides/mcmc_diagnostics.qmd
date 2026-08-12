@@ -1,0 +1,158 @@
+---
+title: "MCMC diagnostics"
+subtitle: "Model fitting and inference for infectious disease dynamics"
+---
+
+## Review
+
+In the practical you used [Metropolis-Hastings]{.alert} with a [Gaussian]{.alert}
+proposal distribution to infer a single parameter, $R_0$.
+
+In this session we will
+
+- extend to multivariate inference
+- learn about MCMC diagnostics
+- think about accuracy and efficiency
+
+## Interlude: the multivariate Gaussian {.smaller}
+
+To infer several parameters at once we can use a multivariate Gaussian.
+
+:::: {.columns}
+::: {.column width="50%"}
+$\mu = \begin{bmatrix} 3 & 2 \end{bmatrix}$,
+$\Sigma = \begin{bmatrix} 25 & 0 \\ 0 & 9 \end{bmatrix}$
+
+![](images/MVN1.jpg){.step}
+:::
+::: {.column width="50%"}
+$\mu = \begin{bmatrix} 3 & 2 \end{bmatrix}$,
+$\Sigma = \begin{bmatrix} 10 & 5 \\ 5 & 5 \end{bmatrix}$
+
+![](images/MVN2.jpg){.step}
+:::
+::::
+
+For accurate and efficient MCMC we tune the variance *and* the covariance of the
+proposal distribution.
+
+## Why we like hairy caterpillars
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/caterpillar.png)
+:::
+::: {.column width="45%"}
+Key characteristics:
+
+- Straight
+- Plump head, plump rear
+- Multiple colours
+:::
+::::
+
+## Choosing a proposal: too small
+
+If the [variance is too small]{.alert}, the chain will be slow to reach the
+target distribution.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/Var1.png){.step}
+:::
+::: {.column width="50%"}
+![](images/Trace1.png){.step}
+:::
+::::
+
+## Choosing a proposal: too large
+
+If the [variance is too high]{.alert}, many proposed values will be rejected and
+the chain will *stick* in one place for many steps.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/Var2.png){.step}
+:::
+::: {.column width="50%"}
+![](images/Trace2.png){.step}
+:::
+::::
+
+## Choosing a proposal: about right
+
+If the [variance is just right]{.alert}, the chain efficiently explores the full
+shape of the target distribution.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/Var3.png){.step}
+:::
+::: {.column width="50%"}
+![](images/Trace3.png){.step}
+:::
+::::
+
+Try several proposal distributions ([pilot runs]{.alert}), aiming for an
+acceptance rate between 24% and 40%.
+
+## Adaptive MCMC
+
+- [Adaptive MCMC]{.alert} alters the proposal distribution while the chain is
+  running.
+
+- Start with a large symmetric variance and scan around to find a mode.
+
+- Then alter the shape of the proposal to match the covariance matrix of the
+  accepted values.
+
+- Eventually the proposal density should match the shape of the target density.
+
+## Adaptive MCMC: two-stage adaptation
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/MH7.jpg){.step}
+:::
+::: {.column width="50%"}
+![](images/MH8.jpg){.step}
+:::
+::::
+
+## Burn-in
+
+:::: {.columns}
+::: {.column width="55%"}
+- We can start our MCMC chain anywhere.
+
+- It can take a while to reach and explore the target density $f(\theta)$.
+
+- Throw away the early samples: the [burn-in]{.alert} phase.
+
+- How much to discard?
+:::
+::: {.column width="45%"}
+![](images/burn.png)
+:::
+::::
+
+## MCMC sample size
+
+- In MCMC each sample depends on the one before: [auto-correlation]{.alert}.
+
+- Reduce auto-correlation by [thinning]{.alert}, retaining only every $n$-th
+  sample.
+
+- The information content of a set of MCMC samples is given by the
+  [effective sample size (ESS)]{.alert}.
+
+## Accuracy and efficiency
+
+How does each of these influence accuracy and efficiency?
+
+- Burn-in
+- MCMC iterations after burn-in
+- Thinning
+- Number of chains, with different initial conditions
+- Proposal distribution
+- Transforming parameters

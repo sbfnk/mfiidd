@@ -9,7 +9,7 @@ order: 3
 **Estimated time**: 1.5-2 hours
 :::
 
-[Lecture slides](slides/mcmc_diagnostics_slides.pdf)
+[Lecture slides](slides/mcmc_diagnostics.qmd)
 
 # Introduction
 
