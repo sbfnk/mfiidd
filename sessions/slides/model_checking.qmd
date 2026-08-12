@@ -1,0 +1,234 @@
+---
+title: "Model checking and validation"
+subtitle: "Model fitting and inference for infectious disease dynamics"
+---
+
+## Where we are
+
+In the last session we asked whether the **sampler** worked: R̂, effective
+sample size, trace plots, divergences.
+
+::: {.fragment}
+A converged chain tells you the algorithm did its job.
+
+It says nothing about whether the **model** is any good.
+:::
+
+::: {.fragment}
+You can have a perfectly converged posterior for a model that cannot possibly
+have produced your data.
+:::
+
+## Two different questions
+
+| | Question | Tools |
+|---|---|---|
+| **Diagnostics** | Did the algorithm work? | R̂, ESS, trace plots, divergences |
+| **Model checking** | Does the model make sense? | Prior and posterior predictive checks, residuals, SBC |
+
+::: {.fragment}
+This session is about the second row.
+:::
+
+# The Bayesian workflow
+
+## Model building is a loop {.smaller}
+
+Model checking is not a step at the end. @gelman2020 describe fitting as an
+iterative **workflow**:
+
+```{mermaid}
+%%| fig-width: 9
+flowchart LR
+  A[Specify model] --> B[Prior predictive check]
+  B --> C[Fit]
+  C --> D[Diagnose sampler]
+  D --> E[Posterior predictive check]
+  E --> F{Checks pass?}
+  F -- no --> A
+  F -- yes --> G[Use the model]
+```
+
+::: {.fragment}
+So far the course has covered specifying, fitting and diagnosing. This session
+covers the two checking steps, and what to do when they fail.
+:::
+
+## Why bother?
+
+- A model that fits badly will give you **confidently wrong** answers.
+- Convergence diagnostics cannot detect a misspecified likelihood, a missing
+  mechanism, or priors that rule out the truth.
+- Checking is cheap relative to the cost of publishing a wrong estimate.
+
+::: {.fragment}
+The aim is not to prove the model is *correct*. Every model is wrong. The aim is
+to find the ways in which it is wrong that **matter for the question you are
+asking**.
+:::
+
+# Prior predictive checks
+
+## Before you see the data
+
+A prior predictive check simulates data from the model using parameters drawn
+from the **prior alone**.
+
+$$\theta^{(i)} \sim p(\theta), \qquad y^{(i)} \sim p(y \mid \theta^{(i)})$$
+
+::: {.fragment}
+Then ask: do these simulated epidemics look like something that could plausibly
+happen?
+:::
+
+## What it catches
+
+- Priors that put weight on **impossible** outcomes — attack rates above 100%,
+  epidemics lasting decades, negative durations.
+
+- Priors that are **far too vague**, so the model considers almost anything
+  possible and the data have to do all the work.
+
+- Priors that are **accidentally informative**, ruling out the truth before you
+  start.
+
+::: {.fragment}
+This is the cheapest check in the workflow: it needs no data and no fitting.
+:::
+
+## A warning about vague priors
+
+"Uninformative" priors are rarely uninformative on the scale you care about.
+
+::: {.fragment}
+A flat prior on $R_0$ from 1 to 20 sounds humble. Push it through the model and
+most of that range produces epidemics that infect the entire population within a
+fortnight.
+
+Vague on the parameter is not vague on the outcome.
+:::
+
+# Posterior predictive checks
+
+## After fitting
+
+A posterior predictive check simulates data using parameters drawn from the
+**posterior**:
+
+$$\theta^{(i)} \sim p(\theta \mid y), \qquad y^{\text{rep},(i)} \sim p(y \mid \theta^{(i)})$$
+
+::: {.fragment}
+If the model is adequate, the observed data should look like a typical draw from
+this distribution, not an outlier.
+:::
+
+## What to look for
+
+- Does the **timing** of the peak match?
+- Is the **height** of the peak captured?
+- Is the **shape** right, or does the model systematically over- or
+  under-shoot at particular times?
+- Is the **spread** of the replicated data plausible, or is the observed series
+  suspiciously smooth or suspiciously noisy by comparison?
+
+## Posterior predictive p-values {.smaller}
+
+Pick a summary statistic $T(y)$ — peak height, epidemic duration, final size —
+and compare the observed value against its distribution under replication:
+
+$$p_B = \Pr\big(T(y^\text{rep}) \geq T(y) \mid y\big)$$
+
+::: {.fragment}
+- Values near 0.5 mean the observed data are typical for that statistic.
+- Values near 0 or 1 mean the model systematically misses that feature.
+:::
+
+::: {.fragment}
+These are **not** frequentist p-values and should not be thresholded at 0.05.
+They are a diagnostic for "which feature is my model missing", not a test.
+:::
+
+## Residuals
+
+Plot observed minus predicted over time.
+
+- **Structure in the residuals** — runs of positive then negative — means the
+  model is missing a mechanism, not just noisy.
+- **Autocorrelation** in the residuals means the conditional-independence
+  assumption in the likelihood is violated.
+- **Variance growing with the mean** beyond what Poisson allows points to
+  overdispersion, and a negative binomial observation model.
+
+# Simulation-based calibration
+
+## Checking the whole machinery {.smaller}
+
+Predictive checks compare the model to *one* dataset. Simulation-based
+calibration [@talts2018] checks whether the inference is correct on average,
+across datasets:
+
+1. Draw $\theta^\text{true} \sim p(\theta)$
+2. Simulate data $y \sim p(y \mid \theta^\text{true})$
+3. Fit the model to $y$ and obtain posterior samples
+4. Record the **rank** of $\theta^\text{true}$ among those samples
+5. Repeat many times
+
+::: {.fragment}
+If the model and sampler are working, those ranks are **uniformly distributed**.
+:::
+
+## Reading an SBC histogram
+
+- **Uniform** — inference is calibrated
+- **∪-shaped** — posteriors too narrow, overconfident
+- **∩-shaped** — posteriors too wide, underconfident
+- **Sloped** — systematic bias in one direction
+
+::: {.fragment}
+SBC is expensive: it means fitting the model hundreds of times. Reserve it for
+models you intend to rely on repeatedly.
+:::
+
+# When checks fail
+
+## What to do {.smaller}
+
+Failure is information. In rough order of what to try:
+
+1. **Revisit the observation model** — overdispersion, under-reporting,
+   reporting delays. Often the cheapest fix.
+2. **Revisit the priors** — are they excluding the region the data prefer?
+3. **Revisit the structure** — is there a mechanism the model is missing?
+   Waning immunity, age structure, time-varying transmission.
+4. **Revisit the data** — are the observations really what you think they are?
+
+::: {.fragment}
+Resist the temptation to keep adding parameters until the fit looks good. A
+model that fits everything predicts nothing.
+:::
+
+## When is a model good enough?
+
+There is no threshold. The honest answer is: when it captures the features
+relevant to the question, and you understand the ways it does not.
+
+::: {.fragment}
+Document the checks you ran, including the ones that failed. A reader who knows
+where the model breaks can judge how far to trust it. A reader shown only the
+good plots cannot.
+:::
+
+## Over to you
+
+In the practical you will
+
+- run prior predictive checks and see what vague priors actually imply
+- generate posterior predictive distributions with `predict` and `decondition`
+- compute posterior predictive p-values for several summary statistics
+- inspect residuals for structure and autocorrelation
+- run a small simulation-based calibration experiment
+
+## References {.smaller}
+
+::: {#refs}
+:::

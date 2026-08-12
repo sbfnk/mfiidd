@@ -9,6 +9,8 @@ order: 4
 **Estimated time**: 1.5-2 hours
 :::
 
+[Lecture slides](slides/model_checking.qmd)
+
 # Introduction
 
 > **Where we are**: You've learned to calculate posteriors (Introduction), sample them with MCMC, and check convergence (Diagnostics). Now we ask: even if the sampler worked, does the model make sense?

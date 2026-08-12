@@ -1,7 +1,84 @@
 ---
-title: "Approximate Bayesian Computation"
+title: "Observation models and Approximate Bayesian Computation"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
+
+# Observation models
+
+## The choice we have been making silently
+
+Every likelihood in this course so far has assumed
+
+$$y_t \sim \text{Poisson}(\lambda_t)$$
+
+where $\lambda_t$ is what the model predicts at time $t$.
+
+::: {.fragment}
+That is a modelling **choice**, not a law. It encodes a specific claim about how
+observation works, and it has consequences.
+:::
+
+## What Poisson assumes
+
+- The variance **equals** the mean. Expect 100 cases, expect a spread of about
+  $\pm 10$.
+- Observations at different times are **conditionally independent** given the
+  trajectory.
+- Every case is reported independently with the same probability.
+
+::: {.fragment}
+Real surveillance data rarely obliges. Weekend effects, reporting delays,
+outbreak investigations and clustered transmission all break these assumptions.
+:::
+
+## Overdispersion
+
+When the data are more variable than Poisson allows, the fix is an observation
+model with a free variance:
+
+$$y_t \sim \text{NegativeBinomial}(\lambda_t, \phi)$$
+
+::: {.fragment}
+- $\phi \to \infty$ recovers the Poisson
+- small $\phi$ allows a much wider spread at the same mean
+:::
+
+::: {.fragment}
+The cost is one extra parameter. The benefit is that the model stops treating
+every unusual week as strong evidence against the trajectory.
+:::
+
+## Why it matters for inference
+
+An observation model that is too tight makes the posterior too confident, and
+makes outliers dominate the fit.
+
+::: {.fragment}
+A single week with 35 cases where the model expects 5 is near-impossible under
+Poisson, so the likelihood collapses and the sampler is dragged towards
+parameters that accommodate the outlier.
+
+Under a negative binomial the same week is merely unusual.
+:::
+
+## Likelihood as a distance
+
+Look at the negative log-likelihood of one observation as a function of how far
+it sits from the prediction.
+
+::: {.fragment}
+That is a **distance function**: it scores how far the data are from the model,
+and different observation models are different distance functions.
+
+- Poisson penalises large relative deviations very sharply
+- Negative binomial is more forgiving in the tails
+- Gaussian penalises absolute deviations symmetrically
+:::
+
+::: {.fragment}
+Once you see the likelihood as a distance, an obvious question follows: what if
+we chose the distance **directly**?
+:::
 
 # Review
 
@@ -109,3 +186,31 @@ $$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\the
       $$\min\left(1,\; \frac{p(\theta^*)}{p(\theta)}\frac{q(\theta \mid \theta^*)}{q(\theta^* \mid \theta)}\right)$$
       otherwise reject
 4. The time spent at any $\theta$ approximates $p(\theta \mid \text{data})$.
+
+## Is there a correct observation model?
+
+::: {.fragment}
+No. There is only a choice, and the choice is part of the model.
+:::
+
+::: {.fragment}
+- A likelihood is a distance function you have committed to in advance, with the
+  benefit that it comes with a probabilistic interpretation.
+- An ABC distance is a distance function you have chosen explicitly, with the
+  benefit that it works when the likelihood is intractable.
+:::
+
+::: {.fragment}
+Either way, be explicit about the choice and check whether your conclusions
+survive a different one.
+:::
+
+## Over to you
+
+In the practical you will
+
+- fit the Tristan da Cunha data with Poisson and negative binomial observation
+  models and compare
+- see the likelihood plotted explicitly as a distance function
+- implement ABC rejection sampling and ABC-SMC from scratch
+- compare the posteriors, and test how each approach responds to an outlier
