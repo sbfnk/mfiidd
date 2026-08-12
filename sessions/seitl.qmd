@@ -9,6 +9,8 @@ order: 5
 **Estimated time**: 2-2.5 hours
 :::
 
+[Lecture slides](slides/seitl.qmd)
+
 # Introduction
 
 > **Entering the stochastic tier**: You've completed the core sessions with deterministic ODE models. This session introduces stochastic simulation and a new dataset (Tristan da Cunha) that we'll use for the rest of the course. Fitting resumes in Particle Filters.
