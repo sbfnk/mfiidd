@@ -57,12 +57,28 @@ $presentation-font-size-root: 34px;
   max-height: 52vh;
 }
 
-// Images swapped in place live in an `.r-stack`, which overlays its children
-// absolutely. Without a height the stack collapses, so give it the same box the
-// figures use.
+// Images swapped in place live in an `.r-stack`, which overlays its children by
+// putting them all in one grid cell. Pandoc wraps a run of images in a `<p>`,
+// which would otherwise be the stack's only child — leaving the images to flow
+// normally and pile up vertically. `display: contents` drops the paragraph out
+// of the box tree so the images themselves become the grid items, and each is
+// then pinned to the same cell.
 .reveal .slides section .r-stack {
+  display: grid;
+  place-items: center;
   min-height: 52vh;
   width: 100%;
+}
+
+.reveal .slides section .r-stack > p {
+  display: contents;
+}
+
+.reveal .slides section .r-stack > p > img,
+.reveal .slides section .r-stack > img {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: center;
 }
 
 // Inside a two-column layout the box has to be shorter, or the columns push
@@ -88,6 +104,12 @@ $presentation-font-size-root: 34px;
 
 .reveal .slides section .columns img.tall {
   max-height: 62vh;
+}
+
+// Small supporting figure on a slide that also carries code or text below it.
+.reveal .slides section img.mini,
+.reveal .slides section .columns img.mini {
+  max-height: 26vh;
 }
 
 .reveal .footer {
@@ -118,7 +140,8 @@ $presentation-font-size-root: 34px;
 // image at any size.
 .annotated-figure {
   position: relative;
-  display: inline-block;
+  display: block;
+  width: fit-content;
   max-width: 100%;
   margin: 0 auto;
 }

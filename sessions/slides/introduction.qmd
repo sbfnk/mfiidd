@@ -132,37 +132,36 @@ Given a set of potential models, how do we decide which is the right one?
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](images/poisson_likelihood.png){.step}
+![](images/poisson_likelihood.png){.mini}
 
 Discrete, e.g. **Poisson**: how many die of horse kicks at 0.61 kicks per year?
 :::
 ::: {.column width="50%"}
-![](images/weather.png){.step}
+![](images/weather.png){.mini}
 
 Continuous, e.g. **normal**: the temperature in London tomorrow.
 :::
 ::::
 
 ::: {.fragment}
-[**Evaluate**]{.alert} the probability of a value:
+:::: {.columns}
+::: {.column width="50%"}
+[**Evaluate**]{.alert} the density of a value
 
 ```{julia}
 #| echo: true
 pdf(Poisson(0.61), 2)
 ```
 :::
-
-::: {.fragment}
-[**Sample**]{.alert} a value at random:
+::: {.column width="50%"}
+[**Sample**]{.alert} a value at random
 
 ```{julia}
 #| echo: true
 rand(Normal(23, 2))
 ```
 :::
-
-::: {.fragment}
-We evaluate to compute likelihoods; we sample to simulate.
+::::
 :::
 
 ## Example: observation uncertainty {.smaller}
@@ -316,39 +315,21 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 # Practical session
 
-##  {.center}
+## The same arrows, in Julia
 
 ::: {.annotated-figure}
 ![](images/big_picture_functions_base.png)
 
-[]{.mask style="left:16.4%; top:11.2%; width:9.4%;  height:6.2%;"}
-[]{.mask style="left:31.0%; top:20.0%; width:28.5%; height:18.0%;"}
-[]{.mask style="left:32.8%; top:49.1%; width:12.7%; height:6.0%;"}
-[]{.mask style="left:69.6%; top:23.0%; width:14.6%; height:6.2%;"}
-[]{.mask style="left:68.6%; top:76.4%; width:14.9%; height:6.2%;"}
+[]{.mask style="left:16.2%; top:11.0%; width:11.4%; height:6.8%;"}
+[]{.mask style="left:30.5%; top:19.5%; width:31.2%; height:17.2%;"}
+[]{.mask style="left:32.6%; top:48.9%; width:13.6%; height:6.4%;"}
+[]{.mask style="left:69.2%; top:22.6%; width:15.8%; height:7.0%;"}
+[]{.mask style="left:68.6%; top:75.8%; width:17.4%; height:8.6%;"}
 
 [`logpdf`]{.label style="left:16.4%; top:11.4%;"}
 [`solve`]{.label style="left:33.4%; top:49.3%;"}
 [`rand`]{.label style="left:71.0%; top:23.2%;"}
 [`logpdf`]{.label style="left:70.2%; top:76.6%;"}
-:::
-
-## The same arrows, in Julia {.smaller}
-
-Every blue arrow is one line you will write this afternoon — and they are all
-either an *evaluate* or a *sample*:
-
-| Arrow | In Julia |
-|---|---|
-| sample the prior | `rand(Uniform(1, 20))` |
-| evaluate the prior | `logpdf(Uniform(1, 20), R_0)` |
-| simulate | `solve(ODEProblem(sir_ode!, u0, tspan, p))` |
-| sample an observation | `rand(Poisson(λ))` |
-| evaluate the likelihood | `logpdf(Poisson(λ), obs)` |
-
-::: {.fragment}
-Adding the last two on the log scale, across all time points, gives the
-posterior up to a constant.
 :::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
