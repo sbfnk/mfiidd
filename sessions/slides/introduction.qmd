@@ -327,8 +327,8 @@ We want to generate **samples** of $\theta$ from this distribution.
 []{.mask style="left:69.6%; top:23.0%; width:14.6%; height:6.2%;"}
 []{.mask style="left:68.6%; top:76.4%; width:14.9%; height:6.2%;"}
 
-[`logpdf`]{.label style="left:16.4%; top:11.4%;"}
-[`solve`]{.label style="left:32.8%; top:49.3%;"}
+[`logpdf(prior, θ)`]{.label style="left:11.5%; top:11.4%;"}
+[`solve(prob)`]{.label style="left:32.8%; top:49.3%;"}
 [`rand(Poisson(λ))`]{.label style="left:65.0%; top:23.2%;"}
 [`logpdf(Poisson(λ), obs)`]{.label style="left:60.5%; top:76.6%;"}
 :::
