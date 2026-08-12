@@ -117,7 +117,7 @@ the same $\theta$ and you get two different numbers. That has consequences we
 deal with in the next session.
 :::
 
-## The whole thing, in code {.smaller}
+## The whole thing, in code {.smaller .scrollable}
 
 This is the actual implementation you will use in the practical — propagate,
 weight, resample, accumulate:
