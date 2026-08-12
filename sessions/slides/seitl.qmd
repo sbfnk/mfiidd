@@ -15,13 +15,13 @@ We want to do this on the basis of **observations** (data), $y$.
 
 ## Hierarchical model
 
-![](images/bhm.png){.step}
+![](images/bhm.png){.step .tall}
 
 This kind of model is sometimes called a **Bayesian hierarchical model**.
 
 ## Example: influenza in the UK
 
-![](images/DAG.png){.step}
+![](images/DAG.png){.step .tall}
 
 ::: {.footer}
 Baguelin et al. (2013)
@@ -39,7 +39,7 @@ Baguelin et al. (2013)
    $$p(y \mid x, \theta)$$
 :::
 ::: {.column width="35%"}
-![](images/bhm.png){.step}
+![](images/bhm.png){.step .tall}
 :::
 ::::
 

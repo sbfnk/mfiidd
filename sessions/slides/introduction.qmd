@@ -72,11 +72,11 @@ Given a model, what are the parameter combinations that best **fit** the data?
 ## What do we mean by "best fit the data"?
 
 ::: {.r-stack}
-![](images/model_fitting_sketch_1.png){.step .fragment .current-visible fragment-index=1}
-![](images/model_fitting_sketch_2.png){.step .fragment .current-visible fragment-index=2}
-![](images/model_fitting_sketch_3.png){.step .fragment .current-visible fragment-index=3}
-![](images/model_fitting_sketch_4.png){.step .fragment .current-visible fragment-index=4}
-![](images/model_fitting_sketch_5.png){.step .fragment fragment-index=5}
+![](images/model_fitting_sketch_1.png){.step .fragment .fade-out fragment-index=1}
+![](images/model_fitting_sketch_2.png){.step .fragment .current-visible fragment-index=1}
+![](images/model_fitting_sketch_3.png){.step .fragment .current-visible fragment-index=2}
+![](images/model_fitting_sketch_4.png){.step .fragment .current-visible fragment-index=3}
+![](images/model_fitting_sketch_5.png){.step .fragment fragment-index=4}
 :::
 
 ## Model *inference*: state estimation
@@ -90,11 +90,11 @@ Given what we observe, what is the **state** of the system?
 Given a set of potential models, how do we decide which is the right one?
 
 ::: {.r-stack}
-![](images/model_comparison_1.png){.step .fragment .current-visible fragment-index=1}
-![](images/model_comparison_2.png){.step .fragment .current-visible fragment-index=2}
-![](images/model_comparison_3.png){.step .fragment .current-visible fragment-index=3}
-![](images/model_comparison_4.png){.step .fragment .current-visible fragment-index=4}
-![](images/model_comparison_5.png){.step .fragment fragment-index=5}
+![](images/model_comparison_1.png){.step .fragment .fade-out fragment-index=1}
+![](images/model_comparison_2.png){.step .fragment .current-visible fragment-index=1}
+![](images/model_comparison_3.png){.step .fragment .current-visible fragment-index=2}
+![](images/model_comparison_4.png){.step .fragment .current-visible fragment-index=3}
+![](images/model_comparison_5.png){.step .fragment fragment-index=4}
 :::
 
 # Linking models to data
@@ -102,17 +102,17 @@ Given a set of potential models, how do we decide which is the right one?
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_simplest.png){.step .fragment .current-visible fragment-index=1}
-![](images/Big_picture_empty.png){.step .fragment .current-visible fragment-index=2}
-![](images/Big_picture_empty_question.png){.step .fragment fragment-index=3}
+![](images/Big_picture_simplest.png){.step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_empty.png){.step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_empty_question.png){.step .fragment fragment-index=2}
 :::
 
 ## Assessing the "closeness" of model output and data
 
 ::: {.r-stack}
-![](images/least_squares_bad_1.png){.step .fragment .current-visible fragment-index=1}
-![](images/least_squares_bad_2.png){.step .fragment .current-visible fragment-index=2}
-![](images/least_squares_bad_3.png){.step .fragment fragment-index=3}
+![](images/least_squares_bad_1.png){.step .fragment .fade-out fragment-index=1}
+![](images/least_squares_bad_2.png){.step .fragment .current-visible fragment-index=1}
+![](images/least_squares_bad_3.png){.step .fragment fragment-index=2}
 :::
 
 ## Probabilistic formulation
@@ -173,28 +173,28 @@ $\rho = 0.5$.
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.r-stack}
-![](images/likelihood_data.png){.step .fragment .current-visible fragment-index=1}
-![](images/likelihood_data_model.png){.step .fragment .current-visible fragment-index=2}
-![](images/likelihood_data_model_10.png){.step .fragment .current-visible fragment-index=3}
-![](images/likelihood_data_model_10_x.png){.step .fragment .current-visible fragment-index=4}
-![](images/likelihood_data_model_dist.png){.step .fragment fragment-index=5}
+![](images/likelihood_data.png){.step .fragment .fade-out fragment-index=1}
+![](images/likelihood_data_model.png){.step .fragment .current-visible fragment-index=1}
+![](images/likelihood_data_model_10.png){.step .fragment .current-visible fragment-index=2}
+![](images/likelihood_data_model_10_x.png){.step .fragment .current-visible fragment-index=3}
+![](images/likelihood_data_model_dist.png){.step .fragment fragment-index=4}
 :::
 :::
 ::: {.column width="50%"}
-::: {.fragment fragment-index=3}
+::: {.fragment fragment-index=2}
 At time 10, 18 cases observed.
 :::
 
-::: {.fragment fragment-index=4}
+::: {.fragment fragment-index=3}
 In the model, 31.1 cases.
 :::
 
 ::: {.r-stack}
-![](images/point_likelihood.png){.step .fragment .current-visible fragment-index=5}
-![](images/point_likelihood_18.png){.step .fragment fragment-index=6}
+![](images/point_likelihood.png){.step .fragment .current-visible fragment-index=4}
+![](images/point_likelihood_18.png){.step .fragment fragment-index=5}
 :::
 
-::: {.fragment fragment-index=6}
+::: {.fragment fragment-index=5}
 $p(\text{data point } 10 \mid \theta) = 0.078$
 :::
 :::
@@ -217,8 +217,8 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_deterministic_models_with_observations_simple.png){.step .fragment .current-visible fragment-index=1}
-![](images/Big_picture_deterministic_models_with_observations.png){.step .fragment fragment-index=2}
+![](images/Big_picture_deterministic_models_with_observations_simple.png){.step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations.png){.step .fragment fragment-index=1}
 :::
 
 ## The likelihood {.smaller}
@@ -287,9 +287,9 @@ Example: $R_0$ of measles
 ## Example: estimating $R_0$ of measles
 
 ::: {.r-stack}
-![](images/r0_likelihood.png){.step .fragment .current-visible fragment-index=1}
-![](images/r0_likelihood_prior.png){.step .fragment .current-visible fragment-index=2}
-![](images/r0_posterior.png){.step .fragment fragment-index=3}
+![](images/r0_likelihood.png){.step .fragment .fade-out fragment-index=1}
+![](images/r0_likelihood_prior.png){.step .fragment .current-visible fragment-index=1}
+![](images/r0_posterior.png){.step .fragment fragment-index=2}
 :::
 
 ## Sampling from the posterior
@@ -310,8 +310,8 @@ We want to generate **samples** of $\theta$ from this distribution.
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Course_outline_day_12.png){.step .fragment .current-visible fragment-index=1}
-![](images/Course_outline.png){.step .fragment fragment-index=2}
+![](images/Course_outline_day_12.png){.step .fragment .fade-out fragment-index=1}
+![](images/Course_outline.png){.step .fragment fragment-index=1}
 :::
 
 # Practical session

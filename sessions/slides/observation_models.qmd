@@ -169,7 +169,7 @@ $$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\the
 - $\epsilon$: acceptance window
 
 ::: {.fragment}
-![](images/abc_method.png){.step}
+![](images/abc_method.png){.step .tall}
 :::
 
 ## ABC-MCMC {.smaller}

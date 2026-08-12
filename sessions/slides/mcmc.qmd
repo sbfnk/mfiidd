@@ -31,12 +31,12 @@ We can do exactly the same thing to study a posterior distribution.
 Explore a distribution by drawing from it. More samples, better picture:
 
 ::: {.r-stack}
-![](images/rs_n_00000001.png){.step .fragment .current-visible fragment-index=1}
-![](images/rs_n_00000010.png){.step .fragment .current-visible fragment-index=2}
-![](images/rs_n_00000100.png){.step .fragment .current-visible fragment-index=3}
-![](images/rs_n_00001000.png){.step .fragment .current-visible fragment-index=4}
-![](images/rs_n_00100000.png){.step .fragment .current-visible fragment-index=5}
-![](images/rs_n_10000000.png){.step .fragment fragment-index=6}
+![](images/rs_n_00000001.png){.step .fragment .fade-out fragment-index=1}
+![](images/rs_n_00000010.png){.step .fragment .current-visible fragment-index=1}
+![](images/rs_n_00000100.png){.step .fragment .current-visible fragment-index=2}
+![](images/rs_n_00001000.png){.step .fragment .current-visible fragment-index=3}
+![](images/rs_n_00100000.png){.step .fragment .current-visible fragment-index=4}
+![](images/rs_n_10000000.png){.step .fragment fragment-index=5}
 :::
 
 ## Wasting time in sampling
@@ -98,11 +98,11 @@ Rejection sampling uses a [proposal distribution $q(\theta)$]{.alert} which
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.r-stack}
-![](images/RS7.png){.step .fragment .current-visible fragment-index=1}
-![](images/RS11.png){.step .fragment .current-visible fragment-index=2}
-![](images/RS15.png){.step .fragment .current-visible fragment-index=3}
-![](images/RS19.png){.step .fragment .current-visible fragment-index=4}
-![](images/RS22.png){.step .fragment fragment-index=5}
+![](images/RS7.png){.step .fragment .fade-out fragment-index=1}
+![](images/RS11.png){.step .fragment .current-visible fragment-index=1}
+![](images/RS15.png){.step .fragment .current-visible fragment-index=2}
+![](images/RS19.png){.step .fragment .current-visible fragment-index=3}
+![](images/RS22.png){.step .fragment fragment-index=4}
 :::
 :::
 ::: {.column width="50%"}
@@ -151,8 +151,8 @@ Accepted points build up a sample from $f(\theta)$.
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.r-stack}
-![](images/MH1.png){.step .fragment .current-visible fragment-index=1}
-![](images/MH2.png){.step .fragment fragment-index=2}
+![](images/MH1.png){.step .fragment .fade-out fragment-index=1}
+![](images/MH2.png){.step .fragment fragment-index=1}
 :::
 :::
 ::: {.column width="50%"}
@@ -190,10 +190,10 @@ $$r = \min\left(1, \frac{f(\theta^*)\,q(\theta \mid \theta^*)}{f(\theta)\,q(\the
 :::
 ::: {.column width="50%"}
 ::: {.r-stack}
-![](images/MH3.png){.step .fragment .current-visible fragment-index=1}
-![](images/MH4.png){.step .fragment .current-visible fragment-index=2}
-![](images/MH5.png){.step .fragment .current-visible fragment-index=3}
-![](images/MH6.png){.step .fragment fragment-index=4}
+![](images/MH3.png){.step .fragment .fade-out fragment-index=1}
+![](images/MH4.png){.step .fragment .current-visible fragment-index=1}
+![](images/MH5.png){.step .fragment .current-visible fragment-index=2}
+![](images/MH6.png){.step .fragment fragment-index=3}
 :::
 :::
 ::::

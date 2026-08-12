@@ -80,6 +80,16 @@ $presentation-font-size-root: 34px;
   max-height: 72vh;
 }
 
+// Portrait figures are squeezed narrow by the default height cap, because
+// their width is limited by their height. Give them the fuller slide.
+.reveal .slides section img.tall {
+  max-height: 76vh;
+}
+
+.reveal .slides section .columns img.tall {
+  max-height: 62vh;
+}
+
 .reveal .footer {
   font-size: 0.5em;
   color: #6a737d;
