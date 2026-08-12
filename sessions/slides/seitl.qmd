@@ -89,7 +89,7 @@ $$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
 
 ![](images/Big_picture_stochastic_models.png)
 
-## Over to you
+## Your turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will
 

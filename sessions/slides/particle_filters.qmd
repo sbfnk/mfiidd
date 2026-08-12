@@ -129,7 +129,7 @@ weight, resample, accumulate:
 `src/seit4l_bootstrap_filter.jl`
 :::
 
-## Over to you
+## Your turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will
 
