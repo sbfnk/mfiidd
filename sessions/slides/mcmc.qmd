@@ -12,6 +12,40 @@ $$p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta)\, p(\theta)$$
 
 Our aim is to draw samples from this distribution.
 
+# Why sample?
+
+## Sampling to learn about a population
+
+- Imagine you want to know the mean height of people in London.
+- You cannot measure everyone, so you take a [sample]{.alert} $S$.
+
+$$m = \frac{1}{N_\text{Lon}} \sum_{i \in \text{Lon}} h_i \;\approx\; \frac{1}{N_S} \sum_{i \in S} h_i$$
+
+::: {.fragment}
+We can do exactly the same thing to study a posterior distribution.
+:::
+
+## Monte Carlo sampling
+
+Explore a distribution by drawing from it. More samples, better picture:
+
+![](images/rs_n_00000001.png){.step .fragment .current-visible fragment-index=1}
+![](images/rs_n_00000010.png){.step .fragment .current-visible fragment-index=2}
+![](images/rs_n_00000100.png){.step .fragment .current-visible fragment-index=3}
+![](images/rs_n_00001000.png){.step .fragment .current-visible fragment-index=4}
+![](images/rs_n_00100000.png){.step .fragment .current-visible fragment-index=5}
+![](images/rs_n_10000000.png){.step .fragment fragment-index=6}
+
+## Wasting time in sampling
+
+![](images/sim_fits.png){.step}
+
+::: {.fragment}
+Sampling blindly from the prior spends almost all its effort on parameter values
+that fit the data badly. We need something that concentrates where the posterior
+is.
+:::
+
 # Rejection sampling
 
 ## The problem
@@ -155,10 +189,118 @@ $$r = \min\left(1, \frac{f(\theta^*)\,q(\theta \mid \theta^*)}{f(\theta)\,q(\the
 :::
 ::::
 
+# Better proposals
+
+## Tuning by hand does not scale
+
+The proposal covariance has to match the shape of the posterior.
+
+::: {.fragment}
+With 2 parameters that is 3 numbers to tune: two variances and a covariance.
+
+With 10 parameters it is 55.
+:::
+
+::: {.fragment}
+And you generally do not know the posterior scale before you have sampled it.
+:::
+
+## Adaptive MCMC
+
+- [Adaptive MCMC]{.alert} alters the proposal distribution while the chain is
+  running.
+
+- Start with a large symmetric variance and scan around to find a mode.
+
+- Then alter the shape of the proposal to match the covariance of the accepted
+  values.
+
+- Eventually the proposal density should match the shape of the target density.
+
+## Adaptive MCMC: two-stage adaptation
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/MH7.jpg){.step}
+:::
+::: {.column width="50%"}
+![](images/MH8.jpg){.step}
+:::
+::::
+
+::: {.footer}
+Classical adaptive Metropolis: @haario2001. Robust adaptive Metropolis (RAM), which we
+use in the practical: @vihola2012.
+:::
+
+# Using gradients
+
+## Random walks waste information
+
+Metropolis-Hastings proposes a direction at random and hopes for the best.
+
+::: {.fragment}
+But for a model built from operations we can **differentiate** — including an
+ODE model, since the solver propagates derivatives — we can compute the
+**gradient** of the log-posterior.
+
+The gradient tells us which way is uphill.
+:::
+
+## Hamiltonian Monte Carlo
+
+Instead of a random step, simulate a puck rolling on the negative log-posterior
+surface.
+
+- gradients pull it towards high-density regions
+- momentum carries it a long way before it stops
+
+::: {.fragment}
+Both the **direction** and the **length** of each move now come from the
+posterior itself, rather than from a proposal we had to guess.
+:::
+
+## NUTS
+
+[NUTS]{.alert}, the No U-Turn Sampler, is HMC with two things automated:
+
+- the **step size**, adapted during warmup
+- the **trajectory length**, stopped when the path starts turning back on
+  itself — hence the name
+
+::: {.fragment}
+The result usually just works, with no proposal tuning at all. It is the default
+you should reach for.
+:::
+
+::: {.footer}
+@hoffman2014; see @betancourt2017 for the intuition.
+:::
+
+## Which sampler? {.smaller}
+
+| Sampler | Best for | Limitations |
+|---|---|---|
+| **MH** | Simple models, discrete parameters, learning MCMC | Needs manual tuning; slow in many dimensions |
+| **RAM** | Low-dimensional models where gradients are unavailable | Still a random walk |
+| **NUTS** | Continuous parameters, differentiable models | No discrete parameters; needs gradients |
+
+::: {.fragment}
+Rule of thumb: start with NUTS. Fall back to RAM or MH when your model has
+discrete parameters or a stochastic simulator that breaks differentiation — as
+the particle filter will later in the course.
+:::
+
 ## Over to you
 
 In the practical you will
 
 - implement Metropolis-Hastings yourself for a one-dimensional target
 - see what the proposal distribution does to the chain
-- then hand the same job to Turing.jl and compare
+- experience how hard tuning a proposal by hand is
+- hand the same job to Turing.jl, then compare MH, RAM and NUTS
+
+## References {.smaller}
+
+::: {#refs}
+:::
