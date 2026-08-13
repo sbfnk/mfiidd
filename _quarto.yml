@@ -22,6 +22,7 @@ website:
   navbar:
     left:
       - getting-started.qmd
+      - timetable.qmd
       - sidebar:sessions
       - sidebar:reference
       - authors.qmd
