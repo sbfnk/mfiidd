@@ -30,7 +30,7 @@ Takes *parameters* and produces *output*, using some set of rules or equations.
 
 ## Model fitting and inference for *infectious disease dynamics*
 
-![](images/traditional_sir.png)
+![](images/traditional_sir.svg)
 
 ## SIR-type models
 
@@ -45,7 +45,7 @@ $$
 $$
 :::
 ::: {.column width="62%"}
-![](images/sir_ode_noinfo.png)
+![](images/sir_ode_noinfo.svg)
 :::
 ::::
 
@@ -72,29 +72,29 @@ Given a model, what are the parameter combinations that best **fit** the data?
 ## What do we mean by "best fit the data"?
 
 ::: {.r-stack}
-![](images/model_fitting_sketch_1.png){.step .fragment .fade-out fragment-index=1}
-![](images/model_fitting_sketch_2.png){.step .fragment .current-visible fragment-index=1}
-![](images/model_fitting_sketch_3.png){.step .fragment .current-visible fragment-index=2}
-![](images/model_fitting_sketch_4.png){.step .fragment .current-visible fragment-index=3}
-![](images/model_fitting_sketch_5.png){.step .fragment fragment-index=4}
+![](images/model_fitting_sketch_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/model_fitting_sketch_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/model_fitting_sketch_3.svg){.step .fragment .current-visible fragment-index=2}
+![](images/model_fitting_sketch_4.svg){.step .fragment .current-visible fragment-index=3}
+![](images/model_fitting_sketch_5.svg){.step .fragment fragment-index=4}
 :::
 
 ## Model *inference*: state estimation
 
 Given what we observe, what is the **state** of the system?
 
-![](images/state_estimation.png)
+![](images/state_estimation.svg)
 
 ## Model *inference*: model selection
 
 Given a set of potential models, how do we decide which is the right one?
 
 ::: {.r-stack}
-![](images/model_comparison_1.png){.step .fragment .fade-out fragment-index=1}
-![](images/model_comparison_2.png){.step .fragment .current-visible fragment-index=1}
-![](images/model_comparison_3.png){.step .fragment .current-visible fragment-index=2}
-![](images/model_comparison_4.png){.step .fragment .current-visible fragment-index=3}
-![](images/model_comparison_5.png){.step .fragment fragment-index=4}
+![](images/model_comparison_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/model_comparison_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/model_comparison_3.svg){.step .fragment .current-visible fragment-index=2}
+![](images/model_comparison_4.svg){.step .fragment .current-visible fragment-index=3}
+![](images/model_comparison_5.svg){.step .fragment fragment-index=4}
 :::
 
 # Linking models to data
@@ -102,17 +102,17 @@ Given a set of potential models, how do we decide which is the right one?
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_simplest.png){.step .fragment .fade-out fragment-index=1}
-![](images/Big_picture_empty.png){.step .fragment .current-visible fragment-index=1}
-![](images/Big_picture_empty_question.png){.step .fragment fragment-index=2}
+![](images/Big_picture_simplest.svg){.step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_empty.svg){.step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_empty_question.svg){.step .fragment fragment-index=2}
 :::
 
 ## Assessing the "closeness" of model output and data
 
 ::: {.r-stack}
-![](images/least_squares_bad_1.png){.step .fragment .fade-out fragment-index=1}
-![](images/least_squares_bad_2.png){.step .fragment .current-visible fragment-index=1}
-![](images/least_squares_bad_3.png){.step .fragment fragment-index=2}
+![](images/least_squares_bad_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/least_squares_bad_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/least_squares_bad_3.svg){.step .fragment fragment-index=2}
 :::
 
 ## Probabilistic formulation
@@ -132,12 +132,12 @@ Given a set of potential models, how do we decide which is the right one?
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](images/poisson_likelihood.png){.mini}
+![](images/poisson_likelihood.svg){.mini}
 
 Discrete, e.g. **Poisson**: how many die of horse kicks at 0.61 kicks per year?
 :::
 ::: {.column width="50%"}
-![](images/weather.png){.mini}
+![](images/weather.svg){.mini}
 
 Continuous, e.g. **normal**: the temperature in London tomorrow.
 :::
@@ -172,11 +172,11 @@ $\rho = 0.5$.
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.r-stack}
-![](images/likelihood_data.png){.step .fragment .fade-out fragment-index=1}
-![](images/likelihood_data_model.png){.step .fragment .current-visible fragment-index=1}
-![](images/likelihood_data_model_10.png){.step .fragment .current-visible fragment-index=2}
-![](images/likelihood_data_model_10_x.png){.step .fragment .current-visible fragment-index=3}
-![](images/likelihood_data_model_dist.png){.step .fragment fragment-index=4}
+![](images/likelihood_data.svg){.step .fragment .fade-out fragment-index=1}
+![](images/likelihood_data_model.svg){.step .fragment .current-visible fragment-index=1}
+![](images/likelihood_data_model_10.svg){.step .fragment .current-visible fragment-index=2}
+![](images/likelihood_data_model_10_x.svg){.step .fragment .current-visible fragment-index=3}
+![](images/likelihood_data_model_dist.svg){.step .fragment fragment-index=4}
 :::
 :::
 ::: {.column width="50%"}
@@ -189,8 +189,8 @@ In the model, 31.1 cases.
 :::
 
 ::: {.r-stack}
-![](images/point_likelihood.png){.step .fragment .current-visible fragment-index=4}
-![](images/point_likelihood_18.png){.step .fragment fragment-index=5}
+![](images/point_likelihood.svg){.step .fragment .current-visible fragment-index=4}
+![](images/point_likelihood_18.svg){.step .fragment fragment-index=5}
 :::
 
 ::: {.fragment fragment-index=5}
@@ -216,8 +216,8 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_deterministic_models_with_observations_simple.png){.step .fragment .fade-out fragment-index=1}
-![](images/Big_picture_deterministic_models_with_observations.png){.step .fragment fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations_simple.svg){.step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations.svg){.step .fragment fragment-index=1}
 :::
 
 ## The likelihood {.smaller}
@@ -281,14 +281,14 @@ literature, experts and so on.
 
 Example: $R_0$ of measles
 
-![](images/R0plot.png){.step}
+![](images/R0plot.svg){.step}
 
 ## Example: estimating $R_0$ of measles
 
 ::: {.r-stack}
-![](images/r0_likelihood.png){.step .fragment .fade-out fragment-index=1}
-![](images/r0_likelihood_prior.png){.step .fragment .current-visible fragment-index=1}
-![](images/r0_posterior.png){.step .fragment fragment-index=2}
+![](images/r0_likelihood.svg){.step .fragment .fade-out fragment-index=1}
+![](images/r0_likelihood_prior.svg){.step .fragment .current-visible fragment-index=1}
+![](images/r0_posterior.svg){.step .fragment fragment-index=2}
 :::
 
 ## Sampling from the posterior
@@ -304,13 +304,13 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 ##  {.center}
 
-![](images/Big_picture_deterministic_models_no_init.png)
+![](images/Big_picture_deterministic_models_no_init.svg)
 
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Course_outline_day_12.png){.step .fragment .fade-out fragment-index=1}
-![](images/Course_outline.png){.step .fragment fragment-index=1}
+![](images/Course_outline_day_12.svg){.step .fragment .fade-out fragment-index=1}
+![](images/Course_outline.svg){.step .fragment fragment-index=1}
 :::
 
 # Practical session
@@ -318,7 +318,7 @@ We want to generate **samples** of $\theta$ from this distribution.
 ## The same arrows, in Julia
 
 ::: {.annotated-figure}
-![](images/big_picture_functions_base.png)
+![](images/big_picture_functions_base.svg)
 
 []{.mask style="left:16.2%; top:11.0%; width:11.4%; height:6.8%;"}
 []{.mask style="left:30.5%; top:19.5%; width:31.2%; height:17.2%;"}

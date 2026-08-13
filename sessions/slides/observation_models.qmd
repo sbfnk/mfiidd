@@ -85,7 +85,7 @@ we chose the distance **directly**?
 
 ## Deterministic models
 
-![](images/Big_picture_deterministic_models_no_init.png){.step}
+![](images/Big_picture_deterministic_models_no_init.svg){.step}
 
 $$p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta)\, p(\theta)$$
 
