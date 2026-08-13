@@ -28,3 +28,9 @@ _freeze/
 # Documenter
 docs/build/
 docs/Manifest.toml
+
+# Course administration and source material — not for the public repo
+context/
+dump/
+Rmd/
+data/*.rdata
