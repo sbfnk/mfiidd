@@ -358,6 +358,25 @@ Are there any that don't look like how you would expect such an epidemic to unfo
 - Do any last too long or too short?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+The flat priors allow $R_0$ up to 20 and an infectious period up to 14 days, and
+both extremes produce epidemics nobody has seen.
+
+At the top end, a high $R_0$ infects essentially the whole population within a
+few days, with a peak approaching 1000 — that would mean almost everyone
+infectious simultaneously. Real respiratory epidemics peak at a small percentage
+of the population at any one time.
+
+At the bottom end, $R_0$ near 1 produces no epidemic at all: a handful of cases
+that fade out. Those trajectories are not wrong, but they are not what you are
+trying to model.
+
+A long infectious period drags the epidemic over months rather than weeks. For a
+flu-like infection you would expect $R_0$ around 1.2-2 and an infectious period
+of two to five days, so the flat prior spends most of its probability mass on
+epidemics that could not happen.
+:::
+
 ## Choosing different priors
 
 What if we had different beliefs? Here are more informative (narrower) priors:
@@ -447,6 +466,23 @@ Try modifying the priors and re-running the prior predictive simulation above. F
 3. Can you find a prior that produces only "realistic-looking" epidemic curves?
 
 There is no single right answer — the point is to build intuition for how prior choices affect the range of predictions.
+:::
+
+::: {.callout-tip title="What each change does" collapse="true"}
+`Uniform(1.0, 5.0)` removes the explosive trajectories and leaves a range that is
+broadly flu-like. Most of what you see will now look like a plausible epidemic.
+
+`LogNormal(log(2.5), 0.3)` puts roughly 95% of its mass between about 1.4 and
+4.5, centred on 2.5. Almost every trajectory then looks realistic, because the
+prior has done the work of ruling out the rest.
+
+On the third question: you can always find a prior that produces only realistic
+curves, by making it narrow enough. The catch is that a prior narrow enough to
+exclude every implausible epidemic also leaves the data little room to change
+your mind. If the truth were $R_0 = 6$, a `LogNormal(log(2.5), 0.3)` prior would
+fight the data hard. That trade-off between ruling out nonsense and staying open
+to being wrong is the whole difficulty of prior choice, and it is why we check
+priors by simulating from them rather than by staring at the parameters.
 :::
 
 ::: {.callout-note}
@@ -645,6 +681,26 @@ Before looking at the output above, consider the parameter combinations being te
 Now check the log-likelihood values. Did the results match your intuition? Is the visual best fit also the one with the highest log-likelihood?
 :::
 
+::: {.callout-tip title="Solution" collapse="true"}
+$R_0 = 2.5$ with $D_\mathrm{inf} = 2.0$ fits best, which is unsurprising once you
+know these data were simulated from parameters close to that.
+
+$R_0 = 1.1$ barely produces an epidemic, so it cannot reach the observed peak at
+all. $R_0 = 4.0$ produces one that is too fast and too large, peaking well before
+the data do.
+
+Changing $D_\mathrm{inf}$ at fixed $R_0$ changes the *timescale* rather than the
+final size, because $\beta = R_0 / D_\mathrm{inf}$ and $\gamma = 1 / D_\mathrm{inf}$
+move together. A shorter infectious period gives a faster, sharper epidemic; a
+longer one gives a slower, broader epidemic reaching a similar total.
+
+On the last question: here the visual and numerical best fits agree, but they do
+not have to. The Poisson log-likelihood weights each day by how improbable the
+observation is under the prediction, so missing by 20 cases on a day expecting 15
+costs far more than missing by 20 on a day expecting 300. A curve that looks
+worse to the eye can score better if it fits the high-count days closely.
+:::
+
 
 ## The observation model
 
@@ -662,6 +718,26 @@ Think about when these assumptions might be violated:
 - When might variance *not* equal the mean? (Hint: consider overdispersion, or very small/large counts)
 - When might observations *not* be independent? (Hint: consider reporting delays, weekend effects, or outbreak investigations)
 - What other aspects of the observation process might you want to model? (Hint: under-reporting, delays between infection and observation)
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+**Variance exceeds the mean** whenever cases arrive in clumps: superspreading
+events, household clusters, or an outbreak investigation that finds a dozen cases
+at once. This is overdispersion, and it is the normal state of surveillance data
+rather than the exception. The [observation models
+session](observation_models.qmd) replaces Poisson with a negative binomial for
+exactly this reason.
+
+**Independence fails** for several everyday reasons. Weekend effects depress
+Saturday and Sunday reports and inflate Monday. Reporting delays smear one day's
+infections across the following week, so consecutive observations share cases.
+Retrospective case-finding adds a block of old cases to whichever day the review
+happened.
+
+**Other things worth modelling**: under-reporting, so that only a fraction of
+infections are ever observed; the delay between infection and report; and
+ascertainment that changes through an epidemic as testing capacity and
+case definitions shift.
 :::
 
 ## A helper function
@@ -910,6 +986,21 @@ In the first plot, we fixed the parameters at their best values and only varied 
 
 ::: {.callout-tip title="Exercise: Posterior predictive checking"}
 Does the real data look consistent with our simulated datasets? This is *posterior predictive checking* - a key model validation technique that we'll explore in depth in the [model checking](model_checking.qmd) session.
+:::
+
+::: {.callout-tip title="What to look for" collapse="true"}
+Ask whether the observed series sits inside the bulk of the simulated ones or
+consistently along one edge. Systematically high or low means the model is
+missing something structural rather than merely being uncertain.
+
+Then check the features you care about: is the peak the right height, and does it
+arrive at the right time? A model can track the shape and still get the timing
+wrong by several days, which matters a great deal if you are forecasting.
+
+Finally, look at the spread. If the real data wander outside the envelope more
+often than the envelope's nominal coverage allows, the observation model is too
+tight. With a Poisson likelihood that is the usual finding, and it is the
+diagnostic that motivates the negative binomial later in the course.
 :::
 
 # Why we need algorithmic approaches
