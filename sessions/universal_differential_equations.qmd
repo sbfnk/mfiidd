@@ -621,7 +621,7 @@ The idea: instead of learning that β(t) is "some neural network", discover that
 
 Two main approaches exist:
 
-[SINDy (Sparse Identification of Nonlinear Dynamics)](https://www.pnas.org/doi/10.1073/pnas.1517384113) builds a library of candidate terms (polynomials, trigonometric functions, etc.) and uses sparse regression to find which terms are needed. It's fast and produces interpretable equations, but limited to the function library you define. In Julia, [DataDrivenDiffEq.jl](https://docs.sciml.ai/DataDrivenDiffEq/stable/) provides SINDy implementations.
+[SINDy (Sparse Identification of Nonlinear Dynamics)](https://doi.org/10.1073/pnas.1517384113) builds a library of candidate terms (polynomials, trigonometric functions, etc.) and uses sparse regression to find which terms are needed. It's fast and produces interpretable equations, but limited to the function library you define. In Julia, [DataDrivenDiffEq.jl](https://docs.sciml.ai/DataDrivenDiffEq/stable/) provides SINDy implementations.
 
 Genetic programming / symbolic regression evolves equations by combining mathematical operations, selecting those that fit well. Tools like [PySR](https://astroautomata.com/PySR/) (accessible from Julia via PythonCall) or [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) can discover surprising functional forms you wouldn't have thought to include in a library.
 
@@ -629,7 +629,7 @@ The workflow often combines both approaches: first use a neural network UDE to c
 
 For policy applications, the difference matters in principle. A hypothetical finding like "transmission increases when prevalence drops below 5%" would be actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. In practice, recovering clean symbolic expressions from noisy epidemic data is difficult, but symbolic UDEs offer a path from discovery towards interpretation.
 
-For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://www.nature.com/articles/s41540-025-00550-w) for a recent review of UDEs in systems biology.
+For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://doi.org/10.1038/s41540-025-00550-w) for a recent review of UDEs in systems biology.
 
 ::: {.callout-tip title="Learning points"}
 - **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)
@@ -650,8 +650,8 @@ This session and the [variational inference](variational_inference.qmd) session 
 - Kuwahara & Bauch (2024). [Predicting Covid-19 pandemic waves with biologically and behaviorally informed universal differential equations](https://doi.org/10.1016/j.heliyon.2024.e25363). *Heliyon* 10(4). (UDE applied to real COVID-19 case and mobility data)
 - Rojas-Campos et al. (2023). [Learning COVID-19 Regional Transmission Using Universal Differential Equations in a SIR model](https://arxiv.org/abs/2310.16804). *arXiv:2310.16804*. (UDE → SINDy pipeline for regional transmission)
 - Schmid et al. (2026). [Wastewater-informed neural compartmental model for long-horizon case number projections](https://www.medrxiv.org/content/10.64898/2026.02.10.26345731v1). *medRxiv*. (UDE-based SEIR with wastewater data for case projections)
-- Philipps et al. (2025). [Current state and open problems in universal differential equations for systems biology](https://www.nature.com/articles/s41540-025-00550-w). *npj Systems Biology and Applications*. (Review of UDEs in systems biology)
-- Brunton et al. (2016). [Discovering governing equations from data by sparse identification of nonlinear dynamical systems](https://www.pnas.org/doi/10.1073/pnas.1517384113). *PNAS* 113(15), 3932-3937. (The original SINDy paper)
+- Philipps et al. (2025). [Current state and open problems in universal differential equations for systems biology](https://doi.org/10.1038/s41540-025-00550-w). *npj Systems Biology and Applications* 11, 101. (Review of UDEs in systems biology)
+- Brunton et al. (2016). [Discovering governing equations from data by sparse identification of nonlinear dynamical systems](https://doi.org/10.1073/pnas.1517384113). *PNAS* 113(15), 3932-3937. (The original SINDy paper)
 - Cranmer et al. (2020). [Discovering Symbolic Models from Deep Learning with Inductive Biases](https://arxiv.org/abs/2006.11287). *NeurIPS*. (Symbolic regression from neural networks)
 - [DiffEqFlux.jl documentation](https://docs.sciml.ai/DiffEqFlux/stable/) - Neural ODEs and UDEs in Julia
 - [SciML tutorials on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) - Learning unknown terms in differential equations

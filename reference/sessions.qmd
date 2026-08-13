@@ -1,0 +1,173 @@
+---
+title: "Session timetable"
+order: 1
+comments: false
+---
+
+The course runs from Monday 7 to Thursday 10 September 2026 at the London School
+of Hygiene & Tropical Medicine. Each day runs 09:30–12:30 and 13:30–17:00, with
+a half-hour break in each block. Thursday is a half day.
+
+The afternoon break is a chance to get outside — Russell Square and the
+surrounding gardens are a few minutes' walk away, and there is no shortage of
+coffee on the way. Sitting in front of a screen debugging a sampler for seven
+hours is not good for anyone.
+
+# Day 1: Inference and fitting deterministic models
+
+**Monday 7 September**
+
+Monday 7 September: 09.00-09.30
+
+-   Registration
+
+Monday 7 September: 09.30-09.45
+
+-   Welcome and introduction to the course and the instructors (15 mins)
+
+## Getting set up
+
+Monday 7 September: 09.45-10.30
+
+-   [Getting set up for the course](../getting-started.qmd): installing Julia and the `MFIIDD` package, and checking everyone's environment runs (45 mins)
+
+::: {.callout-warning}
+Please install everything **before** you arrive. Package installation downloads
+around 1 GB and precompiles it, which takes 15–30 minutes on a good connection
+and considerably longer on a room full of laptops at once. This slot is for
+fixing what has gone wrong, not for starting from scratch.
+:::
+
+## Session 1: Introduction to model fitting
+
+Monday 7 September: 10.30-11.00, 11.30-12.30 and 13.30-14.00
+
+-   [Introduction](../sessions/slides/introduction.qmd): what model fitting and inference mean, likelihoods, and Bayes' rule (20 mins)
+-   [Practice](../sessions/introduction.qmd):
+    - simulating an SIR model and exploring what the priors imply (35 mins)
+    - evaluating a Poisson likelihood against observed data (30 mins)
+    - combining them into a posterior and exploring it by grid search (25 mins)
+-   Wrap up (10 mins)
+
+## Session 2: Markov chain Monte Carlo
+
+Monday 7 September: 14.00-15.15 and 15.45-17.00
+
+-   [Introduction](../sessions/slides/mcmc.qmd): why we sample, rejection sampling, Metropolis-Hastings and gradient-based methods (25 mins)
+-   [Practice](../sessions/mcmc.qmd):
+    - implementing Metropolis-Hastings for a one-dimensional target (40 mins)
+    - tuning a proposal distribution by hand, and finding out how hard that is (35 mins)
+    - handing the same job to Turing.jl, and comparing MH, RAM and NUTS (40 mins)
+-   Wrap up (10 mins)
+
+# Day 2: Diagnostics, model checking and stochastic models
+
+**Tuesday 8 September**
+
+Tuesday 8 September: 09.30-09.45
+
+-   Day 1 review (15 mins)
+
+## Session 3: MCMC diagnostics
+
+Tuesday 8 September: 09.45-11.00 and 11.30-12.00
+
+-   [Introduction](../sessions/slides/mcmc_diagnostics.qmd): trace plots, R̂, effective sample size and common failure modes (20 mins)
+-   [Practice](../sessions/mcmc_diagnostics.qmd):
+    - generating good and bad chains and comparing their trace plots (40 mins)
+    - computing R̂, ESS and MCSE, and diagnosing a badly specified model (35 mins)
+-   Wrap up (10 mins)
+
+## Session 4: Model checking and validation
+
+Tuesday 8 September: 12.00-12.30 and 13.30-14.30
+
+-   [Introduction](../sessions/slides/model_checking.qmd): the Bayesian workflow, prior and posterior predictive checks (25 mins)
+-   [Practice](../sessions/model_checking.qmd):
+    - prior predictive checks, and what vague priors actually imply (30 mins)
+    - posterior predictive distributions, predictive p-values and residuals (25 mins)
+-   Wrap up (10 mins)
+
+## Session 5: Modelling interlude — Tristan da Cunha and the SEITL model
+
+Tuesday 8 September: 14.30-15.15 and 15.45-17.00
+
+-   [Introduction](../sessions/slides/seitl.qmd): the state-space view, and why stochastic models need different machinery (20 mins)
+-   [Practice](../sessions/seitl.qmd):
+    - meeting the Tristan da Cunha outbreak and building the SEITL model (45 mins)
+    - simulating it deterministically and stochastically, and comparing (45 mins)
+-   Wrap up (10 mins)
+
+# Day 3: Particle-based methods
+
+**Wednesday 9 September**
+
+Wednesday 9 September: 09.30-09.45
+
+-   Day 2 review (15 mins)
+
+## Session 6: Particle filters
+
+Wednesday 9 September: 09.45-11.00 and 11.30-12.30
+
+-   [Introduction](../sessions/slides/particle_filters.qmd): the marginal likelihood, and sequential Monte Carlo (20 mins)
+-   [Practice](../sessions/particle_filters.qmd):
+    - seeing why a deterministic likelihood fails for a stochastic model (30 mins)
+    - watching particles propagate, get weighted and be resampled (40 mins)
+    - calibrating the number of particles (35 mins)
+-   Wrap up (10 mins)
+
+## Session 7: Particle MCMC
+
+Wednesday 9 September: 13.30-15.15
+
+-   [Introduction](../sessions/slides/pmcmc.qmd): why a noisy likelihood estimate still targets the right posterior (20 mins)
+-   [Practice](../sessions/pmcmc.qmd):
+    - assembling the particle filter and Metropolis-Hastings into PMMH (35 mins)
+    - running a short chain and seeing the mixing problem first hand (25 mins)
+    - working with a pre-computed long chain, and comparing against the deterministic fit (15 mins)
+-   Wrap up (10 mins)
+
+## Open session and review
+
+Wednesday 9 September: 15.45-17.00
+
+-   Time to catch up on anything unfinished, revisit earlier sessions, or discuss your own work with the instructors (75 mins)
+
+Wednesday 9 September: 19.00
+
+-   Course dinner
+
+# Day 4: Observation models and Approximate Bayesian Computation
+
+**Thursday 10 September**
+
+## Session 8: Observation models and ABC
+
+Thursday 10 September: 09.30-11.00 and 11.30-12.15
+
+-   [Introduction](../sessions/slides/observation_models.qmd): what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (20 mins)
+-   [Practice](../sessions/observation_models.qmd):
+    - fitting with Poisson, and checking whether its variance assumption holds for the data (30 mins)
+    - the negative binomial, and seeing a likelihood as a distance function (25 mins)
+    - ABC rejection sampling, and finding a workable acceptance threshold (35 mins)
+    - ABC-SMC, and comparing it against rejection ABC (15 mins)
+-   Wrap up (10 mins)
+
+If time allows, the closing section asks how much a single outlying observation
+moves each approach — a good discussion to finish on.
+
+## Close
+
+Thursday 10 September: 12.15-12.30
+
+-   Summary, further reading and closing discussion (15 mins)
+
+# Further material
+
+Two sessions are provided for self-study rather than taught in the room. Both
+build on the taught sessions and can be worked through afterwards at your own
+pace.
+
+-   [Variational inference](../sessions/variational_inference.qmd): fast approximate inference for real-time applications
+-   [Universal differential equations](../sessions/universal_differential_equations.qmd): combining mechanistic models with neural networks

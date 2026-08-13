@@ -2,6 +2,9 @@ name = "MFIIDD"
 uuid = "8bea04d1-6360-4bc3-9119-b4a8429b6d36"
 version = "0.1.0"
 
+[workspace]
+projects = ["docs"]
+
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
@@ -47,7 +50,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 ADTypes = "1"
 AdvancedMH = "0.8"
-AdvancedPS = "0.7"
+AdvancedPS = "0.7, 0.8"
 AdvancedVI = "0.6, 0.7"
 BoundaryValueDiffEqCore = "1, 2"
 CSV = "0.10"
@@ -85,6 +88,3 @@ TransformedLogDensities = "1"
 Turing = "0.44, 0.46"
 Zygote = "0.7"
 julia = "1.12"
-
-[workspace]
-projects = ["docs"]

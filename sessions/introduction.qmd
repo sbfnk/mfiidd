@@ -9,7 +9,7 @@ order: 1
 **Estimated time**: 2-2.5 hours
 :::
 
-[Lecture slides](slides/intro_slides.pdf)
+[Lecture slides](slides/introduction.qmd)
 
 # Introduction
 

@@ -1,0 +1,262 @@
+---
+footer: "MCMC diagnostics"
+title: "MCMC diagnostics"
+subtitle: "Model fitting and inference for infectious disease dynamics"
+---
+
+## Review
+
+In the practical you used [Metropolis-Hastings]{.alert} with a [Gaussian]{.alert}
+proposal distribution to infer a single parameter, $R_0$.
+
+In this session we will
+
+- extend to multivariate inference
+- learn about MCMC diagnostics
+- think about accuracy and efficiency
+
+## Interlude: the multivariate Gaussian {.smaller}
+
+To infer several parameters at once we can use a multivariate Gaussian.
+
+:::: {.columns}
+::: {.column width="50%"}
+$\mu = \begin{bmatrix} 3 & 2 \end{bmatrix}$,
+$\Sigma = \begin{bmatrix} 25 & 0 \\ 0 & 9 \end{bmatrix}$
+
+![](images/MVN1.jpg){.step}
+:::
+::: {.column width="50%"}
+$\mu = \begin{bmatrix} 3 & 2 \end{bmatrix}$,
+$\Sigma = \begin{bmatrix} 10 & 5 \\ 5 & 5 \end{bmatrix}$
+
+![](images/MVN2.jpg){.step}
+:::
+::::
+
+For accurate and efficient MCMC we tune the variance *and* the covariance of the
+proposal distribution.
+
+## Why we like hairy caterpillars
+
+:::: {.columns}
+::: {.column width="55%"}
+![](images/caterpillar.png)
+:::
+::: {.column width="45%"}
+Key characteristics:
+
+- Straight
+- Plump head, plump rear
+- Multiple colours
+:::
+::::
+
+## Choosing a proposal: too small
+
+If the [variance is too small]{.alert}, the chain will be slow to reach the
+target distribution.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/Var1.png){.step}
+:::
+::: {.column width="50%"}
+![](images/Trace1.png){.step}
+:::
+::::
+
+## Choosing a proposal: too large
+
+If the [variance is too high]{.alert}, many proposed values will be rejected and
+the chain will *stick* in one place for many steps.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/Var2.png){.step}
+:::
+::: {.column width="50%"}
+![](images/Trace2.png){.step}
+:::
+::::
+
+## Choosing a proposal: about right
+
+If the [variance is just right]{.alert}, the chain efficiently explores the full
+shape of the target distribution.
+
+:::: {.columns}
+::: {.column width="50%"}
+![](images/Var3.png){.step}
+:::
+::: {.column width="50%"}
+![](images/Trace3.png){.step}
+:::
+::::
+
+Try several proposal distributions ([pilot runs]{.alert}), aiming for an
+acceptance rate between 24% and 40%.
+
+## Burn-in
+
+:::: {.columns}
+::: {.column width="55%"}
+- We can start our MCMC chain anywhere.
+
+- It can take a while to reach and explore the target density $f(\theta)$.
+
+- Throw away the early samples: the [burn-in]{.alert} phase.
+
+- How much to discard?
+:::
+::: {.column width="45%"}
+![](images/burn.png)
+:::
+::::
+
+## MCMC sample size
+
+- In MCMC each sample depends on the one before: [auto-correlation]{.alert}.
+
+- Reduce auto-correlation by [thinning]{.alert}, retaining only every $n$-th
+  sample.
+
+- The information content of a set of MCMC samples is given by the
+  [effective sample size (ESS)]{.alert}.
+
+## Accuracy and efficiency
+
+How does each of these influence accuracy and efficiency?
+
+- Burn-in
+- MCMC iterations after burn-in
+- Thinning
+- Number of chains, with different initial conditions
+- Proposal distribution
+- Transforming parameters
+
+# Quantitative diagnostics
+
+## Running several chains
+
+A single chain can look perfectly healthy and still be stuck in the wrong place.
+
+::: {.fragment}
+Run several chains from **different starting points**. If they agree, that is
+evidence they have found the same distribution. If they disagree, at least one
+of them is wrong.
+:::
+
+::: {.fragment}
+Four chains is a reasonable default.
+:::
+
+## R̂: the Gelman-Rubin diagnostic
+
+Compare the variance **within** each chain to the variance **between** chains.
+
+$$\hat{R} \approx \sqrt{\frac{\text{between-chain} + \text{within-chain}}{\text{within-chain}}}$$
+
+::: {.fragment}
+- If the chains have converged to the same distribution, $\hat{R} \to 1$.
+- Chains sitting in different places inflate the between-chain variance and push
+  $\hat{R}$ up.
+:::
+
+::: {.fragment}
+Rule of thumb: $\hat{R} < 1.01$. Anything above 1.1 is a red flag.
+:::
+
+::: {.cite}
+Modern rank-normalised R̂ and ESS: @vehtari2021.
+:::
+
+## Effective sample size
+
+MCMC samples are correlated, so $N$ samples are worth fewer than $N$ independent
+draws.
+
+::: {.fragment}
+[ESS]{.alert} estimates how many independent draws your chain is equivalent to.
+
+- ESS close to $N$: efficient sampling, little autocorrelation
+- ESS far below $N$: highly correlated, run longer
+- ESS below 100: not enough for reliable inference
+:::
+
+::: {.fragment}
+Bulk ESS describes the centre of the distribution; tail ESS describes the
+extremes, and matters if you care about credible interval endpoints.
+:::
+
+## Monte Carlo standard error
+
+ESS tells you how much information you have. [MCSE]{.alert} turns that into the
+uncertainty on your estimate:
+
+$$\text{MCSE} \approx \frac{\text{posterior SD}}{\sqrt{\text{ESS}}}$$
+
+::: {.fragment}
+If the MCSE on your posterior mean is large relative to the effect you are
+reporting, you have not sampled enough — regardless of what the trace plot looks
+like.
+:::
+
+# Common failure modes
+
+## Divergent transitions
+
+Specific to HMC and NUTS. The sampler simulates a trajectory; a **divergence**
+means that simulation became numerically unstable and flew off.
+
+::: {.fragment}
+This usually means the posterior has a region of sharp curvature — a funnel or a
+narrow ridge — where the step size that works elsewhere is far too large.
+:::
+
+::: {.fragment}
+A handful of divergences may be tolerable. Many means the sampler is
+systematically avoiding part of the posterior, so your samples are **biased**,
+not merely noisy.
+:::
+
+## Multimodality
+
+If the posterior has several separated modes, a chain can settle in one and
+never see the others.
+
+::: {.fragment}
+Multiple chains from different starting points are the standard detection: if
+they land in different modes, R̂ will be large.
+:::
+
+::: {.fragment}
+Fixes are harder than detection. Reparameterisation sometimes helps; otherwise
+you need samplers designed to cross between modes.
+:::
+
+## A checklist
+
+1. Run at least four chains
+2. Look at the trace plots
+3. Check R̂ and ESS
+4. Check for divergences, if using NUTS
+5. Run a posterior predictive check — next session
+6. Rerun with more samples or a revised model if any of these fail
+
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
+
+In the practical you will
+
+- generate good and bad chains and compare their trace plots
+- compute R̂, ESS and MCSE with `MCMCChains`
+- diagnose a deliberately badly specified model and try to fix it
+
+## References {.smaller}
+
+::: {#refs}
+:::
+
+#
+
+[Return to the session](../mcmc_diagnostics.qmd)

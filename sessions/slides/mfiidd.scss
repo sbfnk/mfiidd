@@ -1,0 +1,228 @@
+/*-- scss:defaults --*/
+
+// Match the course site's light theme (brite) rather than reveal's default,
+// so slides and notes read as one set of materials.
+$body-bg: #ffffff;
+$body-color: #1f2328;
+$link-color: #2a6fb5;
+
+$presentation-heading-color: #1a3a5c;
+$presentation-heading-font-weight: 600;
+$presentation-font-size-root: 34px;
+
+/*-- scss:rules --*/
+
+.reveal .slides section {
+  text-align: left;
+}
+
+// Title slide stays centred.
+.reveal .title-slide {
+  text-align: center;
+}
+
+.reveal h1,
+.reveal h2 {
+  text-transform: none;
+}
+
+// Alerts: the Beamer decks used \alert{} heavily for the key term in a
+// sentence. `[text]{.alert}` reproduces it.
+.reveal .alert {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+// Two-column layouts used throughout the ported decks.
+.reveal .columns {
+  align-items: center;
+}
+
+// Stop a tall figure pushing the rest of a slide off-screen. `display: block`
+// plus auto margins centres a figure, which is needed because slides are
+// left-aligned above for bullet lists. NOTE: this is what makes the `.r-stack`
+// rules below necessary — see the comment there before touching either.
+.reveal .slides section img {
+  max-height: 58vh;
+  max-width: 100%;
+  width: auto;
+  margin: 0 auto;
+  display: block;
+  object-fit: contain;
+}
+
+// Sequences of near-identical figures (the rejection-sampling and
+// Metropolis-Hastings walkthroughs) look jumpy if each frame is sized to its
+// own content, so pin them to a consistent box. `max-height` rather than
+// `height` so a wide figure shrinks to fit the slide width instead of
+// overflowing sideways.
+.reveal .slides section img.step {
+  max-height: 52vh;
+}
+
+// Images swapped in place live in an `.r-stack`. Reveal overlays a stack with
+// `.r-stack > * { grid-area: 1/1 }`, but Pandoc wraps a run of images into a
+// single `<p>`, so that rule targets the paragraph rather than the images. Left
+// alone, the block-level images above then pile up vertically and run off the
+// slide.
+//
+// `display: contents` drops the paragraph out of the box tree so the images
+// themselves become the grid items, each pinned to the same cell.
+//
+// Do not "simplify" this away: it is only unnecessary if images are left
+// inline, which in turn means giving up centred figures — and we need
+// `text-align: left` on slides for bullet lists. Verify any change by putting
+// two images in an `.r-stack` with no fragments; they must sit on top of each
+// other, not one below the other.
+.reveal .slides section .r-stack {
+  display: grid;
+  place-items: center;
+  min-height: 52vh;
+  width: 100%;
+}
+
+.reveal .slides section .r-stack > p {
+  display: contents;
+}
+
+.reveal .slides section .r-stack > p > img,
+.reveal .slides section .r-stack > img {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: center;
+}
+
+// Inside a two-column layout the box has to be shorter, or the columns push
+// past the bottom of the slide.
+.reveal .slides section .columns .r-stack {
+  min-height: 42vh;
+}
+
+.reveal .slides section .columns img {
+  max-height: 42vh;
+}
+
+// Full-bleed diagram slides: let the figure use the height it needs.
+.reveal .slides section.center img {
+  max-height: 72vh;
+}
+
+// Portrait figures are squeezed narrow by the default height cap, because
+// their width is limited by their height. Give them the fuller slide.
+.reveal .slides section img.tall {
+  max-height: 76vh;
+}
+
+.reveal .slides section .columns img.tall {
+  max-height: 62vh;
+}
+
+// Small supporting figure on a slide that also carries code or text below it.
+.reveal .slides section img.mini,
+.reveal .slides section .columns img.mini {
+  max-height: 26vh;
+}
+
+.reveal .footer {
+  font-size: 0.5em;
+  color: #6a737d;
+}
+
+// Source note for a figure or claim. Kept in the flow rather than in reveal's
+// `.footer`, which is a per-slide override that displaces the deck footer and
+// collides with the slide number.
+.reveal .slides section .cite {
+  font-size: 0.4em;
+  color: #6a737d;
+  text-align: right;
+  margin-top: 0.5em;
+  line-height: 1.3;
+}
+
+.reveal .slides section .cite a {
+  color: #6a737d;
+  text-decoration: underline;
+}
+
+// Annotated figure: the hand-drawn "big picture" diagram carries blue labels
+// naming the function behind each arrow. The original was drawn for the R
+// course, so the labels are masked and relabelled here with their Julia
+// equivalents. Positions are percentages of the figure box, so they track the
+// image at any size.
+.annotated-figure {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.annotated-figure img {
+  display: block;
+  max-height: 62vh;
+  width: auto;
+}
+
+.annotated-figure .mask {
+  position: absolute;
+  background: #ffffff;
+}
+
+// Workflow strip: a row of boxes joined by arrows. Plain CSS rather than a
+// rendered diagram, so it cannot fail to draw in a lecture room.
+// Pandoc wraps the boxes in a paragraph, so the flex row lives on that.
+.reveal .workflow p {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 1.1em;
+  margin: 0.8em 0 0.5em;
+}
+
+.reveal .workflow .wf-box {
+  flex: 1 1 0;
+  min-width: 5em;
+  background: #eef4fb;
+  border: 2px solid #2a6fb5;
+  border-radius: 6px;
+  padding: 0.45em 0.5em;
+  font-size: 0.55em;
+  line-height: 1.3;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reveal .workflow .wf-box + .wf-box {
+  position: relative;
+}
+
+.reveal .workflow .wf-box + .wf-box::before {
+  content: "→";
+  position: absolute;
+  left: -0.95em;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2a6fb5;
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.reveal .wf-loop {
+  text-align: center;
+  color: #2a6fb5;
+  font-size: 0.5em;
+  margin-top: 0.2em;
+}
+
+.annotated-figure .label {
+  position: absolute;
+  color: #1f7ae0;
+  font-family: var(--r-main-font), sans-serif;
+  font-size: 0.42em;
+  line-height: 1.1;
+  white-space: nowrap;
+  transform: translateY(-0.1em);
+}

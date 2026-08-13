@@ -9,6 +9,8 @@ order: 6
 **Estimated time**: 2-2.5 hours (includes computation time for calibration)
 :::
 
+[Lecture slides](slides/particle_filters.qmd)
+
 # Introduction
 
 > **Where we are**: You've completed the core workflow (Introduction → MCMC → Diagnostics → Model Checking) and seen the SEITL model. Now we tackle stochastic models, where the same parameters produce different trajectories each run.
@@ -41,7 +43,7 @@ Particle filters are computationally intensive. For this session:
 
 - **Memory**: ~2-4 GB RAM for 256 particles (scales linearly with particle count)
 - **Runtime**: Single likelihood evaluation takes 0.1-0.5 seconds with 100 particles
-- **Calibration section**: Running 100 replicates at multiple particle counts takes 5-10 minutes
+- **Calibration section**: Running 30 replicates at each of eight particle counts takes 1-2 minutes
 
 If you're on a slower machine, reduce particle counts in the calibration exercises (e.g., use 50, 100, 200 instead of 64, 128, 256, 512).
 :::
@@ -141,7 +143,7 @@ init_state = Dict(
 
 ::: {.callout-note}
 ## Why SEIT4L instead of SEITL?
-From here on, we use the **SEIT4L** model (Erlang-4 temporary immunity) rather than the basic SEITL (exponential temporary immunity). As we saw in the [SEITL session](seitl.qmd), the Erlang distribution gives more realistic timing for immunity loss. The original [Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) paper found that SEIT4L fits the Tristan da Cunha data better. Everything below works identically with SEITL — just with fewer T sub-compartments.
+From here on, we use the **SEIT4L** model (Erlang-4 temporary immunity) rather than the basic SEITL (exponential temporary immunity). As we saw in the [SEITL session](seitl.qmd), the Erlang distribution gives more realistic timing for immunity loss. The original [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) paper found that SEIT4L fits the Tristan da Cunha data better. Everything below works identically with SEITL — just with fewer T sub-compartments.
 :::
 
 The particle filter needs to simulate many stochastic trajectories. We use the Gillespie algorithm introduced in the [SEITL session](seitl.qmd), adapted here for the SEIT4L model with its four T compartments:
@@ -576,8 +578,8 @@ plot(R0_values, ll_results, xlabel="R_0", ylabel="Log-likelihood",
 # References
 
 - Doucet & Johansen (2009). [A tutorial on particle filtering and smoothing](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf). *Handbook of Nonlinear Filtering* 12, 656-704. (Excellent introduction)
-- Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://academic.oup.com/biomet/article/99/2/269/217203). *Biometrika* 99(2), 269-284. (Calibration: target SD 1-3)
-- Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://academic.oup.com/biomet/article/102/2/295/238171). *Biometrika* 102(2), 295-313.
+- Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://doi.org/10.1016/j.jeconom.2012.06.004). *Journal of Econometrics* 171(2), 134-151. (Calibration: target SD 1-3)
+- Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://doi.org/10.1093/biomet/asu075). *Biometrika* 102(2), 295-313.
 - [SSMProblems.jl documentation](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) - State-space model interface
 - [GeneralisedFilters.jl documentation](https://turinglang.org/SSMProblems.jl/GeneralisedFilters/dev/) - Particle filtering algorithms
 

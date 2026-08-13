@@ -9,6 +9,8 @@ order: 7
 **Estimated time**: 1.5-2 hours
 :::
 
+[Lecture slides](slides/pmcmc.qmd)
+
 # Introduction
 
 In the [previous session](particle_filters.qmd), we learned how particle filters estimate likelihoods for stochastic models by simulating many trajectories and weighting them by how well they match observations. We also calibrated the number of particles needed for reliable inference.
@@ -159,7 +161,7 @@ In your own work, you should run [prior and posterior predictive checks](model_c
 
 # Particle MCMC (PMMH) with Turing.jl
 
-Now that we have a calibrated particle filter, we can use it for inference. We'll implement **Particle Marginal Metropolis-Hastings (PMMH)** - one of the two main particle MCMC algorithms from [Andrieu et al. (2010)](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x).
+Now that we have a calibrated particle filter, we can use it for inference. We'll implement **Particle Marginal Metropolis-Hastings (PMMH)** - one of the two main particle MCMC algorithms from [Andrieu et al. (2010)](https://doi.org/10.1111/j.1467-9868.2009.00736.x).
 
 PMMH uses the particle filter to estimate the likelihood, then does standard Metropolis-Hastings on the parameters. In Turing.jl, we implement this by:
 
@@ -490,7 +492,7 @@ The key difference is in the D_imm (duration of temporary immunity) estimates. S
 
 ### What the original study found
 
-[Camacho et al. (2011)](https://royalsocietypublishing.org/doi/10.1098/rspb.2011.0381) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
+[Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 
 The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compared to 1.0 for exponential), meaning individuals lose immunity at more consistent times. For the Tristan da Cunha data, this more realistic timing distribution better captures the second wave dynamics.
 
@@ -531,7 +533,7 @@ end
 
 ::: {.callout-tip title="Learning points"}
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
-- **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://academic.oup.com/biomet/article/99/2/269/217203). The required number scales with problem complexity.
+- **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://doi.org/10.1016/j.jeconom.2012.06.004). The required number scales with problem complexity.
 - **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
 - **Model comparison** using information criteria helps choose between competing mechanistic explanations, though applying them to particle MCMC requires care
 :::
@@ -606,12 +608,12 @@ In [Observation Models and Distance Metrics](observation_models.qmd), we'll step
 
 # References
 
-- Andrieu et al. (2010). [Particle Markov chain Monte Carlo methods](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x). *JRSS B* 72(3), 269-342. (The original PMCMC paper)
-- Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://academic.oup.com/biomet/article/99/2/269/217203). *Biometrika* 99(2), 269-284. (Particle calibration: target log-likelihood SD of 1-3)
+- Andrieu et al. (2010). [Particle Markov chain Monte Carlo methods](https://doi.org/10.1111/j.1467-9868.2009.00736.x). *JRSS B* 72(3), 269-342. (The original PMCMC paper)
+- Pitt et al. (2012). [On some properties of Markov chain Monte Carlo simulation methods based on the particle filter](https://doi.org/10.1016/j.jeconom.2012.06.004). *Journal of Econometrics* 171(2), 134-151. (Particle calibration: target log-likelihood SD of 1-3)
 - Vihola (2012). [Robust adaptive Metropolis algorithm with coerced acceptance rate](https://doi.org/10.1007/s11222-011-9269-5). *Statistics and Computing* 22, 997-1008. (RAM algorithm used in this session)
 - Roberts & Rosenthal (2009). [Examples of Adaptive MCMC](https://doi.org/10.1198/jcgs.2009.06134). *J. Computational and Graphical Statistics* 18(2), 349-367. (Adaptive MCMC theory)
 - Doucet & Johansen (2009). [A tutorial on particle filtering and smoothing](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf). *Handbook of Nonlinear Filtering* 12, 656-704. (Trajectory sampling)
-- Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://academic.oup.com/biomet/article/102/2/295/238171). *Biometrika* 102(2), 295-313.
+- Doucet et al. (2015). [Efficient implementation of Markov chain Monte Carlo when using an unbiased likelihood estimator](https://doi.org/10.1093/biomet/asu075). *Biometrika* 102(2), 295-313.
 - Doucet et al. (2001). [Sequential Monte Carlo Methods in Practice](https://www.springer.com/gp/book/9780387951461). Springer. (Comprehensive textbook)
-- Arulampalam et al. (2002). [A tutorial on particle filters](https://ieeexplore.ieee.org/document/978374). *IEEE Trans. Signal Processing* 50(2), 174-188.
+- Arulampalam et al. (2002). [A tutorial on particle filters for online nonlinear/non-Gaussian Bayesian tracking](https://doi.org/10.1109/78.978374). *IEEE Trans. Signal Processing* 50(2), 174-188.
 - [Turing.jl documentation](https://turinglang.org/stable/) - Probabilistic programming in Julia

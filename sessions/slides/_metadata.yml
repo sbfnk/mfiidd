@@ -1,0 +1,17 @@
+# Shared configuration for all session slide decks.
+# Anything set here applies to every .qmd in this directory.
+
+format:
+  revealjs:
+    theme: [default, mfiidd.scss]
+    slide-number: true
+    chalkboard: false
+    incremental: false
+    history: false
+    embed-resources: false
+    fig-align: center
+    link-external-icon: false
+    link-external-newwindow: true
+    # Keep the deck legible when projected: cap image height so a tall
+    # figure can never push a slide's text off-screen.
+    css: slides.css
