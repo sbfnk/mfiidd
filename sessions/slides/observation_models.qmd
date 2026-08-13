@@ -81,74 +81,25 @@ Once you see the likelihood as a distance, an obvious question follows: what if
 we chose the distance **directly**?
 :::
 
-# Approximate Bayesian Computation
-
-## Motivation
-
-- ABC **approximates** the likelihood using a set of summary statistics $S$.
-
-- A summary statistic is
-  - something that is **easy** to calculate and approximates the likelihood
-  - e.g. final size, number of peaks, height or timing of peaks
-
-- The idea of **sufficient** summary statistics: to be exact, we would need
-  summary statistics that give the *same* result as the likelihood.
-
-## The approximation
-
-$$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\theta)}) < \epsilon\big)$$
-
-- $S$: summary statistics
-- $d$: distance, e.g. absolute distance
-- $\epsilon$: acceptance window
+## Tonight's question
 
 ::: {.fragment}
-![](images/abc_method.png){.step .tall}
-:::
-
-## ABC-MCMC {.smaller}
-
-1. Choose a summary statistic $S$, a positive number $\epsilon$, a distance
-   function $d(S_1, S_2)$ and an initial $\theta$.
-2. Calculate the summary statistic $S_\text{data}$ for the data.
-3. Repeat:
-   1. sample $\theta^*$ using transition kernel $q(\theta^* \mid \theta)$
-   2. simulate a trajectory and observation
-   3. calculate the summary statistic $S_{\text{sim}(\theta)}$
-   4. calculate the difference $d(S_{\text{sim}(\theta)},\, S_\text{data})$
-   5. if $d(S_{\text{sim}(\theta)},\, S_\text{data}) < \epsilon$ accept with
-      probability
-      $$\min\left(1,\; \frac{p(\theta^*)}{p(\theta)}\frac{q(\theta \mid \theta^*)}{q(\theta^* \mid \theta)}\right)$$
-      otherwise reject
-4. The time spent at any $\theta$ approximates $p(\theta \mid \text{data})$.
-
-## Is there a correct observation model?
-
-::: {.fragment}
-No. There is only a choice, and the choice is part of the model.
+Once you see the likelihood as a distance, an obvious one follows: what if we
+chose the distance [directly]{.alert}?
 :::
 
 ::: {.fragment}
-- A likelihood is a distance function you have committed to in advance, with the
-  benefit that it comes with a probabilistic interpretation.
-- An ABC distance is a distance function you have chosen explicitly, with the
-  benefit that it works when the likelihood is intractable.
-:::
-
-::: {.fragment}
-Either way, be explicit about the choice and check whether your conclusions
-survive a different one.
+That is tomorrow morning.
 :::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will
 
-- fit the Tristan da Cunha data with Poisson and negative binomial observation
-  models and compare
+- fit the Tristan da Cunha data with a Poisson observation model
+- check whether its variance assumption actually holds for the data
+- refit with a negative binomial and compare
 - see the likelihood plotted explicitly as a distance function
-- implement ABC rejection sampling and ABC-SMC from scratch
-- compare the posteriors, and test how each approach responds to an outlier
 
 #
 

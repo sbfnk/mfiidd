@@ -1,0 +1,153 @@
+---
+footer: "Choosing an inference approach"
+title: "Choosing an inference approach"
+subtitle: "Or: the answer to all your questions"
+---
+
+# Where we have been
+
+## Three days in one slide {.smaller}
+
+- **Deterministic models**: write the likelihood, sample it with MCMC
+- **Diagnostics and checking**: did the sampler work, and is the model any good?
+- **Stochastic models**: the likelihood is an integral over trajectories
+- **Particle filters**: estimate that integral by simulation
+- **pMCMC**: sample with an estimated likelihood, and it still works
+
+::: {.fragment}
+Tomorrow: what if you cannot write a likelihood [at all]{.alert}?
+:::
+
+::: {.fragment}
+But first, the question you actually go home with: [which of these does *my*
+problem need?]{.alert}
+:::
+
+# Two questions decide it
+
+## Question one
+
+::: {.r-fit-text}
+Can you write down and evaluate
+$$p(\text{data} \mid \theta)?$$
+:::
+
+::: {.fragment}
+- **Yes** — everything from grid search to NUTS is open to you
+- **No** — simulation-based territory: particle filters, and tomorrow, ABC
+:::
+
+## Question two
+
+::: {.r-fit-text}
+Can you [differentiate]{.alert} it?
+:::
+
+::: {.fragment}
+- **Yes** — use NUTS. It is the default for a reason
+- **No** — adaptive Metropolis-Hastings, RAM, or a simulation-based method
+:::
+
+::: {.fragment}
+This is the question people forget to ask before picking a tool.
+:::
+
+## The map {.smaller}
+
+| Method | Needs | Cost |
+|---|---|---|
+| Grid search | likelihood | hopeless past 2-3 parameters |
+| Metropolis-Hastings | likelihood | cheap steps, many of them |
+| RAM / adaptive MH | likelihood | as MH, tunes itself |
+| **NUTS** | likelihood **and gradient** | expensive steps, few of them |
+| Particle filter + PMMH | stochastic simulator | very expensive |
+| ABC *(tomorrow)* | simulator only | expensive and approximate |
+| Variational inference | likelihood and gradient | fast, biased |
+
+::: {.fragment}
+Down the table is **more general**. Generality is never free.
+:::
+
+## Do not pay for generality you do not need
+
+::: {.fragment}
+Fitting a deterministic model with ABC is not *wrong*.
+:::
+
+::: {.fragment}
+It is thousands of times slower than NUTS, and less accurate.
+:::
+
+::: {.fragment}
+Take the most [specific]{.alert} method your problem allows.
+:::
+
+# What actually goes wrong
+
+## It is almost never the sampler {.smaller}
+
+::: {.fragment}
+**The observation model** — Poisson on overdispersed data: overconfident
+posterior, one bad day dominates the fit.
+:::
+
+::: {.fragment}
+**The priors** — `Uniform(1, 20)` on $R_0$ says 19 is as plausible as 2.
+:::
+
+::: {.fragment}
+**Identifiability** — if two parameters trade off, no sampler separates them,
+and the chain will mix beautifully along the ridge.
+:::
+
+::: {.fragment}
+**The model** — one that cannot produce your data will not be rescued by better
+inference.
+:::
+
+## The asymmetry worth remembering
+
+Sampler problems are [loud]{.alert}: R̂, divergences, ugly trace plots.
+
+::: {.fragment}
+Model problems are [silent]{.alert}. A converged chain from a bad model looks
+exactly like a converged chain from a good one.
+:::
+
+::: {.fragment}
+That is why model checking is a separate job from diagnostics.
+:::
+
+# Where you go next
+
+## Two directions {.smaller}
+
+**Scale** — many models, or one model across many regions.
+
+```julia
+sample(model, NUTS(), MCMCThreads(), 1000, 4)
+```
+
+That is the whole change needed to run four chains in parallel.
+
+::: {.fragment}
+**Structure** — real data arrives late, incomplete, and from several streams at
+once. Reporting delays, nowcasting, evidence synthesis.
+
+The model gets more elaborate. The inference machinery stays the same.
+:::
+
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
+
+Take a model you actually want to fit.
+
+- Can you write down the likelihood? If not, what stops you?
+- Can you differentiate it?
+- Which row of the table does that leave you on?
+- What would you check first if the answer looked wrong?
+
+The last one usually changes people's plans.
+
+#
+
+[Return to the session](../choosing_an_approach.qmd)

@@ -1,0 +1,169 @@
+---
+title: "Choosing an inference approach"
+subtitle: "Which method does your own problem need?"
+format: html
+engine: julia
+order: 10
+---
+
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1-1.5 hours | **Synthesis session** | **Requires**: sessions 1-7
+:::
+
+[Lecture slides](slides/choosing_an_approach.qmd)
+
+# Introduction
+
+You have now met most of the families of method this course covers, and
+tomorrow adds the last one. This session puts them side by side and asks the
+question you will actually face when you go back to your own work: given this
+model and this data, which one do I reach for?
+
+There is no algorithm for the answer. But the choice is much less open than it
+looks, because two properties of your problem rule most of the options out
+before you start.
+
+# The two questions that decide it
+
+::: {.callout-important}
+1. **Can you write down and evaluate $p(\text{data} \mid \theta)$?**
+2. **Can you differentiate it?**
+:::
+
+Everything else is detail. The first question separates likelihood-based methods
+from simulation-based ones. The second separates gradient-based samplers from
+everything else, and it is the question people most often fail to ask before
+choosing a tool.
+
+A deterministic model with a parametric observation model answers yes to both,
+which is why the [introduction](introduction.qmd) and [MCMC](mcmc.qmd) sessions
+could go straight to NUTS. A stochastic model answers no to the first, because
+the likelihood involves an integral over every trajectory the model could have
+taken, which is what sent us to [particle filters](particle_filters.qmd). A model
+you can only simulate answers no to both, which is where
+[ABC](observation_models.qmd) comes in tomorrow morning.
+
+# The methods, side by side
+
+| Method | Needs | Cost | Reach for it when |
+|---|---|---|---|
+| **Grid search** | likelihood | hopeless beyond 2-3 parameters | you want to *see* the posterior |
+| **Metropolis-Hastings** | likelihood | cheap per step, many steps | the model is small, or you need to understand what a sampler does |
+| **RAM / adaptive MH** | likelihood | as MH, tunes itself | MH mixes badly and you cannot differentiate |
+| **NUTS** | likelihood **and gradient** | expensive per step, few steps | you can differentiate: almost always the default |
+| **Particle filter + PMMH** | simulator of a stochastic model | very expensive | the state is stochastic and you need the parameters |
+| **ABC** *(tomorrow)* | simulator only | expensive, and approximate | you cannot write a likelihood at all |
+| **Variational inference** | likelihood and gradient | fast | you need an answer in seconds and can accept bias |
+
+::: {.callout-warning}
+The table reads top to bottom as increasing generality, and generality is not
+free. Every step down it buys you the ability to handle a harder model by
+spending more computation, accepting more approximation, or both. Do not take a
+step you do not need: fitting a deterministic model with ABC is not wrong, it is
+merely thousands of times slower than fitting it with NUTS and less accurate.
+:::
+
+::: {.callout-tip title="Exercise: match the problem to the method"}
+For each of these, decide which method you would try first and, more
+importantly, why the ones above it in the table will not do.
+
+1. An SEIR model fitted to weekly case counts, five parameters, deterministic.
+2. The same model, but the transmission rate is a random walk over 100 weeks.
+3. An individual-based simulation of household transmission, where the
+   likelihood would require summing over every possible chain of infection.
+4. A deterministic model you need to refit every hour as new data arrive.
+5. A stochastic compartmental model with six parameters and a small population,
+   where demographic noise genuinely matters.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+1. NUTS. Deterministic, few parameters, differentiable.
+2. Still NUTS, but the 100 random-walk increments are parameters too, so this is
+   a 105-dimensional problem and the AD backend becomes a real decision. See
+   [Beyond Turing](julia_ecosystem.qmd) on forward versus reverse mode.
+3. ABC, or a synthetic likelihood. You can simulate households easily and cannot
+   write the likelihood at all. This is tomorrow's session.
+4. Variational inference, if you can tolerate the bias, and NUTS if you can
+   afford it. This is the one case where "fast and slightly wrong" beats "slow
+   and right", because an answer after the decision is worth nothing.
+5. Particle MCMC. The state is stochastic, so the likelihood needs marginalising
+   over trajectories, which is exactly what the particle filter estimates.
+:::
+
+# What actually goes wrong
+
+In practice the method is rarely the thing that fails. Four other things are.
+
+**The observation model.** A Poisson likelihood on overdispersed data makes the
+posterior far too confident and lets one bad day dominate the fit, as the
+[observation models session](observation_models.qmd) showed. This is the most
+common real failure, and no amount of sampler sophistication rescues it.
+
+**The priors.** Vague priors are not neutral. A `Uniform(1, 20)` on $R_0$ says a
+value of 19 is as plausible as 2, and prior predictive checks turn that from an
+abstraction into a picture of epidemics that infect everyone in four days.
+
+**Identifiability.** If two parameters trade off against each other, no sampler
+will separate them, and a well-mixed chain will happily report a confident
+posterior along the ridge. The [diagnostics session](mcmc_diagnostics.qmd) is
+about noticing this.
+
+**The model.** A model that cannot produce the data you observed will not be
+saved by better inference. Posterior predictive checks are how you find out.
+
+::: {.callout-important}
+Sampler problems announce themselves: R̂, divergences, terrible trace plots.
+Model problems do not. A converged chain from a bad model looks exactly like a
+converged chain from a good one, which is why
+[model checking](model_checking.qmd) is a separate discipline from diagnostics.
+:::
+
+# Beyond this course
+
+The methods here are the working set, and there are two directions people
+commonly go next.
+
+**Scale.** Fitting many models, or one model to many regions, means parallel
+chains, GPUs, and tools built for it. The Julia stack is well placed here:
+`sample(model, NUTS(), MCMCThreads(), n, n_chains)` is the entire change needed
+to run chains in parallel, and the [wider ecosystem](julia_ecosystem.qmd)
+session covers sampling outside Turing when you need it.
+
+**Structure.** Real surveillance data arrives late, incompletely, and through
+several different streams at once. Reporting delays, nowcasting and multi-source
+evidence synthesis all sit on top of what you have learned rather than replacing
+it: the model gets more elaborate, the inference machinery stays the same.
+
+::: {.callout-tip title="Exercise: your own problem"}
+Take a model you actually want to fit.
+
+1. Can you write down $p(\text{data} \mid \theta)$? If not, what is stopping you:
+   a stochastic state, an intractable sum, or a simulator you did not write?
+2. Can you differentiate it? If the model calls out to code you cannot
+   differentiate through, that rules out NUTS regardless of everything else.
+3. Which row of the table does that leave you on?
+4. What would you check first if the answer looked wrong?
+
+If you have time, discuss it with the person next to you. Question 4 is usually
+the one that changes people's plans.
+:::
+
+::: {.callout-tip title="Learning points"}
+
+- Two questions decide most of it: can you evaluate the likelihood, and can you
+  differentiate it
+- Generality costs computation and accuracy, so take the most specific method
+  your problem allows
+- The observation model, the priors and identifiability cause more real failures
+  than the choice of sampler
+- Sampler problems are loud and model problems are silent, which is why
+  diagnostics and model checking are separate jobs
+
+:::
+
+# References
+
+- @gelman2020 — the Bayesian workflow, and where inference sits inside it
+- @andrieu2010 — particle MCMC, the method underneath the PMMH session
+- @toni2009 — ABC-SMC, and a readable account of when likelihood-free is worth it
+- @betancourt2017 — why Hamiltonian methods work, if you want the geometry

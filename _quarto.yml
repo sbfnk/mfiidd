@@ -41,6 +41,8 @@ website:
         - sessions/particle_filters.qmd
         - sessions/pmcmc.qmd
         - sessions/observation_models.qmd
+        - sessions/abc.qmd
+        - sessions/choosing_an_approach.qmd
         - sessions/variational_inference.qmd
         - sessions/universal_differential_equations.qmd
         - sessions/julia_ecosystem.qmd
