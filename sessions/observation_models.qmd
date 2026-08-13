@@ -225,9 +225,33 @@ end
 p
 ```
 
-**Question**: Is this assumption justified for epidemic data?
+::: {.callout-tip title="Exercise: Does the assumption hold for our data?"}
+The Poisson model claims the variance of the observations equals their mean. Check
+whether that is plausible for the Tristan da Cunha data.
 
-- Under-reporting might be systematic (not random)
+1. Fit the Poisson model above and extract the posterior mean trajectory.
+2. Compute the residuals (observed minus predicted) and their variance.
+3. Compare that variance against the mean prediction. If the data were Poisson,
+   the two should be roughly equal.
+
+What do you find, and what would it imply for the parameter estimates?
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+The residual variance comes out substantially larger than the mean prediction:
+the data are *overdispersed* relative to Poisson. Two islanders infected in the
+same household are not independent draws, and reporting was not uniform across
+the outbreak.
+
+The consequence is that a Poisson likelihood treats every unusual day as strong
+evidence against the trajectory, so the posterior is too narrow and is pulled
+towards parameters that accommodate the noisiest observations. This is what the
+negative binomial in the next section fixes.
+:::
+
+Reasons the assumption might fail for epidemic data:
+
+- Under-reporting might be systematic rather than random
 - Behavioural changes might create clustering
 - Surveillance quality might vary over time
 
@@ -460,6 +484,34 @@ abc_samples = abc_rejection(
 println("\nObtained $(length(abc_samples)) samples")
 ```
 
+::: {.callout-tip title="Exercise: Find a workable threshold"}
+The threshold above (300) was chosen for you. Find out what it is doing by
+changing it.
+
+1. Re-run the sampler with a stricter threshold, say 150. How many simulations
+   does it get through, and how long does it take?
+2. Re-run with a loose one, say 800. How wide is the resulting posterior for
+   $R_0$ compared with the run at 300?
+3. What is the trade-off you are making, and how would you decide on a value if
+   you had no answer to compare against?
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+Tightening the threshold narrows the posterior but the acceptance rate collapses,
+so you wait much longer for the same number of samples — and at 150 you may get
+none at all on some runs, because ABC is stochastic.
+
+Loosening it accepts almost everything, so the sampler is fast but the posterior
+drifts back towards the prior: you are no longer conditioning on the data very
+much.
+
+There is no way to pick $\epsilon$ from first principles. In practice you lower
+it until either the posterior stops changing or the acceptance rate becomes
+unaffordable, whichever comes first. This is exactly the weakness that ABC-SMC in
+the next section is designed to address, by walking the threshold down
+automatically.
+:::
+
 ```{julia}
 # Extract parameters
 if length(abc_samples) > 0
@@ -481,7 +533,15 @@ end
 
 ## Compare distance metrics
 
-Different distance functions give different results:
+Different distance functions give different results.
+
+::: {.callout-tip title="Exercise: Predict before you run"}
+Before running the cell below, write down your answer to this: if one day's count
+were much higher than the model predicts, which of the three distances — L1, L2
+or the weighted distance — would react most strongly, and why?
+
+Then run it and see whether the ordering matches what you expected.
+:::
 
 ```{julia}
 # Test on a candidate parameter set
@@ -493,6 +553,17 @@ println("  L1: ", round(distance_L1(test_sim, observed_data), digits=2))
 println("  L2: ", round(distance_L2(test_sim, observed_data), digits=2))
 println("  Weighted: ", round(distance_weighted(test_sim, observed_data), digits=2))
 ```
+
+::: {.callout-tip title="Solution" collapse="true"}
+L2 reacts most strongly: it squares each discrepancy, so a single large deviation
+dominates the total. L1 grows only linearly with the discrepancy, which makes it
+the most outlier-tolerant of the three. The weighted distance sits in between,
+and where exactly depends on whether the outlier falls at a time point the
+weighting emphasises.
+
+This is the same trade-off as choosing between a Poisson and a negative binomial
+likelihood — which is the point of the section that follows.
+:::
 
 Notice that choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood.
 
@@ -769,7 +840,15 @@ plot!(times, data_outlier, label="Data with outlier", linewidth=2,
       title="Effect of Outliers on Observation Data")
 ```
 
-**Exercise for students**: Compare how the Poisson likelihood and ABC with L1 distance respond to the outlier. You can do this visually: simulate from a few parameter sets, compute the Poisson log-likelihood and L1 distance for both `data_clean` and `data_outlier`, and see which metric shifts more. If you have time, try a full fit with both methods.
+::: {.callout-tip title="Exercise: How much does one bad day matter?"}
+Compare how the Poisson likelihood and ABC with L1 distance respond to the
+outlier.
+
+Simulate from a few parameter sets, compute the Poisson log-likelihood and the
+L1 distance against both `data_clean` and `data_outlier`, and see which metric
+shifts more. If you have time, try a full fit with both and compare the
+posteriors.
+:::
 
 ::: {.callout-tip collapse="true"}
 ## Hint: Outlier robustness

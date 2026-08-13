@@ -13,6 +13,16 @@ surrounding gardens are a few minutes' walk away, and there is no shortage of
 coffee on the way. Sitting in front of a screen debugging a sampler for seven
 hours is not good for anyone.
 
+::: {.callout-note collapse="true"}
+## For instructors: where the schedule is tight
+
+Every day is allocated to the minute, so overruns have to come out of something.
+Sessions 1 and 5 are running at the bottom of their own estimates and carry the
+most material, so they are the likeliest to overrun. Monday has no slack at all
+once setup is accounted for; the Wednesday afternoon open session is the only
+deliberate spare time in the week and exists to absorb what has slipped.
+:::
+
 # Day 1: Inference and fitting deterministic models
 
 **Monday 7 September**
@@ -148,10 +158,14 @@ Thursday 10 September: 09.30-11.00 and 11.30-12.15
 
 -   [Introduction](../sessions/slides/observation_models.qmd): what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (20 mins)
 -   [Practice](../sessions/observation_models.qmd):
-    - fitting with Poisson and negative binomial observation models and comparing (40 mins)
-    - implementing ABC rejection sampling and ABC-SMC from scratch (50 mins)
-    - testing how each approach responds to an outlier (15 mins)
+    - fitting with Poisson, and checking whether its variance assumption holds for the data (30 mins)
+    - the negative binomial, and seeing a likelihood as a distance function (25 mins)
+    - ABC rejection sampling, and finding a workable acceptance threshold (35 mins)
+    - ABC-SMC, and comparing it against rejection ABC (15 mins)
 -   Wrap up (10 mins)
+
+If time allows, the closing section asks how much a single outlying observation
+moves each approach — a good discussion to finish on.
 
 ## Close
 
