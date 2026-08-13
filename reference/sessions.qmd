@@ -142,17 +142,21 @@ Wednesday 9 September: 19.00
 
 **Thursday 10 September**
 
+Thursday 10 September: 09.30-09.45
+
+-   Day 3 review (15 mins)
+
 ## Session 8: Observation models and ABC
 
-Thursday 10 September: 09.30-11.00 and 11.30-12.15
+Thursday 10 September: 09.45-11.00 and 11.30-12.15
 
--   [Introduction](../sessions/slides/observation_models.qmd): what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (20 mins)
+-   [Introduction](../sessions/slides/observation_models.qmd): what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (15 mins)
 -   [Practice](../sessions/observation_models.qmd):
     - fitting with Poisson, and checking whether its variance assumption holds for the data (30 mins)
     - the negative binomial, and seeing a likelihood as a distance function (25 mins)
     - ABC rejection sampling, and finding a workable acceptance threshold (35 mins)
-    - ABC-SMC, and comparing it against rejection ABC (15 mins)
--   Wrap up (10 mins)
+    - ABC-SMC, and comparing it against rejection ABC (10 mins)
+-   Wrap up (5 mins)
 
 If time allows, the closing section asks how much a single outlying observation
 moves each approach — a good discussion to finish on.
