@@ -191,6 +191,23 @@ The current priors allow $R_0$ up to 10, which is unrealistic for influenza. Try
 How does the range of epidemic curves change? Are the new trajectories more realistic?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+The spread narrows sharply, and it narrows at the top. The trajectories that
+disappear are the ones that infected the island in a few days, because those came
+from the upper half of the old prior.
+
+What survives still covers a wide range of epidemic sizes and speeds, which is
+what you want: the prior should exclude the impossible without pretending you
+already know the answer.
+
+Whether they are "more realistic" depends on knowing something about influenza
+before you see the data, and that is exactly the point. Prior predictive checking
+turns a claim about a parameter, which is hard to have intuition about, into a
+picture of epidemics, which is easy to judge. If you cannot say whether an $R_0$
+prior is reasonable, you can almost certainly say whether an epidemic that infects
+everyone in four days is.
+:::
+
 ::: {.callout-tip}
 ## When priors are too vague
 If your prior predictive check shows wildly varying trajectories - some with 0 cases, others with thousands - your priors may be too vague. Consider using domain knowledge to constrain them. E.g. for influenza, $R_0$ between 1 and 5 might be more realistic than 0.5 to 10.
@@ -311,6 +328,23 @@ If the observed value (red line) falls in the tails of the posterior predictive 
 3. What does this tell you about which aspects of the epidemic the SIR model captures well vs poorly?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+Peak size and total cases usually sit comfortably inside the posterior predictive
+distribution: the model has two free parameters and can scale the epidemic to
+match how many people were infected.
+
+Peak timing is the one that tends to fall in the tail. That is the signature of a
+model whose *shape* is wrong rather than whose scale is wrong — it can be made to
+reach the right height, but not at the right moment, because a single SIR wave
+cannot bend the way the data do.
+
+The general lesson is worth more than the specific answer. A statistic the model
+reproduces tells you little, because a flexible model reproduces many things. A
+statistic it consistently misses points straight at the missing mechanism, which
+is why it is worth choosing summaries that could plausibly fail rather than ones
+you know will pass.
+:::
+
 We can quantify this with a *posterior predictive p-value*: the proportion of simulated values that are as extreme as or more extreme than the observed value.
 
 ```{julia}
@@ -411,6 +445,29 @@ The SIR model fails to capture the second wave in the Tristan da Cunha data. Bas
 3. Would changing the observation model (e.g., Poisson to Negative Binomial) help, or is this a problem with the underlying dynamics?
 
 The next session on SEITL models explores one potential answer to these questions.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+**A mechanism.** The straightforward explanation is that immunity after
+infection is not permanent. If recovered islanders return to being susceptible
+after a week or two, a second wave can run through the same population while the
+outbreak is still going. Other candidates exist — a second introduction, or
+behaviour change part-way through — but temporary immunity is the one that fits a
+closed island population with no new arrivals.
+
+**The structural change.** You need at least one more compartment, so that
+recovery leads to a temporary state that drains back into susceptible rather than
+into permanent immunity. That is the T and L of SEITL: a temporary immune state
+followed by long-term immunity, with only a fraction reaching the latter.
+
+**Would a different observation model help?** No, and this is the important half
+of the question. The negative binomial widens the range of counts the model
+tolerates at any given time, so it would make the second wave look less
+*surprising* — the posterior would simply become less confident. It cannot make a
+single-wave trajectory produce two peaks. Changing the observation model adjusts
+how you score the gap between model and data; it never changes what the model can
+do. When a check fails on the shape of the dynamics, the dynamics are what has to
+change.
 :::
 
 ::: {.callout-tip title="Learning points"}
