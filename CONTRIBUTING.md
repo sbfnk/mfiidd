@@ -5,6 +5,7 @@ Course materials for "Model fitting and inference for infectious disease dynamic
 ## Repository structure
 
 - **`sessions/`** — Quarto documents (`.qmd`) with Julia code for each teaching session
+- **`sessions/slides/`** — the revealjs lecture decks that introduce each session
 - **`data/`** — CSV datasets used in practicals
 - **`figures/`** — Diagrams used in sessions (compartmental model figures, etc.)
 - **`scripts/`** — Julia scripts for long-running computations (e.g., PMCMC chain generation)
@@ -32,7 +33,35 @@ julia --project=. -e 'using Pkg; Pkg.instantiate()'
 quarto render
 ```
 
-This generates HTML in `_site/`. Changes pushed to `main` are automatically deployed.
+This generates HTML in `_site/`. Changes pushed to `main` are automatically
+deployed; pull requests get a preview at `previews/PR-<number>/`.
+
+Rendering the whole site takes a while because every session executes its Julia.
+To iterate on one file, render just that file:
+
+```bash
+quarto render sessions/mcmc.qmd
+```
+
+Execution results are cached in `_freeze/`, so an unchanged session is not
+re-run. If a session's output looks stale after a package upgrade, delete its
+directory under `_freeze/` and render again.
+
+### Checks
+
+`pre-commit` runs the formatter and the file hygiene hooks. Install it once:
+
+```bash
+pre-commit install
+```
+
+Julia code is formatted with JuliaFormatter following `.JuliaFormatter.toml`
+(4-space indent, 92-character margin). CI runs the same checks and then renders
+the site, so a render error in any session will fail the build.
+
+Package version bounds are kept up to date by CompatHelper, which opens a pull
+request when a dependency releases a new version. GitHub's dependabot does not
+support Julia, which is why CompatHelper is there instead.
 
 ### Working with course materials
 
@@ -65,3 +94,84 @@ Other rules:
 - End each session with a `callout-tip title="Learning points"` box of bullet points. Do not also write a prose `# Summary` section — pick one.
 - Never wrap section headings (`# Setup`, `# Introduction`, etc.) inside a callout. Callouts are visual; sections are structural. If code blocks are bulky, box the code block with its own title and leave the section heading in the document outline.
 - "Coming from R?" / "Coming from Stan?" is always a collapsed blue note.
+
+## Slide decks
+
+Each taught session has a revealjs deck in `sessions/slides/` that the instructor
+presents before the practical. Shared settings live in
+`sessions/slides/_metadata.yml` and apply to every deck in the directory, so an
+individual deck's front matter only needs a `title`, `subtitle` and `footer`.
+
+Styling is in `sessions/slides/mfiidd.scss`. A few classes are worth knowing:
+
+- `[text]{.alert}` for the one emphasised term in a sentence, as `\alert{}` did
+  in the old Beamer decks
+- `{.step}` on a figure that is one frame of a sequence, so successive frames
+  are drawn at a consistent size
+- `{.tall}` for portrait figures, `{.mini}` for a small figure above code
+- `[source]{.cite}` for a small grey attribution under a figure
+
+### Stepped figures
+
+A sequence of figures shown in the same place goes in an `.r-stack`, with the
+first frame fading out as the second appears:
+
+```markdown
+::: {.r-stack}
+![](images/frame_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/frame_2.svg){.step .fragment fragment-index=1}
+:::
+```
+
+The first frame needs `.fade-out` rather than plain `.fragment`, or the slide
+starts blank and the audience sees nothing until you press space.
+
+The `.r-stack` rules in the SCSS include a `display: contents` on the wrapping
+paragraph. Pandoc collects a run of images into a single `<p>`, which stops
+reveal's own overlay rule from reaching the images; that declaration puts them
+back. The file has a comment explaining it. If you change those rules, check the
+result by putting two images in an `.r-stack` with no fragments — they must sit
+on top of each other.
+
+### Figures
+
+Prefer SVG. The decks are projected, and the source figures are line drawings
+that stay sharp at any size. `sessions/slides/images/` holds the originals.
+
+### Viewing a deck
+
+```bash
+quarto preview sessions/slides/mcmc.qmd
+```
+
+Right arrow moves between top-level (`#`) sections; the space bar walks every
+slide including the `##` slides nested under them. Press `s` for speaker notes
+and `o` for the overview grid.
+
+## Adding a session
+
+A new session touches more than one file. In order:
+
+1. Write `sessions/<name>.qmd`. Set `order:` in the front matter to place it in
+   the sidebar, and open with the estimated-time banner the other sessions use.
+2. Add a deck at `sessions/slides/<name>.qmd` if the session is taught, ending
+   with a "Your Turn" slide and a link back to the session.
+3. Add the session to the `sessions` sidebar in `_quarto.yml`.
+4. Add it to the course map in `reference/structure.qmd`, including its
+   prerequisites.
+5. If it is taught rather than self-study, give it a slot in
+   `reference/sessions.qmd` with per-part timings that add up to the slot.
+6. Render locally before opening the pull request. The session must execute from
+   a clean `_freeze/`.
+
+Sessions carry their own exercises. Look at `sessions/model_checking.qmd` for
+the pattern: a `callout-tip` posing the task, followed by a collapsed
+`callout-tip title="Solution"`. Aim for two or more per session, and keep the
+solutions runnable.
+
+## Data and long-running computations
+
+Anything that takes more than a couple of minutes is precomputed. The scripts
+that generate those results live in `scripts/`, and the sessions load the saved
+output from `data/`. If you change a model that a precomputed chain depends on,
+re-run the script and commit the new `.rdata` file alongside the change.
