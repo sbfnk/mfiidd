@@ -161,9 +161,42 @@ equations](../universal_differential_equations.qmd), and [the wider Julia
 ecosystem](../julia_ecosystem.qmd).
 :::
 
+## Five problems {.smaller}
+
+Which method would you try first, and why will the ones above it not do?
+
+1. An SEIR model fitted to weekly case counts. Five parameters, deterministic.
+2. The same, but transmission is a random walk over 100 weeks.
+3. An individual-based household simulation, where the likelihood would need a
+   sum over every possible chain of infection.
+4. A deterministic model refitted every hour as new data arrive.
+5. A stochastic compartmental model, six parameters, small population, where
+   demographic noise genuinely matters.
+
+## Five problems, answered {.smaller}
+
+::: {.fragment}
+1. **NUTS.** Deterministic, few parameters, differentiable.
+:::
+::: {.fragment}
+2. **Still NUTS** — but the 100 increments are parameters too, so this is
+   105-dimensional and the AD backend becomes a real decision.
+:::
+::: {.fragment}
+3. **ABC**, or a synthetic likelihood. Easy to simulate, impossible to write down.
+:::
+::: {.fragment}
+4. **Variational inference**, if you can accept the bias. An answer that arrives
+   after the decision is worth nothing.
+:::
+::: {.fragment}
+5. **Particle MCMC.** Stochastic state, so the likelihood needs marginalising over
+   trajectories.
+:::
+
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
-Take a model you actually want to fit.
+Now take a model *you* actually want to fit.
 
 - Can you write down the likelihood? If not, what stops you?
 - Can you differentiate it?
@@ -172,6 +205,3 @@ Take a model you actually want to fit.
 
 The last one usually changes people's plans.
 
-#
-
-[Return to the session](../choosing_an_approach.qmd)

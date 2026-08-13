@@ -16,6 +16,11 @@ order: 1
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
 We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms that explore the posterior in the next session.
 
+By the end of the course you will have met several different ways of doing this,
+and the closing session puts them side by side so you can work out which one your
+own problem needs. It is worth keeping that question in mind as you go: each
+method here exists because the one before it ran out of road.
+
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.

@@ -840,9 +840,9 @@ For ABC with outliers or model misspecification, consider robust distances:
 
 # Next session
 
-You have now met every family of method the course covers.
-[Choosing an inference approach](choosing_an_approach.qmd) puts them side by side
-and asks which one your own problem needs.
+You have now met every family of method the course covers. The closing session,
+[choosing an inference approach](slides/choosing_an_approach.qmd), puts them side
+by side and asks which one your own problem needs.
 
 These optional sessions go further:
 
