@@ -25,27 +25,40 @@ Monday 7 September: 09.30-09.45
 
 -   Welcome and introduction to the course and the instructors (15 mins)
 
+## Getting set up
+
+Monday 7 September: 09.45-10.30
+
+-   [Getting set up for the course](../getting-started.qmd): installing Julia and the `MFIIDD` package, and checking everyone's environment runs (45 mins)
+
+::: {.callout-warning}
+Please install everything **before** you arrive. Package installation downloads
+around 1 GB and precompiles it, which takes 15–30 minutes on a good connection
+and considerably longer on a room full of laptops at once. This slot is for
+fixing what has gone wrong, not for starting from scratch.
+:::
+
 ## Session 1: Introduction to model fitting
 
-Monday 7 September: 09.45-11.00 and 11.30-12.30
+Monday 7 September: 10.30-11.00, 11.30-12.30 and 13.30-14.00
 
 -   [Introduction](../sessions/slides/introduction.qmd): what model fitting and inference mean, likelihoods, and Bayes' rule (20 mins)
 -   [Practice](../sessions/introduction.qmd):
-    - simulating an SIR model and exploring what the priors imply (40 mins)
-    - evaluating a Poisson likelihood against observed data (35 mins)
-    - combining them into a posterior and exploring it by grid search (30 mins)
+    - simulating an SIR model and exploring what the priors imply (35 mins)
+    - evaluating a Poisson likelihood against observed data (30 mins)
+    - combining them into a posterior and exploring it by grid search (25 mins)
 -   Wrap up (10 mins)
 
 ## Session 2: Markov chain Monte Carlo
 
-Monday 7 September: 13.30-15.15 and 15.45-17.00
+Monday 7 September: 14.00-15.15 and 15.45-17.00
 
 -   [Introduction](../sessions/slides/mcmc.qmd): why we sample, rejection sampling, Metropolis-Hastings and gradient-based methods (25 mins)
 -   [Practice](../sessions/mcmc.qmd):
-    - implementing Metropolis-Hastings for a one-dimensional target (45 mins)
-    - tuning a proposal distribution by hand, and finding out how hard that is (45 mins)
-    - handing the same job to Turing.jl, and comparing MH, RAM and NUTS (50 mins)
--   Wrap up (15 mins)
+    - implementing Metropolis-Hastings for a one-dimensional target (40 mins)
+    - tuning a proposal distribution by hand, and finding out how hard that is (35 mins)
+    - handing the same job to Turing.jl, and comparing MH, RAM and NUTS (40 mins)
+-   Wrap up (10 mins)
 
 # Day 2: Diagnostics, model checking and stochastic models
 
