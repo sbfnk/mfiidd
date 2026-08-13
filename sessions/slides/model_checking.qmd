@@ -4,6 +4,8 @@ title: "Model checking and validation"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
 
+# Recap
+
 ## Where we are
 
 In the last session we asked whether the **sampler** worked: R̂, effective
@@ -227,7 +229,9 @@ In the practical you will
 - generate posterior predictive distributions with `predict` and `decondition`
 - compute posterior predictive p-values for several summary statistics
 - inspect residuals for structure and autocorrelation
-- run a small simulation-based calibration experiment
+
+Simulation-based calibration is written up at the end of the session for you to
+work through afterwards.
 
 ## References {.smaller}
 

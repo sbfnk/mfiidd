@@ -4,6 +4,8 @@ title: "Putting it all together"
 subtitle: "Stochastic models and the state-space view"
 ---
 
+# The state-space view
+
 ## What we really want to know
 
 We want to find out **two** things:
@@ -48,6 +50,8 @@ Applying the chain rule gives the **joint probability**
 
 $$p(y, x, \theta) = p(y \mid x, \theta)\, p(x \mid \theta)\, p(\theta)$$
 :::
+
+# Fitting a state-space model
 
 ## Doing inference {.smaller}
 

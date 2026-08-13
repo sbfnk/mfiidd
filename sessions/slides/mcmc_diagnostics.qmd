@@ -4,6 +4,8 @@ title: "MCMC diagnostics"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
 
+# Recap
+
 ## Review
 
 In the practical you used [Metropolis-Hastings]{.alert} with a [Gaussian]{.alert}
@@ -36,6 +38,8 @@ $\Sigma = \begin{bmatrix} 10 & 5 \\ 5 & 5 \end{bmatrix}$
 
 For accurate and efficient MCMC we tune the variance *and* the covariance of the
 proposal distribution.
+
+# Visual diagnostics
 
 ## Why we like hairy caterpillars
 

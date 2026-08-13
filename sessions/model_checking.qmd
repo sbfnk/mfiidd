@@ -29,7 +29,6 @@ In this session you will:
 1. Use prior predictive checks to validate model specification
 2. Use posterior predictive checks to assess model fit
 3. Interpret residual patterns to diagnose model problems
-4. Understand simulation-based calibration for validating inference pipelines
 
 # Setup
 
@@ -380,7 +379,50 @@ p_acf = scatter(lag1_resid, lag0_resid,
 
 Strong correlation here suggests the model is missing important dynamics - exactly what we'd expect when fitting SIR to two-wave data.
 
-# Simulation-based calibration
+# When models fail checks
+
+What should you do when model checks reveal problems?
+
+If prior predictive simulations look unreasonable, start by examining your priors. Priors that are too vague will generate wildly varying trajectories so you should use your knowledge of the system to constrain them. If you see impossible values (negative counts, probabilities outside [0,1]), add appropriate bounds or switch to a distribution family that respects the constraints.
+
+When posterior predictive checks fail, the model itself needs attention. Systematic bias such as predictions consistently too high or too low suggests missing mechanisms. If the model captures the mean but not the variability, your observation model may be wrong; switching from Poisson to Negative Binomial, for instance, allows for overdispersion. When specific features are missed (like a second epidemic wave), consider what biological mechanisms could explain them.
+
+Residual patterns point to specific fixes. Temporal trends in residuals suggest time-varying parameters or additional compartments. Autocorrelated residuals indicate the model dynamics are incomplete. And if residual variance grows with predicted values (heteroscedasticity), the observation model's variance structure needs adjustment.
+
+Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
+
+::: {.callout-tip}
+## When is a model "good enough"?
+There is no universal threshold. All models are wrong — the question is whether yours is useful for your specific purpose. A model is good enough when:
+
+- It captures the features you care about (e.g. peak timing for planning surge capacity)
+- Posterior predictive checks don't show systematic failures in those features
+- Adding complexity doesn't meaningfully improve fit for your question
+- You've documented what the model does and doesn't capture
+
+A model that misses a second wave is fine if you only care about the first wave's peak. It's not fine if you're trying to understand long-term immunity.
+:::
+
+::: {.callout-tip title="Exercise: Diagnosing the SIR failure"}
+The SIR model fails to capture the second wave in the Tristan da Cunha data. Based on the residual patterns and posterior predictive checks above:
+
+1. What biological mechanism might explain a second wave after the first has subsided?
+2. What structural change to the model would be needed to accommodate this?
+3. Would changing the observation model (e.g., Poisson to Negative Binomial) help, or is this a problem with the underlying dynamics?
+
+The next session on SEITL models explores one potential answer to these questions.
+:::
+
+::: {.callout-tip title="Learning points"}
+- **Prior predictive checks** validate that your priors generate plausible data before you see observations
+- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
+- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
+- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
+:::
+
+# Going further
+
+## Simulation-based calibration
 
 A more rigorous check asks: *does my inference procedure recover true parameters when I know them?*
 
@@ -447,49 +489,6 @@ A uniform histogram indicates well-calibrated inference. Peaks at the edges sugg
 Full SBC requires many simulations (100+) and is computationally expensive. It is particularly important when implementing new models, using complex inference algorithms, or when you need high confidence that your computational pipeline is correct. For established models with well-tested software, prior and posterior predictive checks catch most problems, but SBC provides the strongest guarantee that inference is working as intended.
 :::
 
-# When models fail checks
-
-What should you do when model checks reveal problems?
-
-If prior predictive simulations look unreasonable, start by examining your priors. Priors that are too vague will generate wildly varying trajectories so you should use your knowledge of the system to constrain them. If you see impossible values (negative counts, probabilities outside [0,1]), add appropriate bounds or switch to a distribution family that respects the constraints.
-
-When posterior predictive checks fail, the model itself needs attention. Systematic bias such as predictions consistently too high or too low suggests missing mechanisms. If the model captures the mean but not the variability, your observation model may be wrong; switching from Poisson to Negative Binomial, for instance, allows for overdispersion. When specific features are missed (like a second epidemic wave), consider what biological mechanisms could explain them.
-
-Residual patterns point to specific fixes. Temporal trends in residuals suggest time-varying parameters or additional compartments. Autocorrelated residuals indicate the model dynamics are incomplete. And if residual variance grows with predicted values (heteroscedasticity), the observation model's variance structure needs adjustment.
-
-Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
-
-::: {.callout-tip}
-## When is a model "good enough"?
-There is no universal threshold. All models are wrong — the question is whether yours is useful for your specific purpose. A model is good enough when:
-
-- It captures the features you care about (e.g. peak timing for planning surge capacity)
-- Posterior predictive checks don't show systematic failures in those features
-- Adding complexity doesn't meaningfully improve fit for your question
-- You've documented what the model does and doesn't capture
-
-A model that misses a second wave is fine if you only care about the first wave's peak. It's not fine if you're trying to understand long-term immunity.
-:::
-
-::: {.callout-tip title="Exercise: Diagnosing the SIR failure"}
-The SIR model fails to capture the second wave in the Tristan da Cunha data. Based on the residual patterns and posterior predictive checks above:
-
-1. What biological mechanism might explain a second wave after the first has subsided?
-2. What structural change to the model would be needed to accommodate this?
-3. Would changing the observation model (e.g., Poisson to Negative Binomial) help, or is this a problem with the underlying dynamics?
-
-The next session on SEITL models explores one potential answer to these questions.
-:::
-
-::: {.callout-tip title="Learning points"}
-- **Prior predictive checks** validate that your priors generate plausible data before you see observations
-- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
-- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
-- **Simulation-based calibration** rigorously tests whether inference recovers known parameters
-- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
-:::
-
-# Going further
 
 ## Prior sensitivity analysis
 

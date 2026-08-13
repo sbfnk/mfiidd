@@ -4,6 +4,8 @@ title: "Introduction to Markov Chain Monte Carlo"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
 
+# Recap
+
 ## Recap: Bayesian inference
 
 Last time we saw that the [posterior distribution]{.alert} of $\theta$, given observed

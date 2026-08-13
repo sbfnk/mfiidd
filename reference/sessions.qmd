@@ -144,7 +144,7 @@ Wednesday 9 September: 19.00
 
 Thursday 10 September: 09.30-09.45
 
--   Day 3 review (15 mins)
+-   [Day 3 review](../sessions/slides/day3_review.qmd): where the week has got to, from deterministic fitting to particle MCMC (15 mins)
 
 ## Session 8: Observation models and ABC
 

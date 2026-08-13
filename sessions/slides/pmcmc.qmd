@@ -4,6 +4,8 @@ title: "Particle MCMC"
 subtitle: "Fitting parameters of stochastic models"
 ---
 
+# Plugging in an estimated likelihood
+
 ## Where we got to
 
 The particle filter gives us an estimate of the marginal likelihood for **one**
