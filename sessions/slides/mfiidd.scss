@@ -38,7 +38,10 @@ $presentation-font-size-root: 34px;
   align-items: center;
 }
 
-// Stop a tall figure pushing the rest of a slide off-screen.
+// Stop a tall figure pushing the rest of a slide off-screen. `display: block`
+// plus auto margins centres a figure, which is needed because slides are
+// left-aligned above for bullet lists. NOTE: this is what makes the `.r-stack`
+// rules below necessary — see the comment there before touching either.
 .reveal .slides section img {
   max-height: 58vh;
   max-width: 100%;
@@ -57,12 +60,20 @@ $presentation-font-size-root: 34px;
   max-height: 52vh;
 }
 
-// Images swapped in place live in an `.r-stack`, which overlays its children by
-// putting them all in one grid cell. Pandoc wraps a run of images in a `<p>`,
-// which would otherwise be the stack's only child — leaving the images to flow
-// normally and pile up vertically. `display: contents` drops the paragraph out
-// of the box tree so the images themselves become the grid items, and each is
-// then pinned to the same cell.
+// Images swapped in place live in an `.r-stack`. Reveal overlays a stack with
+// `.r-stack > * { grid-area: 1/1 }`, but Pandoc wraps a run of images into a
+// single `<p>`, so that rule targets the paragraph rather than the images. Left
+// alone, the block-level images above then pile up vertically and run off the
+// slide.
+//
+// `display: contents` drops the paragraph out of the box tree so the images
+// themselves become the grid items, each pinned to the same cell.
+//
+// Do not "simplify" this away: it is only unnecessary if images are left
+// inline, which in turn means giving up centred figures — and we need
+// `text-align: left` on slides for bullet lists. Verify any change by putting
+// two images in an `.r-stack` with no fragments; they must sit on top of each
+// other, not one below the other.
 .reveal .slides section .r-stack {
   display: grid;
   place-items: center;
