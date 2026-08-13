@@ -6,21 +6,20 @@ subtitle: "Or: the answer to all your questions"
 
 # Where we have been
 
-## Three days in one slide {.smaller}
+## The whole course in one slide {.smaller}
 
 - **Deterministic models**: write the likelihood, sample it with MCMC
-- **Diagnostics and checking**: did the sampler work, and is the model any good?
-- **Stochastic models**: the likelihood is an integral over trajectories
+- **Diagnostics**: did the sampler work? R̂, ESS, divergences
+- **Model checking**: is the model any good? Prior and posterior predictive checks
+- **Stochastic models**: the likelihood becomes an integral over trajectories
 - **Particle filters**: estimate that integral by simulation
-- **pMCMC**: sample with an estimated likelihood, and it still works
+- **pMCMC**: sample with an estimated likelihood, and it still targets the right posterior
+- **Observation models**: a likelihood is a distance function you committed to
+- **ABC**: choose the distance instead, and drop the likelihood entirely
 
 ::: {.fragment}
-Tomorrow: what if you cannot write a likelihood [at all]{.alert}?
-:::
-
-::: {.fragment}
-But first, the question you actually go home with: [which of these does *my*
-problem need?]{.alert}
+The question you actually go home with: [which of these does *my* problem
+need?]{.alert}
 :::
 
 # Two questions decide it
@@ -34,7 +33,7 @@ $$p(\text{data} \mid \theta)?$$
 
 ::: {.fragment}
 - **Yes** — everything from grid search to NUTS is open to you
-- **No** — simulation-based territory: particle filters, and tomorrow, ABC
+- **No** — simulation-based territory: particle filters, pMCMC, ABC
 :::
 
 ## Question two
@@ -61,11 +60,16 @@ This is the question people forget to ask before picking a tool.
 | RAM / adaptive MH | likelihood | as MH, tunes itself |
 | **NUTS** | likelihood **and gradient** | expensive steps, few of them |
 | Particle filter + PMMH | stochastic simulator | very expensive |
-| ABC *(tomorrow)* | simulator only | expensive and approximate |
-| Variational inference | likelihood and gradient | fast, biased |
+| ABC | simulator only | expensive and approximate |
 
 ::: {.fragment}
-Down the table is **more general**. Generality is never free.
+Down the table needs **less** of you, so it works on harder models. Generality is
+never free.
+:::
+
+::: {.fragment}
+**Variational inference** sits outside this ordering: it needs everything NUTS
+needs, and trades accuracy for speed rather than assumptions for cost.
 :::
 
 ## Do not pay for generality you do not need
@@ -96,13 +100,26 @@ posterior, one bad day dominates the fit.
 :::
 
 ::: {.fragment}
-**Identifiability** — if two parameters trade off, no sampler separates them,
-and the chain will mix beautifully along the ridge.
+**Identifiability** — if two parameters trade off, the data cannot separate them
+and no sampler will. This is a property of model and data, not of the algorithm.
 :::
 
 ::: {.fragment}
 **The model** — one that cannot produce your data will not be rescued by better
 inference.
+:::
+
+## Two things this map leaves out {.smaller}
+
+**States, not just parameters.** The posterior factorises as
+$$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
+Parameter fitting is the first factor. A particle filter also gives you the
+second: what the epidemic was actually doing.
+
+::: {.fragment}
+**Comparing models, not just fitting one.** SEITL against SEIT4L was a question no
+amount of sampling one model answers. Fit both, then compare — predictive
+performance, or the marginal likelihood if you can get at it.
 :::
 
 ## The asymmetry worth remembering
@@ -135,6 +152,13 @@ That is the whole change needed to run four chains in parallel.
 once. Reporting delays, nowcasting, evidence synthesis.
 
 The model gets more elaborate. The inference machinery stays the same.
+:::
+
+::: {.fragment}
+Three optional sessions go further: [variational
+inference](../variational_inference.qmd), [universal differential
+equations](../universal_differential_equations.qmd), and [the wider Julia
+ecosystem](../julia_ecosystem.qmd).
 :::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}

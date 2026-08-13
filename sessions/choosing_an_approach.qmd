@@ -7,17 +7,16 @@ order: 10
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours | **Synthesis session** | **Requires**: sessions 1-7
+**Estimated time**: 45 minutes | **Closing session** | **Requires**: all taught sessions
 :::
 
 [Lecture slides](slides/choosing_an_approach.qmd)
 
 # Introduction
 
-You have now met most of the families of method this course covers, and
-tomorrow adds the last one. This session puts them side by side and asks the
-question you will actually face when you go back to your own work: given this
-model and this data, which one do I reach for?
+You have now met every family of method this course covers. This closing session
+puts them side by side and asks the question you will actually face when you go
+back to your own work: given this model and this data, which one do I reach for?
 
 There is no algorithm for the answer. But the choice is much less open than it
 looks, because two properties of your problem rule most of the options out
@@ -40,8 +39,7 @@ which is why the [introduction](introduction.qmd) and [MCMC](mcmc.qmd) sessions
 could go straight to NUTS. A stochastic model answers no to the first, because
 the likelihood involves an integral over every trajectory the model could have
 taken, which is what sent us to [particle filters](particle_filters.qmd). A model
-you can only simulate answers no to both, which is where
-[ABC](observation_models.qmd) comes in tomorrow morning.
+you can only simulate answers no to both, which is [ABC](abc.qmd).
 
 # The methods, side by side
 
@@ -52,12 +50,15 @@ you can only simulate answers no to both, which is where
 | **RAM / adaptive MH** | likelihood | as MH, tunes itself | MH mixes badly and you cannot differentiate |
 | **NUTS** | likelihood **and gradient** | expensive per step, few steps | you can differentiate: almost always the default |
 | **Particle filter + PMMH** | simulator of a stochastic model | very expensive | the state is stochastic and you need the parameters |
-| **ABC** *(tomorrow)* | simulator only | expensive, and approximate | you cannot write a likelihood at all |
-| **Variational inference** | likelihood and gradient | fast | you need an answer in seconds and can accept bias |
+| **ABC** | simulator only | expensive, and approximate | you cannot write a likelihood at all |
+
+Variational inference sits outside this ordering: it needs everything NUTS needs,
+and trades accuracy for speed rather than trading assumptions for cost. Reach for
+it when you need an answer in seconds and can accept a biased posterior.
 
 ::: {.callout-warning}
-The table reads top to bottom as increasing generality, and generality is not
-free. Every step down it buys you the ability to handle a harder model by
+The table reads top to bottom as needing less of you, which is what lets it cope
+with harder models. That generality is not free. Every step down it buys you the ability to handle a harder model by
 spending more computation, accepting more approximation, or both. Do not take a
 step you do not need: fitting a deterministic model with ABC is not wrong, it is
 merely thousands of times slower than fitting it with NUTS and less accurate.
@@ -82,13 +83,30 @@ importantly, why the ones above it in the table will not do.
    a 105-dimensional problem and the AD backend becomes a real decision. See
    [Beyond Turing](julia_ecosystem.qmd) on forward versus reverse mode.
 3. ABC, or a synthetic likelihood. You can simulate households easily and cannot
-   write the likelihood at all. This is tomorrow's session.
+   write the likelihood at all.
 4. Variational inference, if you can tolerate the bias, and NUTS if you can
    afford it. This is the one case where "fast and slightly wrong" beats "slow
    and right", because an answer after the decision is worth nothing.
 5. Particle MCMC. The state is stochastic, so the likelihood needs marginalising
    over trajectories, which is exactly what the particle filter estimates.
 :::
+
+# Two things the map leaves out
+
+**States, not just parameters.** The [SEITL session](seitl.qmd) framed the
+posterior as
+
+$$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
+
+Everything above is about the first factor. The second is state estimation: what
+the epidemic was actually doing, as opposed to which parameters generated it. A
+particle filter gives you both, which is part of why it is worth its cost.
+
+**Comparing models, not just fitting one.** Whether SEITL or SEIT4L describes
+Tristan da Cunha better is a question no amount of sampling a single model
+answers. Fit both and compare them, on predictive performance or on the marginal
+likelihood where you can get at it. The [PMCMC session](pmcmc.qmd) does exactly
+this.
 
 # What actually goes wrong
 
@@ -103,10 +121,11 @@ common real failure, and no amount of sampler sophistication rescues it.
 value of 19 is as plausible as 2, and prior predictive checks turn that from an
 abstraction into a picture of epidemics that infect everyone in four days.
 
-**Identifiability.** If two parameters trade off against each other, no sampler
-will separate them, and a well-mixed chain will happily report a confident
-posterior along the ridge. The [diagnostics session](mcmc_diagnostics.qmd) is
-about noticing this.
+**Identifiability.** If two parameters trade off against each other, the data
+cannot separate them and no sampler will either. This is a property of the model
+and the data rather than of the algorithm, which is why throwing a better sampler
+at it changes nothing. The [diagnostics session](mcmc_diagnostics.qmd) is about
+noticing the symptoms.
 
 **The model.** A model that cannot produce the data you observed will not be
 saved by better inference. Posterior predictive checks are how you find out.
