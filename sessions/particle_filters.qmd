@@ -43,7 +43,7 @@ Particle filters are computationally intensive. For this session:
 
 - **Memory**: ~2-4 GB RAM for 256 particles (scales linearly with particle count)
 - **Runtime**: Single likelihood evaluation takes 0.1-0.5 seconds with 100 particles
-- **Calibration section**: Running 100 replicates at multiple particle counts takes 5-10 minutes
+- **Calibration section**: Running 30 replicates at each of eight particle counts takes 1-2 minutes
 
 If you're on a slower machine, reduce particle counts in the calibration exercises (e.g., use 50, 100, 200 instead of 64, 128, 256, 512).
 :::
