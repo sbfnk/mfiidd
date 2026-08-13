@@ -101,6 +101,24 @@ shape of the target distribution.
 Try several proposal distributions ([pilot runs]{.alert}), aiming for an
 acceptance rate between 24% and 40%.
 
+## Two more plots worth making {.smaller}
+
+**Running mean** — the posterior mean recomputed as the chain grows.
+
+::: {.fragment}
+It should settle and stay settled. Still drifting after thousands of iterations
+means the chain has not forgotten where it started, or has not finished
+exploring.
+:::
+
+::: {.fragment}
+**Autocorrelation** — how correlated a sample is with the one $k$ steps back.
+
+It should decay towards zero within a few tens of lags. Still high at lag 100
+means successive samples carry almost no new information, and your effective
+sample size is a small fraction of the iterations you ran.
+:::
+
 ## Burn-in
 
 :::: {.columns}

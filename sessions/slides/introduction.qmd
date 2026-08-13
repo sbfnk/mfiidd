@@ -291,6 +291,21 @@ Example: $R_0$ of measles
 ![](images/r0_posterior.svg){.step .fragment fragment-index=2}
 :::
 
+## Checking a prior by simulating from it {.smaller}
+
+A prior on $R_0$ is hard to have intuition about. An epidemic curve is not.
+
+::: {.fragment}
+So draw parameters from the prior, run the model, and look at what you get. This
+is a **prior predictive simulation**, and it turns an abstract claim into a
+picture you can judge.
+:::
+
+::: {.fragment}
+If your prior produces epidemics that infect the whole population in four days,
+you have learned something you could not have seen from the parameter range.
+:::
+
 ## Sampling from the posterior
 
 Parameters $\theta$ are interpreted as a *random* variable, distributed
@@ -311,6 +326,25 @@ We want to generate **samples** of $\theta$ from this distribution.
 ::: {.r-stack}
 ![](images/Course_outline_day_12.svg){.step .fragment .fade-out fragment-index=1}
 ![](images/Course_outline.svg){.step .fragment fragment-index=1}
+:::
+
+## Why we cannot just try everything {.smaller}
+
+You can explore a two-parameter posterior on a grid. Fifteen values each is 225
+model runs, which is nothing.
+
+::: {.fragment}
+| Parameters | Grid points at 15 each |
+|---|---|
+| 2 | 225 |
+| 4 | 50,625 |
+| 6 | 11,390,625 |
+| 10 | 576,650,390,625 |
+:::
+
+::: {.fragment}
+Real models have six parameters, or sixty. Grid search is a way of *seeing* a
+posterior, never a way of fitting one — which is what the next session is about.
 :::
 
 # Practical session
