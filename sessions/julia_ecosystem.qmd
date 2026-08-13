@@ -1,0 +1,362 @@
+---
+title: "Beyond Turing: the wider Julia ecosystem"
+format: html
+engine: julia
+order: 11
+---
+
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1-1.5 hours | **Optional session** | **Requires**: MCMC
+:::
+
+# Introduction
+
+Everything so far has gone through [Turing.jl](https://turinglang.org/), and for
+most work that is the right choice. But when you go back to your own models you
+will hit cases where Turing is not what you want: a sampler it does not
+implement, an automatic differentiation backend that fails on your model, or a
+deployment where you would rather not carry the whole stack.
+
+This session is about what sits underneath. Turing is one layer on top of a set
+of packages that you can use directly, and the interface between them is
+simpler than you might expect: a function that returns a log-density.
+
+# Objectives
+
+In this session you will:
+
+1. See that the log-density function is the common interface across the ecosystem
+2. Fit the SIR model with DynamicHMC, without Turing involved at all
+3. Understand how to choose an automatic differentiation backend
+4. Know which alternative samplers exist and when to reach for them
+5. Know what else is available for handling and checking results
+
+# Setup
+
+```{julia}
+#| echo: false
+#| include: false
+
+ENV["GKSwstype"] = "100"  # Suppress plot windows during render
+```
+
+## Source file
+
+The source file of this session is located at `sessions/julia_ecosystem.qmd`.
+
+## Load libraries
+
+```{julia}
+using DifferentialEquations ## for differential equations
+using Distributions ## for probability distributions
+using DataFrames ## for data frames
+using CSV ## for reading data
+using Random ## for random numbers
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using DrWatson ## for datadir()
+```
+
+# The log-density is all you need
+
+Turing's `@model` macro and `~` syntax make Bayesian models concise and readable.
+Under the hood, though, all Turing does is evaluate a **log-density function** —
+the same log-posterior you built by hand in the [Introduction](introduction.qmd).
+
+The Julia ecosystem has a standard interface for log-density functions:
+[LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl). Any
+function conforming to this interface can be sampled by a range of MCMC packages,
+not just Turing. Knowing this pattern means you are not locked in to any single
+framework.
+
+::: {.callout-important}
+Almost everything in Bayesian computation reduces to two things: a function that
+returns $\log p(\theta) + \log p(y \mid \theta)$, and a way to differentiate it.
+Frameworks differ in how pleasantly they let you write the first and how well
+they do the second.
+:::
+
+# From manual log-posterior to standard interface
+
+In the introduction, we wrote a function that simulates the SIR model and returns
+the log-likelihood:
+
+```{julia}
+function sir_ode!(du, u, p, t)
+    R_0, D_inf = p
+    β = R_0 / D_inf
+    γ = 1.0 / D_inf
+    S, I, R = u
+    N = S + I + R
+
+    du[1] = -β * S * I / N
+    du[2] = β * S * I / N - γ * I
+    du[3] = γ * I
+end
+
+function simulate_and_loglik(R_0, D_inf, data; init_state = [999.0, 1.0, 0.0], tspan = (0.0, 30.0))
+    prob = ODEProblem(sir_ode!, init_state, tspan, [R_0, D_inf])
+    sol = solve(prob, Tsit5(), saveat = data.time)
+    I = sol[2, :]
+    loglik = sum(logpdf.(Poisson.(max.(I, 1e-10)), data.obs))
+    return (I = I, loglik = loglik)
+end
+```
+
+To use this with [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl), we need
+a callable struct — an object that acts as a function. It takes a named tuple of
+parameters (provided by the transformation layer) and returns the log-posterior:
+
+```{julia}
+using LogDensityProblems, TransformVariables
+using DynamicHMC, LogDensityProblemsAD, TransformedLogDensities
+
+struct SIRPosterior{T}
+    data::T
+end
+
+function (p::SIRPosterior)(θ)
+    R_0, D_inf = θ.R_0, θ.D_inf
+    # Priors
+    lp = logpdf(Uniform(1, 20), R_0) + logpdf(Uniform(1, 14), D_inf)
+    isinf(lp) && return lp  # Outside prior support
+    # Likelihood
+    result = simulate_and_loglik(R_0, D_inf, p.data)
+    return lp + result.loglik
+end
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer: callable structs
+The `(p::SIRPosterior)(θ)` syntax makes `SIRPosterior` callable — having created
+`posterior = SIRPosterior(data)`, you can write `posterior(θ)` just as if it were
+a function. This is how you attach data to a log-density without using a global
+variable.
+
+[TransformedLogDensities.jl](https://github.com/tpapp/TransformedLogDensities.jl)
+then wraps this callable with parameter transformations and automatically
+provides the `LogDensityProblems` interface that DynamicHMC expects.
+:::
+
+# Sampling with DynamicHMC.jl
+
+[DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) is a standalone NUTS
+implementation. It uses
+[TransformVariables.jl](https://github.com/tpapp/TransformVariables.jl) to map
+constrained parameters to unconstrained space, which NUTS requires:
+
+```{julia}
+# Load data
+epi1 = CSV.read(datadir("epi1_synthetic.csv"), DataFrame)
+
+# Create the posterior
+posterior = SIRPosterior(epi1)
+
+# Define parameter transformations (constrained → unconstrained)
+# R_0 ∈ (1, 20), D_inf ∈ (1, 14)
+trans = as((R_0 = as(Real, 1.0, 20.0), D_inf = as(Real, 1.0, 14.0)))
+
+# Wrap with transformations and automatic differentiation
+transformed_posterior = TransformedLogDensity(trans, posterior)
+∇posterior = ADgradient(:ForwardDiff, transformed_posterior)
+
+# Sample
+Random.seed!(42)
+results = mcmc_with_warmup(Random.default_rng(), ∇posterior, 2000)
+
+# Extract samples (back in constrained space)
+samples = [TransformVariables.transform(trans, col) for col in eachcol(results.posterior_matrix)]
+R_0_samples = [s.R_0 for s in samples]
+D_inf_samples = [s.D_inf for s in samples]
+
+println("R_0: mean = $(round(mean(R_0_samples), digits=2)), std = $(round(std(R_0_samples), digits=2))")
+println("D_inf: mean = $(round(mean(D_inf_samples), digits=2)), std = $(round(std(D_inf_samples), digits=2))")
+```
+
+```{julia}
+p1 = histogram(R_0_samples, normalize=:pdf, xlabel="R_0", ylabel="Density",
+               title="R_0 posterior", label="DynamicHMC", alpha=0.7)
+p2 = histogram(D_inf_samples, normalize=:pdf, xlabel="D_inf", ylabel="Density",
+               title="D_inf posterior", label="DynamicHMC", alpha=0.7)
+plot(p1, p2, layout=(1, 2), size=(800, 350))
+```
+
+Same data, same log-posterior, same NUTS algorithm — no Turing involved.
+
+::: {.callout-tip title="Exercise: compare against Turing"}
+Fit the same model with Turing's `NUTS()` as you did in the
+[MCMC session](mcmc.qmd), and compare the posterior means and standard
+deviations against the DynamicHMC results above.
+
+They should agree to within Monte Carlo error. If they do not, which of the two
+would you suspect first, and how would you check?
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+They should agree: both are sampling the same posterior with the same algorithm,
+so any difference beyond Monte Carlo error points to a specification difference
+rather than a sampler difference.
+
+The first thing to check is the priors. It is easy to write
+`Uniform(1, 20)` in one place and `truncated(Normal(2.5, 1.5), lower=1)` in the
+other and then conclude, wrongly, that the samplers disagree. Compare the
+log-density at a fixed $\theta$ under both implementations — if those differ, the
+model differs, not the sampler.
+:::
+
+# Choosing an automatic differentiation backend
+
+Gradient-based samplers need $\nabla \log p(\theta \mid y)$. You almost never
+write that by hand: an automatic differentiation package derives it from your
+code. Which package you use matters more than you might expect, because they fail
+in different ways.
+
+| Backend | Mode | Suits | Watch out for |
+|---|---|---|---|
+| **ForwardDiff** | forward | few parameters, roughly under 50 | cost scales with number of parameters |
+| **Zygote** | reverse | many parameters | breaks on mutating code (`du[1] = ...`) |
+| **Enzyme** | reverse | performance-critical work | fast, but error messages are hard going |
+| **Mooncake** | reverse | a modern reverse-mode option | newer, still maturing |
+
+The rule of thumb is about dimension. Forward mode costs roughly one extra
+evaluation per parameter, so it is excellent for a handful of parameters and
+hopeless for a neural network. Reverse mode costs roughly a constant multiple of
+one evaluation regardless of dimension, which is why machine learning uses it
+throughout.
+
+You select a backend through [ADTypes.jl](https://github.com/SciML/ADTypes.jl),
+which every part of the ecosystem now understands:
+
+```julia
+using ADTypes
+
+sample(model, NUTS(; adtype = AutoForwardDiff()), 1000)   # the default
+sample(model, NUTS(; adtype = AutoZygote()), 1000)        # reverse mode
+```
+
+::: {.callout-warning}
+This is not hypothetical. The [universal differential
+equations](universal_differential_equations.qmd) session in this course had to
+switch from ForwardDiff to Zygote, because a neural network inside an ODE has too
+many parameters for forward mode and the combination failed outright. If a
+gradient-based sampler suddenly stops working after you change your model, the AD
+backend is one of the first things to suspect.
+:::
+
+::: {.callout-tip title="Exercise: which backend would you pick?"}
+For each of these, decide whether you would start with forward or reverse mode:
+
+1. The SIR model from this session — two parameters.
+2. The SEIT4L model — six parameters.
+3. A model with a time-varying transmission rate given a separate value for each
+   of 100 weeks.
+4. A neural network embedded in an ODE, with a few hundred weights.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+1 and 2 are firmly forward-mode territory: with two or six parameters ForwardDiff
+is simple and fast, and this is why it is Turing's default.
+
+3 is the interesting case at 100 parameters. Forward mode will work but is
+starting to cost; reverse mode is likely faster. This is the region where it is
+worth measuring rather than guessing.
+
+4 needs reverse mode. Forward mode would require hundreds of evaluations per
+gradient, which is exactly the failure the UDE session ran into.
+:::
+
+# Other samplers
+
+Once your model implements the LogDensityProblems interface, a range of samplers
+becomes available:
+
+| Package | What it offers |
+|---|---|
+| [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) | NUTS with a notably robust warmup |
+| [AdvancedHMC.jl](https://github.com/TuringLang/AdvancedHMC.jl) | flexible HMC variants; the engine inside Turing |
+| [AdvancedMH.jl](https://github.com/TuringLang/AdvancedMH.jl) | Metropolis-Hastings and RAM, as used in the [PMCMC session](pmcmc.qmd) |
+| [Pathfinder.jl](https://github.com/mlcolab/Pathfinder.jl) | fast variational approximation, useful for initialising MCMC |
+| [MicroCanonicalHMC.jl](https://github.com/JaimeRZP/MicroCanonicalHMC.jl) | microcanonical Langevin sampler |
+
+You do not have to leave Turing to use several of these. `externalsampler` wraps
+a compatible sampler for use with a Turing model, which is how the
+[PMCMC session](pmcmc.qmd) uses robust adaptive Metropolis:
+
+```julia
+using AdvancedMH
+sample(model, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 5000;
+       check_model = false)
+```
+
+::: {.callout-note collapse="true"}
+## Pathfinder, and why initialisation matters
+Pathfinder finds an approximate posterior quickly by following the optimisation
+path towards the mode. It is rarely accurate enough to report on its own, but it
+is very good at producing starting points for MCMC — which matters most for the
+slow, badly mixing chains you met in the [PMCMC session](pmcmc.qmd), where
+burn-in is expensive.
+:::
+
+# Working with the results
+
+Whatever produced your samples, you still have to check and summarise them.
+
+- [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/) is what this course uses:
+  R̂, effective sample size, MCSE and trace plots, as in the
+  [diagnostics session](mcmc_diagnostics.qmd).
+- [ArviZ.jl](https://julia.arviz.org/) is a Julia interface to the ArviZ
+  ecosystem, and is worth knowing if you also work in Python or want its
+  diagnostic plots.
+- [PosteriorDB](https://github.com/sethaxen/PosteriorDB.jl) provides reference
+  posteriors, which are useful for checking that an implementation is correct.
+
+Note that a chain from DynamicHMC is a plain matrix rather than an `MCMCChains`
+object, so you either convert it or work with the matrix directly. This is a
+small but real cost of stepping outside Turing.
+
+# The rest of the stack
+
+The mechanistic side of these models has its own ecosystem, most of which you
+have already been using without necessarily noticing:
+
+- [DifferentialEquations.jl](https://docs.sciml.ai/DiffEqDocs/stable/) for the
+  ODE solving throughout the course
+- [SciMLSensitivity.jl](https://docs.sciml.ai/SciMLSensitivity/stable/) for
+  differentiating through a solver, which is what makes gradient-based fitting of
+  ODE models possible
+- [JumpProcesses.jl](https://docs.sciml.ai/JumpProcesses/stable/) for stochastic
+  simulation of the kind we hand-coded in the [SEITL session](seitl.qmd)
+
+# When to reach outside Turing
+
+- **Turing works**: use Turing. The `@model` syntax is clearer and faster to write,
+  and you get the diagnostics tooling for free.
+- **You hit a Turing issue you cannot resolve**: you can bypass the stack entirely
+  by working with the log-density directly, which also makes it much easier to
+  see where a problem actually is.
+- **You want a sampler Turing does not offer**: LogDensityProblems is the standard
+  way in.
+- **You want fewer dependencies**: for deployed code, a minimal stack of your
+  model plus AD plus sampler can be easier to maintain than the full framework.
+
+::: {.callout-tip title="Learning points"}
+
+- Underneath any Bayesian framework is a log-density function and a way to
+  differentiate it
+- LogDensityProblems.jl is the standard interface, and implementing it opens up
+  the ecosystem's samplers
+- The choice of AD backend is a real modelling decision: forward mode for few
+  parameters, reverse mode for many
+- Stepping outside Turing costs you convenience and the diagnostics tooling, so
+  do it when you have a reason rather than by default
+
+:::
+
+# References
+
+- [LogDensityProblems.jl documentation](https://www.tamaspapp.eu/LogDensityProblems.jl/stable/)
+- [DynamicHMC.jl documentation](https://www.tamaspapp.eu/DynamicHMC.jl/stable/)
+- [TransformVariables.jl documentation](https://www.tamaspapp.eu/TransformVariables.jl/stable/)
+- [ADTypes.jl](https://github.com/SciML/ADTypes.jl) — the common interface for choosing an AD backend
+- [Turing.jl automatic differentiation guide](https://turinglang.org/docs/usage/automatic-differentiation/)
+- [SciML documentation](https://docs.sciml.ai/) — the differential equation and sensitivity stack

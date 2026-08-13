@@ -171,3 +171,4 @@ pace.
 
 -   [Variational inference](../sessions/variational_inference.qmd): fast approximate inference for real-time applications
 -   [Universal differential equations](../sessions/universal_differential_equations.qmd): combining mechanistic models with neural networks
+-   [Beyond Turing](../sessions/julia_ecosystem.qmd): the wider Julia ecosystem — alternative samplers, automatic differentiation backends, and what sits underneath
