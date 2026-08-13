@@ -317,20 +317,7 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 ## The same arrows, in Julia
 
-::: {.annotated-figure}
 ![](images/big_picture_functions_base.svg)
-
-[]{.mask style="left:16.2%; top:11.0%; width:11.4%; height:6.8%;"}
-[]{.mask style="left:30.5%; top:19.5%; width:31.2%; height:17.2%;"}
-[]{.mask style="left:32.6%; top:48.9%; width:13.6%; height:6.4%;"}
-[]{.mask style="left:69.2%; top:22.6%; width:15.8%; height:7.0%;"}
-[]{.mask style="left:68.6%; top:75.8%; width:17.4%; height:8.6%;"}
-
-[`logpdf`]{.label style="left:16.4%; top:11.4%;"}
-[`solve`]{.label style="left:33.4%; top:49.3%;"}
-[`rand`]{.label style="left:71.0%; top:23.2%;"}
-[`logpdf`]{.label style="left:70.2%; top:76.6%;"}
-:::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 

@@ -144,30 +144,6 @@ $presentation-font-size-root: 34px;
   text-decoration: underline;
 }
 
-// Annotated figure: the hand-drawn "big picture" diagram carries blue labels
-// naming the function behind each arrow. The original was drawn for the R
-// course, so the labels are masked and relabelled here with their Julia
-// equivalents. Positions are percentages of the figure box, so they track the
-// image at any size.
-.annotated-figure {
-  position: relative;
-  display: block;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-}
-
-.annotated-figure img {
-  display: block;
-  max-height: 62vh;
-  width: auto;
-}
-
-.annotated-figure .mask {
-  position: absolute;
-  background: #ffffff;
-}
-
 // Workflow strip: a row of boxes joined by arrows. Plain CSS rather than a
 // rendered diagram, so it cannot fail to draw in a lecture room.
 // Pandoc wraps the boxes in a paragraph, so the flex row lives on that.
@@ -217,12 +193,3 @@ $presentation-font-size-root: 34px;
   margin-top: 0.2em;
 }
 
-.annotated-figure .label {
-  position: absolute;
-  color: #1f7ae0;
-  font-family: var(--r-main-font), sans-serif;
-  font-size: 0.42em;
-  line-height: 1.1;
-  white-space: nowrap;
-  transform: translateY(-0.1em);
-}
