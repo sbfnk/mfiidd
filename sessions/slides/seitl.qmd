@@ -93,6 +93,110 @@ $$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
 
 ![](images/Big_picture_stochastic_models.png)
 
+# The model we will fit
+
+## Tristan da Cunha, 1971
+
+![](images/TdC.png){.step}
+
+::: {.cite}
+The most remote inhabited island in the world: 284 people, one ship every few
+months.
+:::
+
+## An outbreak in a closed population {.smaller}
+
+An influenza-like illness arrived with a visiting ship and infected most of the
+island over eight weeks.
+
+::: {.fragment}
+Two features make it the standard teaching example:
+
+- **Closed** — nobody arrived or left, so there is no importation to explain
+  anything away
+- **Two waves** — the epidemic subsided and then came back, in a population with
+  no new susceptibles
+:::
+
+::: {.fragment}
+That second wave is the whole problem. A simple SIR model cannot produce it.
+:::
+
+## SEITL
+
+![](images/SEITL.jpg){.step}
+
+::: {.fragment}
+**T** is temporary immunity, and only a fraction $\alpha$ goes on to **L**,
+long-term immunity. The rest return to susceptible — and can drive a second wave.
+:::
+
+## Two independent choices {.smaller}
+
+::: {.fragment}
+**Model structure** — how many compartments, and what flows between them.
+:::
+
+::: {.fragment}
+**Deterministic or stochastic** — whether transitions are continuous flows or
+discrete random events.
+:::
+
+::: {.fragment}
+These are separate decisions. You can simulate SEITL either way, and the
+practical does both so you can see the difference.
+:::
+
+## Why stochastic, here
+
+With 284 people, chance is not a rounding error.
+
+::: {.fragment}
+- Individual runs peak days apart
+- Some fade out entirely; the deterministic model never does
+- The deterministic trajectory is **not** the average of the stochastic ones
+:::
+
+::: {.fragment}
+Demographic noise scales roughly as $1/\sqrt{N}$. On an island of 284 it is a
+first-order effect, and it is why the rest of the course needs heavier machinery.
+:::
+
+## Simulating it: Gillespie {.smaller}
+
+The deterministic version solves an ODE. The stochastic version simulates events
+one at a time.
+
+::: {.fragment}
+1. Given the current state, compute the rate of every possible transition
+2. Draw the time to the next event from an exponential distribution
+3. Pick which event happens, with probability proportional to its rate
+4. Update the state, and repeat
+:::
+
+::: {.fragment}
+Exact, and slow. Every infection and recovery is an individual event.
+:::
+
+## SEIT4L: why four compartments {.smaller}
+
+A single **T** compartment means the waiting time in it is [exponential]{.alert},
+so the most likely thing is to leave immediately.
+
+::: {.fragment}
+That is a strange claim about immunity.
+:::
+
+::: {.fragment}
+Chaining four compartments, each at four times the rate, gives an **Erlang**
+waiting time: same mean, but a peak away from zero. Most people stay immune for
+roughly the average duration.
+:::
+
+::: {.fragment}
+![](images/SEIT4L.jpg){.mini}
+:::
+
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
 In the practical you will

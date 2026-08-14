@@ -371,6 +371,27 @@ or the weighted distance — would react most strongly, and why?
 Then run it and see whether the ordering matches what you expected.
 :::
 
+::: {.callout-tip title="Solution" collapse="true"}
+L2 reacts most strongly. It squares the deviation, so a single day off by 30
+contributes 900 while thirty days off by 1 contribute 30 between them. Squared
+distances are dominated by their worst point.
+
+L1 adds the absolute deviations, so that same bad day contributes 30 and nothing
+more. It is the forgiving choice, and it is why L1 is a common default in ABC
+when you expect reporting glitches.
+
+The weighted distance depends entirely on the weights. If it upweights the peak
+and the outlier falls near the peak, it can react more sharply than either; if the
+outlier falls somewhere it downweights, it can barely notice.
+
+The connection worth carrying forward is that this is the same comparison as
+Poisson against negative binomial, which you met yesterday. A Poisson likelihood
+behaves like L2 in that one improbable day dominates the total; a negative
+binomial behaves more like L1. Choosing a distance and choosing an observation
+model are the same decision about how much a single surprising observation should
+count.
+:::
+
 ```{julia}
 # Test on a candidate parameter set
 test_params = [10.0, 2.5, 0.8]

@@ -657,6 +657,26 @@ Just like with the deterministic model, you can use the Turing `@model` for prio
 What differences do you notice between stochastic and deterministic simulations? Can you make any conclusions on the role of demographic stochasticity on the dynamics of the SEITL model?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+Three differences show up reliably. Individual stochastic runs are jagged where
+the deterministic one is smooth, because transitions happen as discrete events
+rather than continuous flows. Their peaks land at different times, sometimes days
+apart, since early chance events shift the whole trajectory. And some runs fade
+out entirely while others take off, which the deterministic model cannot do at
+all.
+
+The conclusion worth drawing is that the deterministic trajectory is not the
+"average" stochastic one. Averaging over runs that peak at different times gives a
+curve that is lower and broader than any individual run, so the deterministic
+solution sits somewhere among the possibilities rather than at their centre.
+
+This matters most in a population this size. Tristan da Cunha had 284 people, and
+demographic noise scales roughly as $1/\sqrt{N}$, so chance is a first-order
+effect rather than a correction. It is the reason the rest of the course needs
+machinery that can handle a stochastic model rather than fitting the
+deterministic one and hoping.
+:::
+
 Now we make this model a bit more realistic.
 
 # Exponential vs Erlang distributions
@@ -784,6 +804,25 @@ end
 
 ::: {.callout-tip title="Exercise: Understand the SEIT4L code"}
 How does the code above implement the Erlang distribution for the $T$ compartment? What changes from the SEITL version?
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+The single $T$ compartment is replaced by four in series, $T_1$ to $T_4$, each
+leaving at four times the rate. Time spent passing through all four is the sum of
+four exponential waiting times, which is by definition Erlang-distributed with
+shape 4, while the mean total duration is unchanged.
+
+Everything else follows from that: four state variables instead of one, four
+transitions instead of one, and the stoichiometry matrix gains the corresponding
+rows and columns.
+
+The point is the shape of the waiting-time distribution rather than its mean. A
+single exponential compartment says the most likely thing is to leave immediately,
+which is a strange claim about temporary immunity. Chaining four gives a
+distribution with a peak away from zero, so most individuals stay immune for
+something close to the average duration. This is the standard trick for putting a
+realistic waiting time into a compartmental model, and the number of compartments
+is what buys you the realism.
 :::
 
 Now compare the dynamics of the SEITL and SEIT4L models.

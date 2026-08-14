@@ -235,6 +235,27 @@ Look back at the trace plots, running mean plots, and autocorrelation plots abov
 3. If autocorrelation remained high (say > 0.5) even at lag 100, what would that indicate about your effective sample size?
 :::
 
+::: {.callout-tip title="Solution" collapse="true"}
+**A bad trace plot** has visible structure where you want noise. A stuck chain
+shows long flat stretches, every proposal rejected. A badly mixing one drifts
+slowly across the space like a random walk rather than crossing it repeatedly.
+Multiple chains sitting at different levels and never meeting is the clearest
+failure of all. The healthy version looks like a hairy caterpillar: dense, and
+the same on the left as on the right.
+
+**A running mean still trending at 2000 iterations** means the chain has not
+forgotten where it started. Either burn-in was too short, or, more worryingly, the
+chain is still travelling towards a region it has not reached. Running longer
+tells you which: a burn-in problem settles, an exploration problem keeps going.
+
+**Autocorrelation above 0.5 at lag 100** means successive samples carry almost no
+new information, so the effective sample size is a small fraction of the number of
+iterations. Ten thousand samples might be worth a few dozen independent ones. The
+posterior mean can still be roughly right while the standard error you would
+report from it is badly optimistic — which is why ESS is worth checking even when
+the trace plot looks acceptable.
+:::
+
 ## 4. Burn-in and warmup
 
 MCMC chains often start from arbitrary initial values and need time to "find" the high-probability regions of the posterior.

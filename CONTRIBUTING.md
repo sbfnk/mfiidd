@@ -86,6 +86,7 @@ Callouts are signals, not decoration. Use prose by default; reach for a callout 
 | Metadata banner | `callout-note appearance="simple"` | Session-level metadata only (e.g. estimated time). One per session, at the top. |
 | Optional context | `callout-note collapse="true"` | Background a linear reader can skip: "Coming from R/Stan", derivations, code deep-dives, linked implementation files. |
 | Exercise / Hint / Solution | `callout-tip` (`collapse="true"` for hints and solutions) | Anything the student *does* rather than reads. |
+| Open-ended answer | `callout-tip title="What to look for" collapse="true"` | The answer to an exercise that has no single right answer: what a good reader should notice, and why it matters. |
 | Gotcha / pitfall | `callout-warning` | "This will bite you": failure modes, computational constraints, common mistakes, stochastic noise to expect. |
 | Key takeaway | `callout-important` | Concepts the student must hold for the rest of the session. Budget: ≤2 per session. |
 
@@ -164,10 +165,30 @@ A new session touches more than one file. In order:
 6. Render locally before opening the pull request. The session must execute from
    a clean `_freeze/`.
 
-Sessions carry their own exercises. Look at `sessions/model_checking.qmd` for
-the pattern: a `callout-tip` posing the task, followed by a collapsed
-`callout-tip title="Solution"`. Aim for two or more per session, and keep the
-solutions runnable.
+## Exercises
+
+Sessions carry their own exercises. Look at `sessions/model_checking.qmd` for the
+pattern: a `callout-tip` posing the task, followed by a collapsed answer. Aim for
+two or more per session.
+
+**Exercises are conceptual, and all the Julia is given complete.** There are
+deliberately no fill-in-the-blank coding tasks, unlike the older R version of the
+course. Students were spending practical time debugging code rather than learning
+about inference, and the debugging taught them nothing about the subject. Write
+exercises that cannot break at the coding stage: predict the output before running
+the cell, interpret a diagnostic, diagnose why a fit failed, choose between
+options and justify it.
+
+**Every exercise needs a collapsed answer.** Most of the course is worked through
+by people reading on their own, and an exercise with no answer gives them a
+question and silence. Use `title="Solution"` where there is a determinate answer
+and `title="What to look for"` where it is a matter of judgement — calling a
+judgement call a solution overstates it.
+
+Answers should be specific to the session's own numbers. "The posterior is wider"
+is worth little; "the stochastic model gives wider posteriors because it has a
+second source of variation available, so a narrower posterior is not a better one
+when the narrowness comes from a mechanism you left out" is worth reading.
 
 ## Data and long-running computations
 

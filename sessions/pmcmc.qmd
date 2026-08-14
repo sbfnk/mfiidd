@@ -262,6 +262,25 @@ Try running a short PMMH chain yourself:
 4. Compare to the pre-computed chain loaded below — how many more iterations were needed for convergence?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+Expect a low acceptance rate and a trace plot with long flat stretches — the
+chain sitting at one parameter value for many iterations before moving. That is
+the signature of a noisy likelihood: once the sampler lands on a point whose
+likelihood was over-estimated by chance, every honest proposal has to beat an
+inflated number, so it stays put.
+
+**Dropping to 64 particles** makes each iteration roughly twice as fast and the
+mixing distinctly worse, because halving the particles increases the variance of
+the estimate. Whether that is a good trade depends on which side of the optimum
+you started, which is the calibration argument from the previous session in
+practical form.
+
+**Against the pre-computed chain**, 200 iterations is nowhere near enough. The
+saved chain runs orders of magnitude longer, and comparing your trace with it
+makes the point better than any convergence statistic: a short PMMH chain does
+not look obviously broken, it just has not gone anywhere yet.
+:::
+
 ## Why is PMMH mixing difficult?
 
 The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values. This noise means proposals that would be accepted with an exact likelihood may be rejected (and vice versa), slowing exploration.
@@ -414,6 +433,28 @@ Look at the posterior density plots above and compare the two models:
 3. For a population of 284 people, do you think the deterministic approximation is reasonable, or does stochasticity matter?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+**The stochastic model gives wider posteriors**, and it should. The deterministic
+model attributes every discrepancy between prediction and data to observation
+noise, so the parameters have to explain everything and get pinned down tightly.
+The stochastic model has a second source of variation available — the epidemic
+itself could have gone differently — so a wider range of parameters remains
+consistent with what was seen. A narrower posterior is not a better one when the
+narrowness comes from a mechanism you left out.
+
+**On $\alpha$**, look at whether the intervals overlap rather than whether the
+means match. Disagreement here matters more than for the other parameters,
+because $\alpha$ controls how much of the population returns to susceptible and
+therefore whether a second wave happens at all.
+
+**On 284 people**: stochasticity matters. Demographic noise scales roughly as
+$1/\sqrt{N}$, so a few hundred people is squarely in the regime where chance
+events change the trajectory — and Tristan da Cunha is the standard example
+precisely because the population is small enough for it to show. The deterministic
+approximation earns its keep in populations of hundreds of thousands, not
+hundreds.
+:::
+
 For the Tristan da Cunha outbreak with only 284 individuals, demographic stochasticity plays a significant role. The stochastic model typically shows wider posteriors because it accounts for an additional source of variability — the randomness of individual infection events — that the deterministic model ignores. The deterministic model is much faster to fit and useful for initial exploration, but for small populations the stochastic model gives more honest uncertainty estimates.
 
 
@@ -489,6 +530,23 @@ println("  D_imm = $(round(mean(chain_pmcmc[:D_imm]), digits=2))")
 ```
 
 The key difference is in the D_imm (duration of temporary immunity) estimates. SEIT4L, with its Erlang-distributed immunity duration, typically estimates a shorter mean duration but with less variance in timing.
+
+::: {.callout-tip title="What to look for" collapse="true"}
+Compare the two envelopes against the data rather than against each other. The
+question is not which looks tidier but which contains the observations, and
+particularly whether either reproduces the second wave in the right place.
+
+SEIT4L should do better on the timing. Its Erlang-distributed immunity means
+individuals return to susceptible in a reasonably synchronised group, so the
+second wave arrives as a distinct peak. SEITL's exponential waiting time returns
+people steadily from the moment they recover, which smears the second wave out.
+
+That is a difference in shape rather than in fit quality, and it is a good
+illustration of why posterior predictive checks beat a single number. Two models
+can reach similar likelihoods while disagreeing about something you care about —
+here, when the second wave happens, which is exactly what you would want the model
+for.
+:::
 
 ### What the original study found
 

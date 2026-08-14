@@ -46,21 +46,62 @@ $$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\the
 ![](images/abc_method.png){.step .tall}
 :::
 
-## ABC-MCMC {.smaller}
+## Rejection ABC {.smaller}
 
-1. Choose a summary statistic $S$, a positive number $\epsilon$, a distance
-   function $d(S_1, S_2)$ and an initial $\theta$.
-2. Calculate the summary statistic $S_\text{data}$ for the data.
-3. Repeat:
-   1. sample $\theta^*$ using transition kernel $q(\theta^* \mid \theta)$
-   2. simulate a trajectory and observation
-   3. calculate the summary statistic $S_{\text{sim}(\theta)}$
-   4. calculate the difference $d(S_{\text{sim}(\theta)},\, S_\text{data})$
-   5. if $d(S_{\text{sim}(\theta)},\, S_\text{data}) < \epsilon$ accept with
-      probability
-      $$\min\left(1,\; \frac{p(\theta^*)}{p(\theta)}\frac{q(\theta \mid \theta^*)}{q(\theta^* \mid \theta)}\right)$$
-      otherwise reject
-4. The time spent at any $\theta$ approximates $p(\theta \mid \text{data})$.
+The simplest version, and the one you will write:
+
+1. Sample $\theta^*$ from the prior
+2. Simulate a dataset from the model at $\theta^*$
+3. Compute the distance $d$ between simulation and data
+4. Keep $\theta^*$ if $d < \epsilon$, otherwise discard it
+
+::: {.fragment}
+Repeat until you have enough. The kept parameters approximate the posterior.
+:::
+
+::: {.fragment}
+No likelihood anywhere. Just a simulator, a distance, and a threshold.
+:::
+
+## Everything hangs on $\epsilon$
+
+::: {.fragment}
+**Too tight** and you reject almost everything. The acceptance rate collapses and
+you wait forever for a handful of samples.
+:::
+
+::: {.fragment}
+**Too loose** and you accept almost everything, including parameters that fit
+badly. In the limit you are sampling the [prior]{.alert}.
+:::
+
+::: {.fragment}
+There is no free lunch here: $\epsilon$ trades accuracy against compute, and you
+cannot tell from inside the algorithm whether you have chosen well.
+:::
+
+## ABC-SMC {.smaller}
+
+Rejection ABC wastes its effort: every draw comes from the prior, however
+hopeless.
+
+::: {.fragment}
+ABC-SMC walks the threshold down in stages instead.
+
+1. Run rejection ABC at a loose $\epsilon_1$
+2. Perturb the accepted particles to propose for the next round
+3. Tighten to $\epsilon_2 < \epsilon_1$ and repeat
+:::
+
+::: {.fragment}
+Each generation starts from parameters already known to be reasonable, so far
+fewer simulations are wasted. Reaching a tight threshold becomes feasible.
+:::
+
+::: {.fragment}
+The catch: particles need weighting to stay unbiased, which is the same
+propagate-weight-resample structure as the particle filter.
+:::
 
 ## Is there a correct observation model?
 
