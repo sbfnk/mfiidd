@@ -359,7 +359,7 @@ posterior, never a way of fitting one — which is what the next session is abou
 - Evaluate a Poisson likelihood against observed data
 - Combine them into a posterior, and explore it by grid search
 
-[sbfnk.github.io/mfiidd](https://sbfnk.github.io/mfiidd/)
+[mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
 
 # Appendix: probability refresher {visibility="uncounted"}
 

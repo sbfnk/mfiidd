@@ -408,7 +408,7 @@ A state-space model has three components:
 2. **Transition dynamics** (`SEIT4LDynamics`) - how does the state evolve? (uses `gillespie_step`)
 3. **Observation process** (`PoissonObservation`) - how do observations relate to the state?
 
-Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl)). Each type carries a docstring spelling out its state vector and the method it implements — useful for reference once you've read the prose above.
+Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl)). Each type carries a docstring spelling out its state vector and the method it implements — useful for reference once you've read the prose above.
 
 ```{julia}
 #| echo: false

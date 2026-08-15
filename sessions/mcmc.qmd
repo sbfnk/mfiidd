@@ -81,7 +81,7 @@ using MFIIDD
 ```
 
 ::: {.callout-note collapse="true"}
-## SIR Model Definition (from [`src/sir_model.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/sir_model.jl))
+## SIR Model Definition (from [`src/sir_model.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/sir_model.jl))
 
 Key functions:
 

@@ -10,7 +10,7 @@ makedocs(;
     authors="Sebastian Funk and contributors",
     repo=GitHub("sbfnk", "mfiidd"),
     format=Documenter.HTML(;
-        canonical="https://sbfnk.github.io/mfiidd/api",
+        canonical="https://mfiidd.github.io/mfiidd/api",
         edit_link="main",
     ),
     pages=[
