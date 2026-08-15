@@ -13,8 +13,8 @@ filters:
 
 website:
   title: "MFIIDD"
-  site-url: https://sbfnk.github.io/mfiidd.julia/
-  repo-url: https://github.com/sbfnk/mfiidd.julia
+  site-url: https://mfiidd.github.io/mfiidd/
+  repo-url: https://github.com/mfiidd/mfiidd
   repo-actions: [source, issue]
   description: "Model fitting and inference for infectious disease dynamics"
   body-footer: '<script data-goatcounter="https://mfidd.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>'
@@ -27,7 +27,7 @@ website:
       - authors.qmd
     right:
       - icon: github
-        href: https://github.com/sbfnk/mfiidd.julia
+        href: https://github.com/mfiidd/mfiidd
   sidebar:
     - id: sessions
       title: "Sessions"

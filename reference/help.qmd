@@ -25,5 +25,5 @@ title: "Getting Help"
 
 ## Course issues
 
-- [Report a bug or suggest an improvement](https://github.com/sbfnk/mfiidd.julia/issues)
-- [Discussion board](https://github.com/sbfnk/mfiidd.julia/discussions)
+- [Report a bug or suggest an improvement](https://github.com/mfiidd/mfiidd/issues)
+- [Discussion board](https://github.com/mfiidd/mfiidd/discussions)

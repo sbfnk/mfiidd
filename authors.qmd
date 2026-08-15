@@ -16,7 +16,7 @@ If you use materials from this course in your work, please cite:
 
 > MFIIDD course contributors (2025).
 > MFIIDD: Model Fitting and Inference for Infectious Disease Dynamics.
-> URL: <https://sbfnk.github.io/mfiidd.julia/>
+> URL: <https://mfiidd.github.io/mfiidd/>
 
 ## Licence
 
@@ -27,9 +27,9 @@ All course materials are provided under the [MIT Licence](https://opensource.org
 We welcome contributions to improve and expand the course materials.
 You can:
 
-- [Report issues or suggest improvements](https://github.com/sbfnk/mfiidd.julia/issues)
-- [Join discussions](https://github.com/sbfnk/mfiidd.julia/discussions)
-- [Submit pull requests](https://github.com/sbfnk/mfiidd.julia/pulls)
+- [Report issues or suggest improvements](https://github.com/mfiidd/mfiidd/issues)
+- [Join discussions](https://github.com/mfiidd/mfiidd/discussions)
+- [Submit pull requests](https://github.com/mfiidd/mfiidd/pulls)
 
 ## Acknowledgements
 

@@ -1,7 +1,7 @@
 # MFIIDD
 
 API reference for the `MFIIDD` Julia package, the supporting library for the
-[Model fitting and inference for infectious disease dynamics](https://sbfnk.github.io/mfiidd/)
+[Model fitting and inference for infectious disease dynamics](https://mfiidd.github.io/mfiidd/)
 course.
 
 The course session notebooks under `sessions/` are rendered by Quarto and live
