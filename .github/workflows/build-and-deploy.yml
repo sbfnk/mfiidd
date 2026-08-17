@@ -39,7 +39,16 @@ jobs:
           version: '1.12.6'
 
       - name: Install Julia dependencies
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.resolve()'
+        run: |
+          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.resolve()'
+          # Sessions that cannot share the main environment declare their own via
+          # `exeflags` in the front matter. Instantiate each so the render can find
+          # its packages. No resolve here: those manifests are pinned deliberately.
+          for env in envs/*/; do
+            if [ -f "$env/Project.toml" ]; then
+              julia --project="$env" -e 'using Pkg; Pkg.instantiate()'
+            fi
+          done
 
       - name: Render site
         run: quarto render
