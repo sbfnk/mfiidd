@@ -1,0 +1,283 @@
+---
+footer: "Neural posterior estimation"
+title: "Neural posterior estimation"
+subtitle: "Learning the posterior once, using it many times"
+---
+
+# Paying for inference twice
+
+## Where we got to
+
+Particle MCMC gave us the posterior for the SEITL model — at a price:
+
+- one particle filter per likelihood evaluation
+- hundreds of thousands of evaluations per chain
+- hours of compute
+
+::: {.fragment}
+And the answer applies to [exactly one dataset]{.alert}.
+:::
+
+## The same model, again
+
+A second island. A different reporting schedule. The same outbreak truncated at
+week three.
+
+::: {.fragment}
+Every one of those is a fresh chain, from scratch, at full cost.
+:::
+
+::: {.fragment}
+Nothing we computed the first time helps us the second time.
+:::
+
+## Variational inference got us halfway
+
+In the previous session we replaced *sampling* with *optimisation*: pick a family
+$q(\theta)$, then optimise until it is close to the posterior.
+
+::: {.fragment}
+Much faster. But $q(\theta)$ was fitted to **one** dataset.
+
+Change the data and you re-run the optimisation.
+:::
+
+::: {.fragment}
+What if we optimised something that works for [any]{.alert} dataset?
+:::
+
+# Amortised inference
+
+## The idea
+
+Stop treating the posterior as a thing to compute, and start treating it as a
+[function to learn]{.alert}:
+
+$$q_\phi(\theta \mid y) \approx p(\theta \mid y)$$
+
+::: {.fragment}
+Train it on simulations, then apply it to real data.
+:::
+
+## Training data is free
+
+We already have a simulator. Use it to generate pairs:
+
+$$\theta_i \sim p(\theta), \qquad y_i \sim p(y \mid \theta_i)$$
+
+::: {.fragment}
+Then fit a conditional density estimator by maximum likelihood:
+
+$$\min_\phi \; -\sum_i \log q_\phi(\theta_i \mid y_i)$$
+:::
+
+::: {.fragment}
+Over draws from the joint $p(\theta)p(y \mid \theta)$, the minimiser of that loss
+is the [true posterior]{.alert} [@papamakarios2016].
+:::
+
+## So what is it, really?
+
+Not a new model. Not a new inferential target.
+
+::: {.fragment}
+The same posterior, for the same mechanistic model, with the same priors —
+reached by **regression on simulations** instead of by sampling.
+:::
+
+::: {.fragment}
+The neural network replaces the **sampler**, not the model. $R_0$ still means
+$R_0$.
+:::
+
+## Normalising flows {.smaller}
+
+We need a $q_\phi(\theta \mid y)$ we can both **evaluate** (to train) and
+**sample from** (to use).
+
+::: {.fragment}
+A normalising flow is an invertible network mapping a standard normal to
+something complicated, conditioned on the data:
+
+$$z \sim \mathcal{N}(0, I), \qquad \theta = T_\phi(z; y)$$
+:::
+
+::: {.fragment}
+Invertible with a tractable Jacobian, so the change-of-variables formula gives
+the density directly.
+:::
+
+## Amortisation
+
+Training is expensive and happens [once]{.alert}.
+
+::: {.fragment}
+After that, a posterior is a single forward pass: **milliseconds**, no MCMC, no
+further simulation.
+:::
+
+::: {.fragment}
+The cost moves from *per dataset* to *once, ever*. That is the whole trade.
+:::
+
+# How this differs from VI
+
+## Two kinds of optimisation {.smaller}
+
+|  | Variational inference | Neural posterior estimation |
+|---|---|---|
+| Optimises | $q(\theta)$, one dataset | $q_\phi(\theta \mid y)$, all datasets |
+| Divergence | reverse KL | forward KL, averaged over $y$ |
+| Fails by being | too **narrow** | too **wide** |
+| Needs | the likelihood | only the simulator |
+| New dataset | re-optimise | free |
+
+::: {.fragment}
+NPE is, in effect, *amortised* variational inference with the KL reversed.
+:::
+
+## Why the failure modes differ
+
+Reverse KL is [mode-seeking]{.alert} — it would rather cover one mode well than
+spread thin. Hence the too-narrow mean-field posteriors you saw.
+
+::: {.fragment}
+Forward KL is [mass-covering]{.alert} — it is penalised for putting low density
+where the truth has mass. Hence posteriors that err wide.
+:::
+
+::: {.fragment}
+Erring wide is usually the safer failure.
+:::
+
+## The amortisation gap
+
+The estimator must work for **every** dataset the prior can produce.
+
+::: {.fragment}
+So on any single dataset it will be worse than a bespoke fit.
+
+More training shrinks the gap. It does not close it.
+:::
+
+# Making it work
+
+## Ragged surveillance {.smaller}
+
+Real data is not a tidy rectangle: locations start reporting at different times,
+days are missed, sites are surveyed twice in seven years.
+
+::: {.fragment}
+But a neural network needs [fixed-length]{.alert} input.
+:::
+
+::: {.fragment}
+Fix a grid, then add a **binary mask** saying which points were observed
+[@wang2024]:
+
+$$x = [\; \underbrace{y \odot m}_{\text{zero-filled}} \;|\; \underbrace{m}_{\text{the mask}} \;]$$
+:::
+
+## Why the mask is not optional
+
+Zero-filling alone is ambiguous.
+
+::: {.fragment}
+Is a zero on day 12 a day when nobody reported, or a day when genuinely zero
+cases were reported?
+:::
+
+::: {.fragment}
+Those imply very different things about $\theta$. The mask is what distinguishes
+them — the padding carries no information at all.
+:::
+
+## One network, every schedule
+
+Draw a **random mask for every training example**.
+
+::: {.fragment}
+The network then learns $p(\theta \mid y, m)$ — a posterior conditioned on the
+observation schedule itself.
+:::
+
+::: {.fragment}
+So we can condition on schedules we invent *after* training. That is how you
+price a surveillance design without refitting anything.
+:::
+
+## Never reuse a simulation
+
+Neural networks usually overfit a fixed training set — validation loss bottoms
+out, then climbs.
+
+::: {.fragment}
+A SEITL outbreak takes well under a millisecond to simulate.
+
+So: draw a [fresh batch for every gradient step]{.alert}. No example is ever seen
+twice, and overfitting becomes impossible by construction.
+:::
+
+::: {.fragment}
+Costs about 5% extra per step — free, but only because the simulator is fast.
+:::
+
+# What it costs
+
+## Checking the answer
+
+There is no $\hat{R}$, no effective sample size, no trace plot to stare at.
+
+::: {.fragment}
+Instead: **simulation-based calibration** [@talts2018]. Draw from the prior,
+simulate, fit, and record the rank of the truth among the posterior draws.
+
+Calibrated $\Rightarrow$ those ranks are uniform.
+:::
+
+## The silent failure {.smaller}
+
+MCMC on a badly specified model gives you visibly bad fits and pathological
+diagnostics.
+
+::: {.fragment}
+A trained flow will map data it has never seen anything like onto a tidy,
+narrow, [confident and wrong]{.alert} posterior — with nothing to flag it
+[@hermans2022].
+:::
+
+::: {.fragment}
+Prior and posterior predictive checks are your main guard. They matter more here
+than they did for MCMC.
+:::
+
+## When to use which
+
+- **NUTS** — tractable, differentiable likelihood, one dataset
+- **PMMH** — stochastic model, exact, one dataset, you have hours
+- **VI** — need speed on one dataset, can live with narrow intervals
+- **NPE** — same model, many datasets, or many hypothetical designs
+
+::: {.fragment}
+For a one-off fit, use PMMH. For the hundredth fit of the same model,
+amortisation wins.
+:::
+
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
+
+In the practical you will
+
+- train a conditional flow on SEITL simulations, in about two minutes
+- draw 10,000 posterior samples in under a second and compare against PMMH
+- check calibration with SBC, and the fit with a posterior predictive check
+- thin the surveillance schedule and watch the posterior widen — without retraining
+- decide which method you would reach for in four different scenarios
+
+## References {.smaller}
+
+::: {#refs}
+:::
+
+#
+
+[Return to the session](../neural_posterior_estimation.qmd)
