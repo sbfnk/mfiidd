@@ -248,6 +248,37 @@ Reasons the assumption might fail for epidemic data:
 - Behavioural changes might create clustering
 - Surveillance quality might vary over time
 
+::: {.callout-tip title="Exercise: Predict what the negative binomial will change"}
+Before you fit it, commit to an answer for each of these. Write them down — the
+point is to be caught out if you are wrong.
+
+1. Will the posterior for $R_0$ get **wider**, **narrower**, or stay about the
+   same?
+2. Will the posterior **mean** of $R_0$ move much?
+3. The model adds one parameter, $\phi$. If the data were genuinely Poisson,
+   what value would you expect the posterior for $\phi$ to favour?
+
+Then fit it below and check.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+1. **Wider.** The negative binomial can explain a surprising day as observation
+   noise, so the trajectory parameters no longer have to bend to accommodate it.
+   Loosening the observation model always transfers uncertainty back to the
+   parameters, which is the honest direction: the Poisson intervals were narrow
+   because the model was forbidden from admitting the data were noisy.
+
+2. **Not much, usually.** The mean is driven by the overall shape of the
+   epidemic, which both models see the same way. It is the *spread* that changes.
+   If the mean does shift noticeably, that tells you a few extreme observations
+   were dragging the Poisson fit, which is worth knowing.
+
+3. **Large $\phi$.** Variance is $\mu + \mu^2/\phi$, so as $\phi \to \infty$
+   the second term vanishes and you recover Poisson. A posterior for $\phi$ piled
+   up against the large end is the model telling you the extra flexibility was not
+   needed. A small $\phi$ says it was.
+:::
+
 # Approach 2: Negative Binomial Likelihood (Pragmatic)
 
 ## Adding overdispersion
@@ -353,6 +384,44 @@ This reveals that different likelihoods are just different ways of measuring dis
 - An observation model that is too tight makes the posterior overconfident and
   lets a single unusual day dominate the fit
 
+:::
+
+::: {.callout-tip title="Exercise: Which observation model for which system?"}
+The choice is not abstract. For each of these surveillance systems, say which
+observation model you would start with and what feature of the system drives the
+answer.
+
+1. A sentinel network of GP practices reporting influenza-like illness weekly,
+   with stable participation and no weekend effect.
+2. Notifications of a rare disease, where a single case triggers an investigation
+   that often finds several more in the same household.
+3. Deaths in a national registry, complete but reported with a delay that varies
+   between one and three weeks.
+4. A new pathogen where testing capacity tripled part-way through the outbreak.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+1. **Poisson is defensible.** Stable reporting, no obvious clustering, and cases
+   arriving independently is roughly what Poisson assumes. Check the variance
+   against the mean anyway rather than assuming.
+
+2. **Negative binomial.** Case-finding around an index case produces exactly the
+   clustering that breaks the independence assumption, and the visible symptom is
+   variance far above the mean.
+
+3. **Neither, on its own.** The problem here is not the spread but the *timing*:
+   a case counted this week may belong to three weeks ago. No observation model
+   fixes that. You need a delay distribution between the event and its report,
+   which is a change to the model rather than to the likelihood family.
+
+4. **Neither, again.** Tripling testing changes the proportion of infections you
+   observe partway through, so a constant reporting fraction $\rho$ is wrong. You
+   need $\rho$ to vary with time. Fitting a fixed $\rho$ here will make the model
+   infer a change in transmission that never happened.
+
+The general point: 1 and 2 are observation-model choices, 3 and 4 look like them
+and are not. Asking "is this about how *much* noise, or about *what* the data
+mean?" separates the two.
 :::
 
 # Next session
