@@ -44,6 +44,7 @@ website:
         - sessions/variational_inference.qmd
         - sessions/universal_differential_equations.qmd
         - sessions/julia_ecosystem.qmd
+        - sessions/neural_posterior_estimation.qmd
     - id: reference
       title: "Reference"
       style: "docked"
