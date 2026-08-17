@@ -42,11 +42,11 @@ fixing what has gone wrong, not for starting from scratch.
 
 Monday 7 September: 10.30-11.00, 11.30-12.30 and 13.30-14.00
 
--   [Introduction](../sessions/slides/introduction.qmd): what model fitting and inference mean, likelihoods, and Bayes' rule (20 mins)
+-   [Introduction](../sessions/slides/introduction.qmd): what model fitting and inference mean, likelihoods, and Bayes' rule (25 mins)
 -   [Practice](../sessions/introduction.qmd):
-    - simulating an SIR model and exploring what the priors imply (35 mins)
-    - evaluating a Poisson likelihood against observed data (30 mins)
-    - combining them into a posterior and exploring it by grid search (25 mins)
+    - simulating an SIR model and exploring what the priors imply (33 mins)
+    - evaluating a Poisson likelihood against observed data (28 mins)
+    - combining them into a posterior and exploring it by grid search (24 mins)
 -   Wrap up (10 mins)
 
 ## Session 2: Markov chain Monte Carlo
