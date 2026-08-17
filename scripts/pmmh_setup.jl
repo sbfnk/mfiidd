@@ -22,8 +22,8 @@ using MFIIDD
 
 # Sampler settings shared by every chain we generate
 const N_PARTICLES = 256
-const N_SAMPLES = 500_000   # Very long chain - RAM needs time to adapt
-const BURNIN = 50_000
+const N_WARMUP = 50_000     # RAM adapts here, and these draws are discarded
+const N_SAMPLES = 450_000   # kept, then thinned
 const THINNING = 50         # → 9000 final samples
 
 const PARAMETERS = [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
@@ -100,26 +100,34 @@ function acceptance_rate(chain)
 end
 
 """
-    run_pmmh(model, name; n_samples, burnin, thinning)
+    run_pmmh(model, name; n_warmup, n_samples, thinning)
 
 Sample `model` with Robust Adaptive Metropolis, reporting the acceptance rate of
-the full run, then discard burn-in and thin. Returns the thinned chain.
+the kept draws, then thin. Returns the thinned chain.
+
+`num_warmup` is what makes RAM adaptive: the sampler only updates its proposal
+covariance in the warmup phase, and those draws are discarded rather than kept.
+Without it the proposal stays at the identity matrix and acceptance sits near
+0.5% instead of the 23% RAM aims for. `adapting_externalsampler` is what carries
+the warmup phase through to the sampler; see `src/adapting_sampler.jl`.
 """
-function run_pmmh(model, name; n_samples=N_SAMPLES, burnin=BURNIN, thinning=THINNING)
+function run_pmmh(model, name; n_warmup=N_WARMUP, n_samples=N_SAMPLES,
+                  thinning=THINNING)
     println("=" ^ 60)
     println("Running PMMH for $name with RAM")
     println("  Particles: $N_PARTICLES")
-    println("  Total samples: $n_samples")
-    println("  Burnin: $burnin")
+    println("  Warmup (adaptation, discarded): $n_warmup")
+    println("  Samples kept: $n_samples")
     println("  Thinning: $thinning")
-    println("  Final samples: $((n_samples - burnin) ÷ thinning)")
+    println("  Final samples: $(n_samples ÷ thinning)")
     println("=" ^ 60)
 
     t_start = time()
     chain_full = sample(
         model,
-        externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+        adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
         n_samples;
+        num_warmup=n_warmup,
         check_model=false,
         progress=true
     )
@@ -127,8 +135,8 @@ function run_pmmh(model, name; n_samples=N_SAMPLES, burnin=BURNIN, thinning=THIN
     println("\n$name sampling took $(round(t_elapsed/60, digits=1)) minutes")
     println("Acceptance rate: $(round(acceptance_rate(chain_full) * 100, digits=1))%")
 
-    chain = chain_full[burnin+1:thinning:end]
-    println("After burnin and thinning: $(size(chain, 1)) samples")
+    chain = chain_full[1:thinning:end]
+    println("After thinning: $(size(chain, 1)) samples")
     return chain
 end
 

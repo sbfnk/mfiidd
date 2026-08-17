@@ -17,6 +17,7 @@ include("seit4l_gillespie.jl")
 include("seit4l_bootstrap_filter.jl")
 include("seit4l_ssm_interface.jl")
 include("seit4l_runner.jl")
+include("adapting_sampler.jl")
 
 export sir_ode!, simulate_sir
 export seitl_ode!, simulate_seitl_deterministic, simulate_seitl_stochastic
@@ -25,6 +26,7 @@ export generate_observations
 export gillespie_step, gillespie_step_seitl!, gillespie_step_seit4l!
 export particle_filter_seitl, particle_filter_seit4l, run_particle_filter
 export SEIT4LDynamics, SEIT4LInitial, PoissonObservation
+export AdaptingExternalSampler, adapting_externalsampler
 export source_for
 
 """

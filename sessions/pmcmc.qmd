@@ -227,12 +227,15 @@ Let's start with a short chain to see the challenges:
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
 # Run a short chain with RAM
-# externalsampler() wraps an AdvancedMH.jl sampler for use with Turing models
+# adapting_externalsampler() wraps an AdvancedMH.jl sampler for use with Turing
+# models, and carries the warmup phase through to it so that RAM can adapt
+# num_warmup=500 gives the sampler 500 discarded iterations to adapt in
 # check_model=false is needed because our model uses @addlogprob! instead of standard ~ syntax
 chain_short = sample(
     model_pmmh,
-    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     500;
+    num_warmup=500,
     check_model=false,
     progress=false
 )
@@ -256,7 +259,7 @@ With only 500 samples, the chain hasn't had time to properly explore the posteri
 ::: {.callout-tip title="Exercise: Run your own short PMMH chain"}
 Try running a short PMMH chain yourself:
 
-1. Run `sample(model_pmmh, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; check_model=false)` and look at the trace plots
+1. Run `sample(model_pmmh, adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; num_warmup=200, check_model=false)` and look at the trace plots
 2. What acceptance rate does the sampler achieve? (Look at the proportion of samples that change between iterations)
 3. Try reducing the particle count to 64: `pmmh_seit4l(flu_tdc.obs, 64)`. How does this affect mixing? Is it faster but noisier?
 4. Compare to the pre-computed chain loaded below — how many more iterations were needed for convergence?
@@ -289,7 +292,7 @@ The particle filter gives a *noisy estimate* of the likelihood. Even at the same
 
 ::: {.callout-note}
 ## Pre-computed chains
-Running PMMH with RAM for good mixing takes several hours. We load pre-computed chains here (500,000 samples, 50,000 burnin, thinned by 50). See `scripts/generate_pmcmc_seit4l.jl` if you want to run it yourself.
+Running PMMH with RAM for good mixing takes several hours. We load pre-computed chains here: 50,000 warmup iterations for RAM to adapt in, then 450,000 kept and thinned by 50. See `scripts/generate_pmcmc_seit4l.jl` if you want to run it yourself.
 :::
 
 ```{julia}
@@ -321,12 +324,27 @@ density(chain_pmcmc, size = (800, 900), layout = (3, 2))
 
 With standard MH and independent proposals, mixing is poor when parameters are correlated. The sampler proposes moves that go "against" the correlation structure and gets rejected.
 
-**RAM solves this** by learning the posterior covariance during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). It automatically:
+**RAM solves this** by learning the posterior covariance ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)). During warmup it:
 
 1. Adapts the proposal covariance to match the posterior shape
-2. Scales proposals to achieve ~23% acceptance (optimal for random-walk MH)
+2. Scales proposals towards ~23% acceptance (optimal for random-walk MH)
 
-This is similar to how NUTS adapts its mass matrix, but works for non-differentiable likelihoods like particle filters.
+The adaptation happens in the warmup iterations only, with a step size that decays as $n^{-0.6}$; at the end of warmup the proposal is fixed and the chain that follows is an ordinary Metropolis chain. This is similar to how NUTS adapts its mass matrix during warmup, but works for non-differentiable likelihoods like particle filters.
+
+::: {.callout-warning}
+## Warmup is the whole adaptation budget
+
+Because RAM only adapts during warmup, `num_warmup` is not a formality: with no
+warmup the proposal stays at the identity matrix it started from and acceptance
+sits near 0.5% instead of the 23% RAM aims for, whatever the chain length. The
+saved chains use 50,000 warmup iterations.
+
+`adapting_externalsampler` (from `MFIIDD`, in
+[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl))
+exists for the same reason: Turing's own `externalsampler` does not pass the
+warmup phase on to the sampler it wraps, so an adaptive sampler used through it
+never adapts.
+:::
 :::
 
 # Comparing with deterministic model fits
@@ -471,7 +489,7 @@ Which model better explains the data? We fit both and compare.
 
 The SEITL model uses the same structure as SEIT4L, but with a single T compartment instead of four. The implementation follows the same pattern we used for SEIT4L: a Gillespie simulator for stochastic dynamics, a bootstrap particle filter to estimate the likelihood, and a Turing `@model` that adds the log-likelihood via `@addlogprob!`. Since the code structure is identical, we load pre-computed chains rather than repeating the implementation. See `scripts/generate_pmcmc_seitl.jl` if you want to examine the full code.
 
-Both models were fitted using RAM with 500,000 iterations, 50,000 burn-in, and thinned by 50:
+Both models were fitted using RAM with 50,000 warmup iterations, then 450,000 kept and thinned by 50:
 
 ```{julia}
 # Load pre-computed SEITL chain
@@ -606,10 +624,11 @@ For production PMMH, you should run multiple chains and check convergence:
 # Run multiple chains in parallel
 chain_multi = sample(
     model_pmmh,
-    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     MCMCThreads(),
     10000,
     4;
+    num_warmup=10000,
     check_model=false
 )
 
