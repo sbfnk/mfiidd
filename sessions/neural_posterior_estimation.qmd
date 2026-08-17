@@ -3,8 +3,6 @@ title: "Neural posterior estimation"
 subtitle: "Amortised Bayesian inference for mechanistic models"
 format: html
 engine: julia
-julia:
-  exeflags: ["--project=../envs/npe", "--startup-file=no"]
 order: 10
 ---
 
@@ -25,7 +23,7 @@ The approach is **neural posterior estimation** (NPE), part of the wider family 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
 
-There is no mature R equivalent. The established tools are Python's [`sbi`](https://sbi-dev.github.io/sbi/) and [BayesFlow](https://bayesflow.org/) [@radev2020], and in Julia [InvertibleNetworks.jl](https://github.com/slimgroup/InvertibleNetworks.jl), which we use here. The ideas transfer directly: everything below is ordinary Bayesian inference for the same mechanistic model you have been fitting all week.
+There is no mature R equivalent. The established tools are Python's [`sbi`](https://sbi-dev.github.io/sbi/) and [BayesFlow](https://bayesflow.org/) [@radev2020]. Julia has no equivalent package, so we build the flow ourselves with [Lux.jl](https://lux.csail.mit.edu/) in about forty lines. That turns out to be a feature for a course: every part of the method stays visible instead of sitting behind a constructor. The ideas transfer directly — everything below is ordinary Bayesian inference for the same mechanistic model you have been fitting all week.
 :::
 
 # Objectives
@@ -49,23 +47,17 @@ Everything here targets the same posterior as PMMH: the same SEITL model, the sa
 
 # Setup
 
-This session runs in its own Julia environment (`envs/npe`), declared in the front matter, because InvertibleNetworks.jl currently pins an older Flux than the rest of the course uses. That also means `DrWatson`'s `datadir()` would point at the wrong place, so we locate the course root explicitly.
+The flow is built with [Lux.jl](https://lux.csail.mit.edu/), the neural network
+library the [universal differential equations session](universal_differential_equations.qmd)
+also uses, so this session needs nothing beyond the course environment.
 
 ```{julia}
-using Distributions, InvertibleNetworks, LinearAlgebra, Flux, Random, Statistics
-using CSV, DataFrames, Plots, StatsPlots
+using Distributions, LinearAlgebra, Random, Statistics
+using CSV, DataFrames, DrWatson, Plots, StatsPlots
+using Lux, Zygote, Optimisers
+using MFIIDD
 
-# Walk up from the working directory to the course root
-const ROOT = let d = pwd()
-    while !isfile(joinpath(d, "_quarto.yml")) && dirname(d) != d
-        d = dirname(d)
-    end
-    d
-end
-
-include(joinpath(ROOT, "src", "seitl_particle_filter.jl"))
-
-flu_tdc = CSV.read(joinpath(ROOT, "data", "flu_tdc_1971.csv"), DataFrame)
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 const YOBS = Vector{Float64}(flu_tdc.obs)
 const T = length(YOBS)
 const INIT = [279.0, 0.0, 2.0, 3.0, 0.0]   # S, E, I, T, L
@@ -208,7 +200,7 @@ function build_training_set(n; seed=1)
         Θ[:, j] = Float32.(unconstrain(θ))
         Y[:, j] = pack(simulate_obs(θ), draw_mask(rng))
     end
-    return reshape(Θ, (1, 1, D, n)), reshape(Y, (1, 1, 2T, n))
+    return Θ, Y
 end
 
 @time Xva, Yva = build_training_set(5_000; seed=77)   # held out, for monitoring
@@ -218,21 +210,109 @@ size(Xva), size(Yva)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 
-- **`reshape(..., (1, 1, D, n))`** — InvertibleNetworks works with image-shaped arrays `(width, height, channels, batch)`. Our parameters and observations have no spatial extent, so the first two dimensions are 1 and everything lives in the channel dimension.
+- **Columns are examples** — `Θ` is `D × n` and `Y` is `2T × n`, the layout Lux's `Dense` layers expect: one column per training pair.
 - **`log1p`** — compresses the count scale and handles zeros, so a day with 40 cases does not dominate the network's input.
 - **`Random.seed!`** alongside an explicit `rng` — `gillespie_step_seitl!` draws from the global RNG, so we seed both to make the training set reproducible.
 - **`pack`** returns `2T` numbers: `T` (masked) observations followed by the `T` mask entries.
 :::
 
-# Building and training the flow
+# Building the flow
+
+We use a **conditional coupling flow**, the simplest invertible architecture that
+still has a tractable Jacobian [@dinh2017].
+
+Split the six parameters into two halves. Leave one half untouched, and use it —
+together with the observed data — to choose an affine transformation, a scale and
+a shift, for the other half. Because the untouched half decides the
+transformation, the step inverts exactly: recompute the same scale and shift, then
+undo them. The Jacobian is triangular, so its log-determinant is simply the sum of
+the log-scales. Stack several such layers, alternating which half moves, and the
+composition is flexible enough to represent the posterior.
 
 ```{julia}
-n_hidden = 32      # hidden channels in the coupling networks
-n_scales = 2       # multiscale levels
-n_couple = 3       # coupling layers per level
+n_couple = 8       # coupling layers
+n_hidden = 64      # width of each coupling network
+n_embed = 64       # width of the data embedding
 
-G = NetworkConditionalGlow(D, 2T, n_hidden, n_scales, n_couple)
-opt = Flux.Adam(1.0f-3)
+# Layer k transforms the entries where the mask is 0 and leaves the rest alone.
+const MASKS = [Float32[(i + k) % 2 for i in 1:D] for k in 1:n_couple]
+
+function build_flow(rng)
+    embed = Chain(Dense(2T => n_embed, gelu), Dense(n_embed => n_embed, gelu))
+    nets = Tuple(Chain(Dense(D + n_embed => n_hidden, gelu),
+                       Dense(n_hidden => n_hidden, gelu),
+                       Dense(n_hidden => 2D; init_weight=zeros32, init_bias=zeros32))
+                 for _ in 1:n_couple)
+    setups = map(m -> Lux.setup(rng, m), (embed, nets...))
+    ps = (embed=setups[1][1], nets=Tuple(x[1] for x in setups[2:end]))
+    st = (embed=setups[1][2], nets=Tuple(x[2] for x in setups[2:end]))
+    return (embed=embed, nets=nets), ps, st
+end
+
+"Log-scale and shift for coupling layer `k`, both zero on the frozen half."
+function coupling(model, ps, st, k, xm, h, mask)
+    out, _ = model.nets[k](vcat(xm, h), ps.nets[k], st.nets[k])
+    s = 2.0f0 .* tanh.(out[1:D, :]) .* (1 .- mask)
+    t = out[D+1:2D, :] .* (1 .- mask)
+    return s, t
+end
+
+"Parameters (probit scale) → latent, with the log-determinant of the Jacobian."
+function flow_forward(model, ps, st, x, y)
+    h, _ = model.embed(y, ps.embed, st.embed)
+    z = x
+    logdet = zeros(Float32, size(x, 2))
+    for k in 1:n_couple
+        mask = MASKS[k]
+        xm = z .* mask
+        s, t = coupling(model, ps, st, k, xm, h, mask)
+        z = xm .+ (1 .- mask) .* (z .* exp.(s) .+ t)
+        logdet = logdet .+ vec(sum(s, dims=1))
+    end
+    return z, logdet
+end
+
+"Latent → parameters (probit scale), conditional on the data."
+function flow_inverse(model, ps, st, z, y)
+    h, _ = model.embed(y, ps.embed, st.embed)
+    x = z
+    for k in n_couple:-1:1
+        mask = MASKS[k]
+        xm = x .* mask
+        s, t = coupling(model, ps, st, k, xm, h, mask)
+        x = xm .+ (1 .- mask) .* ((x .- t) .* exp.(-s))
+    end
+    return x
+end
+
+model, ps, st = build_flow(Xoshiro(2024))
+Lux.parameterlength(ps)          # how many weights we are about to train
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- **`embed`** compresses the `2T` conditioning inputs — the masked observations and
+  the mask — into `n_embed` numbers, which every coupling layer sees. The
+  parameters and the data meet in `vcat(xm, h)`.
+- **`init_weight=zeros32`** on the last layer of each coupling network means every
+  scale starts at 1 and every shift at 0, so the untrained flow is exactly the
+  identity. Combined with the probit transform, the network *starts as the prior*
+  and learns the update from there.
+- **`2 * tanh(...)`** bounds the log-scales to ±2. An unbounded scale is the usual
+  way a coupling flow blows up in the first few hundred steps.
+- **`logdet`** accumulates the log-scales of the entries that moved. That is the
+  whole Jacobian: an affine map on one half, conditioned on the other.
+- **`flow_inverse`** recomputes `s` and `t` from the frozen half and undoes the
+  affine step. Nothing is approximated — it is the same arithmetic, backwards.
+:::
+
+We can check that claim rather than trust it — a density estimator whose inverse
+does not invert is not estimating anything.
+
+```{julia}
+z_check, _ = flow_forward(model, ps, st, Xva[:, 1:64], Yva[:, 1:64])
+maximum(abs, flow_inverse(model, ps, st, z_check, Yva[:, 1:64]) .- Xva[:, 1:64])
 ```
 
 ::: {.callout-tip}
@@ -240,44 +320,51 @@ opt = Flux.Adam(1.0f-3)
 
 A neural network is normally trained by cycling repeatedly over a fixed training set, and the usual failure is overfitting: validation loss bottoms out early and then climbs while training loss keeps falling. Density estimators are especially prone to it, because the model can win by placing a spike on each training point.
 
-Here we do not have a fixed training set. A simulation costs microseconds, so we draw a **fresh batch for every gradient step**. No example is ever seen twice, and overfitting becomes impossible by construction. Simulating a batch of 128 adds roughly 5% to the cost of a gradient step — free, but only because the simulator is fast.
+Here we do not have a fixed training set. A simulation costs well under a millisecond, so we draw a **fresh batch for every gradient step**. No example is ever seen twice, and overfitting becomes impossible by construction.
+
+Simulating a batch of 128 costs roughly twice the gradient step it feeds, so most of the training time goes on the simulator rather than the network. That is an affordable trade at this model size, and it is what buys the guarantee — but it is also why NPE is a Julia-shaped method: with a simulator a hundred times slower, streaming fresh batches would be out of the question.
 :::
 
-The training objective is the negative log posterior up to a constant: the squared norm of the transformed parameters (how far the flow pushed them from the standard normal) minus the log-determinant (how much it compressed the space).
+# Training
+
+The training objective is the negative log density of the training parameters
+under the flow: half the squared norm of the latents (how far the flow pushed them
+from the standard normal) minus the log-determinant (how much it stretched the
+space). Averaging it over the batch and the six dimensions keeps the number
+readable.
 
 ```{julia}
-function objective(G, X, Y)
-    Zx, _, lgdet = G.forward(X, Y)
-    return norm(Zx)^2 / prod(size(X)) - lgdet / prod(size(X)[1:(end-1)])
+function objective(model, ps, st, x, y)
+    z, logdet = flow_forward(model, ps, st, x, y)
+    return (sum(abs2, z) / 2 - sum(logdet)) / (size(x, 2) * D)
 end
 
-function train_streaming!(G, opt, Xva, Yva; steps, batch, val_every=25,
-                          sampler=build_training_set)
+function train_streaming(model, ps, st, Xva, Yva; steps, batch, lr=1.0f-3,
+                         val_every=25, sampler=build_training_set)
+    opt = Optimisers.setup(Optimisers.Adam(lr), ps)
     history = NamedTuple[]
-    best = (loss=Inf, step=0, params=deepcopy(get_params(G)))
+    best = (loss=Inf, step=0, ps=deepcopy(ps))
     for s in 1:steps
         Xb, Yb = sampler(batch; seed=10_000 + s)              # fresh every step
-        Zx, Zy, lgdet = G.forward(Xb, Yb)
-        G.backward(Zx / batch, Zx, Zy)
-        for p in get_params(G)
-            Flux.update!(opt, p.data, p.grad)
-        end
-        clear_grad!(G)
-        if s == steps ÷ 2 || s == (3 * steps) ÷ 4      # step decay
-            opt.eta = opt.eta / 2
+        loss, back = Zygote.pullback(p -> objective(model, p, st, Xb, Yb), ps)
+        grads = back(one(loss))[1]
+        opt, ps = Optimisers.update(opt, ps, grads)
+        if s == steps ÷ 2                                     # step decay
+            Optimisers.adjust!(opt, lr / 2)
+        elseif s == (3 * steps) ÷ 4
+            Optimisers.adjust!(opt, lr / 4)
         end
         if s % val_every == 0
-            vl = objective(G, Xva, Yva)
+            vl = objective(model, ps, st, Xva, Yva)
             push!(history, (step=s, val=vl))
             isfinite(vl) && vl < best.loss &&
-                (best = (loss=vl, step=s, params=deepcopy(get_params(G))))
+                (best = (loss=vl, step=s, ps=deepcopy(ps)))
         end
     end
-    set_params!(G, best.params)      # keep the best network, not the last one
-    return DataFrame(history), best
+    return DataFrame(history), best      # keep the best network, not the last one
 end
 
-history, best = train_streaming!(G, opt, Xva, Yva; steps=1200, batch=128)
+@time history, best = train_streaming(model, ps, st, Xva, Yva; steps=4_000, batch=128)
 best.step, best.loss
 ```
 
@@ -292,7 +379,9 @@ Because every batch is new, the validation objective settles onto a plateau rath
 ::: {.callout-important}
 ## Watch the objective
 
-Normalising flows can train unstably. A validation objective that falls and then climbs steadily means the flow is diverging, and no amount of extra training will rescue it. If that happens, reduce the learning rate or the number of coupling layers. The architecture used here includes activation normalisation between coupling layers, which is what keeps it stable; a hand-rolled coupling flow without it diverges readily.
+Normalising flows can train unstably. A validation objective that falls and then climbs steadily means the flow is diverging, and no amount of extra training will rescue it. If that happens, reduce the learning rate or the number of coupling layers.
+
+Two choices in `build_flow` are doing the stabilising here, and both are worth copying into any flow you write: the zero-initialised output layer, which starts the network at the identity rather than at a random invertible map, and the bounded log-scale, which stops a single coupling layer from stretching the space by an arbitrary factor.
 :::
 
 # Posterior inference
@@ -300,16 +389,15 @@ Normalising flows can train unstably. A validation objective that falls and then
 Training is done. Every posterior from here on is essentially free.
 
 ```{julia}
-function npe_sample(G, y, m, nsamp; seed=7)
-    Yc = reshape(repeat(pack(y, m), 1, nsamp), (1, 1, 2T, nsamp))
-    Zn = Float32.(randn(Xoshiro(seed), 1, 1, D, nsamp))
-    _, Zy, _ = G.forward(Zn, Yc)          # sets the conditioning transforms
-    U = G.inverse(Zn, Zy)
-    return reduce(hcat, [constrain(Float64.(U[1, 1, :, j])) for j in 1:nsamp])'
+function npe_sample(model, ps, st, y, m, nsamp; seed=7)
+    Yc = repeat(pack(y, m), 1, nsamp)                 # same data for every draw
+    Zn = Float32.(randn(Xoshiro(seed), D, nsamp))     # draws from the base normal
+    U = flow_inverse(model, ps, st, Zn, Yc)
+    return reduce(hcat, [constrain(Float64.(U[:, j])) for j in 1:nsamp])'
 end
 
 mask_full = ones(Float32, T)
-@time post = npe_sample(G, YOBS, mask_full, 10_000)
+@time post = npe_sample(model, best.ps, st, YOBS, mask_full, 10_000)
 posterior = DataFrame(post, PNAMES)
 describe(posterior, :median, :std)
 ```
@@ -319,7 +407,7 @@ Ten thousand posterior draws, in well under a second, with no MCMC and no furthe
 ## Comparison with particle MCMC
 
 ```{julia}
-pmmh = CSV.read(joinpath(ROOT, "data", "pmcmc_seitl_chain.csv"), DataFrame)
+pmmh = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame)
 
 plts = []
 for p in PNAMES
@@ -347,12 +435,11 @@ n_sbc, L_sbc = 200, 200
 Xs, Ys = build_training_set(n_sbc; seed=999)
 ranks = zeros(Int, n_sbc, D)
 for j in 1:n_sbc
-    Yc = repeat(Ys[:, :, :, j:j], 1, 1, 1, L_sbc)
-    Zn = Float32.(randn(Xoshiro(1000 + j), 1, 1, D, L_sbc))
-    _, Zy, _ = G.forward(Zn, Yc)
-    U = G.inverse(Zn, Zy)
+    Yc = repeat(Ys[:, j:j], 1, L_sbc)
+    Zn = Float32.(randn(Xoshiro(1000 + j), D, L_sbc))
+    U = flow_inverse(model, best.ps, st, Zn, Yc)
     for i in 1:D
-        ranks[j, i] = count(<(Xs[1, 1, i, j]), U[1, 1, i, :])
+        ranks[j, i] = count(<(Xs[i, j]), U[i, :])
     end
 end
 
@@ -412,7 +499,7 @@ widths = DataFrame(nobs=Int[], param=String[], width=Float64[])
 for nobs in [5, 10, 20, 30, 40, 50, T], rep in 1:5
     m = zeros(Float32, T)
     m[randperm(Xoshiro(rep), T)[1:nobs]] .= 1.0f0
-    p = npe_sample(G, YOBS, m, 2_000; seed=100 + rep)
+    p = npe_sample(model, best.ps, st, YOBS, m, 2_000; seed=100 + rep)
     for i in 1:D
         push!(widths, (nobs, string(PNAMES[i]),
                        quantile(p[:, i], 0.95) - quantile(p[:, i], 0.05)))
@@ -462,28 +549,39 @@ Retrain with a much smaller budget and compare the posterior widths against the 
 ::: {.callout-tip collapse="true"}
 ## Hint
 
-Build a fresh `NetworkConditionalGlow` (reusing `G` would continue from the trained weights) and call `train_streaming!` with `steps=300`. Compare 90% interval widths.
+Build a fresh flow with `build_flow` (reusing `best.ps` would continue from the trained weights) and call `train_streaming` with `steps=400`. Compare 90% interval widths.
 :::
 
 ::: {.callout-tip collapse="true"}
 ## Solution
 
 ```{julia}
-G_small = NetworkConditionalGlow(D, 2T, n_hidden, n_scales, n_couple)
-hist_small, best_small = train_streaming!(G_small, Flux.Adam(1.0f-3), Xva, Yva;
-                                          steps=300, batch=128)
-post_small = npe_sample(G_small, YOBS, mask_full, 5_000)
+model_s, ps_s, st_s = build_flow(Xoshiro(11))
+hist_small, best_small = train_streaming(model_s, ps_s, st_s, Xva, Yva;
+                                         steps=400, batch=128)
+post_small = npe_sample(model_s, best_small.ps, st_s, YOBS, mask_full, 5_000)
 
 comparison = DataFrame(
     parameter = string.(PNAMES),
-    width_300 = [quantile(post_small[:, i], 0.95) - quantile(post_small[:, i], 0.05) for i in 1:D],
-    width_1200 = [quantile(post[:, i], 0.95) - quantile(post[:, i], 0.05) for i in 1:D],
+    width_400 = [quantile(post_small[:, i], 0.95) - quantile(post_small[:, i], 0.05) for i in 1:D],
+    width_4000 = [quantile(post[:, i], 0.95) - quantile(post[:, i], 0.05) for i in 1:D],
 )
-comparison.ratio = round.(comparison.width_300 ./ comparison.width_1200, digits=2)
+comparison.ratio = round.(comparison.width_400 ./ comparison.width_4000, digits=2)
 comparison
 ```
 
-The short run is systematically wider: with less training the estimator has learned less of the prior-to-posterior update, so it falls back towards the prior. Parameters that are strongly informed by the data (`R_0`, `ρ`) show the biggest relative change; weakly identified ones (`D_imm`) barely move, because their posterior was close to the prior anyway.
+Every interval is wider, here by 17% to 54%. That direction is the
+robust result: with less training the estimator has learned less of the
+prior-to-posterior update, so it falls back towards the prior, and the
+amortisation gap closes from above rather than from below. An undertrained NPE
+posterior is a cautious one.
+
+The ordering is worth reading sceptically. Repeat the exercise with a different
+seed in `build_flow` and the ranking of the other five reshuffles, because it
+depends on where the optimiser happened to be when training stopped. What survives
+the reshuffle is `α`, consistently the least affected: whether a second wave
+happens at all is written directly into the shape of the data, so even a short run
+captures most of that update.
 :::
 
 ## Exercise 2: Informative missingness
@@ -493,7 +591,7 @@ The short run is systematically wider: with less training the estimator has lear
 ::: {.callout-tip collapse="true"}
 ## Hint
 
-Write a `build_training_set` variant that uses the new mask, then pass it to `train_streaming!` through its `sampler` argument.
+Write a `build_training_set` variant that uses the new mask, then pass it to `train_streaming` through its `sampler` argument.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -514,15 +612,15 @@ function build_structured(n; seed=1)
         Θ[:, j] = Float32.(unconstrain(θ))
         Y[:, j] = pack(simulate_obs(θ), m)
     end
-    return reshape(Θ, (1, 1, D, n)), reshape(Y, (1, 1, 2T, n))
+    return Θ, Y
 end
 
 Xv2, Yv2 = build_structured(2_000; seed=5)
-G_struct = NetworkConditionalGlow(D, 2T, n_hidden, n_scales, n_couple)
-hist2, best2 = train_streaming!(G_struct, Flux.Adam(1.0f-3), Xv2, Yv2;
-                                steps=300, batch=128, sampler=build_structured)
+model_2, ps_2, st_2 = build_flow(Xoshiro(12))
+hist2, best2 = train_streaming(model_2, ps_2, st_2, Xv2, Yv2;
+                               steps=400, batch=128, sampler=build_structured)
 
-post_struct = npe_sample(G_struct, YOBS, mask_full, 5_000)
+post_struct = npe_sample(model_2, best2.ps, st_2, YOBS, mask_full, 5_000)
 DataFrame(parameter = string.(PNAMES),
           random_masks = [median(post[:, i]) for i in 1:D],
           structured_masks = [median(post_struct[:, i]) for i in 1:D])
@@ -569,7 +667,7 @@ schedules = Dict(
 rows = DataFrame(schedule=String[], parameter=String[], width=Float64[])
 for (name, idx) in schedules
     m = zeros(Float32, T); m[collect(idx)] .= 1.0f0
-    p = npe_sample(G, YOBS, m, 3_000; seed=42)
+    p = npe_sample(model, best.ps, st, YOBS, m, 3_000; seed=42)
     for i in 1:D
         push!(rows, (name, string(PNAMES[i]),
                      quantile(p[:, i], 0.95) - quantile(p[:, i], 0.05)))
