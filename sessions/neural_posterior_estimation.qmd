@@ -5,11 +5,11 @@ format: html
 engine: julia
 julia:
   exeflags: ["--project=../envs/npe", "--startup-file=no"]
-order: 12
+order: 10
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours | **Optional session** | **Requires**: [particle MCMC](pmcmc.qmd) and [variational inference](variational_inference.qmd)
+**Estimated time**: 1.5-2 hours | **Advanced session** | **Requires**: [particle MCMC](pmcmc.qmd) and [variational inference](variational_inference.qmd)
 :::
 
 # Introduction
@@ -604,6 +604,10 @@ d. **NPE**. The question is not really about one posterior — it is about compa
 The framework extends well beyond what we have used it for. **Sequential** NPE focuses simulations near the observed data, buying accuracy at the cost of amortisation [@greenberg2019]. **Summary networks** learn their own summary statistics rather than taking the raw series, which handles longer and more structured data, and they also enable misspecification detection by testing whether observed data falls outside the training distribution in summary space. The same machinery has been applied to compartmental models of COVID-19 [@radev2021] and to plant pathogen surveillance.
 
 The masking idea used here is not specific to epidemiology: any surveillance system combining a mechanistic model with irregular longitudinal observations faces the same problem [@wang2024].
+
+# Next session
+
+In [Universal Differential Equations](universal_differential_equations.qmd) we combine mechanistic models with neural networks in a different way — instead of learning the *inference*, we learn part of the *model* itself.
 
 # References
 

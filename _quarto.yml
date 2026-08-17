@@ -42,9 +42,9 @@ website:
         - sessions/pmcmc.qmd
         - sessions/observation_models.qmd
         - sessions/variational_inference.qmd
+        - sessions/neural_posterior_estimation.qmd
         - sessions/universal_differential_equations.qmd
         - sessions/julia_ecosystem.qmd
-        - sessions/neural_posterior_estimation.qmd
     - id: reference
       title: "Reference"
       style: "docked"
