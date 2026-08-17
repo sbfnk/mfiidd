@@ -1,15 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=pmcmc_chains
-#SBATCH --time=06:00:00
+#SBATCH --time=48:00:00   # ~15 hours per model, run back to back
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=1
 #SBATCH --output=pmcmc_%j.out
 #SBATCH --error=pmcmc_%j.err
 
-# Load Julia (adjust path if using module or different install location)
-export PATH="$HOME/julia-1.11.2/bin:$PATH"
-# Or if using juliaup:
-# export PATH="$HOME/.juliaup/bin:$PATH"
+# Julia is installed via juliaup on the cluster, so it is already on PATH
 
 # Change to project directory
 cd $SLURM_SUBMIT_DIR
