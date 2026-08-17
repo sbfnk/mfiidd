@@ -1,0 +1,611 @@
+---
+title: "Neural posterior estimation"
+subtitle: "Amortised Bayesian inference for mechanistic models"
+format: html
+engine: julia
+julia:
+  exeflags: ["--project=../envs/npe", "--startup-file=no"]
+order: 12
+---
+
+::: {.callout-note appearance="simple"}
+**Estimated time**: 1.5-2 hours | **Optional session** | **Requires**: [particle MCMC](pmcmc.qmd) and [variational inference](variational_inference.qmd)
+:::
+
+# Introduction
+
+In the [particle MCMC session](pmcmc.qmd) we fitted the stochastic SEITL model to the Tristan da Cunha outbreak. Every likelihood evaluation needed a full particle filter, every chain needed hundreds of thousands of those evaluations, and the resulting chain answered a question about exactly one dataset. Ask about a second dataset — a different island, a different reporting schedule, the same outbreak truncated at week three — and the whole cost is paid again.
+
+The [variational inference session](variational_inference.qmd) already replaced sampling with optimisation. But it optimised an approximation to the posterior *for one dataset*: change the data and you re-run the optimisation from scratch.
+
+This session goes one step further. We use the simulator to generate training data, and learn the mapping from data to posterior **once**. The learned estimator is **amortised**: afterwards a posterior costs milliseconds, for any dataset the model can produce, including observation schedules we invent after training.
+
+The approach is **neural posterior estimation** (NPE), part of the wider family of *simulation-based inference* [@cranmer2020].
+
+::: {.callout-note collapse="true"}
+## Coming from R?
+
+There is no mature R equivalent. The established tools are Python's [`sbi`](https://sbi-dev.github.io/sbi/) and [BayesFlow](https://bayesflow.org/) [@radev2020], and in Julia [InvertibleNetworks.jl](https://github.com/slimgroup/InvertibleNetworks.jl), which we use here. The ideas transfer directly: everything below is ordinary Bayesian inference for the same mechanistic model you have been fitting all week.
+:::
+
+# Objectives
+
+In this session you will:
+
+1. Understand what amortised inference buys you and what it costs
+2. See how NPE relates to the variational inference you have already met
+3. Simulate a training set from the stochastic SEITL model
+4. Train a conditional normalising flow to approximate the posterior
+5. Draw posterior samples in milliseconds and compare them with particle MCMC
+6. Check the result with simulation-based calibration
+7. Handle irregular observation schedules using an observation mask
+8. Use amortisation to compare alternative surveillance schedules
+
+::: {.callout-important}
+## The model has not changed
+
+Everything here targets the same posterior as PMMH: the same SEITL model, the same priors, the same Poisson observation process. The neural network replaces the *sampler*, not the model. `R_0` still means what it meant in the [SEITL session](seitl.qmd) because it is still a parameter of a transmission model.
+:::
+
+# Setup
+
+This session runs in its own Julia environment (`envs/npe`), declared in the front matter, because InvertibleNetworks.jl currently pins an older Flux than the rest of the course uses. That also means `DrWatson`'s `datadir()` would point at the wrong place, so we locate the course root explicitly.
+
+```{julia}
+using Distributions, InvertibleNetworks, LinearAlgebra, Flux, Random, Statistics
+using CSV, DataFrames, Plots, StatsPlots
+
+# Walk up from the working directory to the course root
+const ROOT = let d = pwd()
+    while !isfile(joinpath(d, "_quarto.yml")) && dirname(d) != d
+        d = dirname(d)
+    end
+    d
+end
+
+include(joinpath(ROOT, "src", "seitl_particle_filter.jl"))
+
+flu_tdc = CSV.read(joinpath(ROOT, "data", "flu_tdc_1971.csv"), DataFrame)
+const YOBS = Vector{Float64}(flu_tdc.obs)
+const T = length(YOBS)
+const INIT = [279.0, 0.0, 2.0, 3.0, 0.0]   # S, E, I, T, L
+```
+
+# How it works
+
+Bayesian inference wants $p(\theta \mid y)$. NPE approximates it by training a conditional density estimator $q_\phi(\theta \mid y)$ on pairs drawn from the joint distribution:
+
+$$\theta \sim p(\theta), \qquad y \sim p(y \mid \theta), \qquad \text{minimise } -\sum_i \log q_\phi(\theta_i \mid y_i).$$
+
+Minimising that expected negative log density over draws from $p(\theta)p(y \mid \theta)$ has the true posterior as its minimiser [@papamakarios2016]. So this is the same inferential target you have been chasing with MCMC, reached by regression on simulations rather than by sampling.
+
+The density estimator is a **normalising flow**: an invertible neural network that maps a simple base distribution (a standard normal) to a complicated one, conditioned on the data. Because it is invertible with a tractable Jacobian, we can both evaluate its density (needed for training) and sample from it (needed for inference).
+
+## How this differs from variational inference
+
+Both VI and NPE replace sampling with optimisation, so it is worth being precise about the difference.
+
+| | Variational inference | Neural posterior estimation |
+|---|---|---|
+| What is optimised | $q(\theta)$ for **one** dataset | $q_\phi(\theta \mid y)$ over **all** datasets |
+| Divergence | reverse KL, $\mathrm{KL}(q \,\|\, p)$ | forward KL, in expectation over $y$ |
+| Typical failure | mode-seeking, **too narrow** | mass-covering, **too wide** |
+| Needs | the likelihood | only the simulator |
+| New dataset | re-optimise from scratch | free |
+
+The reverse KL that VI minimises is mode-seeking, which is why the mean-field posteriors in that session came out too narrow. NPE minimises a forward KL averaged over datasets, which is mass-covering, so its errors tend towards posteriors that are too *wide*. Being conservative is usually the safer failure.
+
+The price of amortisation is the **amortisation gap**: the estimator must work for every dataset the prior can produce, so on any single dataset it will be worse than a bespoke fit. More training reduces the gap; it does not close it.
+
+::: {.callout-tip}
+## The connection is real
+
+NPE can be seen as *amortised* variational inference with the KL reversed. If you found the VI session's framing natural — pick a family, optimise until it fits — this is the same move, applied once to the whole joint distribution rather than repeatedly to individual posteriors.
+:::
+
+# The simulator
+
+We reuse the priors and the Gillespie simulator from the PMMH session.
+
+```{julia}
+const PNAMES = [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
+const PRIORS = [
+    truncated(Normal(3.0, 2.0), lower=1.0),
+    truncated(Normal(2.0, 1.0), lower=0.5),
+    truncated(Normal(3.0, 2.0), lower=0.5),
+    Beta(2, 2),
+    truncated(Normal(15.0, 10.0), lower=1.0),
+    Beta(2, 2),
+]
+const D = length(PNAMES)
+
+"Simulate one SEITL outbreak and its Poisson-observed daily incidence."
+function simulate_obs(θ)
+    d = Dict{Symbol,Float64}(PNAMES[i] => Float64(θ[i]) for i in 1:D)
+    state = copy(INIT)
+    y = Vector{Float64}(undef, T)
+    for t in 1:T
+        inc = gillespie_step_seitl!(state, d, 1.0)
+        y[t] = rand(Poisson(max(θ[6] * inc, 1e-10)))
+    end
+    return y
+end
+```
+
+How expensive is one simulation?
+
+```{julia}
+θ_test = [rand(p) for p in PRIORS]
+simulate_obs(θ_test)                       # warm up
+@elapsed for _ in 1:1000; simulate_obs(θ_test); end
+```
+
+::: {.callout-tip}
+## Why Julia suits simulation-based inference
+
+A single outbreak takes well under a millisecond. Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms. An entire NPE training set costs less than a second of PMMH sampling. This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free. In a slower language the simulation stage is usually the bottleneck.
+:::
+
+# Representing the parameters
+
+The flow's base distribution is a standard normal, so it helps enormously to give it parameters on a comparable scale. We use the **probit of the prior CDF**:
+
+$$u_i = \Phi^{-1}\!\big(F_i(\theta_i)\big)$$
+
+where $F_i$ is the prior CDF of parameter $i$. Under the prior, $u$ is *exactly* standard normal. Two things follow: the flow starts out equal to the prior and learns the prior-to-posterior update, and inverting always lands back inside the prior support, so `D_lat` can never come out below its truncation bound.
+
+```{julia}
+const CLIP = 1e-6
+unconstrain(θ) = [quantile(Normal(), clamp(cdf(PRIORS[i], θ[i]), CLIP, 1 - CLIP)) for i in 1:D]
+constrain(u)   = [quantile(PRIORS[i], clamp(cdf(Normal(), u[i]), CLIP, 1 - CLIP)) for i in 1:D]
+```
+
+::: {.callout-warning}
+## A naive transform will not do
+
+The obvious choice, `log(θ - lower)`, blows up as a parameter approaches its truncation bound. Over 100,000 prior draws you will get values near $-12$, which are extreme outliers once standardised, and they destabilise training badly. The probit transform has no such tail.
+:::
+
+# The observation mask
+
+Real surveillance is ragged: locations start reporting at different times, some days are missed, some studies visit a site twice in seven years. A neural network needs a **fixed-length** input, so we put every record on a common grid of `T` days and add a **binary mask** saying which days were actually observed [@wang2024].
+
+```{julia}
+"Pack an observation vector and its mask into the conditioning channels."
+pack(y, m) = vcat(Float32.(log1p.(y)) .* m, m)
+
+"Random schedule: half the time fully observed, otherwise a random subset of days."
+function draw_mask(rng)
+    m = ones(Float32, T)
+    if rand(rng) < 0.5
+        nobs = rand(rng, 8:T)
+        m[randperm(rng, T)[1:(T - nobs)]] .= 0.0f0
+    end
+    return m
+end
+```
+
+The zero-filling is only padding — it carries no information. All the information about missingness lives in the mask. Without it the network sees a zero on day 12 and cannot tell whether nobody reported that day or whether genuinely zero cases were reported, and those two imply very different things about $\theta$.
+
+Because a random mask is drawn for every training example, the network learns $p(\theta \mid y, m)$ — a posterior *conditioned on the observation schedule itself*. That is what lets one trained network serve every schedule, including ones we invent later.
+
+::: {.callout-warning}
+## Every mask position must vary
+
+The network normalises each input channel by its standard deviation across the batch. If some day is observed in *every* training example, that channel is constant, its standard deviation is zero, and training produces `NaN` immediately.
+
+So make schedules **probabilistic**: "observed with probability 0.95" rather than "always observed". You meet this in Exercise 2.
+:::
+
+```{julia}
+function build_training_set(n; seed=1)
+    rng = Xoshiro(seed)
+    Random.seed!(seed)                     # the Gillespie step uses the global RNG
+    Θ = Matrix{Float32}(undef, D, n)
+    Y = Matrix{Float32}(undef, 2T, n)
+    for j in 1:n
+        θ = [rand(rng, PRIORS[i]) for i in 1:D]
+        Θ[:, j] = Float32.(unconstrain(θ))
+        Y[:, j] = pack(simulate_obs(θ), draw_mask(rng))
+    end
+    return reshape(Θ, (1, 1, D, n)), reshape(Y, (1, 1, 2T, n))
+end
+
+@time Xva, Yva = build_training_set(5_000; seed=77)   # held out, for monitoring
+size(Xva), size(Yva)
+```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+
+- **`reshape(..., (1, 1, D, n))`** — InvertibleNetworks works with image-shaped arrays `(width, height, channels, batch)`. Our parameters and observations have no spatial extent, so the first two dimensions are 1 and everything lives in the channel dimension.
+- **`log1p`** — compresses the count scale and handles zeros, so a day with 40 cases does not dominate the network's input.
+- **`Random.seed!`** alongside an explicit `rng` — `gillespie_step_seitl!` draws from the global RNG, so we seed both to make the training set reproducible.
+- **`pack`** returns `2T` numbers: `T` (masked) observations followed by the `T` mask entries.
+:::
+
+# Building and training the flow
+
+```{julia}
+n_hidden = 32      # hidden channels in the coupling networks
+n_scales = 2       # multiscale levels
+n_couple = 3       # coupling layers per level
+
+G = NetworkConditionalGlow(D, 2T, n_hidden, n_scales, n_couple)
+opt = Flux.Adam(1.0f-3)
+```
+
+::: {.callout-tip}
+## Never reuse a simulation
+
+A neural network is normally trained by cycling repeatedly over a fixed training set, and the usual failure is overfitting: validation loss bottoms out early and then climbs while training loss keeps falling. Density estimators are especially prone to it, because the model can win by placing a spike on each training point.
+
+Here we do not have a fixed training set. A simulation costs microseconds, so we draw a **fresh batch for every gradient step**. No example is ever seen twice, and overfitting becomes impossible by construction. Simulating a batch of 128 adds roughly 5% to the cost of a gradient step — free, but only because the simulator is fast.
+:::
+
+The training objective is the negative log posterior up to a constant: the squared norm of the transformed parameters (how far the flow pushed them from the standard normal) minus the log-determinant (how much it compressed the space).
+
+```{julia}
+function objective(G, X, Y)
+    Zx, _, lgdet = G.forward(X, Y)
+    return norm(Zx)^2 / prod(size(X)) - lgdet / prod(size(X)[1:(end-1)])
+end
+
+function train_streaming!(G, opt, Xva, Yva; steps, batch, val_every=25,
+                          sampler=build_training_set)
+    history = NamedTuple[]
+    best = (loss=Inf, step=0, params=deepcopy(get_params(G)))
+    for s in 1:steps
+        Xb, Yb = sampler(batch; seed=10_000 + s)              # fresh every step
+        Zx, Zy, lgdet = G.forward(Xb, Yb)
+        G.backward(Zx / batch, Zx, Zy)
+        for p in get_params(G)
+            Flux.update!(opt, p.data, p.grad)
+        end
+        clear_grad!(G)
+        if s == steps ÷ 2 || s == (3 * steps) ÷ 4      # step decay
+            opt.eta = opt.eta / 2
+        end
+        if s % val_every == 0
+            vl = objective(G, Xva, Yva)
+            push!(history, (step=s, val=vl))
+            isfinite(vl) && vl < best.loss &&
+                (best = (loss=vl, step=s, params=deepcopy(get_params(G))))
+        end
+    end
+    set_params!(G, best.params)      # keep the best network, not the last one
+    return DataFrame(history), best
+end
+
+history, best = train_streaming!(G, opt, Xva, Yva; steps=1200, batch=128)
+best.step, best.loss
+```
+
+```{julia}
+plot(history.step, history.val, lw=2, legend=false,
+     xlabel="gradient step", ylabel="validation objective", title="Training")
+vline!([best.step], ls=:dash, c=:grey)
+```
+
+Because every batch is new, the validation objective settles onto a plateau rather than turning back upwards. We still keep the best network rather than the last, since the plateau is noisy.
+
+::: {.callout-important}
+## Watch the objective
+
+Normalising flows can train unstably. A validation objective that falls and then climbs steadily means the flow is diverging, and no amount of extra training will rescue it. If that happens, reduce the learning rate or the number of coupling layers. The architecture used here includes activation normalisation between coupling layers, which is what keeps it stable; a hand-rolled coupling flow without it diverges readily.
+:::
+
+# Posterior inference
+
+Training is done. Every posterior from here on is essentially free.
+
+```{julia}
+function npe_sample(G, y, m, nsamp; seed=7)
+    Yc = reshape(repeat(pack(y, m), 1, nsamp), (1, 1, 2T, nsamp))
+    Zn = Float32.(randn(Xoshiro(seed), 1, 1, D, nsamp))
+    _, Zy, _ = G.forward(Zn, Yc)          # sets the conditioning transforms
+    U = G.inverse(Zn, Zy)
+    return reduce(hcat, [constrain(Float64.(U[1, 1, :, j])) for j in 1:nsamp])'
+end
+
+mask_full = ones(Float32, T)
+@time post = npe_sample(G, YOBS, mask_full, 10_000)
+posterior = DataFrame(post, PNAMES)
+describe(posterior, :median, :std)
+```
+
+Ten thousand posterior draws, in well under a second, with no MCMC and no further simulation.
+
+## Comparison with particle MCMC
+
+```{julia}
+pmmh = CSV.read(joinpath(ROOT, "data", "pmcmc_seitl_chain.csv"), DataFrame)
+
+plts = []
+for p in PNAMES
+    pl = density(pmmh[!, p], lw=2.5, label="PMMH", title=string(p), titlefontsize=10)
+    density!(pl, posterior[!, p], lw=2.5, ls=:dash, label="NPE")
+    push!(plts, pl)
+end
+plot(plts..., layout=(2, 3), size=(950, 520))
+```
+
+::: {.callout-note}
+## What to look for
+
+Expect broad agreement in location and somewhat wider NPE intervals — that is the amortisation gap, and the mass-covering forward KL, showing up exactly as predicted. More training simulations narrow it.
+
+Expect the worst agreement on `D_imm`, the duration of temporary immunity. A single 59-day outbreak contains very little information about how long immunity lasts, so both methods are largely reporting the prior there, and small differences look dramatic. Systematic disagreement on a *well-identified* parameter would be a different matter and would mean something is wrong.
+:::
+
+# Is it calibrated?
+
+Agreement with PMMH is reassuring but is not a check in itself. The standard check for a simulation-based posterior is **simulation-based calibration** [@talts2018]: draw $\theta$ from the prior, simulate data, fit, and record the rank of the true $\theta$ among the posterior draws. If the posterior is calibrated, those ranks are uniform.
+
+```{julia}
+n_sbc, L_sbc = 200, 200
+Xs, Ys = build_training_set(n_sbc; seed=999)
+ranks = zeros(Int, n_sbc, D)
+for j in 1:n_sbc
+    Yc = repeat(Ys[:, :, :, j:j], 1, 1, 1, L_sbc)
+    Zn = Float32.(randn(Xoshiro(1000 + j), 1, 1, D, L_sbc))
+    _, Zy, _ = G.forward(Zn, Yc)
+    U = G.inverse(Zn, Zy)
+    for i in 1:D
+        ranks[j, i] = count(<(Xs[1, 1, i, j]), U[1, 1, i, :])
+    end
+end
+
+grid = range(0, 1, length=100)
+lo = [quantile(Binomial(n_sbc, x), 0.025) / n_sbc for x in grid]
+hi = [quantile(Binomial(n_sbc, x), 0.975) / n_sbc for x in grid]
+
+sbc_plots = []
+for (i, p) in enumerate(PNAMES)
+    u = ranks[:, i] ./ L_sbc
+    ecdf_vals = [mean(u .<= x) for x in grid]
+    pl = plot(grid, hi .- grid, fillrange=lo .- grid, fillalpha=0.2, c=:grey, lw=0,
+              legend=false, title=string(p), titlefontsize=10)
+    plot!(pl, grid, ecdf_vals .- grid, lw=2)
+    hline!(pl, [0], c=:black, ls=:dot)
+    push!(sbc_plots, pl)
+end
+plot(sbc_plots..., layout=(2, 3), size=(950, 520))
+```
+
+A curve wandering outside the grey band means the posterior is miscalibrated for that parameter: an S-shape indicates bias, a bowed curve indicates intervals that are systematically too narrow or too wide.
+
+::: {.callout-warning}
+## Calibration is necessary, not sufficient
+
+SBC checks the estimator against *the simulator it was trained on*. It cannot tell you that the simulator is a poor description of reality. A well-calibrated posterior for the wrong model is still the wrong answer [@hermans2022].
+:::
+
+# Posterior predictive check
+
+```{julia}
+Random.seed!(4242)
+ppc = reduce(vcat, [simulate_obs(post[j, :])' for j in 1:500])
+tt = 1:T
+lo95 = [quantile(ppc[:, t], 0.025) for t in tt]
+hi95 = [quantile(ppc[:, t], 0.975) for t in tt]
+med  = [median(ppc[:, t]) for t in tt]
+
+plot(tt, hi95, fillrange=lo95, fillalpha=0.25, lw=0, label="95%")
+plot!(tt, med, lw=2, label="median")
+scatter!(tt, YOBS, c=:black, ms=3, label="observed",
+         xlabel="day", ylabel="reported cases", title="Posterior predictive check")
+```
+
+::: {.callout-warning}
+## This check matters more here than for MCMC
+
+MCMC on a badly specified model gives visibly bad fit and pathological diagnostics. A trained flow will happily map data that sits *outside* everything it was trained on to a tidy, narrow, confident and wrong posterior, with no convergence diagnostic to catch it. The posterior predictive check is your main guard.
+:::
+
+# Amortisation in action: thinning the surveillance
+
+Here is the payoff. We never retrain — we just condition on a different mask.
+
+```{julia}
+widths = DataFrame(nobs=Int[], param=String[], width=Float64[])
+for nobs in [5, 10, 20, 30, 40, 50, T], rep in 1:5
+    m = zeros(Float32, T)
+    m[randperm(Xoshiro(rep), T)[1:nobs]] .= 1.0f0
+    p = npe_sample(G, YOBS, m, 2_000; seed=100 + rep)
+    for i in 1:D
+        push!(widths, (nobs, string(PNAMES[i]),
+                       quantile(p[:, i], 0.95) - quantile(p[:, i], 0.05)))
+    end
+end
+
+summary_widths = combine(groupby(widths, [:nobs, :param]), :width => mean => :w)
+pl = plot(xlabel="number of observed days", ylabel="90% interval width",
+          title="Posterior width vs surveillance intensity", legend=:topright)
+for p in string.(PNAMES)
+    s = sort(summary_widths[summary_widths.param .== p, :], :nobs)
+    plot!(pl, s.nobs, s.w, lw=2, marker=:circle, ms=3, label=p)
+end
+pl
+```
+
+Each of those posteriors took milliseconds. Doing the same with PMMH would mean 35 separate chains, and hours of compute.
+
+# When to use this
+
+::: {.callout-important}
+## Honest trade-offs
+
+**In favour**
+
+- Amortisation: one training run, then unlimited posteriors. Worth it when you fit the same model repeatedly — many locations, rolling real-time updates, or exploring surveillance designs.
+- The likelihood is never needed, only the simulator. That matters for individual-based and network models where no tractable likelihood exists.
+- Julia's simulation speed makes the expensive part cheap.
+
+**Against**
+
+- PMMH is exact in the pseudo-marginal sense. A flow is an approximation with no convergence diagnostic and no guarantee of closing the amortisation gap.
+- Calibration can be imperfect, and calibration diagnostics and parameter-recovery plots can disagree in both directions.
+- A particle filter handles missing and irregular observations natively — its likelihood simply factorises over the observed time points. The mask exists only because a neural network needs fixed-length input.
+- Training masks here are drawn completely at random, but real missingness is informative: a site starts reporting *because* the epidemic arrived. The estimator has no way to use that.
+- Model misspecification can fail silently.
+
+For a one-off fit to a single dataset, use PMMH. For the hundredth fit of the same model, amortisation wins.
+:::
+
+# Exercises
+
+## Exercise 1: The training budget
+
+Retrain with a much smaller budget and compare the posterior widths against the full run. Which parameters suffer most, and does the validation objective still reach a plateau?
+
+::: {.callout-tip collapse="true"}
+## Hint
+
+Build a fresh `NetworkConditionalGlow` (reusing `G` would continue from the trained weights) and call `train_streaming!` with `steps=300`. Compare 90% interval widths.
+:::
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+```{julia}
+G_small = NetworkConditionalGlow(D, 2T, n_hidden, n_scales, n_couple)
+hist_small, best_small = train_streaming!(G_small, Flux.Adam(1.0f-3), Xva, Yva;
+                                          steps=300, batch=128)
+post_small = npe_sample(G_small, YOBS, mask_full, 5_000)
+
+comparison = DataFrame(
+    parameter = string.(PNAMES),
+    width_300 = [quantile(post_small[:, i], 0.95) - quantile(post_small[:, i], 0.05) for i in 1:D],
+    width_1200 = [quantile(post[:, i], 0.95) - quantile(post[:, i], 0.05) for i in 1:D],
+)
+comparison.ratio = round.(comparison.width_300 ./ comparison.width_1200, digits=2)
+comparison
+```
+
+The short run is systematically wider: with less training the estimator has learned less of the prior-to-posterior update, so it falls back towards the prior. Parameters that are strongly informed by the data (`R_0`, `ρ`) show the biggest relative change; weakly identified ones (`D_imm`) barely move, because their posterior was close to the prior anyway.
+:::
+
+## Exercise 2: Informative missingness
+
+`draw_mask` removes days completely at random, which is a strong assumption. Change it so missingness is *structured* — early days observed far more often than late ones — retrain briefly, and compare the posterior for the fully observed data. Remember the warning above: keep every day's probability strictly below 1.
+
+::: {.callout-tip collapse="true"}
+## Hint
+
+Write a `build_training_set` variant that uses the new mask, then pass it to `train_streaming!` through its `sampler` argument.
+:::
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+```{julia}
+function build_structured(n; seed=1)
+    rng = Xoshiro(seed)
+    Random.seed!(seed)
+    Θ = Matrix{Float32}(undef, D, n)
+    Y = Matrix{Float32}(undef, 2T, n)
+    for j in 1:n
+        θ = [rand(rng, PRIORS[i]) for i in 1:D]
+        m = zeros(Float32, T)
+        for t in 1:T                                      # early days far more likely
+            rand(rng) < (t <= 20 ? 0.95 : 0.4) && (m[t] = 1.0f0)
+        end
+        Θ[:, j] = Float32.(unconstrain(θ))
+        Y[:, j] = pack(simulate_obs(θ), m)
+    end
+    return reshape(Θ, (1, 1, D, n)), reshape(Y, (1, 1, 2T, n))
+end
+
+Xv2, Yv2 = build_structured(2_000; seed=5)
+G_struct = NetworkConditionalGlow(D, 2T, n_hidden, n_scales, n_couple)
+hist2, best2 = train_streaming!(G_struct, Flux.Adam(1.0f-3), Xv2, Yv2;
+                                steps=300, batch=128, sampler=build_structured)
+
+post_struct = npe_sample(G_struct, YOBS, mask_full, 5_000)
+DataFrame(parameter = string.(PNAMES),
+          random_masks = [median(post[:, i]) for i in 1:D],
+          structured_masks = [median(post_struct[:, i]) for i in 1:D])
+```
+
+The two disagree, and that is the point. The estimator learns a posterior conditioned on the *distribution of schedules it was trained on*. Deploying it on a schedule far outside that distribution is extrapolation. In a real surveillance system the missingness is informative — reporting starts because the epidemic arrived — and neither mask distribution captures that.
+:::
+
+## Exercise 3: Is the data in distribution?
+
+Simulate 500 datasets from the prior and plot them against the Tristan da Cunha data. Does the observed outbreak look like something this model and prior can produce? What would it mean for the NPE posterior if it did not?
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+```{julia}
+Random.seed!(11)
+prior_pred = reduce(vcat, [simulate_obs([rand(p) for p in PRIORS])' for _ in 1:500])
+plo = [quantile(prior_pred[:, t], 0.025) for t in tt]
+phi = [quantile(prior_pred[:, t], 0.975) for t in tt]
+
+plot(tt, phi, fillrange=plo, fillalpha=0.2, c=:grey, lw=0, label="prior predictive 95%")
+scatter!(tt, YOBS, c=:black, ms=3, label="observed",
+         xlabel="day", ylabel="reported cases", title="Prior predictive check")
+```
+
+If the observed data fell outside the prior predictive range, the trained network would never have seen anything like it during training. It would still return a posterior — confidently — but that posterior would be an extrapolation with no guarantees at all. This is the silent failure mode discussed above, and it is why the prior and posterior predictive checks matter more for NPE than for MCMC.
+:::
+
+## Exercise 4: Designing a schedule
+
+The thinning experiment used random schedules. Compare *specific* schedules with the same number of observations — the first 20 days, the last 20 days, and every third day. Which is most informative about `R_0`, and which about `D_imm`? Why might they differ?
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+```{julia}
+schedules = Dict(
+    "first 20"     => 1:20,
+    "last 20"      => (T-19):T,
+    "every third"  => 1:3:T,
+)
+
+rows = DataFrame(schedule=String[], parameter=String[], width=Float64[])
+for (name, idx) in schedules
+    m = zeros(Float32, T); m[collect(idx)] .= 1.0f0
+    p = npe_sample(G, YOBS, m, 3_000; seed=42)
+    for i in 1:D
+        push!(rows, (name, string(PNAMES[i]),
+                     quantile(p[:, i], 0.95) - quantile(p[:, i], 0.05)))
+    end
+end
+unstack(rows, :parameter, :schedule, :width)
+```
+
+`R_0` is driven by the exponential growth phase, so early observations carry most of its information. `D_imm` governs the *second* wave, so it needs late observations — which is why the same number of observation days can be worth very different amounts depending on when they fall. This is exactly the calculation a surveillance planner wants, and amortisation is what makes it cheap.
+:::
+
+## Exercise 5: Which method for which job?
+
+No code for this one. For each scenario, decide whether you would reach for NUTS, PMMH, VI, or NPE, and say why:
+
+a. A one-off fit of a deterministic SIR model to a single outbreak.
+b. Nowcasting 300 local authorities every morning with the same stochastic model.
+c. A first exploratory fit of a brand-new individual-based model with no tractable likelihood.
+d. Deciding how often to survey olive groves for a slow-spreading plant pathogen over ten years.
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+a. **NUTS**. The likelihood is tractable and differentiable, and there is only one dataset — no reason to approximate anything.
+b. **NPE**. Same model, 300 datasets, every day. This is exactly what amortisation is for; the training cost is repaid on the first morning.
+c. **PMMH** (or another likelihood-free method) for the first look. You want an answer you can trust while the model is still changing, and retraining an amortised estimator after every model change destroys the amortisation.
+d. **NPE**. The question is not really about one posterior — it is about comparing many hypothetical observation schedules, which needs a posterior per schedule. That is unaffordable with MCMC and free once amortised.
+:::
+
+# Going further
+
+The framework extends well beyond what we have used it for. **Sequential** NPE focuses simulations near the observed data, buying accuracy at the cost of amortisation [@greenberg2019]. **Summary networks** learn their own summary statistics rather than taking the raw series, which handles longer and more structured data, and they also enable misspecification detection by testing whether observed data falls outside the training distribution in summary space. The same machinery has been applied to compartmental models of COVID-19 [@radev2021] and to plant pathogen surveillance.
+
+The masking idea used here is not specific to epidemiology: any surveillance system combining a mechanistic model with irregular longitudinal observations faces the same problem [@wang2024].
+
+# References
+
+::: {#refs}
+:::
