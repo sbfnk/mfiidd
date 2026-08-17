@@ -1,0 +1,207 @@
+---
+footer: "Choosing an inference approach"
+title: "Choosing an inference approach"
+subtitle: "Or: the answer to all your questions"
+---
+
+# Where we have been
+
+## The whole course in one slide {.smaller}
+
+- **Deterministic models**: write the likelihood, sample it with MCMC
+- **Diagnostics**: did the sampler work? R̂, ESS, divergences
+- **Model checking**: is the model any good? Prior and posterior predictive checks
+- **Stochastic models**: the likelihood becomes an integral over trajectories
+- **Particle filters**: estimate that integral by simulation
+- **pMCMC**: sample with an estimated likelihood, and it still targets the right posterior
+- **Observation models**: a likelihood is a distance function you committed to
+- **ABC**: choose the distance instead, and drop the likelihood entirely
+
+::: {.fragment}
+The question you actually go home with: [which of these does *my* problem
+need?]{.alert}
+:::
+
+# Two questions decide it
+
+## Question one
+
+::: {.r-fit-text}
+Can you write down and evaluate
+$$p(\text{data} \mid \theta)?$$
+:::
+
+::: {.fragment}
+- **Yes** — everything from grid search to NUTS is open to you
+- **No** — simulation-based territory: particle filters, pMCMC, ABC
+:::
+
+## Question two
+
+::: {.r-fit-text}
+Can you [differentiate]{.alert} it?
+:::
+
+::: {.fragment}
+- **Yes** — use NUTS. It is the default for a reason
+- **No** — adaptive Metropolis-Hastings, RAM, or a simulation-based method
+:::
+
+::: {.fragment}
+This is the question people forget to ask before picking a tool.
+:::
+
+## The map {.smaller}
+
+| Method | Needs | Cost |
+|---|---|---|
+| Grid search | likelihood | hopeless past 2-3 parameters |
+| Metropolis-Hastings | likelihood | cheap steps, many of them |
+| RAM / adaptive MH | likelihood | as MH, tunes itself |
+| **NUTS** | likelihood **and gradient** | expensive steps, few of them |
+| Particle filter + PMMH | stochastic simulator | very expensive |
+| ABC | simulator only | expensive and approximate |
+
+::: {.fragment}
+Down the table needs **less** of you, so it works on harder models. Generality is
+never free.
+:::
+
+::: {.fragment}
+**Variational inference** sits outside this ordering: it needs everything NUTS
+needs, and trades accuracy for speed rather than assumptions for cost.
+:::
+
+## Do not pay for generality you do not need
+
+::: {.fragment}
+Fitting a deterministic model with ABC is not *wrong*.
+:::
+
+::: {.fragment}
+It is thousands of times slower than NUTS, and less accurate.
+:::
+
+::: {.fragment}
+Take the most [specific]{.alert} method your problem allows.
+:::
+
+# What actually goes wrong
+
+## It is almost never the sampler {.smaller}
+
+::: {.fragment}
+**The observation model** — Poisson on overdispersed data: overconfident
+posterior, one bad day dominates the fit.
+:::
+
+::: {.fragment}
+**The priors** — `Uniform(1, 20)` on $R_0$ says 19 is as plausible as 2.
+:::
+
+::: {.fragment}
+**Identifiability** — if two parameters trade off, the data cannot separate them
+and no sampler will. This is a property of model and data, not of the algorithm.
+:::
+
+::: {.fragment}
+**The model** — one that cannot produce your data will not be rescued by better
+inference.
+:::
+
+## Two things this map leaves out {.smaller}
+
+**States, not just parameters.** The posterior factorises as
+$$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
+Parameter fitting is the first factor. A particle filter also gives you the
+second: what the epidemic was actually doing.
+
+::: {.fragment}
+**Comparing models, not just fitting one.** SEITL against SEIT4L was a question no
+amount of sampling one model answers. Fit both, then compare — predictive
+performance, or the marginal likelihood if you can get at it.
+:::
+
+## The asymmetry worth remembering
+
+Sampler problems are [loud]{.alert}: R̂, divergences, ugly trace plots.
+
+::: {.fragment}
+Model problems are [silent]{.alert}. A converged chain from a bad model looks
+exactly like a converged chain from a good one.
+:::
+
+::: {.fragment}
+That is why model checking is a separate job from diagnostics.
+:::
+
+# Where you go next
+
+## Two directions {.smaller}
+
+**Scale** — many models, or one model across many regions.
+
+```julia
+sample(model, NUTS(), MCMCThreads(), 1000, 4)
+```
+
+That is the whole change needed to run four chains in parallel.
+
+::: {.fragment}
+**Structure** — real data arrives late, incomplete, and from several streams at
+once. Reporting delays, nowcasting, evidence synthesis.
+
+The model gets more elaborate. The inference machinery stays the same.
+:::
+
+::: {.fragment}
+Three optional sessions go further: [variational
+inference](../variational_inference.qmd), [universal differential
+equations](../universal_differential_equations.qmd), and [the wider Julia
+ecosystem](../julia_ecosystem.qmd).
+:::
+
+## Five problems {.smaller}
+
+Which method would you try first, and why will the ones above it not do?
+
+1. An SEIR model fitted to weekly case counts. Five parameters, deterministic.
+2. The same, but transmission is a random walk over 100 weeks.
+3. An individual-based household simulation, where the likelihood would need a
+   sum over every possible chain of infection.
+4. A deterministic model refitted every hour as new data arrive.
+5. A stochastic compartmental model, six parameters, small population, where
+   demographic noise genuinely matters.
+
+## Five problems, answered {.smaller}
+
+::: {.fragment}
+1. **NUTS.** Deterministic, few parameters, differentiable.
+:::
+::: {.fragment}
+2. **Still NUTS** — but the 100 increments are parameters too, so this is
+   105-dimensional and the AD backend becomes a real decision.
+:::
+::: {.fragment}
+3. **ABC**, or a synthetic likelihood. Easy to simulate, impossible to write down.
+:::
+::: {.fragment}
+4. **Variational inference**, if you can accept the bias. An answer that arrives
+   after the decision is worth nothing.
+:::
+::: {.fragment}
+5. **Particle MCMC.** Stochastic state, so the likelihood needs marginalising over
+   trajectories.
+:::
+
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
+
+Now take a model *you* actually want to fit.
+
+- Can you write down the likelihood? If not, what stops you?
+- Can you differentiate it?
+- Which row of the table does that leave you on?
+- What would you check first if the answer looked wrong?
+
+The last one usually changes people's plans.
+
