@@ -353,8 +353,8 @@ ESS tells you how many independent samples your correlated MCMC samples are equi
 ```{julia}
 ess_values = DataFrame(ess(chain_multi))
 # ESS is computed across every draw in every chain, so compare it against that
-# total. `length(chain_multi)` counts iterations per chain, which would make the
-# efficiency below read as more than 100%.
+# total. `length(chain_multi)` counts iterations in one chain, which would divide
+# by too small a number and overstate the efficiency by a factor of `n_chains`.
 n_samples = size(chain_multi, 1) * size(chain_multi, 3)
 ```
 
@@ -378,6 +378,8 @@ end
 ```
 
 An ESS close to N means little autocorrelation and efficient sampling. An ESS much smaller than N means the samples are highly correlated and you need to run longer. As a rule of thumb, ESS below 100 is generally not enough for reliable inference.
+
+An ESS slightly *above* N is possible rather than a bug: NUTS can produce draws that are mildly anti-correlated, which carry a little more information than independent ones.
 
 ## 3. Monte Carlo Standard Error (MCSE)
 
@@ -424,7 +426,7 @@ A small number of divergences (say <1% of samples) may be acceptable, but many d
 n_divergent = sum(skipmissing(vec(chain_good[:numerical_error])))
 println("Divergent transitions: $(Int(n_divergent)) / $(length(chain_good))")
 if n_divergent > 0
-    println("Consider raising the target acceptance rate, e.g. NUTS(1000, 0.95),")
+    println("Consider raising the target acceptance rate, e.g. NUTS(0.95),")
     println("or reparametrising the model")
 else
     println("No divergent transitions")
@@ -436,7 +438,8 @@ end
 - `chain[:numerical_error]` - the per-iteration divergence flag that NUTS records alongside the parameters, 1.0 for a divergent transition and 0.0 otherwise.
 Summing it counts the divergences.
 - Raising the target acceptance rate makes NUTS take smaller steps, which is usually what a handful of divergences calls for.
-It is the `δ` argument, `NUTS(n_adapts, δ)`, and plays the role that `adapt_delta` does in Stan.
+It is the `δ` argument: `NUTS(0.95)` keeps the default warmup length, and `NUTS(n_adapts, δ)` sets both.
+It plays the role that `adapt_delta` does in Stan.
 :::
 
 ## Problem 3: Multi-modal posteriors
@@ -609,6 +612,13 @@ end
 NUTS uses Hamiltonian dynamics.
 Energy plots help diagnose geometric problems:
 
+What to look for: a broad, roughly symmetric histogram is what a well-behaved
+sampler produces. A distribution with a long tail, or one much narrower than the
+spread of energy *changes* between iterations, indicates the sampler is not
+travelling far enough through the distribution in each trajectory, which is the
+geometry problem funnels produce. The formal version of this comparison is the
+E-BFMI statistic; the histogram is its eyeball equivalent.
+
 ```{julia}
 # Energy diagnostic plot. Like the divergence flag, the Hamiltonian energy is
 # recorded as a column of the chain.
@@ -625,7 +635,7 @@ histogram(
 |---------|----------|-----------|
 | **Poor mixing** | Trace plots show trends, low ESS | Use NUTS, tune proposals, longer runs |
 | **Multimodality** | High R̂, different chain means | Multiple chains, better initialisation |
-| **Divergences** | NUTS warnings, biased sampling | Raise the target acceptance rate `δ` in `NUTS(n_adapts, δ)`, reparametrise |
+| **Divergences** | NUTS warnings, biased sampling | Raise the target acceptance rate, e.g. `NUTS(0.95)`, reparametrise |
 | **Slow convergence** | High autocorrelation, low ESS | Better algorithm, longer runs, reparametrise |
 | **Non-stationarity** | Trending trace plots | Longer warmup, check model specification |
 
@@ -653,8 +663,9 @@ end
 
 ```{julia}
 #| output: false
-# This model will have problems
-chain_problematic = sample(problematic_model(), NUTS(), 1000)
+# This model will have problems. Run several chains, as the workflow above says
+# to: R̂ compares chains, so a single chain tells you much less.
+chain_problematic = sample(problematic_model(), NUTS(), MCMCThreads(), 1000, n_chains)
 ```
 
 ```{julia}
@@ -703,15 +714,21 @@ chain_fixed = sample(fixed_model(), NUTS(), 1000)
 plot(chain_fixed)
 ```
 
-Run both and compare. The instructive part is which diagnostic notices: R̂ sits at
-about 1.01 for the problematic model, comfortably inside the usual threshold,
-while its effective sample size is around 15 out of 1000 draws. Matching the prior
-scales leaves R̂ essentially unchanged and raises ESS by more than an order of
-magnitude.
+Run both and compare. Both diagnostics object, but not equally reliably, and the
+difference is the lesson.
 
-This is the case the earlier exercise warned about. A chain can pass R̂ while
-carrying almost no information, so a converged-looking chain with a low ESS is
-still a chain you should not report from.
+**ESS notices every time.** It collapses to the low tens across the whole chain,
+against something in the low thousands for the fixed model: a hundredfold
+difference that does not depend on the seed.
+
+**R̂ usually notices, but not always.** Across repeated runs of the problematic
+model it usually lands past the 1.1 threshold, sometimes as high as 1.7. On some
+seeds, though, it comes back around 1.01 while the effective sample size is still
+in single figures.
+
+So a passing R̂ is not on its own evidence that a chain is usable, and a single run
+of any diagnostic can mislead you. That is the argument for running several chains
+and reading more than one number, which is what the workflow above asks for.
 :::
 
 The general recipe:
