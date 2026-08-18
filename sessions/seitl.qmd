@@ -235,10 +235,13 @@ We suggest to start with the deterministic model and then move on to the stochas
 
 ## Deterministic simulations
 
-Let's define the SEITL model for deterministic simulation:
+Let's look at the SEITL model for deterministic simulation.
 
 These two functions live in [`src/seitl_model.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seitl_model.jl) and arrived with `using MFIIDD` above.
 They are shown from that source rather than repeated here, so the page and the code the later sessions run cannot drift apart.
+
+Both unpack their arguments positionally, so it is worth having the orderings to hand: the state vector `u` is `[S, E, I, T, L, Inc]`, where `Inc` accumulates cumulative incidence, and the parameter vector `p` is `[R_0, D_lat, D_inf, α, D_imm]`.
+The reporting rate `ρ` is not among them, because it belongs to the observation process rather than to the dynamics.
 
 ```{julia}
 #| echo: false
@@ -255,10 +258,10 @@ When unconditioned, use for prior predictive simulation.
 When conditioned with | (; obs = data), use for inference (in later sessions).
 """
 @model function seitl_model(times, init_state, n_obs)
-    # `times` starts one day before the first observation, so that
-    # `traj.Inc[i + 1]` is the incidence over the day the i-th observation counts.
-    # The first row of a trajectory has no preceding day and carries no incidence.
-    #
+    # `times` starts one day before the first observation, so `traj.Inc[i + 1]`
+    # is the incidence over the day the i-th observation counts
+    @assert length(times) >= n_obs + 1 "times must have one more point than there are observations"
+
     # Deliberately wide priors — we want the data to drive inference
     # rather than our prior beliefs. These ranges are generous enough
     # to include all plausible parameter values for influenza.
@@ -353,9 +356,7 @@ plot(
 ```
 
 Note that although the simulation of the trajectory is deterministic, the observation process is stochastic (Poisson with reporting rate $\rho$).
-You can generate multiple observation replicates:
-
-`generate_observations` comes from the package too:
+You can generate multiple observation replicates, using `generate_observations`, which comes from the package too:
 
 ```{julia}
 #| echo: false
@@ -470,6 +471,10 @@ Turing model for stochastic SEITL - enables both simulation and inference.
 This version uses the Gillespie algorithm for demographic stochasticity.
 """
 @model function seitl_stochastic_model(times, init_state, n_obs)
+    # `times` starts one day before the first observation, so `traj.Inc[i + 1]`
+    # is the incidence over the day the i-th observation counts
+    @assert length(times) >= n_obs + 1 "times must have one more point than there are observations"
+
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
     D_lat ~ Uniform(0.1, 10.0)
@@ -662,6 +667,10 @@ Turing model for SEIT4L - enables both simulation and inference.
 This version uses an Erlang-4 distribution for the T compartment.
 """
 @model function seit4l_model(times, init_state, n_obs)
+    # `times` starts one day before the first observation, so `traj.Inc[i + 1]`
+    # is the incidence over the day the i-th observation counts
+    @assert length(times) >= n_obs + 1 "times must have one more point than there are observations"
+
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
     D_lat ~ Uniform(0.1, 10.0)
@@ -787,11 +796,15 @@ Throughout this session, you've defined models using the `@model` macro with the
 end
 ```
 
-The `obs` variable is not a function argument — it's a random variable defined by the `~` statements. To supply observed data, use the `|` (condition) operator:
+The `obs` variable is not a function argument — it is a random variable defined by the `~` statements. To supply observed data, use the `|` (condition) operator:
 
 ```julia
+# `times` must start one day before the first observation, so that the trajectory
+# has an incidence for every observed day: `length(times) == length(data) + 1`
 model = my_model(times, init_state, length(data)) | (; obs = data)
 ```
+
+That extra leading time point is what lets the model compare each observation with the incidence over the day it counts, rather than with the day before it.
 
 This unified structure enables both:
 
