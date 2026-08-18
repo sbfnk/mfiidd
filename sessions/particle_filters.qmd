@@ -148,13 +148,19 @@ From here on, we use the **SEIT4L** model (Erlang-4 temporary immunity) rather t
 
 The particle filter needs to simulate many stochastic trajectories.
 We use the Gillespie algorithm introduced in the [SEITL session](seitl.qmd), adapted here for the SEIT4L model with its four T compartments.
-This is the implementation the filter below actually calls, shown from the package source rather than repeated by hand, so that the two cannot drift apart:
+The implementation below is shown from the package source rather than repeated by
+hand, so that the page and the code cannot drift apart. This is the function
+`SEIT4LDynamics` calls once per particle per day:
+
+::: {.callout-note collapse="true"}
+## Gillespie step implementation (click to expand)
 
 ```{julia}
 #| echo: false
 #| output: asis
-println("```julia\n", source_for("seit4l_gillespie.jl"), "\n```")
+println("```julia\n", source_for(gillespie_step), "\n```")
 ```
+:::
 
 Key aspects:
 
@@ -180,21 +186,21 @@ particles = [Float64[init_state[:S], init_state[:E], init_state[:I],
                      init_state[:T1], init_state[:T2], init_state[:T3],
                      init_state[:T4], init_state[:L]] for _ in 1:n_particles]
 
-# Store trajectories (days 0-5)
-trajectories = [zeros(6) for _ in 1:n_particles]
+# Store the daily incidence for days 1-5 of each particle
+trajectories = [zeros(5) for _ in 1:n_particles]
 
 # Simulate 5 days
 for day in 1:5
     for i in 1:n_particles
         particles[i], inc = gillespie_step(Random.default_rng(), particles[i], θ_example)
-        trajectories[i][day+1] = inc
+        trajectories[i][day] = inc
     end
 end
 
-# For weighting step later. The particles were stepped five times from day 0, so
-# `trajectories[i][6]` is each particle's incidence on day 5, and the observation
-# it should be weighted against is the one recorded on day 5.
-day_5_predictions = [trajectories[i][6] for i in 1:n_particles]
+# For weighting step later. The particles were stepped five times from the initial
+# state, so `trajectories[i][k]` is each particle's incidence on day k, and the
+# observation to weight against is the one recorded on day 5.
+day_5_predictions = [trajectories[i][5] for i in 1:n_particles]
 day_5_observed = flu_tdc.obs[5]
 
 # Plot
@@ -203,7 +209,7 @@ p = plot(title="Particle Filter: Propagation Step",
 
 # Particle trajectories
 for i in 1:n_particles
-    plot!(p, 0:5, trajectories[i], alpha=0.4, color=:steelblue, linewidth=1, label="")
+    plot!(p, 1:5, trajectories[i], alpha=0.4, color=:steelblue, linewidth=1, label="")
 end
 
 # Observations up to day 4 in grey, and the day 5 observation the particles are
