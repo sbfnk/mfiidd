@@ -648,9 +648,11 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 Compare the printed counts rather than taking any efficiency claim on trust, including this session's.
 
-The generations get *more* expensive, not less: the first is cheap because a loose threshold accepts almost anything, and each tightening costs more simulations per particle than the last. Per particle, this run of ABC-SMC is no cheaper than the rejection sampler was at its looser threshold. What it bought is the tighter threshold itself, which rejection sampling could only reach by rejecting far more.
+The generations get *more* expensive, not less: the first is cheap because a loose threshold accepts almost anything, and each tightening costs more simulations per particle than the last.
 
-Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally, and after that it collapses: in this run to single figures in generation 2, recovering only partially in generation 3. The exact numbers move from run to run, but the collapse does not.
+Whether the total beats rejection sampling depends on the schedule, and on a problem this small it is not a comfortable win. Compare the printed total against the rejection sampler's own count at its looser threshold before believing any speedup. What ABC-SMC reliably buys here is the tighter threshold itself, which rejection sampling could only reach by rejecting very much more.
+
+Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally. After that it drops sharply, often to a small fraction of the particle count, and how far varies a great deal between runs: repeat this with different seeds and generation 2 can land anywhere from single figures to about half the particles. What does not vary is the direction.
 
 That is weight degeneracy. A handful of particles carry most of the mass, so the histogram below is drawn from far fewer distinct parameter vectors than its 1000 draws suggest, and its apparent concentration is partly an artefact of duplication rather than evidence of a sharper posterior. Production implementations resample between generations and adapt the kernel width to control this; ours does neither, so read the final spread as indicative rather than as a posterior you would report.
 
