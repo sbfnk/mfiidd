@@ -51,15 +51,15 @@ The source file of this session is located at `sessions/mcmc.qmd`.
 ## Load libraries
 
 ```{julia}
-using Random # for random numbers
-using Distributions # for probability distributions
-using DifferentialEquations # for differential equations
-using DataFrames # for data frames
-using Plots # for plots
-using StatsPlots # for statistical plots
-using Turing # for probabilistic programming and MCMC
-using MCMCChains # for MCMC diagnostics
-using AdvancedMH # for adaptive MCMC samplers
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DifferentialEquations ## for differential equations
+using DataFrames ## for data frames
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using Turing ## for probabilistic programming and MCMC
+using MCMCChains ## for MCMC diagnostics
+using AdvancedMH ## for adaptive MCMC samplers
 ```
 
 ## Initialisation
