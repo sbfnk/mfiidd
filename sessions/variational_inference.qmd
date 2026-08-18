@@ -127,11 +127,19 @@ init_state = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
 # Turing model for inference
 
 ```{julia}
+# The priors, named once. The model draws from them and the transform below
+# inverts them, and naming them here keeps the two from disagreeing.
+const PRIORS = (
+    R_0 = Uniform(1.0, 20.0),
+    D_inf = Uniform(1.0, 10.0),
+    ρ = Uniform(0.1, 1.0),
+)
+
 @model function sir_model(times, init_state, n_obs)
     # Priors
-    R_0 ~ Uniform(1.0, 20.0)
-    D_inf ~ Uniform(1.0, 10.0)
-    ρ ~ Uniform(0.1, 1.0)
+    R_0 ~ PRIORS.R_0
+    D_inf ~ PRIORS.D_inf
+    ρ ~ PRIORS.ρ
 
     # Simulate
     θ = Dict(:R_0 => R_0, :D_inf => D_inf)
@@ -180,7 +188,7 @@ plot(chain_mcmc[[:R_0, :D_inf, :ρ]], size=(900, 600))
 summarystats(chain_mcmc)
 ```
 
-Note the time: MCMC takes several minutes (varies by hardware).
+Note the time printed above, and compare it with the variational runs below rather than with any particular number quoted here: it depends on the machine, and on this model it is tens of seconds rather than the hours a larger model would take.
 
 # Approach 1: Mean-Field Variational Inference
 
@@ -262,17 +270,39 @@ The ELBO should increase (become less negative) and eventually plateau. If the c
 
 Much faster! But is it accurate?
 
-```{julia}
-# Sample from variational approximation
-samples_vi_mf = rand(q_mf, 10_000)
+Before any of that can be compared with MCMC, the draws have to be put back on
+the scale of the parameters.
 
-# Convert to DataFrame for comparison
-# Note: samples are in unconstrained space, need to transform back
-vi_mf_df = DataFrame(
-    R_0 = samples_vi_mf[1, :],
-    D_inf = samples_vi_mf[2, :],
-    ρ = samples_vi_mf[3, :]
-)
+```{julia}
+# `vi` optimises in the unconstrained space Turing transforms the model into, so
+# `rand(q, n)` returns numbers on that scale: an R_0 of -3 rather than of 5. Each
+# parameter goes back through the inverse of the bijector belonging to its prior.
+const Bijectors = Turing.Bijectors
+
+"Map draws from a variational approximation back to the parameter scale."
+function to_constrained(samples)
+    columns = map(enumerate(keys(PRIORS))) do (i, name)
+        back = Bijectors.inverse(Bijectors.bijector(PRIORS[name]))
+        name => [back(samples[i, j]) for j in axes(samples, 2)]
+    end
+    return DataFrame(columns)
+end
+```
+
+::: {.callout-warning}
+## Variational draws are not on the parameter scale
+
+Forgetting this step is quiet rather than loud. `rand(q, n)` returns a perfectly
+ordinary matrix of numbers, and nothing complains if you label its rows `R_0`,
+`D_inf` and `ρ` and plot them against an MCMC posterior. The result is a
+comparison between the real posterior and a set of numbers that are not the
+parameters at all, with an `R_0` around -3 for a quantity that cannot go below 1.
+:::
+
+```{julia}
+# Sample from variational approximation and put the draws on the parameter scale
+samples_vi_mf = rand(q_mf, 10_000)
+vi_mf_df = to_constrained(samples_vi_mf)
 
 # Plot comparison
 p1 = histogram(vec(chain_mcmc[:R_0]), bins=30, alpha=0.5, normalize=:pdf,
@@ -291,7 +321,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often **negatively correlated** in the posterior!
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are strongly **correlated** in the posterior, and here that correlation is positive.
 
 Why does this correlation arise? Consider the SIR model dynamics:
 
@@ -300,6 +330,8 @@ Why does this correlation arise? Consider the SIR model dynamics:
 - Conversely, a shorter infectious period requires a higher $R_0$ to produce the same transmission rate
 
 In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space - exactly the kind of correlation mean-field VI cannot capture.
+
+The sign follows from that argument. Holding $\beta = R_0 / D_{\text{inf}}$ roughly fixed, a larger $R_0$ has to be paid for with a larger $D_{\text{inf}}$, so the two move together and the correlation comes out positive. The cell below measures it rather than asserting it, which is worth doing whenever you are about to claim a direction.
 
 ```{julia}
 # Check correlation in MCMC samples
@@ -351,21 +383,16 @@ println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 :::
 
 ```{julia}
-# Sample from full-rank approximation
+# Sample from full-rank approximation, on the parameter scale again
 samples_vi_full = rand(q_full, 10_000)
-
-vi_full_df = DataFrame(
-    R_0 = samples_vi_full[1, :],
-    D_inf = samples_vi_full[2, :],
-    ρ = samples_vi_full[3, :]
-)
+vi_full_df = to_constrained(samples_vi_full)
 
 # Check correlation - should now be closer to MCMC
 println("VI full-rank correlation (R_0, D_inf): ",
         round(cor(vi_full_df.R_0, vi_full_df.D_inf), digits=3))
 ```
 
-We can see that the full-rank approximation now captures the negative correlation between $R_0$ and $D_{\text{inf}}$, giving a much better approximation to the true posterior.
+The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction. That is the whole of the difference between the two families on this model.
 
 ```{julia}
 #| code-fold: true
@@ -433,7 +460,9 @@ println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
 println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
 ```
 
-The speedup becomes even more dramatic with larger models or more samples.
+Note how modest the speedup is here: a few fold, on a model with three parameters that MCMC handles comfortably in seconds.
+Variational inference earns its keep on problems where MCMC takes hours, or where the same model has to be refitted to hundreds of datasets, and this example is neither.
+Comparing the two on a small model is the right way to check that VI is telling the truth, and the wrong way to decide whether you need it.
 
 ## Trade-offs summary
 
