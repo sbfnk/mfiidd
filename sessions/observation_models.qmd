@@ -230,9 +230,20 @@ whether that is plausible for the Tristan da Cunha data.
 What do you find, and what would it imply for the parameter estimates?
 :::
 
+```{julia}
+# Residual variance against mean prediction, under the Poisson fit
+θ_fit = Dict(:R_0 => mean(chain_poisson[:R_0]), :D_inf => mean(chain_poisson[:D_inf]))
+pred_fit = mean(chain_poisson[:ρ]) .* simulate_sir(θ_fit, init_test, times).Inc
+resid_fit = flu_tdc.obs .- pred_fit
+
+println("mean prediction:    ", round(mean(pred_fit), digits = 2))
+println("residual variance:  ", round(var(resid_fit), digits = 1))
+println("ratio:              ", round(var(resid_fit) / mean(pred_fit), digits = 1),
+        "  (Poisson demands 1)")
+```
+
 ::: {.callout-tip title="Solution" collapse="true"}
-The residual variance comes out around 80 against a mean prediction of around
-3, a ratio of roughly 25 where Poisson demands 1. The data are wildly
+The ratio printed above is around 25, where Poisson demands 1. The data are wildly
 *overdispersed* relative to Poisson.
 
 Two things produce that, and it is worth keeping them apart. Some of it is
@@ -278,17 +289,21 @@ Then fit it below and check.
    because the model was forbidden from admitting the data were noisy.
 
 2. **The mean moves too, and that is the surprise.** $R_0$ goes from about 1.8
-   to about 2.6, which is around seven Poisson standard deviations. So the two
-   models do not merely disagree about the uncertainty, they disagree about the
-   answer. That is the signature the hedge in most textbook treatments warns
-   about: a few extreme days were dragging the Poisson fit, and the Poisson
-   posterior was confidently in the wrong place.
+   to about 2.6, several Poisson standard deviations apart. The two models do not
+   merely disagree about the uncertainty, they disagree about the answer.
 
-   Look at $\rho$ in the same table. The Poisson fit pushes it to about 0.99,
-   against the upper bound of its `Uniform(0.1, 1.0)` prior. A parameter pinned
-   to the edge of its prior is a model straining against a constraint, and here
-   it is straining because reporting everybody is the only way a Poisson model can
-   explain days with many more cases than it predicts.
+   The reason is not a handful of extreme days. The fitted Poisson trajectory
+   accounts for about 192 of the 312 reported cases, so it is falling short across
+   the whole second half of the outbreak rather than being dragged by outliers.
+   Under a Poisson likelihood the only way to buy any of those missing cases is to
+   move the trajectory parameters, so they move. The negative binomial can call the
+   shortfall noise instead, and leaves them where the first wave puts them.
+
+   Look at $\rho$ in the comparison table below. The Poisson fit pushes it to about
+   0.99, against the upper bound of its `Uniform(0.1, 1.0)` prior. A parameter
+   pinned to the edge of its prior is a model straining against a constraint, and
+   here it is straining for the same reason: reporting everybody is the only other
+   way to make the totals add up.
 
 3. **Large $\phi$** is the right answer to the question as asked, because
    variance is $\mu + \mu^2/\phi$ and the second term vanishes as
@@ -362,6 +377,17 @@ comparison = DataFrame(
 comparison.sd_ratio = round.(comparison.negbin_sd ./ comparison.poisson_sd, digits = 1)
 comparison
 ```
+
+::: {.callout-warning}
+## Check the chain before trusting the comparison
+
+Both fits here are 500 NUTS draws, which is enough to see the difference in
+question but not enough to report. The negative binomial chain in particular comes
+back with a tail effective sample size in the tens for $\rho$, so treat the third
+decimal of anything above as noise. The [diagnostics session](mcmc_diagnostics.qmd)
+is the reason you should have looked at `summarystats` before reading the table,
+rather than after.
+:::
 
 ```{julia}
 # What did the data say about the overdispersion parameter?
