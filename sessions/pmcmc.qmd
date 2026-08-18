@@ -256,6 +256,8 @@ Look carefully at the trace plots above. You should see:
 
 With only 500 samples, the chain hasn't had time to properly explore the posterior.
 
+Two details of the figure are worth reading. The iteration axis starts at 500 because the 500 warmup iterations are discarded, so what you are looking at is the chain *after* RAM has had a go at adapting. And it is still stuck: adaptation needs far more than 500 iterations to find a proposal that suits this posterior, so those flat stretches are not simply a badly chosen step size that a little tuning would cure.
+
 ::: {.callout-tip title="Exercise: Run your own short PMMH chain"}
 Try running a short PMMH chain yourself:
 
