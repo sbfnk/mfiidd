@@ -231,15 +231,23 @@ What do you find, and what would it imply for the parameter estimates?
 :::
 
 ::: {.callout-tip title="Solution" collapse="true"}
-The residual variance comes out substantially larger than the mean prediction:
-the data are *overdispersed* relative to Poisson. Two islanders infected in the
-same household are not independent draws, and reporting was not uniform across
-the outbreak.
+The residual variance comes out around 80 against a mean prediction of around
+3, a ratio of roughly 25 where Poisson demands 1. The data are wildly
+*overdispersed* relative to Poisson.
 
-The consequence is that a Poisson likelihood treats every unusual day as strong
-evidence against the trajectory, so the posterior is too narrow and is pulled
-towards parameters that accommodate the noisiest observations. This is what the
-negative binomial in the next section fixes.
+Two things produce that, and it is worth keeping them apart. Some of it is
+genuine observation noise: two islanders infected in the same household are not
+independent draws, and reporting was not uniform across the outbreak. Most of it
+here is something else, namely that a single-wave SIR fitted to a two-wave
+outbreak is wrong about the mean, and everything it gets wrong about the mean
+lands in the residuals.
+
+Either way the consequence for the Poisson fit is the same. It treats every
+unusual day as strong evidence against the trajectory, so the posterior is too
+narrow and is pulled towards parameters that accommodate the noisiest
+observations. The negative binomial in the next section loosens that grip, but
+notice that it does so by explaining the misfit as noise rather than by fixing the
+model.
 :::
 
 Reasons the assumption might fail for epidemic data:
@@ -262,21 +270,37 @@ Then fit it below and check.
 :::
 
 ::: {.callout-tip title="Solution" collapse="true"}
-1. **Wider.** The negative binomial can explain a surprising day as observation
-   noise, so the trajectory parameters no longer have to bend to accommodate it.
-   Loosening the observation model always transfers uncertainty back to the
+1. **Wider**, and by a lot. The negative binomial can explain a surprising day
+   as observation noise, so the trajectory parameters no longer have to bend to
+   accommodate it. Here the posterior standard deviation for $R_0$ grows roughly
+   fourfold. Loosening the observation model transfers uncertainty back to the
    parameters, which is the honest direction: the Poisson intervals were narrow
    because the model was forbidden from admitting the data were noisy.
 
-2. **Not much, usually.** The mean is driven by the overall shape of the
-   epidemic, which both models see the same way. It is the *spread* that changes.
-   If the mean does shift noticeably, that tells you a few extreme observations
-   were dragging the Poisson fit, which is worth knowing.
+2. **The mean moves too, and that is the surprise.** $R_0$ goes from about 1.8
+   to about 2.6, which is around seven Poisson standard deviations. So the two
+   models do not merely disagree about the uncertainty, they disagree about the
+   answer. That is the signature the hedge in most textbook treatments warns
+   about: a few extreme days were dragging the Poisson fit, and the Poisson
+   posterior was confidently in the wrong place.
 
-3. **Large $\phi$.** Variance is $\mu + \mu^2/\phi$, so as $\phi \to \infty$
-   the second term vanishes and you recover Poisson. A posterior for $\phi$ piled
-   up against the large end is the model telling you the extra flexibility was not
-   needed. A small $\phi$ says it was.
+   Look at $\rho$ in the same table. The Poisson fit pushes it to about 0.99,
+   against the upper bound of its `Uniform(0.1, 1.0)` prior. A parameter pinned
+   to the edge of its prior is a model straining against a constraint, and here
+   it is straining because reporting everybody is the only way a Poisson model can
+   explain days with many more cases than it predicts.
+
+3. **Large $\phi$** is the right answer to the question as asked, because
+   variance is $\mu + \mu^2/\phi$ and the second term vanishes as
+   $\phi \to \infty$. What the data actually say is the opposite: the posterior
+   for $\phi$ sits near 0.5, so the variance is roughly $\mu + 2\mu^2$ and the
+   extra flexibility was very much needed.
+
+   Note that a small $\phi$ is not proof of messy reporting. A single-wave SIR
+   cannot reproduce a two-wave outbreak, and the negative binomial is absorbing
+   that structural failure as though it were noise. An observation model will
+   always volunteer to explain a misspecified mean, which is why the
+   [model checking](model_checking.qmd) session comes first.
 :::
 
 # Approach 2: Negative Binomial Likelihood (Pragmatic)
@@ -317,6 +341,35 @@ end
 ## Code explainer
 - [`NegativeBinomial(r, p)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.NegativeBinomial) - Julia's parameterisation uses `r` (number of successes) and `p` (success probability). To get mean `μ` with overdispersion `φ`, use `r=φ` and `p=φ/(φ+μ)`. This gives variance = `μ + μ²/φ`, so larger `φ` approaches Poisson, smaller `φ` gives more overdispersion.
 :::
+
+Now fit it, so that the predictions you just committed to can be checked.
+
+```{julia}
+model_negbin = sir_negbin(times, init_test, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
+chain_negbin = sample(model_negbin, NUTS(0.65), 500, progress=false)
+summarystats(chain_negbin)
+```
+
+```{julia}
+# Compare the two observation models on the parameter they disagree about most
+comparison = DataFrame(
+    parameter = ["R_0", "D_inf", "ρ"],
+    poisson_mean = [mean(chain_poisson[p]) for p in (:R_0, :D_inf, :ρ)],
+    poisson_sd = [std(chain_poisson[p]) for p in (:R_0, :D_inf, :ρ)],
+    negbin_mean = [mean(chain_negbin[p]) for p in (:R_0, :D_inf, :ρ)],
+    negbin_sd = [std(chain_negbin[p]) for p in (:R_0, :D_inf, :ρ)],
+)
+comparison.sd_ratio = round.(comparison.negbin_sd ./ comparison.poisson_sd, digits = 1)
+comparison
+```
+
+```{julia}
+# What did the data say about the overdispersion parameter?
+φ_post = vec(chain_negbin[:φ])
+println("φ posterior: median $(round(median(φ_post), digits = 2)), ",
+        "95% interval [$(round(quantile(φ_post, 0.025), digits = 2)), ",
+        "$(round(quantile(φ_post, 0.975), digits = 2))]")
+```
 
 **Honest question**: Why Negative Binomial?
 
