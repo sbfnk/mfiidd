@@ -105,9 +105,9 @@ epi1 = DataFrame(
 
 # Define our SIR model in Turing.jl (same as MCMC session)
 @model function sir_model(init_state, times, n_obs)
-    # Priors
-    R_0 ~ Uniform(1.0, 20.0)
-    D_inf ~ Uniform(1.0, 14.0)
+    # Weakly informative priors
+    R_0 ~ truncated(Normal(2.5, 1.5), lower=1.0)
+    D_inf ~ truncated(Normal(5.0, 3.0), lower=0.5)
 
     # Simulate ODE
     prob = ODEProblem(sir_ode!, init_state, (times[1], times[end]), [R_0, D_inf])
@@ -225,7 +225,8 @@ plot(p1, p2, layout = (2, 1), size = (800, 600))
 ```
 
 We can see that autocorrelation drops quickly to near zero and both parameters show good mixing.
-After ~20-30 MCMC steps, samples are essentially independent
+Read the lag at which the curve first stays inside the dashed band: beyond it, samples that far apart carry almost no shared information.
+The exact lag varies from run to run, which is why the effective sample size below is the number to quote rather than a lag read off a plot.
 
 ::: {.callout-tip title="Exercise: Interpret the visual diagnostics"}
 Look back at the trace plots, running mean plots, and autocorrelation plots above.
@@ -266,7 +267,10 @@ Modern samplers like NUTS have automatic warmup periods where they adapt the ste
 In our earlier example, when we ran `sample(model, NUTS(), 2000)`, Turing actually ran ~3000 iterations total: 1000 warmup iterations (automatically discarded) plus 2000 sampling iterations.
 The returned chain contains only the 2000 post-warmup samples.
 
-By default, NUTS uses 1000 warmup iterations regardless of how many sampling iterations you request. You can change this with the `n_adapts` keyword: `NUTS(0.65; n_adapts=2000)` uses 2000 warmup iterations instead. For most models, the default 1000 is sufficient.
+By default, NUTS adapts for `min(1000, N ÷ 2)` iterations, where `N` is the number of samples you ask for.
+Asking for 2000 samples therefore gives the 1000 warmup iterations above, while asking for 500 gives 250.
+The number of warmup iterations is the first argument to `NUTS`, so `NUTS(2000, 0.65)` adapts for 2000 iterations at a target acceptance rate of 0.65.
+For most models the default is sufficient.
 
 With NUTS, you typically don't need to manually discard burn-in samples.
 The warmup is automatic and adaptive.
@@ -348,7 +352,10 @@ ESS tells you how many independent samples your correlated MCMC samples are equi
 
 ```{julia}
 ess_values = DataFrame(ess(chain_multi))
-n_samples = length(chain_multi)
+# ESS is computed across every draw in every chain, so compare it against that
+# total. `length(chain_multi)` counts iterations per chain, which would make the
+# efficiency below read as more than 100%.
+n_samples = size(chain_multi, 1) * size(chain_multi, 3)
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -412,17 +419,25 @@ NUTS simulates a ball rolling over the posterior surface. A *divergent transitio
 A small number of divergences (say <1% of samples) may be acceptable, but many divergences indicate biased sampling — the sampler is systematically avoiding regions it can't navigate, so the samples underrepresent those areas.
 
 ```{julia}
-# Check for divergent transitions
-if haskey(chain_good.info, :divergent_transitions)
-    n_divergent = sum(chain_good.info[:divergent_transitions])
-    println("Divergent transitions: $n_divergent / $(length(chain_good))")
-    if n_divergent > 0
-        println("Consider increasing adapt_delta or reparameterizing")
-    else
-        println("No divergent transitions")
-    end
+# Check for divergent transitions. NUTS records one per iteration in the
+# `numerical_error` column of the chain.
+n_divergent = sum(skipmissing(vec(chain_good[:numerical_error])))
+println("Divergent transitions: $(Int(n_divergent)) / $(length(chain_good))")
+if n_divergent > 0
+    println("Consider raising the target acceptance rate, e.g. NUTS(1000, 0.95),")
+    println("or reparametrising the model")
+else
+    println("No divergent transitions")
 end
 ```
+
+::: {.callout-tip collapse="true"}
+## Code explainer
+- `chain[:numerical_error]` - the per-iteration divergence flag that NUTS records alongside the parameters, 1.0 for a divergent transition and 0.0 otherwise.
+Summing it counts the divergences.
+- Raising the target acceptance rate makes NUTS take smaller steps, which is usually what a handful of divergences calls for.
+It is the `δ` argument, `NUTS(n_adapts, δ)`, and plays the role that `adapt_delta` does in Stan.
+:::
 
 ## Problem 3: Multi-modal posteriors
 
@@ -441,10 +456,13 @@ Here's an artificial example with two modes to show how multiple chains help:
 @model function multimodal_example()
     x ~ Normal(0, 5)  # Wide prior
 
-    # Likelihood with two modes
+    # Likelihood with two modes. Subtracting the larger log-density before
+    # exponentiating keeps the mixture stable when both components are tiny.
     mode1_loglik = logpdf(Normal(-2, 0.5), x)
     mode2_loglik = logpdf(Normal(2, 0.5), x)
-    Turing.@addlogprob! log(0.5 * exp(mode1_loglik) + 0.5 * exp(mode2_loglik))
+    largest = max(mode1_loglik, mode2_loglik)
+    Turing.@addlogprob! largest +
+        log(0.5 * exp(mode1_loglik - largest) + 0.5 * exp(mode2_loglik - largest))
 end
 ```
 
@@ -471,7 +489,14 @@ end
 plot!(p)
 ```
 
-Different chains find different modes, which would show up as high R̂ values.
+```{julia}
+# Combine the separate chains into one object so R̂ can compare them
+combined = chainscat(chains_multi...)
+DataFrame(rhat(combined))
+```
+
+Chains that settle in different modes disagree about the mean, and R̂ is the
+statistic that notices.
 
 :::
 
@@ -585,11 +610,13 @@ NUTS uses Hamiltonian dynamics.
 Energy plots help diagnose geometric problems:
 
 ```{julia}
-# Energy diagnostic plot
-if haskey(chain_good.info, :energy)
-    energy = chain_good.info[:energy]
-    histogram(energy, title = "Energy Distribution", xlabel = "Energy", ylabel = "Frequency", alpha = 0.7)
-end
+# Energy diagnostic plot. Like the divergence flag, the Hamiltonian energy is
+# recorded as a column of the chain.
+energy = vec(chain_good[:hamiltonian_energy])
+histogram(
+    energy, title = "Energy Distribution", xlabel = "Energy",
+    ylabel = "Frequency", alpha = 0.7, label = ""
+)
 ```
 
 # Troubleshooting guide
@@ -598,7 +625,7 @@ end
 |---------|----------|-----------|
 | **Poor mixing** | Trace plots show trends, low ESS | Use NUTS, tune proposals, longer runs |
 | **Multimodality** | High R̂, different chain means | Multiple chains, better initialisation |
-| **Divergences** | NUTS warnings, biased sampling | Increase `adapt_delta`, reparametrise |
+| **Divergences** | NUTS warnings, biased sampling | Raise the target acceptance rate `δ` in `NUTS(n_adapts, δ)`, reparametrise |
 | **Slow convergence** | High autocorrelation, low ESS | Better algorithm, longer runs, reparametrise |
 | **Non-stationarity** | Trending trace plots | Longer warmup, check model specification |
 
@@ -676,7 +703,15 @@ chain_fixed = sample(fixed_model(), NUTS(), 1000)
 plot(chain_fixed)
 ```
 
-After fixing the scales, R̂ should be much closer to 1.0 and ESS should increase substantially.
+Run both and compare. The instructive part is which diagnostic notices: R̂ sits at
+about 1.01 for the problematic model, comfortably inside the usual threshold,
+while its effective sample size is around 15 out of 1000 draws. Matching the prior
+scales leaves R̂ essentially unchanged and raises ESS by more than an order of
+magnitude.
+
+This is the case the earlier exercise warned about. A chain can pass R̂ while
+carrying almost no information, so a converged-looking chain with a low ESS is
+still a chain you should not report from.
 :::
 
 The general recipe:
