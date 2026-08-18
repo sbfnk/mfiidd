@@ -49,13 +49,13 @@ The source file of this session is located at `sessions/introduction.qmd`.
 ## Load libraries
 
 ```{julia}
-using Random ## for random numbers
-using Distributions ## for probability distributions
-using DifferentialEquations ## for differential equations
-using DataFrames ## for data frames
-using CSV ## for CSV file reading
-using Plots ## for plots
-using StatsPlots ## for statistical plots
+using Random # for random numbers
+using Distributions # for probability distributions
+using DifferentialEquations # for differential equations
+using DataFrames # for data frames
+using CSV # for CSV file reading
+using Plots # for plots
+using StatsPlots # for statistical plots
 using DrWatson
 ```
 
@@ -151,9 +151,9 @@ init_state = [999, 1, 0]
 ## define start and end times
 t0, tend = (0, 30)
 ## define parameters: R_0 = 2.5, D_inf = 2
-p = [2.5, 2]
+params = [2.5, 2]
 # Define ODE problem
-prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), params)
  # Solve ODE
 sol = solve(prob, saveat = 1)
 ```
@@ -168,17 +168,17 @@ This creates an 1-dimensional [Array](https://docs.julialang.org/en/v1/manual/ar
 The output tells us that the elements of the vector are of type `Int64`, i.e. integer-valued numbers.
 
 ```julia
-t0, tend = (t0, tend)
+t0, tend = (0, 30)
 ```
 This assigns values to the variables `t0` (0) and `tend` (30).
 It is just a shorter version of writing
 ```julia
 t0 = 0
-tend = 40
+tend = 30
 ```
 
 ```julia
-prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), params)
 ```
 
 This defines our ODE system. 
@@ -188,7 +188,7 @@ The third argument defines that start and end time of the simulation, here given
 A tuple is similar to an array (defined with brackets as we did above in defining `init_state`) but more flexible in allowing different data types, as in e.g. lists in R.
 Here we could also have used a vector `[t0, tend]`.
 Either will be correctly interpreted by `ODEProblem()`.
-The fourth argument gives the parameters of the model `p` as a vector.
+The fourth argument gives the parameters of the model `params` as a vector.
 
 ```julia
 sol = solve(prob, saveat = 1)
@@ -387,9 +387,14 @@ epidemics that could not happen.
 What if we had different beliefs? Here are more informative (narrower) priors:
 
 ```{julia}
-# More informative priors based on epidemiological knowledge
-R_0_informed = truncated(Normal(2.5, 0.8), lower = 0.0)  # Most respiratory diseases have R_0 around 2-3
-D_inf_informed = Gamma(2, 1)                             # Infectious period likely 1-4 days for common infections
+# More informative priors based on epidemiological knowledge.
+# R_0 is centred on 2.5, where most respiratory infections sit, and truncated to
+# keep it positive. Note that 3% of this prior still sits below 1, i.e. on
+# parameter values that produce no epidemic at all.
+R_0_informed = truncated(Normal(2.5, 0.8), lower = 0.0)
+# The infectious period has mean 2 days, with 95% of the mass between 0.24 and
+# 5.6 days and about two thirds of it between 1 and 4.
+D_inf_informed = Gamma(2, 1)
 
 # Sample and visualise
 R_0_informed_samples = rand(R_0_informed, 1000)
@@ -519,8 +524,8 @@ test_params = [
 ]
 
 # Calculate prior densities for both flat and informed priors
-log_priors_flat = []
-log_priors_informed = []
+log_priors_flat = Float64[]
+log_priors_informed = Float64[]
 
 println("Flat vs Informed prior log-densities:")
 for theta in test_params
@@ -609,7 +614,7 @@ With that in mind, we explore the likelihood by trying the parameter combination
 
 ```{julia}
 # Calculate and store likelihood values for our test parameters
-log_likelihoods = []
+log_likelihoods = Float64[]
 
 # Generate plot
 p = plot(title = "Model Fit Comparison", xlabel = "Time", ylabel = "Cases")
@@ -626,12 +631,13 @@ for theta in test_params
     )
     sol = solve(prob, saveat = epi1.time)
 
-    # I compartment is second compartment
-    I = sol[2, :]
+    # I compartment is second compartment. max(..., 0.0) guards against tiny
+    # negative values that the ODE solver can return as the epidemic dies out
+    I = max.(sol[2, :], 0.0)
     # assuming Poisson log-likelihood at each time point
-    loglik = [ Poisson(It) for It in I ]
+    obs_dists = [Poisson(It) for It in I]
     # calculate total loglikelihood as sum of log likelihoods at each time point
-    total_loglik = sum(logpdf.(loglik, epi1.obs))
+    total_loglik = sum(logpdf.(obs_dists, epi1.obs))
     # store in vector
     push!(log_likelihoods, total_loglik)
 
@@ -655,9 +661,9 @@ plot!(p)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - `sol[2, :]` - extracts the second row (the I compartment) from the ODE solution matrix. The `:` means "all columns" (all time points).
-- `[ Poisson(It) for It in I ]` - an [array comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) that creates a Poisson distribution for each expected value `It` in the vector `I`. If you know R, this is like `lapply(I, function(It) ...)`  or `purrr::map(I, ~ ...)` — it applies an operation to each element and collects the results.
+- `[Poisson(It) for It in I]` - an [array comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) that creates a Poisson distribution for each expected value `It` in the vector `I`. If you know R, this is like `lapply(I, function(It) ...)`  or `purrr::map(I, ~ ...)` — it applies an operation to each element and collects the results.
 - [`Poisson(λ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Poisson) - creates a Poisson distribution with rate parameter `λ`. Used here as our observation model.
-- `logpdf.(loglik, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
+- `logpdf.(obs_dists, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
 :::
 
 ::: {.callout-note collapse="true"}
@@ -695,7 +701,7 @@ all. $R_0 = 4.0$ produces one that is too fast and too large, peaking well befor
 the data do.
 
 Changing $D_\mathrm{inf}$ at fixed $R_0$ changes the *timescale* rather than the
-final size, because $\beta = R_0 / D_\mathrm{inf}$ and $\gamma = 1 / D_\mathrm{inf}$
+final size, because $\beta = R_0 / D_\mathrm{inf}$ and $\nu = 1 / D_\mathrm{inf}$
 move together. A shorter infectious period gives a faster, sharper epidemic; a
 longer one gives a slower, broader epidemic reaching a similar total.
 
@@ -756,7 +762,8 @@ function simulate_and_loglik(R_0, D_inf, data; init_state = [999, 1, 0], tspan =
     # Simulate ODE
     prob = ODEProblem(sir_ode!, init_state, tspan, [R_0, D_inf])
     sol = solve(prob, saveat = data.time)
-    I = sol[2, :]
+    # max(..., 0.0) guards against tiny negative values from the ODE solver
+    I = max.(sol[2, :], 0.0)
 
     # Calculate Poisson log-likelihood
     loglik = sum(logpdf.(Poisson.(I), data.obs))
@@ -864,7 +871,7 @@ D_inf_values = 1.0:0.2:3.0
 # Store results
 best_log_posterior = -Inf
 best_params = nothing
-results = []
+results = @NamedTuple{R_0::Float64, D_inf::Float64, log_posterior::Float64}[]
 
 for R_0 in R_0_values
     for D_inf in D_inf_values
@@ -891,8 +898,9 @@ println("Best log-posterior: $(round(best_log_posterior, digits = 1))")
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- `1.5:0.2:4.0` - creates a range from 1.5 to 4.0 in steps of 0.2. This gives us 14 values for R_0.
-- The nested `for` loops try every combination of R_0 and D_inf values - that's 14 × 11 = 154 combinations.
+- `1.5:0.2:4.0` - creates a range starting at 1.5 in steps of 0.2, stopping before it passes 4.0.
+That gives 13 values for R_0, the last of which is 3.9.
+- The nested `for` loops try every combination of R_0 and D_inf values, which is 13 × 11 = 143 combinations.
 - For each combination, we calculate the log-posterior (prior + likelihood) and track the best one found so far.
 :::
 
@@ -966,27 +974,83 @@ The blue lines show variation from observation noise only - the underlying traje
 
 But we don't know the true parameters - we have a distribution of plausible values. What happens when we also vary the parameters?
 
+First, a check on the grid itself.
+The posterior probability of a grid point is proportional to $\exp$ of its log-posterior, normalised over the grid, so we can ask how many points carry the bulk of the mass.
+
 ```{julia}
-# Find parameter combinations in the top 10% of posterior density
-threshold = quantile([r.log_posterior for r in results], 0.9)
-good_results = filter(r -> r.log_posterior > threshold, results)
-println("$(length(good_results)) parameter combinations in top 10% of posterior")
+# Subtracting the maximum first leaves the normalised weights unchanged and stops
+# exp of a large negative number underflowing to zero
+log_posts = [r.log_posterior for r in results]
+post_weights = exp.(log_posts .- maximum(log_posts))
+post_weights ./= sum(post_weights)
 
-# Plot trajectories from different "good" parameter values
-p = plot(title = "Parameter + Observation Uncertainty", xlabel = "Time", ylabel = "Cases")
+n_95 = count(cumsum(sort(post_weights, rev = true)) .< 0.95) + 1
+println("$(n_95) of $(length(post_weights)) grid points carry 95% of the posterior mass")
+```
 
-for r in good_results[1:min(15, end)]
-    result = simulate_and_loglik(r.R_0, r.D_inf, epi1)
-    pred_data = rand.(Poisson.(result.I))  # Add observation noise too
-    plot!(p, epi1.time, pred_data, alpha = 0.3, color = :blue, label = "")
+One point out of 143 holds essentially all of it.
+The grid steps in units of 0.2 while the posterior is only about 0.03 wide, so the grid is roughly six posterior standard deviations coarse and cannot resolve the distribution at all.
+Everything the grid can tell us is "the answer is near 2.3", which is why the surface above looks like a single bright cell.
+
+To see the parameter uncertainty we have to refine the grid around the mode.
+
+```{julia}
+# Refine around the mode found above
+R_0_fine = 2.0:0.01:2.6
+D_inf_fine = 1.7:0.01:2.3
+
+fine_results = @NamedTuple{R_0::Float64, D_inf::Float64, log_posterior::Float64}[]
+for R_0 in R_0_fine, D_inf in D_inf_fine
+    log_prior = logpdf(Uniform(1, 20), R_0) + logpdf(Uniform(1, 14), D_inf)
+    result = simulate_and_loglik(R_0, D_inf, epi1)
+    push!(
+        fine_results,
+        (R_0 = R_0, D_inf = D_inf, log_posterior = log_prior + result.loglik)
+    )
 end
 
-scatter!(p, epi1.time, epi1.obs, label = "Observed", markersize = 4, color = :black)
+fine_log_posts = [r.log_posterior for r in fine_results]
+fine_weights = exp.(fine_log_posts .- maximum(fine_log_posts))
+fine_weights ./= sum(fine_weights)
+
+fine_n_95 = count(cumsum(sort(fine_weights, rev = true)) .< 0.95) + 1
+println("$(fine_n_95) of $(length(fine_weights)) refined grid points carry 95% of the mass")
+
+# Draw parameter values from the posterior, so that each grid point is drawn as
+# often as the posterior says it should be
+draws = fine_results[rand(Categorical(fine_weights), 15)]
+
+# Plot trajectories from the drawn parameter values
+p_uncertainty = plot(
+    title = "Parameter + Observation Uncertainty", xlabel = "Time", ylabel = "Cases"
+)
+
+for r in draws
+    result = simulate_and_loglik(r.R_0, r.D_inf, epi1)
+    pred_data = rand.(Poisson.(result.I))  # Add observation noise too
+    plot!(p_uncertainty, epi1.time, pred_data, alpha = 0.3, color = :blue, label = "")
+end
+
+scatter!(
+    p_uncertainty, epi1.time, epi1.obs, label = "Observed", markersize = 4,
+    color = :black
+)
 ```
 
 ::: {.callout-tip collapse="true"}
+## Code explainer
+- `exp.(log_posts .- maximum(log_posts))` - converts log-posterior values back to a probability scale.
+- [`Categorical(weights)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Categorical) - a distribution over the indices `1:length(weights)`, where index `i` has probability `weights[i]`.
+Drawing from it and indexing into `fine_results` is how you sample from a posterior that is defined on a grid.
+- `for R_0 in R_0_fine, D_inf in D_inf_fine` - a single loop over both ranges, equivalent to the nested loops used for the coarse grid.
+:::
+
+::: {.callout-tip collapse="true"}
 ## What's the difference?
-In the first plot, we fixed the parameters at their best values and only varied the observation noise. In the second plot, we vary *both* the parameters (sampling from the posterior) *and* the observation noise. The second plot shows more variation because it accounts for our uncertainty about the true parameter values.
+In the first plot we fixed the parameters at their best values and varied only the observation noise.
+In the second we draw the parameters from the posterior as well, so the spread accounts for our uncertainty about the parameters on top of the noise in the observations.
+The difference is small here, because 30 daily observations pin this two-parameter model down tightly.
+It grows with weaker data and with models that have more parameters to be uncertain about.
 :::
 
 ::: {.callout-tip title="Exercise: Posterior predictive checking"}
@@ -1027,9 +1091,14 @@ end
 
 This shows that the computational cost of grid search, i.e. the number of simulations that we need to run, reaches very large numbers even at moderate levels of complexity.
 
+We have already met the problem in miniature.
+The first grid, 143 points across a plausible range, could not resolve a posterior two parameters wide, and refining it took 3721 evaluations to describe a distribution that a sampler summarises in a few thousand draws whatever the dimension.
+
 In addition, this kind of sampling is wasteful, because most parameter combinations will be far from the ones that lead to a good fit to the data.
+Almost all of those 3721 refined evaluations landed on parameter values with negligible posterior weight.
 
 Lastly, it is difficult to establish whether the grid is fine enough (or important parameter regions might be in the "gaps"), and whether the limits of the grid are wide enough.
+Note that we only knew where to refine because the coarse grid had already told us roughly where the mode was.
 
 ::: {.callout-tip title="Learning points"}
 
@@ -1049,4 +1118,7 @@ Lastly, it is difficult to establish whether the grid is fine enough (or importa
 
 See the [further reading](../reference/further_reading.qmd) page for course-wide references on Bayesian inference, infectious disease modelling, and Julia.
 
-**Next session**: In [MCMC sampling](mcmc.qmd), we'll learn how Markov Chain Monte Carlo algorithms solve these problems by automatically exploring the posterior distribution. We'll start with simple algorithms you can code yourself, then see how [Turing.jl](https://turinglang.org/stable/) automates everything with state-of-the-art methods.
+# Next session
+
+In [MCMC sampling](mcmc.qmd) we will see how Markov chain Monte Carlo algorithms solve these problems by exploring the posterior automatically.
+We start with simple algorithms you can code yourself, then see how [Turing.jl](https://turinglang.org/stable/) automates the same ideas with better algorithms.
