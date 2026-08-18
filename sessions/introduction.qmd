@@ -49,13 +49,13 @@ The source file of this session is located at `sessions/introduction.qmd`.
 ## Load libraries
 
 ```{julia}
-using Random # for random numbers
-using Distributions # for probability distributions
-using DifferentialEquations # for differential equations
-using DataFrames # for data frames
-using CSV # for CSV file reading
-using Plots # for plots
-using StatsPlots # for statistical plots
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DifferentialEquations ## for differential equations
+using DataFrames ## for data frames
+using CSV ## for CSV file reading
+using Plots ## for plots
+using StatsPlots ## for statistical plots
 using DrWatson
 ```
 
