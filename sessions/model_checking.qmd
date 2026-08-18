@@ -154,7 +154,7 @@ prior_samples = sample(
 
 ::: {.callout-tip collapse="true"}
 ## Code walkthrough
-- `sir_model(times, S0, I0, 60)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively — Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks) — here we never conditioned the model in the first place.
+- `sir_model(times, S0, I0, length(times) - 1)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively — Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks) — here we never conditioned the model in the first place.
 - [`Prior()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a sampler that draws from prior distributions only, ignoring the likelihood. This gives us parameter combinations purely from our prior beliefs.
 :::
 
@@ -297,7 +297,7 @@ Visual checks are valuable but subjective. We can also compute summary statistic
 # Compute summary statistics for each posterior predictive sample
 function compute_summaries(trajectory)
     peak_value = maximum(trajectory)
-    peak_time = argmax(trajectory) - 1  # Convert to 0-indexed time
+    peak_time = argmax(trajectory)  # index i is day i, after the alignment above
     total_cases = sum(trajectory)
     return (peak=peak_value, peak_time=peak_time, total=total_cases)
 end
@@ -341,9 +341,18 @@ If the observed value (red line) falls in the tails of the posterior predictive 
 :::
 
 ::: {.callout-tip title="What to look for" collapse="true"}
-All three land in a tail, which is a stronger verdict than it first looks.
-The fitted model peaks at about 12 cases around day 14, where the data peak at 47 on day 7, and it accounts for roughly 226 of the 312 reported cases.
-So the p-values come out near 0 for peak size and total cases and near 1 for peak timing: too small, too late, too few.
+Question 1 has no answer here, and that is the finding: **none** of the three sits
+comfortably inside its posterior predictive distribution. All three land in a
+tail, which is a stronger verdict than a mixed result would be.
+
+Read it off the printed p-values: near 0 for peak size and for total cases, near 1
+for peak timing. The observed peak of 47 is larger than every simulated peak, the
+observed total of 312 larger than every simulated total, and the observed peak day
+of 7 earlier than almost every simulated one. Too small, too late, too few.
+
+The fitted mean trajectory says the same thing in units you can picture: it peaks
+at about 12 cases around day 14 and accounts for roughly 226 of the 312 reported
+cases.
 
 The reason is visible in the data before any fitting.
 There are 312 reported cases in a population of 284.
@@ -373,7 +382,9 @@ println("  Peak timing: $p_time")
 println("  Total cases: $p_total")
 ```
 
-Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data. A p-value of 0.02 for peak timing, for example, would mean only 2% of simulated epidemics peaked as late as or later than the observed data — suggesting the model systematically predicts earlier peaks.
+Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data.
+Peak timing comes out near 1 here, meaning almost every simulated epidemic peaked as late as or later than the observed one: the model is systematically late.
+A value near 0 would have carried the opposite meaning, that the model peaks too early.
 
 ::: {.callout-note}
 These p-values are *descriptive*, not hypothesis tests — there is no "reject if p < 0.05" rule here. They quantify how surprised you should be, given the model. A value of 0.15 doesn't mean the model is "fine"; a value of 0.03 doesn't mean it's "wrong". Use them alongside visual checks and scientific judgement.
