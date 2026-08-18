@@ -188,7 +188,7 @@ Random.seed!(rng, 1234)
 
 # Define network structure - small for fast ForwardDiff autodiff
 nn_architecture = Chain(
-    Dense(2 => 8, tanh),       # Input: [I/N, t/tmax]
+    Dense(2 => 8, tanh),       # Input: [I/N, t/TMAX]
     Dense(8 => 1, softplus)     # Output: β > 0 (softplus ensures positivity)
 )
 
@@ -217,7 +217,7 @@ A few things to note about this architecture (expand the code explainer above fo
 
 - **Why softplus output?** It ensures β is always positive — transmission rates can't be negative.
 
-- **Why 2 inputs?** We feed the network both prevalence (I/N) and normalised time (t/tmax). This lets β depend on both "how bad is the epidemic right now" and "what day is it" — capturing both behavioural responses to prevalence and time-dependent changes like weekends or policy changes.
+- **Why 2 inputs?** We feed the network both prevalence (I/N) and normalised time (t/TMAX). This lets β depend on both "how bad is the epidemic right now" and "what day is it" — capturing both behavioural responses to prevalence and time-dependent changes like weekends or policy changes.
 
 - **Parameter count**: The first layer has 2×8 weights + 8 biases = 24 parameters. The second has 8×1 weights + 1 bias = 9 parameters. Total: 33 parameters for 60 data points — roughly 2 data points per parameter. In a standard neural network, this would be a recipe for overfitting, but in a UDE the network output has to flow through an ODE solver and produce a physically plausible epidemic trajectory. The network can't just memorise noise because arbitrary weight values would produce nonsensical dynamics (Rackauckas et al. 2020).
 
@@ -226,7 +226,7 @@ A few things to note about this architecture (expand the code explainer above fo
 ```{julia}
 """
 SIR model where β is learned by neural network.
-β = NN([I/N, t/tmax]) predicts transmission rate.
+β = NN([I/N, t/TMAX]) predicts transmission rate.
 """
 function sir_ude!(du, u, p, t)
     S, I, R = u
@@ -365,9 +365,11 @@ println("Final loss: ", round(result.objective, digits=2))
 p_trained = result.u
 ```
 
-Always check that the loss has converged — if it is still decreasing at the end, run more iterations.
-The curve below drops steeply for the first twenty iterations, sits on a plateau near -200 until about iteration 200, then falls again to around -340 and flattens out.
-A plateau in the middle of training is worth noticing: had we stopped at 150 iterations we would have concluded, wrongly, that the fit had converged.
+Always check the loss curve, and be honest with yourself about what it shows.
+
+Ours drops steeply over the first ten iterations, rebounds, then descends slowly and unevenly for the rest of the run. It is *still falling* at iteration 500, by about 0.09 per iteration over the last twenty. By the advice in this section that means the fit has not converged and more iterations are warranted; we stop at 500 because this is a teaching example and the shape of the answer is already visible, which is a trade you should make deliberately rather than by not looking.
+
+The middle of the curve is worth a second glance too. Progress slows enough around iterations 50 to 200 to look like a plateau, and stopping there would have given a much worse fit while appearing converged.
 
 ```{julia}
 plot(loss_history, xlabel="Iteration", ylabel="Loss",
@@ -381,7 +383,7 @@ Automatic differentiation computes exact gradients of the loss with respect to p
 
 **The Adam optimiser** is a gradient descent variant that adapts learning rates for each parameter and uses momentum to smooth updates. The learning rate (0.01) controls step size: too large and training becomes unstable; too small and convergence is slow. Adam is widely used for neural network training because it works well across many problems without much tuning.
 
-**What to expect**: The loss should decrease substantially (often by orders of magnitude). If it doesn't, something is wrong - perhaps the learning rate is too high (NaN errors) or too low (no progress), or the model structure can't fit the data.
+**What to expect**: the loss should fall steadily and substantially. Do not expect it to fall by orders of magnitude here, and do not use that as your check: a Poisson negative log-likelihood is not bounded below by zero, and ours goes from about +356 to about -340, so ratios of it mean nothing. Watch the shape instead. A loss that sits exactly flat means no gradient is reaching the parameters, which is a bug rather than a converged fit; `NaN` usually means the learning rate is too high; and a curve still falling steeply at the end means run for longer.
 
 ## Step 5: Compare results
 
@@ -406,13 +408,18 @@ to nothing by day 15. The UDE does the opposite: it peaks at about 11, missing t
 first wave badly, and in exchange keeps a low tail running through days 20 to 50
 where the data really do have cases and the baseline has none.
 
-That trade is a direct consequence of the loss we chose. A Poisson negative
-log-likelihood is dominated by relative error, so being wrong by five cases on a
-day expecting two costs far more than being wrong by thirty on a day expecting
-forty. There are roughly forty small-count days in the tail and about five large
-ones at the peak, and the optimiser goes where the cost is. Swap in sum of squared
-errors and the incentive reverses: the peak would dominate and the tail would be
-abandoned.
+That trade is a direct consequence of the loss we chose, though not for the reason
+usually given. Day by day, a Poisson negative log-likelihood still charges more for
+a large absolute miss than a small one: missing by thirty on a day expecting forty
+costs several times what missing by five on a day expecting two does.
+
+What decides the outcome is arithmetic across the series. Predicting *nothing* on a
+day when cases occurred is close to unbounded under a log-likelihood, and the
+constant-β baseline predicts essentially nothing for the whole of days 20 to 50.
+Adding those forty days up outweighs everything the UDE gives away at the peak, so
+the optimiser buys the tail and sells the peak. Swap in sum of squared errors and
+the incentive reverses: an empty tail is cheap, a peak missed by thirty is not, and
+the fit would go the other way.
 
 So the network did learn something, and it is not what a glance at the peak would
 suggest. Neither curve reproduces both waves, which is the point the next section
@@ -548,11 +555,8 @@ for seed in [1234, 5678, 9012]
     p_nn_test, _ = Lux.setup(rng_test, nn_architecture)
     p_nn_test = ComponentArray(p_nn_test)
 
-    p_test = ComponentArray(
-        nn_params = p_nn_test,
-        γ = γ_guess,
-        tmax = maximum(times)
-    )
+    # Only the network weights are optimised, as above
+    p_test = ComponentArray{Float64}(nn_params = p_nn_test)
 
     opt_func_test = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
     opt_prob_test = OptimizationProblem(opt_func_test, p_test, nothing)
