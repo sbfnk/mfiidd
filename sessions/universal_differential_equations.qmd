@@ -176,6 +176,10 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 We'll use a small network - remember, we only have 60 data points!
 
 ```{julia}
+# The time normalisation used by the network's second input. It is a constant of
+# the problem, so it is defined here rather than carried in the parameter vector.
+const TMAX = maximum(times)
+
 # Network architecture: 2 inputs → 8 hidden → 1 output
 # Total parameters: ~33 (keeps training fast)
 
@@ -227,12 +231,14 @@ SIR model where β is learned by neural network.
 function sir_ude!(du, u, p, t)
     S, I, R = u
     N = S + I + R
-    γ = p.γ  # Fixed here for simplicity; in practice you'd estimate γ jointly
+    γ = γ_guess  # Fixed here for simplicity; in practice you'd estimate γ jointly
 
     # Neural network predicts β(t, I)
-    # Inputs: prevalence (I/N) and normalized time (t/tmax)
-    tmax = p.tmax
-    nn_input = [I/N, t/tmax]
+    # Inputs: prevalence (I/N) and normalised time (t/TMAX). Both γ and TMAX are
+    # constants of the problem rather than things to be learned, so they are
+    # closed over here rather than carried in the parameter vector, which would
+    # hand them to the optimiser.
+    nn_input = [I/N, t/TMAX]
 
     # Evaluate neural network
     β_learned, _ = nn_architecture(nn_input, p.nn_params, st_nn)
@@ -261,7 +267,10 @@ function predict_ude(p_all)
     prob_ude = ODEProblem(sir_ude!, u0_promoted, tspan, p_all)
     sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false)
 
-    if sol_ude.retcode != :Success
+    # `retcode` is a SciMLBase enum, not a Symbol: comparing it against
+    # `:Success` is true even for a successful solve, which would send every
+    # prediction to NaN and flatten the loss.
+    if !SciMLBase.successful_retcode(sol_ude)
         return fill(T(NaN), length(times))
     end
 
@@ -311,12 +320,10 @@ If training produces NaN values, reduce the learning rate. If the loss doesn't d
 Training means finding network weights that minimise the loss function. This requires computing gradients of the loss with respect to all 33 parameters - a task handled by automatic differentiation (autodiff).
 
 ```{julia}
-# Combine all parameters into a single object for optimisation
-p_all = ComponentArray(
-    nn_params = p_nn,
-    γ = γ_guess,
-    tmax = maximum(times)
-)
+# The network weights are the only things being optimised. Lux initialises them
+# in Float32; the ODE state is Float64, so promote them to match and avoid a
+# mixed-precision solve.
+p_all = ComponentArray{Float64}(nn_params = p_nn)
 
 println("Starting UDE training...")
 println("="^60)
