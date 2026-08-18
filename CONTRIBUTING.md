@@ -71,9 +71,72 @@ support Julia, which is why CompatHelper is there instead.
 - Data: `CSV.read(datadir("filename.csv"), DataFrame)`
 - Diagnostics: StatsPlots.jl for trace plots, density plots, convergence checks
 
-## Style
+## House style
 
-- Use British English in all written content
+### Prose
+
+- **British English throughout**: modelling, behaviour, summarise, visualise,
+  centre. This applies to prose, comments, commit messages and figure labels.
+- **No contractions.** Write "do not", "we will", "it is", "let us". The course
+  reads as written teaching material rather than as a transcript of the lecture,
+  and half the sessions already follow this.
+- **One sentence per line** in the `.qmd` source. Start each sentence on a new
+  line and do not wrap within a sentence, however long it runs. Markdown joins
+  the lines when rendering, so the output is unchanged, and a reworded sentence
+  then shows up as a single changed line instead of a reflowed paragraph. The
+  gain is entirely in review: prose diffs become readable.
+  - A sentence that would begin a line with a numeral and a full stop ("1998.
+    That year...") is parsed as a list item. Reword it or start the line with a
+    word.
+  - Tables, YAML, callout delimiters and code blocks are exempt.
+- **Sentence case for headings**: "Prior predictive checks", not "Prior
+  Predictive Checks". Proper nouns keep their capitals ("Sampling with
+  DynamicHMC.jl").
+- **"We" for what the session does, "you" for what the reader does.** "We fit
+  the model with NUTS" describes the worked example; "you should see a warning"
+  addresses the reader. Both are used throughout and neither should be purged.
+- Avoid "X, not Y" and "X, rather than Y" unless a reader who has not seen the
+  drafting history would recognise Y as a real alternative worth weighing. State
+  the positive claim on its own.
+
+### Session structure
+
+Every session has these, in this order:
+
+1. YAML front matter with `title`, `subtitle` and `order`.
+2. The estimated-time banner, a `callout-note appearance="simple"` giving time,
+   level where the session is advanced, and prerequisites with links.
+3. `# Introduction`, motivating the session from where the previous one stopped.
+4. `# Objectives`, a numbered list of what the reader will be able to do.
+5. `# Setup`, loading packages and data. Data loading belongs here rather than
+   in a top-level section of its own.
+6. The body.
+7. A `callout-tip title="Learning points"` box of bullet points.
+8. Optionally `# Going further` and `# Next session`.
+9. `# References` last, holding the `::: {#refs}` block.
+
+### Exercises
+
+- **Interleave by default**, placing each exercise immediately after the material
+  it tests. Most sessions do this and it keeps the exercise next to the code it
+  refers to.
+- **Advanced sessions may collect exercises** in a single `# Exercises` section
+  before `# Going further`, which is what the variational inference, universal
+  differential equations and neural posterior estimation sessions do. Pick one
+  arrangement per session rather than splitting between the two.
+- Two or more per session, each with a collapsed answer. See the section on
+  exercises below for what makes a good one.
+
+### "Coming from R?"
+
+Write one where R genuinely does the thing differently and the difference would
+otherwise trip up an R-speaking reader: a different default, a missing library, a
+convention that does not transfer. Do not add one to a session for the sake of
+having one, and do not write one that only says the syntax differs. Sessions
+without a real contrast are better without the note.
+
+### Other conventions
+
 - Models follow a standardised structure for educational consistency
 - Cache directories and generated HTML should not be committed
 
