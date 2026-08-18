@@ -291,6 +291,8 @@ ABC rejection sampling is sensitive to the threshold choice:
 - **Just right** (e.g., 200-400): Reasonable acceptance rate with meaningful posterior concentration
 
 We start with a relaxed threshold (300) here.
+Note what that costs: the run below accepts around 30% of what it proposes, which by the guidance later in this session is loose enough that the posterior is still carrying a good deal of the prior.
+The exercise that follows asks you to tighten it.
 
 **If you get 0 samples**: Increase the threshold (try 400, then 500). The sampler may be struggling to find parameter combinations that produce simulations close to the data. This can happen due to random variation - ABC is inherently stochastic.
 :::
@@ -372,13 +374,20 @@ Then run it and see whether the ordering matches what you expected.
 :::
 
 ::: {.callout-tip title="Solution" collapse="true"}
-L2 reacts most strongly. It squares the deviation, so a single day off by 30
-contributes 900 while thirty days off by 1 contribute 30 between them. Squared
-distances are dominated by their worst point.
+L2 reacts most strongly, *provided the rest of the trajectory fits*. It squares
+the deviation, so a single day off by 30 contributes 900 while thirty days off by
+1 contribute 30 between them. Squared distances are dominated by their worst
+point.
 
 L1 adds the absolute deviations, so that same bad day contributes 30 and nothing
 more. It is the forgiving choice, and it is why L1 is a common default in ABC
 when you expect reporting glitches.
+
+The caveat matters here more than usual, as the cell below shows. Our SIR model
+fits these data badly, and against a badly fitting simulation the L2 total is
+already dominated by the model's systematic errors, so the injected outlier
+accounts for a *smaller* share of L2 than of L1. The rule of thumb describes a
+model that is otherwise doing well.
 
 The weighted distance depends entirely on the weights. If it upweights the peak
 and the outlier falls near the peak, it can react more sharply than either; if the
@@ -392,27 +401,51 @@ model are the same decision about how much a single surprising observation shoul
 count.
 :::
 
+The three distances are on different scales, so their raw values say nothing
+about sensitivity. What matters is how much each one *moves* when a single day
+goes wrong.
+
 ```{julia}
-# Test on a candidate parameter set
+# Take one simulation, disturb a single day of the data it is compared against,
+# and ask how much of each distance that one day is then responsible for
 test_params = [10.0, 2.5, 0.8]
 test_sim = simulate_sir_abc(test_params)
 
-println("Distance metrics for test parameters:")
-println("  L1: ", round(distance_L1(test_sim, observed_data), digits=2))
-println("  L2: ", round(distance_L2(test_sim, observed_data), digits=2))
-println("  Weighted: ", round(distance_weighted(test_sim, observed_data), digits=2))
+spiked = copy(observed_data)
+spiked[30] += 30  # one day, thirty extra cases
+
+# Per-day contributions to each distance, before summing
+l1_terms(sim, obs) = abs.(sim .- obs)
+l2_terms(sim, obs) = (sim .- obs) .^ 2
+weighted_terms(sim, obs) = abs.(sim .- obs) ./ (obs .+ 1.0)
+
+# A well-fitting simulation, for contrast: roughly the posterior mean from the
+# likelihood fit above
+good_sim = simulate_sir_abc([1.76, 3.27, 0.99])
+
+for (label, sim) in (("poorly fitting simulation", test_sim),
+                     ("well fitting simulation", good_sim))
+    println(label)
+    for (name, terms) in (("L1", l1_terms), ("L2", l2_terms),
+                          ("weighted", weighted_terms))
+        t = terms(sim, spiked)
+        println("  ", rpad(name, 9), " day 30 contributes ",
+                round(100 * t[30] / sum(t), digits=1), "% of the total")
+    end
+end
 ```
 
-::: {.callout-tip title="Solution" collapse="true"}
-L2 reacts most strongly: it squares each discrepancy, so a single large deviation
-dominates the total. L1 grows only linearly with the discrepancy, which makes it
-the most outlier-tolerant of the three. The weighted distance sits in between,
-and where exactly depends on whether the outlier falls at a time point the
-weighting emphasises.
+The ordering depends on how well the rest of the trajectory fits, which is worth
+more than the headline rule.
+Against the well fitting simulation, the spiked day accounts for about a fifth of
+the L2 total and about a tenth of the L1 total, which is the textbook behaviour:
+squaring makes one bad day dominate.
+Against the poorly fitting one the ordering reverses, because L2 is already
+saturated by the model's own errors and one more large deviation barely registers
+among them.
 
-This is the same trade-off as choosing between a Poisson and a negative binomial
-likelihood — which is the point of the section that follows.
-:::
+An outlier is only conspicuous relative to how well everything else is
+explained.
 
 Notice that choosing a distance metric in ABC is philosophically similar to choosing a parametric likelihood.
 
@@ -436,67 +469,89 @@ This is a simplified ABC-SMC for pedagogical purposes. Production implementation
 **Note on `Threads.@threads`**: The code below uses `Threads.@threads` to parallelise the particle loop — this macro distributes iterations across available CPU threads, so each particle can be simulated concurrently. For this to have any effect, Julia must be started with multiple threads (e.g., `julia -t auto`). See the [threading note in MCMC Diagnostics](mcmc_diagnostics.qmd#running-julia-with-multiple-threads) for setup instructions. Without multiple threads, the loop runs sequentially (slower but still correct).
 
 ```{julia}
+# The prior, written twice: once to sample from and once to evaluate. ABC-SMC
+# needs both, because the importance weights below are a ratio of prior density
+# to perturbation density.
+const PRIOR_BOUNDS = [(1.0, 20.0), (1.0, 10.0), (0.1, 1.0)]
+
+in_prior(θ) = all(lo <= θ[i] <= hi for (i, (lo, hi)) in enumerate(PRIOR_BOUNDS))
+
+"Standard deviation of the perturbation kernel applied to a particle."
+kernel_sd(θ) = 0.1 .* abs.(θ)
+
+"Density of the perturbation kernel that moves `θ_from` to `θ_to`."
+function kernel_pdf(θ_to, θ_from)
+    sds = kernel_sd(θ_from)
+    return prod(pdf(Normal(θ_from[d], sds[d]), θ_to[d]) for d in eachindex(θ_to))
+end
+
 """
 Simple ABC-SMC implementation.
-Uses sequence of decreasing thresholds with resampling.
+Uses a sequence of decreasing thresholds, perturbing the particles that survived
+the previous one. Returns the particles, their importance weights, and the number
+of simulations each generation cost.
 """
 function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
-                thresholds, n_particles)
+                thresholds, n_particles; max_tries_per_particle = 20_000)
 
-    particles = []
-    weights = ones(n_particles) ./ n_particles
+    particles = Vector{Vector{Float64}}()
+    weights = Float64[]
+    sim_counts = Int[]
 
     for (t_idx, threshold) in enumerate(thresholds)
         println("\nGeneration $t_idx: threshold = $threshold")
         new_particles = Vector{Vector{Float64}}(undef, n_particles)
+        tries = zeros(Int, n_particles)
 
-        if t_idx == 1
-            # First generation: sample from prior (parallelised)
-            Threads.@threads for i in 1:n_particles
-                while true
-                    θ = prior_sampler()
-                    sim = simulator(θ)
-                    d = distance_fn(sim, observed_data)
-                    if d < threshold
-                        new_particles[i] = θ
-                        break
-                    end
+        Threads.@threads for i in 1:n_particles
+            for attempt in 1:max_tries_per_particle
+                θ = if t_idx == 1
+                    prior_sampler()
+                else
+                    # Draw a survivor in proportion to its weight, then perturb it
+                    θ_old = particles[sample(1:length(particles), Weights(weights))]
+                    θ_old .+ randn(length(θ_old)) .* kernel_sd(θ_old)
                 end
-            end
-        else
-            # Later generations: perturb from previous (parallelised)
-            Threads.@threads for i in 1:n_particles
-                while true
-                    # Sample from previous generation (weighted)
-                    idx = sample(1:length(particles), Weights(weights))
-                    θ_old = particles[idx]
 
-                    # Perturb (simple Gaussian perturbation)
-                    θ_new = θ_old .+ randn(length(θ_old)) .* 0.1 .* θ_old
+                in_prior(θ) || continue
 
-                    # Check bounds (reject if outside prior)
-                    if θ_new[1] < 1.0 || θ_new[1] > 20.0 continue end
-                    if θ_new[2] < 1.0 || θ_new[2] > 10.0 continue end
-                    if θ_new[3] < 0.1 || θ_new[3] > 1.0 continue end
-
-                    # Simulate and check distance
-                    sim = simulator(θ_new)
-                    d = distance_fn(sim, observed_data)
-                    if d < threshold
-                        new_particles[i] = θ_new
-                        break
-                    end
+                tries[i] = attempt
+                if distance_fn(simulator(θ), observed_data) < threshold
+                    new_particles[i] = θ
+                    break
                 end
+
+                attempt == max_tries_per_particle &&
+                    error("no particle accepted at threshold $threshold after " *
+                          "$max_tries_per_particle simulations; loosen the schedule")
             end
         end
 
-        particles = collect(new_particles)
-        weights = ones(n_particles) ./ n_particles  # Uniform weights (simplified)
+        # Importance weights. A particle reached this generation through the
+        # perturbation kernel rather than from the prior, and the weights undo
+        # that: numerator is the prior density, denominator is how likely the
+        # previous generation was to propose it. Skipping this step, which is
+        # tempting because the arithmetic is fiddly, leaves the sample biased
+        # towards wherever the kernel happens to concentrate.
+        new_weights = if t_idx == 1
+            fill(1.0 / n_particles, n_particles)
+        else
+            w = [1.0 / sum(weights[j] * kernel_pdf(new_particles[i], particles[j])
+                           for j in eachindex(particles))
+                 for i in 1:n_particles]
+            w ./ sum(w)
+        end
 
-        println("  Mean R_0: ", round(mean([p[1] for p in particles]), digits=2))
+        particles = collect(new_particles)
+        weights = new_weights
+        push!(sim_counts, sum(tries))
+
+        weighted_R_0 = sum(weights[i] * particles[i][1] for i in eachindex(particles))
+        println("  Simulations: $(sum(tries)),  weighted mean R_0: ",
+                round(weighted_R_0, digits=2))
     end
 
-    return particles
+    return particles, weights, sim_counts
 end
 ```
 :::
@@ -506,7 +561,7 @@ end
 println("Running ABC-SMC...")
 thresholds = [400.0, 300.0, 250.0]  # Decreasing threshold sequence
 
-abc_smc_samples = abc_smc(
+abc_smc_samples, abc_smc_weights, abc_smc_sims = abc_smc(
     sample_from_prior,
     simulate_sir_abc,
     distance_L1,
@@ -515,10 +570,14 @@ abc_smc_samples = abc_smc(
     100  # Number of particles
 )
 
+# The particles carry unequal weights, so resample them before plotting or
+# summarising as though they were an ordinary posterior sample
+resampled = abc_smc_samples[rand(Categorical(abc_smc_weights), 1000)]
+
 abc_smc_df = DataFrame(
-    R_0 = [s[1] for s in abc_smc_samples],
-    D_inf = [s[2] for s in abc_smc_samples],
-    ρ = [s[3] for s in abc_smc_samples]
+    R_0 = [s[1] for s in resampled],
+    D_inf = [s[2] for s in resampled],
+    ρ = [s[3] for s in resampled]
 )
 ```
 
@@ -531,22 +590,16 @@ The following compares the two approaches on our problem:
 println("Comparison: Rejection ABC vs ABC-SMC")
 println("="^50)
 
-# Rejection ABC stats (from earlier run)
-rejection_samples = length(abc_samples)
-rejection_acceptance = rejection_samples / (rejection_samples * 1000 / 100)  # Rough estimate
-
-# ABC-SMC: n_particles × n_generations simulations (plus rejections within each)
-smc_generations = length(thresholds)
-smc_particles = 100
-
 println("Rejection ABC:")
-println("  Samples obtained: $rejection_samples")
+println("  Samples obtained: $(length(abc_samples))")
 println("  Threshold used: 300.0")
 
 println("\nABC-SMC:")
-println("  Samples obtained: $(length(abc_smc_samples))")
+println("  Particles: $(length(abc_smc_samples))")
 println("  Final threshold: $(thresholds[end])")
-println("  Generations: $smc_generations")
+println("  Generations: $(length(thresholds))")
+println("  Simulations per generation: $abc_smc_sims")
+println("  Simulations in total: $(sum(abc_smc_sims))")
 ```
 
 ```{julia}
@@ -581,7 +634,9 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
      title=["R_0: Rejection vs SMC" "D_inf: Rejection vs SMC"])
 ```
 
-We see that ABC-SMC achieves a tighter threshold (250 vs 300) with fewer wasted simulations. The resulting posteriors are more concentrated - ABC-SMC has effectively "zoomed in" on the high-probability region. This efficiency gain becomes even more pronounced in higher dimensions, where rejection sampling becomes impractical.
+Compare the simulation counts printed above rather than taking the efficiency claim on trust.
+ABC-SMC reaches a tighter threshold, 250 against 300, and the generation-by-generation counts show where its budget goes: the first generation is as expensive as rejection sampling, because it *is* rejection sampling, and the later ones are cheap because they start from particles that already fit.
+That is the whole trick, and it is why the advantage grows in higher dimensions, where a prior draw almost never lands anywhere useful.
 
 ::: {.callout-important}
 ## Assessing ABC posterior quality
@@ -660,27 +715,19 @@ function simulate_and_summarize(params)
     return ρ .* traj.Inc
 end
 
-# Create synthetic data with and without outliers
-function test_sensitivity(add_outlier=false)
-    # True parameters
+# Create one synthetic dataset, then a copy of it with a single day disturbed.
+# Drawing fresh noise for each would make the two datasets differ everywhere, and
+# the comparison below would measure the noise rather than the outlier.
+function synthetic_data()
     true_params = [10.0, 2.5, 0.8]
     true_data = simulate_and_summarize(true_params)
-
-    # Add noise
     noisy_data = true_data .+ randn(length(true_data)) .* 2.0
-    noisy_data = max.(noisy_data, 0.0)  # No negative cases
-
-    # Add outlier if requested
-    if add_outlier
-        noisy_data[30] += 30.0  # Artificial spike
-    end
-
-    return noisy_data
+    return max.(noisy_data, 0.0)  # No negative cases
 end
 
-# Test with and without outlier
-data_clean = test_sensitivity(false)
-data_outlier = test_sensitivity(true)
+data_clean = synthetic_data()
+data_outlier = copy(data_clean)
+data_outlier[30] += 30.0  # Artificial spike on a single day
 
 # Plot
 plot(times, data_clean, label="Clean data", linewidth=2)
