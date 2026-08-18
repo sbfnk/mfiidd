@@ -151,9 +151,9 @@ init_state = [999, 1, 0]
 ## define start and end times
 t0, tend = (0, 30)
 ## define parameters: R_0 = 2.5, D_inf = 2
-params = [2.5, 2]
+sir_params = [2.5, 2]
 # Define ODE problem
-prob = ODEProblem(sir_ode!, init_state, (t0, tend), params)
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), sir_params)
  # Solve ODE
 sol = solve(prob, saveat = 1)
 ```
@@ -178,7 +178,7 @@ tend = 30
 ```
 
 ```julia
-prob = ODEProblem(sir_ode!, init_state, (t0, tend), params)
+prob = ODEProblem(sir_ode!, init_state, (t0, tend), sir_params)
 ```
 
 This defines our ODE system. 
@@ -188,7 +188,8 @@ The third argument defines that start and end time of the simulation, here given
 A tuple is similar to an array (defined with brackets as we did above in defining `init_state`) but more flexible in allowing different data types, as in e.g. lists in R.
 Here we could also have used a vector `[t0, tend]`.
 Either will be correctly interpreted by `ODEProblem()`.
-The fourth argument gives the parameters of the model `params` as a vector.
+The fourth argument gives the parameters of the model `sir_params` as a vector.
+`params` would have been the natural name, but `Distributions` exports a function of that name and assigning to it would shadow it for the rest of the session.
 
 ```julia
 sol = solve(prob, saveat = 1)
@@ -660,7 +661,7 @@ plot!(p)
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- `sol[2, :]` - extracts the second row (the I compartment) from the ODE solution matrix. The `:` means "all columns" (all time points).
+- `max.(sol[2, :], 0.0)` - extracts the second row (the I compartment) from the ODE solution matrix, where `:` means "all columns" (all time points), and clamps away the tiny negative values a solver can return as the epidemic dies out. The clamp trades a crash for a quieter failure: `Poisson(0.0)` is valid, and scoring a day with observed cases against it returns `-Inf`, which zeroes that parameter set rather than raising an error.
 - `[Poisson(It) for It in I]` - an [array comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) that creates a Poisson distribution for each expected value `It` in the vector `I`. If you know R, this is like `lapply(I, function(It) ...)`  or `purrr::map(I, ~ ...)` — it applies an operation to each element and collects the results.
 - [`Poisson(λ)`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Poisson) - creates a Poisson distribution with rate parameter `λ`. Used here as our observation model.
 - `logpdf.(obs_dists, epi1.obs)` - the `.` broadcasts the `logpdf` function element-wise, calculating log-likelihood for each observation against its corresponding Poisson distribution.
@@ -995,9 +996,10 @@ Everything the grid can tell us is "the answer is near 2.3", which is why the su
 To see the parameter uncertainty we have to refine the grid around the mode.
 
 ```{julia}
-# Refine around the mode found above
-R_0_fine = 2.0:0.01:2.6
-D_inf_fine = 1.7:0.01:2.3
+# Refine around the mode the coarse grid found, rather than around a window
+# written in by hand: if the data or the model change, the window follows.
+R_0_fine = (best_params.R_0 - 0.3):0.01:(best_params.R_0 + 0.3)
+D_inf_fine = (best_params.D_inf - 0.3):0.01:(best_params.D_inf + 0.3)
 
 fine_results = @NamedTuple{R_0::Float64, D_inf::Float64, log_posterior::Float64}[]
 for R_0 in R_0_fine, D_inf in D_inf_fine
