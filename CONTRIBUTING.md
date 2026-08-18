@@ -104,6 +104,11 @@ support Julia, which is why CompatHelper is there instead.
 - Avoid "X, not Y" and "X, rather than Y" unless a reader who has not seen the
   drafting history would recognise Y as a real alternative worth weighing. State
   the positive claim on its own.
+- **End-of-line comments in Julia use `##`**, as in `using Random ## for random
+  numbers`. This is a course convention rather than a Julia one, which uses a
+  single `#`, but the sessions are near-unanimous: `##` outnumbers `#` by about
+  sixty to four. Follow it, or change it everywhere in one sweep and update this
+  line. Do not fix it session by session, which only splits the corpus further.
 
 ### Session structure
 
