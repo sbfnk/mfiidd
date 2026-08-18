@@ -47,14 +47,14 @@ The source file of this session is located at `sessions/julia_ecosystem.qmd`.
 ## Load libraries
 
 ```{julia}
-using DifferentialEquations # for differential equations
-using Distributions # for probability distributions
-using DataFrames # for data frames
-using CSV # for reading data
-using Random # for random numbers
-using Plots # for plots
-using StatsPlots # for statistical plots
-using DrWatson # for datadir()
+using DifferentialEquations ## for differential equations
+using Distributions ## for probability distributions
+using DataFrames ## for data frames
+using CSV ## for reading data
+using Random ## for random numbers
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using DrWatson ## for datadir()
 ```
 
 # The log-density is all you need
@@ -286,13 +286,13 @@ sample(model, NUTS(; adtype = AutoZygote()), 1000)        # reverse mode
 ```
 
 ::: {.callout-warning}
-This is not hypothetical, and the threshold is lower than it sounds. The
+This is not hypothetical. The
 [universal differential equations](universal_differential_equations.qmd) session
 trains a neural network inside an ODE with ForwardDiff, and gets away with it
-only because the network is deliberately tiny: 33 weights, chosen partly so that
-forward mode stays affordable. Widen that network to a few hundred weights and
-forward mode becomes the bottleneck, because it pays for each parameter
-separately.
+only because the network is deliberately tiny: 33 parameters, chosen partly so
+that forward mode stays affordable. That is already at the edge of the range in
+the table above. Widen the network and forward mode becomes the bottleneck,
+because each parameter costs another pass through the model.
 
 If a gradient-based sampler or optimiser slows to a crawl, or stops working
 altogether, after you change your model, the AD backend is one of the first
@@ -317,10 +317,11 @@ is simple and fast, and this is why it is Turing's default.
 starting to cost; reverse mode is likely faster. This is the region where it is
 worth measuring rather than guessing.
 
-4 needs reverse mode. Forward mode would require a gradient evaluation per
-weight, so a few hundred weights means a few hundred times the cost. The UDE
-session stays on the forward side of that line by keeping its network to 33
-weights, which is the same trade-off seen from the other direction.
+4 needs reverse mode. Forward mode costs roughly one extra pass through the model
+per parameter, so a few hundred parameters means a few hundred passes for every
+gradient, where reverse mode needs a constant number. The UDE session stays on the
+forward side of that line by keeping its network to 33 parameters, which is the
+same trade-off seen from the other direction.
 :::
 
 # Other samplers
