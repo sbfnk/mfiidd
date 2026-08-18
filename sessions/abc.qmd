@@ -419,9 +419,11 @@ l1_terms(sim, obs) = abs.(sim .- obs)
 l2_terms(sim, obs) = (sim .- obs) .^ 2
 weighted_terms(sim, obs) = abs.(sim .- obs) ./ (obs .+ 1.0)
 
-# A well-fitting simulation, for contrast: roughly the posterior mean from the
-# likelihood fit above
-good_sim = simulate_sir_abc([1.76, 3.27, 0.99])
+# A well-fitting simulation, for contrast: the posterior mean from the likelihood
+# fit above, taken from the chain rather than copied out of it
+good_params = [mean(chain_poisson[:R_0]), mean(chain_poisson[:D_inf]),
+               mean(chain_poisson[:ρ])]
+good_sim = simulate_sir_abc(good_params)
 
 for (label, sim) in (("poorly fitting simulation", test_sim),
                      ("well fitting simulation", good_sim))
@@ -459,12 +461,14 @@ The key idea, introduced by [Toni et al. (2009)](https://doi.org/10.1098/rsif.20
 2. *Gradually tighten*: Reduce the threshold across generations
 3. *Reuse good samples*: Instead of sampling from the prior each time, perturb samples that passed the previous threshold
 
-This is much more efficient because particles that are already "close" to the data are refined, rather than searching blindly from the prior each time. Typical speedups are 20-50× compared to rejection sampling.
+The aim is to reach a threshold that rejection sampling could not afford, by refining particles that are already close rather than searching blindly from the prior each time. How much that saves depends entirely on the problem, the schedule and the kernel; on the small problem below it buys a tighter threshold rather than a lower simulation count, so treat quoted speedup factors with suspicion until you have counted your own.
 
 ::: {.callout-note collapse="true"}
 ## Implementation: ABC-SMC (click to expand)
 
-This is a simplified ABC-SMC for pedagogical purposes. Production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) have adaptive thresholds, better perturbation kernels, and importance weighting.
+This is a simplified ABC-SMC for pedagogical purposes. It does compute the importance weights, which is what makes the sample valid, but production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) add adaptive thresholds and better perturbation kernels.
+
+One approximation remains here. Perturbations that land outside the prior are redrawn, so the kernel is truncated for particles near a boundary, and the weight denominator does not account for that truncation. Children of near-boundary particles therefore get slightly too much weight.
 
 **Note on `Threads.@threads`**: The code below uses `Threads.@threads` to parallelise the particle loop — this macro distributes iterations across available CPU threads, so each particle can be simulated concurrently. For this to have any effect, Julia must be started with multiple threads (e.g., `julia -t auto`). See the [threading note in MCMC Diagnostics](mcmc_diagnostics.qmd#running-julia-with-multiple-threads) for setup instructions. Without multiple threads, the loop runs sequentially (slower but still correct).
 
@@ -488,23 +492,25 @@ end
 """
 Simple ABC-SMC implementation.
 Uses a sequence of decreasing thresholds, perturbing the particles that survived
-the previous one. Returns the particles, their importance weights, and the number
-of simulations each generation cost.
+the previous one. Returns the particles, their importance weights, the number of
+simulations each generation cost, and the effective sample size of each
+generation's weights.
 """
-function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
-                thresholds, n_particles; max_tries_per_particle = 20_000)
+function abc_smc(prior_sampler, in_prior, simulator, distance_fn, observed_data,
+                thresholds, n_particles; max_simulations_per_generation = 100_000)
 
     particles = Vector{Vector{Float64}}()
     weights = Float64[]
     sim_counts = Int[]
+    ess_history = Float64[]
 
     for (t_idx, threshold) in enumerate(thresholds)
         println("\nGeneration $t_idx: threshold = $threshold")
         new_particles = Vector{Vector{Float64}}(undef, n_particles)
-        tries = zeros(Int, n_particles)
+        simulations = Threads.Atomic{Int}(0)
 
         Threads.@threads for i in 1:n_particles
-            for attempt in 1:max_tries_per_particle
+            while simulations[] < max_simulations_per_generation
                 θ = if t_idx == 1
                     prior_sampler()
                 else
@@ -513,18 +519,21 @@ function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
                     θ_old .+ randn(length(θ_old)) .* kernel_sd(θ_old)
                 end
 
+                # A perturbation can leave the prior's support; redraw rather than
+                # simulate, and do not count it as a simulation
                 in_prior(θ) || continue
 
-                tries[i] = attempt
+                Threads.atomic_add!(simulations, 1)
                 if distance_fn(simulator(θ), observed_data) < threshold
                     new_particles[i] = θ
                     break
                 end
-
-                attempt == max_tries_per_particle &&
-                    error("no particle accepted at threshold $threshold after " *
-                          "$max_tries_per_particle simulations; loosen the schedule")
             end
+        end
+
+        if !all(i -> isassigned(new_particles, i), 1:n_particles)
+            error("gave up at threshold $threshold after $(simulations[]) " *
+                  "simulations; loosen the schedule or raise the budget")
         end
 
         # Importance weights. A particle reached this generation through the
@@ -544,14 +553,16 @@ function abc_smc(prior_sampler, simulator, distance_fn, observed_data,
 
         particles = collect(new_particles)
         weights = new_weights
-        push!(sim_counts, sum(tries))
+        push!(sim_counts, simulations[])
+        push!(ess_history, 1 / sum(abs2, weights))
 
         weighted_R_0 = sum(weights[i] * particles[i][1] for i in eachindex(particles))
-        println("  Simulations: $(sum(tries)),  weighted mean R_0: ",
-                round(weighted_R_0, digits=2))
+        println("  Simulations: $(simulations[]),  weighted mean R_0: ",
+                round(weighted_R_0, digits=2),
+                ",  ESS: ", round(ess_history[end], digits=1), " of $n_particles")
     end
 
-    return particles, weights, sim_counts
+    return particles, weights, sim_counts, ess_history
 end
 ```
 :::
@@ -561,8 +572,9 @@ end
 println("Running ABC-SMC...")
 thresholds = [400.0, 300.0, 250.0]  # Decreasing threshold sequence
 
-abc_smc_samples, abc_smc_weights, abc_smc_sims = abc_smc(
+abc_smc_samples, abc_smc_weights, abc_smc_sims, abc_smc_ess = abc_smc(
     sample_from_prior,
+    in_prior,
     simulate_sir_abc,
     distance_L1,
     observed_data,
@@ -634,9 +646,13 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
      title=["R_0: Rejection vs SMC" "D_inf: Rejection vs SMC"])
 ```
 
-Compare the simulation counts printed above rather than taking the efficiency claim on trust.
-ABC-SMC reaches a tighter threshold, 250 against 300, and the generation-by-generation counts show where its budget goes: the first generation is as expensive as rejection sampling, because it *is* rejection sampling, and the later ones are cheap because they start from particles that already fit.
-That is the whole trick, and it is why the advantage grows in higher dimensions, where a prior draw almost never lands anywhere useful.
+Compare the printed counts rather than taking any efficiency claim on trust, including this session's.
+
+The generations get *more* expensive, not less: the first is cheap because a loose threshold accepts almost anything, and each tightening costs more simulations per particle than the last. Per particle, this run of ABC-SMC is no cheaper than the rejection sampler was at its looser threshold. What it bought is the tighter threshold itself, which rejection sampling could only reach by rejecting far more.
+
+Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally, and after that it collapses: in this run to single figures in generation 2, recovering only partially in generation 3. The exact numbers move from run to run, but the collapse does not.
+
+That is weight degeneracy. A handful of particles carry most of the mass, so the histogram below is drawn from far fewer distinct parameter vectors than its 1000 draws suggest, and its apparent concentration is partly an artefact of duplication rather than evidence of a sharper posterior. Production implementations resample between generations and adapt the kernel width to control this; ours does neither, so read the final spread as indicative rather than as a posterior you would report.
 
 ::: {.callout-important}
 ## Assessing ABC posterior quality
@@ -730,8 +746,10 @@ data_outlier = copy(data_clean)
 data_outlier[30] += 30.0  # Artificial spike on a single day
 
 # Plot
-plot(times, data_clean, label="Clean data", linewidth=2)
-plot!(times, data_outlier, label="Data with outlier", linewidth=2,
+# The two series differ at one day only, so draw the second dashed or it hides
+# the first completely
+plot(times, data_clean, label="Clean data", linewidth=3, alpha=0.5)
+plot!(times, data_outlier, label="Data with outlier", linewidth=2, linestyle=:dash,
       xlabel="Time", ylabel="Cases",
       title="Effect of Outliers on Observation Data")
 ```
@@ -835,8 +853,8 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
   negative binomial
 - The acceptance threshold is the hard part: too tight and nothing is accepted,
   too loose and you are sampling the prior
-- ABC-SMC reaches a given threshold for far fewer simulations than rejection
-  sampling, by walking the threshold down in stages
+- ABC-SMC walks the threshold down in stages, which reaches thresholds rejection
+  sampling cannot afford, at the cost of weights that grow steadily more uneven
 - Likelihoods are fast and need a tractable model; ABC is slow and needs only a
   simulator
 - A single outlying observation moves a Poisson likelihood far more than an L1
