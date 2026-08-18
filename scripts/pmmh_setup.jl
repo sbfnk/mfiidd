@@ -3,6 +3,8 @@
 # The priors below must match those in sessions/pmcmc.qmd. The session presents
 # the saved chains as the posteriors of the model it defines, so a prior changed
 # in one place and not the other silently puts the wrong posterior on the page.
+# The likelihood is shared rather than copied: both models call the package's
+# GeneralisedFilters runners, which is what the session calls too.
 
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
@@ -57,8 +59,11 @@ its resampling step errors on Dual-valued weights.
     Turing.@addlogprob! log_lik
 end
 
-pmmh_seitl(obs, n_particles) = pmmh(obs, n_particles, particle_filter_seitl)
-pmmh_seit4l(obs, n_particles) = pmmh(obs, n_particles, particle_filter_seit4l)
+# Both models are estimated with the same bootstrap filter the sessions use, from
+# GeneralisedFilters, so the saved chains are the posterior of the model the page
+# defines rather than of a second implementation that happens to live in scripts.
+pmmh_seitl(obs, n_particles) = pmmh(obs, n_particles, run_particle_filter_seitl)
+pmmh_seit4l(obs, n_particles) = pmmh(obs, n_particles, run_particle_filter)
 
 """
     flu_observations()
