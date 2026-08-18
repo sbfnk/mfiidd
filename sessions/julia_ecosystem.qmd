@@ -47,14 +47,14 @@ The source file of this session is located at `sessions/julia_ecosystem.qmd`.
 ## Load libraries
 
 ```{julia}
-using DifferentialEquations ## for differential equations
-using Distributions ## for probability distributions
-using DataFrames ## for data frames
-using CSV ## for reading data
-using Random ## for random numbers
-using Plots ## for plots
-using StatsPlots ## for statistical plots
-using DrWatson ## for datadir()
+using DifferentialEquations # for differential equations
+using Distributions # for probability distributions
+using DataFrames # for data frames
+using CSV # for reading data
+using Random # for random numbers
+using Plots # for plots
+using StatsPlots # for statistical plots
+using DrWatson # for datadir()
 ```
 
 # The log-density is all you need
@@ -94,16 +94,19 @@ In the introduction, we wrote a function that simulates the SIR model and return
 the log-likelihood:
 
 ```{julia}
+# The synthetic epidemic from the introduction session
+epi1 = CSV.read(datadir("epi1_synthetic.csv"), DataFrame)
+
 function sir_ode!(du, u, p, t)
     R_0, D_inf = p
     β = R_0 / D_inf
-    γ = 1.0 / D_inf
+    ν = 1.0 / D_inf
     S, I, R = u
     N = S + I + R
 
     du[1] = -β * S * I / N
-    du[2] = β * S * I / N - γ * I
-    du[3] = γ * I
+    du[2] = β * S * I / N - ν * I
+    du[3] = ν * I
 end
 
 function simulate_and_loglik(R_0, D_inf, data; init_state = [999.0, 1.0, 0.0], tspan = (0.0, 30.0))
@@ -153,8 +156,8 @@ provides the `LogDensityProblems` interface that DynamicHMC expects.
 ::: {.callout-tip title="Exercise: check the log-posterior by hand"}
 Before sampling anything, convince yourself the posterior does what you expect.
 
-1. Create `posterior = SIRPosterior(epi1)` (the data are loaded in the next
-   section) and evaluate it at `(R_0 = 2.5, D_inf = 2.0)`.
+1. Create `posterior = SIRPosterior(epi1)` and evaluate it at
+   `(R_0 = 2.5, D_inf = 2.0)`.
 2. Evaluate it again at `(R_0 = 15.0, D_inf = 2.0)`. Which is larger, and does
    that match the data?
 3. Now try `(R_0 = 0.5, D_inf = 2.0)`, which is outside the prior. What comes
@@ -181,9 +184,6 @@ implementation. It uses
 constrained parameters to unconstrained space, which NUTS requires:
 
 ```{julia}
-# Load data
-epi1 = CSV.read(datadir("epi1_synthetic.csv"), DataFrame)
-
 # Create the posterior
 posterior = SIRPosterior(epi1)
 
@@ -286,12 +286,17 @@ sample(model, NUTS(; adtype = AutoZygote()), 1000)        # reverse mode
 ```
 
 ::: {.callout-warning}
-This is not hypothetical. The [universal differential
-equations](universal_differential_equations.qmd) session in this course had to
-switch from ForwardDiff to Zygote, because a neural network inside an ODE has too
-many parameters for forward mode and the combination failed outright. If a
-gradient-based sampler suddenly stops working after you change your model, the AD
-backend is one of the first things to suspect.
+This is not hypothetical, and the threshold is lower than it sounds. The
+[universal differential equations](universal_differential_equations.qmd) session
+trains a neural network inside an ODE with ForwardDiff, and gets away with it
+only because the network is deliberately tiny: 33 weights, chosen partly so that
+forward mode stays affordable. Widen that network to a few hundred weights and
+forward mode becomes the bottleneck, because it pays for each parameter
+separately.
+
+If a gradient-based sampler or optimiser slows to a crawl, or stops working
+altogether, after you change your model, the AD backend is one of the first
+things to suspect.
 :::
 
 ::: {.callout-tip title="Exercise: which backend would you pick?"}
@@ -312,8 +317,10 @@ is simple and fast, and this is why it is Turing's default.
 starting to cost; reverse mode is likely faster. This is the region where it is
 worth measuring rather than guessing.
 
-4 needs reverse mode. Forward mode would require hundreds of evaluations per
-gradient, which is exactly the failure the UDE session ran into.
+4 needs reverse mode. Forward mode would require a gradient evaluation per
+weight, so a few hundred weights means a few hundred times the cost. The UDE
+session stays on the forward side of that line by keeping its network to 33
+weights, which is the same trade-off seen from the other direction.
 :::
 
 # Other samplers
