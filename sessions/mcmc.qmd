@@ -57,9 +57,9 @@ using DifferentialEquations ## for differential equations
 using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
-using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
-using AdvancedMH ## for adaptive MCMC samplers
+using Turing # for probabilistic programming and MCMC
+using MCMCChains # for MCMC diagnostics
+using AdvancedMH # for adaptive MCMC samplers
 ```
 
 ## Initialisation
@@ -219,6 +219,10 @@ plot(p1, p2, layout = (2, 1), size = (800, 600))
 The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a fat, [hairy caterpillar](https://en.wikipedia.org/wiki/Pyrrharctia_isabella) that fills the vertical band around its target.
 The histogram of samples closely matches the true density.
 
+Notice the acceptance rate, which is over 80%.
+That is comfortable rather than efficient: the chain accepts nearly everything it proposes because it proposes such small steps.
+The next section shows what happens as the proposal widens, and why around 23% turns out to be the target to aim for.
+
 ::: {.callout-tip title="Exercise: What is the proposal distribution?"}
 Look back at `metropolis_hastings_1d`.
 Which line draws the proposed new state, and what distribution does it use?
@@ -318,7 +322,7 @@ The choice of proposal standard deviation matters:
 ```{julia}
 # Test different proposal standard deviations
 proposal_stds = [0.1, 0.5, 1.0, 5.0, 10.0, 50.0]
-results = []
+results = @NamedTuple{std::Float64, samples::Vector{Float64}, acc_rate::Float64}[]
 
 for prop_std in proposal_stds
     samples, acc_rate = metropolis_hastings_1d(eval_log_density, 5000, 0.0, prop_std)
@@ -335,7 +339,7 @@ for result in results
 end
 
 # Plot trace plots for different proposal stds
-plots = []
+plots = Plots.Plot[]
 for (i, result) in enumerate(results)
     p = plot(
         result.samples,
@@ -350,10 +354,12 @@ end
 plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 ```
 
-::: {.callout-tip title = "Learning points"}
-- **Too small proposals** → High acceptance, but slow exploration
-- **Too large proposals** → Low acceptance, wasted computation
-- **Optimal**: ~23% acceptance rate for random walk Metropolis
+::: {.callout-important}
+## Choosing the proposal width
+
+- **Too small proposals** give high acceptance but slow exploration
+- **Too large proposals** give low acceptance and wasted computation
+- **The optimum** for random walk Metropolis is around 23% acceptance
 :::
 
 For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
@@ -412,14 +418,15 @@ Now let's run the same Metropolis-Hastings algorithm as before, but with Turing 
 
 ```{julia}
 #| output: false
-# Sample using Metropolis-Hastings (normal proposals with std 10.0)
-chain_normal_mh = sample(normal_model(), MH([10.0;;]), 50000)
+# Sample using Metropolis-Hastings, with the same proposal width and the same
+# number of iterations as the sampler we wrote by hand
+chain_normal_mh = sample(normal_model(), MH([1.0;;]), 5000)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`sample(model, sampler, n)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - runs the MCMC sampler on the model for `n` iterations, returning a chain of samples.
-- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` expects a *matrix* for the proposal covariance. The `[10.0;;]` syntax creates a 1×1 matrix — the double semicolon `;;` tells Julia "this is a matrix, not a vector". Without it, `[10.0]` would be a 1-element vector, which `MH` wouldn't accept. The value 10.0 sets the proposal variance (so the proposal standard deviation is √10 ≈ 3.2).
+- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` expects a *matrix* for the proposal covariance. The `[1.0;;]` syntax creates a 1×1 matrix, where the double semicolon `;;` tells Julia to build a matrix rather than a vector. `[1.0]` on its own would be a 1-element vector, which `MH` does not accept. The value sets the proposal *variance*, so a variance of 1.0 is the proposal standard deviation of 1.0 we passed to `metropolis_hastings_1d`.
 :::
 
 ```{julia}
@@ -463,7 +470,9 @@ p2 = histogram(
 plot(p1, p2, layout = (1, 2), size = (800, 300))
 ```
 
-Turing.jl did exactly what we coded earlier, but in a single call to the `sample()` function.
+Turing.jl ran the same algorithm with the same proposal width, in a single call to the `sample()` function.
+The two chains start from different points, because Turing draws its starting value from the model rather than taking the 0.0 we passed by hand, so the samples are not identical draw for draw.
+The distributions they explore are the same.
 
 ## Applying Turing.jl to the SIR model
 
@@ -490,9 +499,7 @@ This is the same structure we've been using manually (priors, simulation, likeli
 end
 
 # Create model instance
-#| output: false
-
-model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs)
+model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs);
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -749,7 +756,6 @@ What NUTS gives you automatically:
 
 ```{julia}
 # Built-in convergence diagnostics
-using MCMCChains
 summarystats(chain_nuts)
 ```
 
