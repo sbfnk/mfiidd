@@ -146,75 +146,14 @@ init_state = Dict(
 From here on, we use the **SEIT4L** model (Erlang-4 temporary immunity) rather than the basic SEITL (exponential temporary immunity). As we saw in the [SEITL session](seitl.qmd), the Erlang distribution gives more realistic timing for immunity loss. The original [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) paper found that SEIT4L fits the Tristan da Cunha data better. Everything below works identically with SEITL — just with fewer T sub-compartments.
 :::
 
-The particle filter needs to simulate many stochastic trajectories. We use the Gillespie algorithm introduced in the [SEITL session](seitl.qmd), adapted here for the SEIT4L model with its four T compartments:
+The particle filter needs to simulate many stochastic trajectories.
+We use the Gillespie algorithm introduced in the [SEITL session](seitl.qmd), adapted here for the SEIT4L model with its four T compartments.
+This is the implementation the filter below actually calls, shown from the package source rather than repeated by hand, so that the two cannot drift apart:
 
 ```{julia}
-#| eval: false
-#| code-fold: true
-#| code-summary: "Gillespie step implementation (click to expand)"
-# Stoichiometry matrix: how each transition changes [S, E, I, T1, T2, T3, T4, L]
-const STOICH = [
-    [-1,  1,  0,  0,  0,  0,  0,  0],  # S -> E (infection)
-    [ 0, -1,  1,  0,  0,  0,  0,  0],  # E -> I (become infectious)
-    [ 0,  0, -1,  1,  0,  0,  0,  0],  # I -> T1 (recovery starts)
-    [ 0,  0,  0, -1,  1,  0,  0,  0],  # T1 -> T2
-    [ 0,  0,  0,  0, -1,  1,  0,  0],  # T2 -> T3
-    [ 0,  0,  0,  0,  0, -1,  1,  0],  # T3 -> T4
-    [ 0,  0,  0,  0,  0,  0, -1,  1],  # T4 -> L (long-term immunity)
-    [ 1,  0,  0,  0,  0,  0,  0, -1],  # L -> S (waning immunity)
-]
-
-function gillespie_step(rng, state, θ)
-    S, E, I, T1, T2, T3, T4, L = state
-    N = sum(state)
-
-    # Calculate transition rates
-    β = θ[:R_0] / θ[:D_inf]
-    rates = [
-        β * S * I / N,           # S -> E
-        E / θ[:D_lat],           # E -> I
-        (1 - θ[:α]) * I / θ[:D_inf],  # I -> T1 (temporary immunity)
-        θ[:α] * I / θ[:D_inf],   # I -> L (direct to long-term, not shown above)
-        4 * T1 / θ[:D_imm],      # T1 -> T2 (Erlang stages)
-        4 * T2 / θ[:D_imm],      # T2 -> T3
-        4 * T3 / θ[:D_imm],      # T3 -> T4
-        4 * T4 / θ[:D_imm],      # T4 -> L
-    ]
-
-    daily_incidence = 0
-    t = 0.0
-
-    while t < 1.0  # Simulate one day
-        total_rate = sum(rates)
-        if total_rate == 0
-            break
-        end
-
-        # Time to next event
-        dt = randexp(rng) / total_rate
-        if t + dt > 1.0
-            break
-        end
-        t += dt
-
-        # Choose which event occurs
-        event = sample(rng, 1:length(rates), Weights(rates))
-
-        # Update state
-        state = state .+ STOICH[event]
-
-        # Track E -> I transitions as new cases
-        if event == 2
-            daily_incidence += 1
-        end
-
-        # Recalculate rates with new state
-        S, E, I, T1, T2, T3, T4, L = state
-        # ... (rates update)
-    end
-
-    return state, daily_incidence
-end
+#| echo: false
+#| output: asis
+println("```julia\n", source_for("seit4l_gillespie.jl"), "\n```")
 ```
 
 Key aspects:
@@ -252,9 +191,11 @@ for day in 1:5
     end
 end
 
-# For weighting step later
+# For weighting step later. The particles were stepped five times from day 0, so
+# `trajectories[i][6]` is each particle's incidence on day 5, and the observation
+# it should be weighted against is the one recorded on day 5.
 day_5_predictions = [trajectories[i][6] for i in 1:n_particles]
-day_5_observed = flu_tdc.obs[6]
+day_5_observed = flu_tdc.obs[5]
 
 # Plot
 p = plot(title="Particle Filter: Propagation Step",
@@ -265,19 +206,20 @@ for i in 1:n_particles
     plot!(p, 0:5, trajectories[i], alpha=0.4, color=:steelblue, linewidth=1, label="")
 end
 
-# All observations - earlier in gray, previous (day 4) in red, current target (day 5) as open circle
+# Observations up to day 4 in grey, and the day 5 observation the particles are
+# about to be weighted against as an open circle
 scatter!(p, flu_tdc.time[1:4], flu_tdc.obs[1:4],
          label="Earlier observations", markersize=4, color=:gray)
 scatter!(p, [flu_tdc.time[5]], [flu_tdc.obs[5]],
-         label="Previous observation", markersize=7, color=:red)
-scatter!(p, [flu_tdc.time[6]], [flu_tdc.obs[6]],
-         label="Current target", markersize=7, markershape=:circle,
+         label="Current target (day 5)", markersize=7, markershape=:circle,
          markerstrokecolor=:red, markerstrokewidth=2, color=:white)
 
 plot!(p, legend=:topright)
 ```
 
-Each blue line is one particle trajectory. The particles spread out because each follows different random events. The current observation (red, at day 5) will be used to weight the particles.
+Each blue line is one particle trajectory.
+The particles spread out because each follows different random events.
+The open circle is the observation recorded on day 5, and it is the one used to weight the particles below.
 
 ## The weighting step
 
