@@ -60,6 +60,7 @@ function AbstractMCMC.step_warmup(
     model::DynamicPPL.Model,
     spl::AdaptingExternalSampler,
     state::Turing.Inference.TuringState;
+    discard_sample=false,
     kwargs...,
 )
     f = state.ldf
@@ -67,8 +68,15 @@ function AbstractMCMC.step_warmup(
         rng, AbstractMCMC.LogDensityModel(f), spl.inner.sampler, state.state; kwargs...
     )
     params = AbstractMCMC.getparams(f.model, inner_state)
-    transition = DynamicPPL.ParamsWithStats(
-        params, f, AbstractMCMC.getstats(inner_state)
-    )
+    # Building the transition re-evaluates the model, which for a particle filter
+    # means a second full filter run. `mcmcsample` discards warmup draws, so it
+    # asks for the transition to be skipped; honouring that saves one model
+    # evaluation on nearly every warmup iteration. Turing's own `step` does the
+    # same.
+    transition = if discard_sample
+        nothing
+    else
+        DynamicPPL.ParamsWithStats(params, f, AbstractMCMC.getstats(inner_state))
+    end
     return transition, Turing.Inference.TuringState(inner_state, params, f)
 end
