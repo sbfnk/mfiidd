@@ -51,12 +51,12 @@ The source file of this session is located at `sessions/mcmc.qmd`.
 ## Load libraries
 
 ```{julia}
-using Random ## for random numbers
-using Distributions ## for probability distributions
-using DifferentialEquations ## for differential equations
-using DataFrames ## for data frames
-using Plots ## for plots
-using StatsPlots ## for statistical plots
+using Random # for random numbers
+using Distributions # for probability distributions
+using DifferentialEquations # for differential equations
+using DataFrames # for data frames
+using Plots # for plots
+using StatsPlots # for statistical plots
 using Turing # for probabilistic programming and MCMC
 using MCMCChains # for MCMC diagnostics
 using AdvancedMH # for adaptive MCMC samplers
@@ -426,7 +426,7 @@ chain_normal_mh = sample(normal_model(), MH([1.0;;]), 5000)
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`sample(model, sampler, n)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - runs the MCMC sampler on the model for `n` iterations, returning a chain of samples.
-- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` expects a *matrix* for the proposal covariance. The `[1.0;;]` syntax creates a 1×1 matrix, where the double semicolon `;;` tells Julia to build a matrix rather than a vector. `[1.0]` on its own would be a 1-element vector, which `MH` does not accept. The value sets the proposal *variance*, so a variance of 1.0 is the proposal standard deviation of 1.0 we passed to `metropolis_hastings_1d`.
+- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` takes the proposal covariance. The `[1.0;;]` syntax creates a 1×1 matrix, where the double semicolon `;;` tells Julia to build a matrix rather than a vector. The value sets the proposal *variance*, and since the variance is 1.0 here it happens to equal the standard deviation of 1.0 we passed to `metropolis_hastings_1d`. That coincidence is only true at 1.0: a variance of 0.04 is a standard deviation of 0.2.
 :::
 
 ```{julia}
@@ -526,7 +526,7 @@ chain_mh = sample(model, MH([1.0 0.0; 0.0 1.0]), 5000)
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- `[1.0 0.0; 0.0 1.0]` - a 2×2 matrix in Julia. Spaces separate columns, semicolons separate rows. This is the identity matrix, used here as the proposal covariance for MH. The diagonal values (1.0) set the proposal standard deviation for each parameter; off-diagonal zeros mean proposals are independent.
+- `[1.0 0.0; 0.0 1.0]` - a 2×2 matrix in Julia. Spaces separate columns, semicolons separate rows. This is the identity matrix, used here as the proposal covariance for MH. The diagonal values are *variances*, one per parameter, so 1.0 here is a proposal standard deviation of 1.0; off-diagonal zeros mean proposals are independent.
 :::
 
 ```{julia}
