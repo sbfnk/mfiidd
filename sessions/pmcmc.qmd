@@ -45,7 +45,7 @@ PMMH combines particle filters with MCMC, making it computationally demanding. F
 - **Memory**: ~4 GB RAM recommended
 - **Runtime**: Each MCMC iteration takes 0.1-0.5 seconds (256 particles)
 - **Full inference**: 10,000 iterations takes ~30-60 minutes; we use pre-computed chains for the main analysis
-- **Short test runs**: The 500-iteration demonstrations in this session take ~2-5 minutes each
+- **Short test runs**: the demonstration below runs 500 warmup iterations and 500 kept ones, so budget roughly twice what 500 iterations alone would cost
 
 The pre-computed chains (loaded from `data/`) were generated with 500,000 iterations over several hours.
 :::
@@ -288,7 +288,7 @@ not look obviously broken, it just has not gone anywhere yet.
 
 The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values. This noise means proposals that would be accepted with an exact likelihood may be rejected (and vice versa), slowing exploration.
 
-*Robust Adaptive Metropolis (RAM)* helps by automatically learning the posterior covariance structure during sampling ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)).
+*Robust Adaptive Metropolis (RAM)* helps by learning the posterior covariance structure during its warmup iterations ([Vihola, 2012](https://doi.org/10.1007/s11222-011-9269-5)), and then sampling with the proposal it has learned.
 
 ::: {.callout-note}
 ## Pre-computed chains
