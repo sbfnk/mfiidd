@@ -404,12 +404,14 @@ end
         return
     end
 
-    # Extract daily incidence
+    # Extract daily incidence. There is one fewer difference than there are time
+    # points, and `inc_daily[i]` is the incidence over the day ending at
+    # `times[i + 1]`, which is the day the i-th observation counts. Prepending a
+    # zero instead would match every observation to the previous day.
     inc_cumulative = sol[9, :]
-    inc_daily = [zero(eltype(inc_cumulative)); diff(inc_cumulative)]
+    inc_daily = diff(inc_cumulative)
 
     # Likelihood: Poisson observations
-    # obs[i] corresponds to inc_daily[i] (times 0-59, indices 1-60)
     lambdas = [max(ρ * inc_daily[i], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 end
