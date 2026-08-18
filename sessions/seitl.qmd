@@ -79,17 +79,17 @@ The source file of this session is located at `sessions/seitl.qmd`.
 ## Load libraries
 
 ```{julia}
-using Random # for random numbers
-using Distributions # for probability distributions
-using DifferentialEquations # for differential equations
+using Random ## for random numbers
+using Distributions ## for probability distributions
+using DifferentialEquations ## for differential equations
 # JumpProcesses.jl is an alternative for stochastic simulation - we implement Gillespie manually here
-using DataFrames # for data frames
-using Plots # for plots
-using StatsPlots # for statistical plots
-using Turing # for probabilistic programming and MCMC
-using CSV # for CSV file reading
-using DrWatson # for datadir()
-using MFIIDD # the course package, which holds the SEITL implementations
+using DataFrames ## for data frames
+using Plots ## for plots
+using StatsPlots ## for statistical plots
+using Turing ## for probabilistic programming and MCMC
+using CSV ## for CSV file reading
+using DrWatson ## for datadir()
+using MFIIDD ## the course package, which holds the SEITL implementations
 ```
 
 ## Initialisation
