@@ -365,7 +365,9 @@ println("Final loss: ", round(result.objective, digits=2))
 p_trained = result.u
 ```
 
-Always check that the loss has converged — if it's still decreasing at the end, run more iterations:
+Always check that the loss has converged — if it is still decreasing at the end, run more iterations.
+The curve below drops steeply for the first twenty iterations, sits on a plateau near -200 until about iteration 200, then falls again to around -340 and flattens out.
+A plateau in the middle of training is worth noticing: had we stopped at 150 iterations we would have concluded, wrongly, that the fit had converged.
 
 ```{julia}
 plot(loss_history, xlabel="Iteration", ylabel="Loss",
@@ -396,9 +398,25 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
          markersize=4, color=:red)
 ```
 
-**Key question**: Does the UDE capture the second wave? Look at the fit around days 25-35.
+**Key question**: what did the UDE buy, and what did it pay?
 
-You should see the UDE trajectory (orange/green line) tracking the first-wave peak noticeably better than the constant-β baseline. Whether the second wave (days 25-35) is captured depends on the training run: the UDE may show a small uptick there, but with only 60 data points it is unlikely to reproduce the second wave precisely. If the two curves look almost identical, the network may not have learned anything useful — try increasing the number of iterations or using a different random seed.
+The answer is not the one you might expect. The constant-β baseline nearly matches
+the height of the first peak, about 41 against an observed 47, and then collapses
+to nothing by day 15. The UDE does the opposite: it peaks at about 11, missing the
+first wave badly, and in exchange keeps a low tail running through days 20 to 50
+where the data really do have cases and the baseline has none.
+
+That trade is a direct consequence of the loss we chose. A Poisson negative
+log-likelihood is dominated by relative error, so being wrong by five cases on a
+day expecting two costs far more than being wrong by thirty on a day expecting
+forty. There are roughly forty small-count days in the tail and about five large
+ones at the peak, and the optimiser goes where the cost is. Swap in sum of squared
+errors and the incentive reverses: the peak would dominate and the tail would be
+abandoned.
+
+So the network did learn something, and it is not what a glance at the peak would
+suggest. Neither curve reproduces both waves, which is the point the next section
+takes up.
 
 ## Step 6: Visualise learned β(t)
 
@@ -430,19 +448,37 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-In a typical run you should see β(t) starting high (above the constant-β baseline), dropping during the trough around days 12-20, and then rising again around days 20-25 as the network tries to reignite transmission for the second wave. The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below).
+The curve above starts at about 1.0, a little *below* the constant-β baseline,
+falls to a minimum near 0.7 around day 8, and then climbs steadily for the rest of
+the outbreak, crossing the baseline around day 24 and reaching roughly 2.5 by day
+59.
+
+Read alongside the fit, that shape says what the network was doing. It suppresses
+transmission through the first wave, which is how the trajectory stays down at 11
+cases instead of overshooting to 40, and then raises transmission continuously to
+keep generating the small numbers of cases in the tail. It is propping up a long
+low tail rather than producing a second wave, and it needs an ever-larger β to do
+so because the susceptible pool is draining the whole time.
+
+The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below), so treat these numbers as this run's, not the model's.
 
 Before interpreting this curve, look back at Step 5. How well does the UDE actually fit the data? The fit may be imperfect. An imperfect fit tells us either that the network needs more capacity, or that the SIR structure itself can't capture the dynamics. We'll explore this in the next section.
 
-Interpreting the learned β(t):
+Interpreting a learned β(t), in general:
 
-If β(t) shows a dip followed by recovery around days 15-25, this suggests the network learned that transmission must vary to explain both waves. This is consistent with behavioural relaxation - initial caution followed by return to normal contact patterns.
+A dip followed by a recovery suggests the network found that transmission has to
+vary to explain the shape of the data, which is consistent with behavioural
+relaxation: initial caution, then a return to normal contact patterns.
 
-If β(t) is roughly constant, the network didn't find time-varying transmission useful. This might mean:
+A β(t) that rises without ever coming back down, as ours does, is a different
+signal. It says the network is compensating for something the *structure* cannot
+do, rather than describing a behaviour. Here it is compensating for a susceptible
+pool that only ever shrinks.
 
-- The network is too small (try more hidden units)
-- More training iterations are needed
-- Or genuinely: time-varying β isn't the right mechanism for this data
+A roughly constant β(t) would say the network did not find time-varying
+transmission useful, which might mean the network is too small, that more
+iterations are needed, or genuinely that time-varying β is not the right mechanism
+for these data.
 
 ## Uncertainty quantification in the main analysis {#uncertainty-quantification-in-the-main-analysis}
 
