@@ -16,7 +16,7 @@ order: 9
 
 So far in this course, we've used Markov Chain Monte Carlo (MCMC) for Bayesian inference. MCMC is asymptotically exact and provides reliable uncertainty quantification. But it has a key limitation: it's slow.
 
-For a single dataset with a simple model, MCMC takes minutes to hours. But what if we need:
+For a single dataset with a simple model, MCMC is usually affordable: the model in this session takes tens of seconds. The problem is what happens next:
 
 - Real-time forecasting: Update predictions as new data arrives every hour
 - Many datasets: Analyse hundreds of outbreaks from different locations
@@ -327,7 +327,7 @@ Why does this correlation arise? Consider the SIR model dynamics:
 
 - The **transmission rate** $\beta = R_0 / D_{\text{inf}}$ determines how fast susceptibles become infected
 - If we increase $R_0$ while keeping $\beta$ roughly constant (to match observed epidemic speed), we must also increase $D_{\text{inf}}$
-- Conversely, a shorter infectious period requires a higher $R_0$ to produce the same transmission rate
+- Conversely, a shorter infectious period goes with a lower $R_0$, since $\beta$ is their ratio and the data pin $\beta$ down
 
 In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space - exactly the kind of correlation mean-field VI cannot capture.
 
@@ -366,7 +366,8 @@ For our 3-parameter model, this means:
 
 The additional parameters allow the approximation to capture correlations. The elliptical contours of a full Gaussian can be tilted and stretched to match the ridge-like structure of the true posterior.
 
-The trade-off: more parameters means more to optimise, so full-rank VI is slower than mean-field (though still much faster than MCMC). For high-dimensional problems, the covariance matrix grows as $O(n^2)$, which can become prohibitive - in those cases, low-rank approximations or structured covariances are used.
+The trade-off is that more parameters means more to optimise, and for high-dimensional problems the covariance matrix grows as $O(n^2)$, which can become prohibitive; in those cases low-rank approximations or structured covariances are used.
+With three parameters that cost is invisible, and the timing cell below has full-rank finishing *faster* than mean-field on this run, because the number of optimiser iterations rather than the size of the covariance is what dominates here.
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
@@ -468,9 +469,13 @@ Comparing the two on a small model is the right way to check that VI is telling 
 
 | Method | Speed | Accuracy | Correlations | Use Case |
 |--------|-------|----------|--------------|----------|
-| MCMC | Slow (minutes-hours) | Exact (asymptotically) | Yes | Final analysis, publications |
-| Mean-field VI | Very fast (seconds) | Approximate | No | Quick exploration, many datasets |
-| Full-rank VI | Fast (seconds) | Better | Yes | Real-time forecasting |
+| MCMC | Slower, and the gap grows with model size | Exact (asymptotically) | Yes | Final analysis, publications |
+| Mean-field VI | Fast | Approximate | No | Quick exploration, many datasets |
+| Full-rank VI | Fast | Better | Yes | Real-time forecasting |
+
+On this three-parameter model the difference is a few fold rather than orders of
+magnitude, as the timings above show. Read the table as the shape of the trade-off
+rather than as a promise about seconds.
 
 # When to use each method
 
@@ -540,6 +545,7 @@ Run mean-field VI with different numbers of iterations (50, 200, 500, 2000) and 
 ::: {.callout-tip collapse="true"}
 ## Hint
 Use a loop over iteration counts, storing the final ELBO and posterior mean of $R_0$ for each run.
+Remember to put the draws back on the parameter scale with `to_constrained` before summarising them.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -551,12 +557,13 @@ results = []
 
 for n_iter in iter_counts
     res = vi(model, q_meanfield_gaussian, n_iter; adtype=AutoForwardDiff(), show_progress=false)
-    samples = rand(res.q, 5_000)
+    # Back to the parameter scale before summarising, as in the main text
+    draws = to_constrained(rand(res.q, 5_000))
     push!(results, (
         n_iter = n_iter,
         final_elbo = res.info[end].elbo,
-        R0_mean = mean(samples[1, :]),
-        R0_std = std(samples[1, :]),
+        R0_mean = mean(draws.R_0),
+        R0_std = std(draws.R_0),
         elbo_trace = [s.elbo for s in res.info]
     ))
 end
@@ -595,9 +602,9 @@ Use the MCMC chain `chain_mcmc` and VI distributions `q_mf` and `q_full` that we
 ## Solution
 
 ```{julia}
-# Draw samples (reuse existing VI fits from above)
-samp_mf = rand(q_mf, 10_000)
-samp_full = rand(q_full, 10_000)
+# Draw samples (reuse existing VI fits from above), on the parameter scale
+samp_mf = to_constrained(rand(q_mf, 10_000))
+samp_full = to_constrained(rand(q_full, 10_000))
 
 param_names = ["R_0", "D_inf", "ρ"]
 plots_list = []
@@ -605,9 +612,9 @@ plots_list = []
 for (i, pname) in enumerate(param_names)
     p = histogram(vec(chain_mcmc[Symbol(pname)]), bins=40, alpha=0.4,
                   normalize=:pdf, label="MCMC", xlabel=pname, ylabel="Density")
-    histogram!(p, samp_mf[i, :], bins=40, alpha=0.4,
+    histogram!(p, samp_mf[!, pname], bins=40, alpha=0.4,
                normalize=:pdf, label="Mean-field VI")
-    histogram!(p, samp_full[i, :], bins=40, alpha=0.4,
+    histogram!(p, samp_full[!, pname], bins=40, alpha=0.4,
                normalize=:pdf, label="Full-rank VI")
     push!(plots_list, p)
 end
@@ -623,8 +630,8 @@ println("-"^75)
 for (i, pname) in enumerate(param_names)
     mcmc_vals = vec(chain_mcmc[Symbol(pname)])
     println("$(rpad(pname, 9)) | $(round(mean(mcmc_vals), digits=2)) ($(round(std(mcmc_vals), digits=2))) | " *
-            "$(round(mean(samp_mf[i, :]), digits=2)) ($(round(std(samp_mf[i, :]), digits=2))) | " *
-            "$(round(mean(samp_full[i, :]), digits=2)) ($(round(std(samp_full[i, :]), digits=2)))")
+            "$(round(mean(samp_mf[!, pname]), digits=2)) ($(round(std(samp_mf[!, pname]), digits=2))) | " *
+            "$(round(mean(samp_full[!, pname]), digits=2)) ($(round(std(samp_full[!, pname]), digits=2)))")
 end
 ```
 
