@@ -79,16 +79,16 @@ The source file of this session is located at `sessions/seitl.qmd`.
 ## Load libraries
 
 ```{julia}
-using Random ## for random numbers
-using Distributions ## for probability distributions
-using DifferentialEquations ## for differential equations
+using Random # for random numbers
+using Distributions # for probability distributions
+using DifferentialEquations # for differential equations
 # JumpProcesses.jl is an alternative for stochastic simulation - we implement Gillespie manually here
-using DataFrames ## for data frames
-using Plots ## for plots
-using StatsPlots ## for statistical plots
-using Turing ## for probabilistic programming and MCMC
-using CSV ## for CSV file reading
-using DrWatson
+using DataFrames # for data frames
+using Plots # for plots
+using StatsPlots # for statistical plots
+using Turing # for probabilistic programming and MCMC
+using CSV # for CSV file reading
+using DrWatson # for datadir()
 ```
 
 ## Initialisation
@@ -127,9 +127,9 @@ The dataset of daily incidence can be loaded and plotted as follows:
 ```{julia}
 # Load Tristan da Cunha data
 # Alternatively, you can load directly from GitHub:
-# flu_tdc_url = "https://raw.githubusercontent.com/sbfnk/mfiidd.julia/main/data/flu_tdc_1971.csv"
+# flu_tdc_url = "https://raw.githubusercontent.com/mfiidd/mfiidd/main/data/flu_tdc_1971.csv"
 # flu_tdc = CSV.read(download(flu_tdc_url), DataFrame)
-flu_tdc = CSV.read(joinpath(@__DIR__, "..", "data", "flu_tdc_1971.csv"), DataFrame)
+flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 
 # Display first few rows
 first(flu_tdc, 6)
@@ -302,6 +302,10 @@ When unconditioned, use for prior predictive simulation.
 When conditioned with | (; obs = data), use for inference (in later sessions).
 """
 @model function seitl_model(times, init_state, n_obs)
+    # `times` starts one day before the first observation, so that
+    # `traj.Inc[i + 1]` is the incidence over the day the i-th observation counts.
+    # The first row of a trajectory has no preceding day and carries no incidence.
+    #
     # Deliberately wide priors — we want the data to drive inference
     # rather than our prior beliefs. These ranges are generous enough
     # to include all plausible parameter values for influenza.
@@ -320,7 +324,7 @@ When conditioned with | (; obs = data), use for inference (in later sessions).
     traj = simulate_seitl_deterministic(θ, init_state, times)
 
     # Likelihood
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
@@ -440,7 +444,7 @@ p = plot(title = "Prior Predictive Simulations",
 
 for i in 1:5
     # Sample parameters from priors
-    seitl_prior = seitl_model(times, init_state_guess, length(times))
+    seitl_prior = seitl_model(times, init_state_guess, length(times) - 1)
     params = rand(seitl_prior).data
 
     # Create parameter dictionary and simulate
@@ -603,7 +607,7 @@ This version uses the Gillespie algorithm for demographic stochasticity.
     traj = simulate_seitl_stochastic(θ, init_state, times)
 
     # Likelihood
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
@@ -795,7 +799,7 @@ This version uses an Erlang-4 distribution for the T compartment.
     traj = simulate_seit4l_deterministic(θ, init_state, times)
 
     # Likelihood
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
