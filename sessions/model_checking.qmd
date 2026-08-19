@@ -338,7 +338,7 @@ If the observed value (red line) falls in the tails of the posterior predictive 
 ::: {.callout-tip title="What to look for" collapse="true"}
 Question 1 has no answer here, and that is the finding: **none** of the three sits
 comfortably inside its posterior predictive distribution. All three land in a
-tail, which is a stronger verdict than a mixed result would be.
+tail.
 
 Read it off the printed p-values: near 0 for peak size and for total cases, near 1
 for peak timing. The observed peak of 47 is larger than every simulated peak, the
