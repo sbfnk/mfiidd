@@ -292,7 +292,7 @@ Visual checks are valuable but subjective. We can also compute summary statistic
 # Compute summary statistics for each posterior predictive sample
 function compute_summaries(trajectory)
     peak_value = maximum(trajectory)
-    peak_time = argmax(trajectory)  # index i is day i, after the alignment above
+    peak_time = argmax(trajectory)
     total_cases = sum(trajectory)
     return (peak=peak_value, peak_time=peak_time, total=total_cases)
 end
