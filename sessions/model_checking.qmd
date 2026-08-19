@@ -137,9 +137,7 @@ You'll see `max(value, 1e-10)` throughout the course wherever we create a Poisso
 :::
 
 ```{julia}
-# Prior predictive sampling. The grid starts at day 0, one day before the first
-# observation, because each observation counts the cases arising over the day
-# that ends at its own time point.
+# Prior predictive sampling.
 times = 0.0:1.0:59.0
 S0, I0 = 279.0, 5.0
 
