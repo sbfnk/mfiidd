@@ -63,6 +63,37 @@ Package version bounds are kept up to date by CompatHelper, which opens a pull
 request when a dependency releases a new version. GitHub's dependabot does not
 support Julia, which is why CompatHelper is there instead.
 
+### Automated review
+
+Pull requests can be reviewed by Claude, which posts findings as inline comments.
+There are three ways that happens, and which one applies depends on whose API
+token pays for it. A GitHub Actions secret belongs to the repository, not to the
+person who triggered the run, so a workflow here can only ever spend the one
+token this repository holds.
+
+**Automatically, for listed authors.** `.github/workflows/claude-code-review.yml`
+reviews every push to a pull request opened by one of the authors named in it.
+Nobody has to ask, so the list is deliberately short.
+
+**On request, for anyone's pull request.** Comment `@claude` on a pull request or
+issue and `.github/workflows/claude.yml` runs. Only the people named in that
+workflow can trigger it, because triggering it spends the repository's token. If
+you would like a review on your pull request, ask in a comment and a maintainer
+can start one.
+
+**On your own account, for anything.** If you would rather not wait, and would
+rather spend your own quota than someone else's, run the review where your own
+credentials live:
+
+- Locally, with [Claude Code](https://docs.claude.com/en/docs/claude-code): check
+  out your branch and ask it to review the diff before you push.
+- In your fork, by adding your own `CLAUDE_CODE_OAUTH_TOKEN` secret there and
+  letting the workflows run on your branch. Note that pull requests *from* a fork
+  never receive this repository's secrets, so a fork is the only place your own
+  token can run against your changes.
+
+None of this is required. Review by a human is what gates a merge.
+
 ### Working with course materials
 
 - Models use Turing's `@model` macro with `~` for priors and likelihoods
