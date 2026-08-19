@@ -105,9 +105,7 @@ function simulate_sir(R_0, D_inf, S0, I0, times)
     sol = solve(prob, Tsit5(), saveat=times_vec)
 
     # The model tracks cumulative incidence, so daily incidence is the difference
-    # between consecutive days. There is one fewer difference than there are time
-    # points: `inc_daily[i]` is the incidence during the day ending at
-    # `times_vec[i + 1]`.
+    # between consecutive days.
     inc_cumulative = sol[4, :]
     inc_daily = diff(inc_cumulative)
 
