@@ -149,7 +149,7 @@ prior_samples = sample(
 
 ::: {.callout-tip collapse="true"}
 ## Code walkthrough
-- `sir_model(times, S0, I0, length(times) - 1)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively — Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks) — here we never conditioned the model in the first place.
+- `sir_model(times, S0, I0, length(times) - 1)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively, i.e. Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks).
 - [`Prior()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a sampler that draws from prior distributions only, ignoring the likelihood. This gives us parameter combinations purely from our prior beliefs.
 :::
 
