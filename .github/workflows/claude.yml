@@ -30,8 +30,11 @@ jobs:
     # CLAUDE_CODE_OAUTH_TOKEN". If a collaborator wants reviews on their own
     # account instead, see CONTRIBUTING.md — that runs outside this repository,
     # because a workflow here can only ever use this repository's secrets.
+    #
+    # As with the automatic lane, the list is a repository variable so a fork can
+    # set its own without editing this file.
     if: |
-      contains(fromJSON('["sbfnk"]'), github.actor) && (
+      contains(fromJSON(vars.CLAUDE_TRIGGER_ACTORS || '["sbfnk"]'), github.actor) && (
         (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
         (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
         (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||

@@ -47,7 +47,13 @@ jobs:
     # Keep this on one line: in a folded block, a more-indented continuation
     # keeps its newline rather than folding to a space, which also makes the
     # expression evaluate false.
-    if: github.event.pull_request.head.repo.full_name == github.repository && contains(fromJSON('["sbfnk", "sbfnk-bot"]'), github.event.pull_request.user.login)
+    #
+    # The list lives in a repository variable so a fork can change it without
+    # editing this file. Someone who forks the course and wants reviews on their
+    # own account sets CLAUDE_REVIEW_AUTHORS and their own token in their fork,
+    # and nothing here has to change: a diff to a workflow file would otherwise
+    # show up in every pull request they open back upstream.
+    if: github.event.pull_request.head.repo.full_name == github.repository && contains(fromJSON(vars.CLAUDE_REVIEW_AUTHORS || '["sbfnk", "sbfnk-bot"]'), github.event.pull_request.user.login)
 
     runs-on: ubuntu-latest
     permissions:

@@ -87,10 +87,20 @@ credentials live:
 
 - Locally, with [Claude Code](https://docs.claude.com/en/docs/claude-code): check
   out your branch and ask it to review the diff before you push.
-- In your fork, by adding your own `CLAUDE_CODE_OAUTH_TOKEN` secret there and
-  letting the workflows run on your branch. Note that pull requests *from* a fork
-  never receive this repository's secrets, so a fork is the only place your own
-  token can run against your changes.
+- In your fork, which is the only place your own token can run against your
+  changes: pull requests *from* a fork never receive this repository's secrets.
+  Two settings in your fork, and no edits to any file:
+
+  1. Add your own `CLAUDE_CODE_OAUTH_TOKEN` under Settings → Secrets and
+     variables → Actions → Secrets.
+  2. Add a repository *variable* on the same page, `CLAUDE_REVIEW_AUTHORS`, set
+     to `["your-github-login"]`.
+
+  Then open your pull request inside your fork, from your branch to your fork's
+  `main`, and the review runs there on your token. Open the pull request upstream
+  when you are happy with it. The workflows read that variable rather than a
+  hard-coded list precisely so you do not have to edit them, which would put a
+  workflow change into every pull request you send back.
 
 None of this is required. Review by a human is what gates a merge.
 
