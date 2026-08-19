@@ -122,8 +122,7 @@ Now let's define a model with priors and sample from the prior predictive distri
     D_inf ~ Uniform(1.0, 14.0)
     ρ ~ Uniform(0.0, 1.0)  # Reporting rate
 
-    # Simulate. `times` starts one day before the first observation, so that
-    # `inc[i]` is the incidence during the day the i-th observation counts.
+    # Simulate.
     inc = simulate_sir(R_0, D_inf, S0, I0, times)
 
     # Likelihood
