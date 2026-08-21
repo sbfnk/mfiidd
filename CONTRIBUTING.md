@@ -196,3 +196,23 @@ Anything that takes more than a couple of minutes is precomputed. The scripts
 that generate those results live in `scripts/`, and the sessions load the saved
 output from `data/`. If you change a model that a precomputed chain depends on,
 re-run the script and commit the new `.rdata` file alongside the change.
+
+## Getting a review
+
+Pull requests here are reviewed by a person, but you can get an automated pass
+first, and it is worth doing before you ask anyone to look.
+
+`.github/REVIEW.md` says what a review of this repository checks and — as
+importantly — what is not worth reporting. It is written for any coding
+assistant, not one in particular: point yours at the file and ask it to review
+your branch against it. With Claude Code, `/review` does this; with Codex,
+Cursor or anything else, asking it to follow `.github/REVIEW.md` works the same
+way.
+
+This runs on **your** account, with whatever model you use. There is deliberately
+no workflow in this repository that reviews pull requests automatically: a GitHub
+Actions secret belongs to the repository rather than to whoever triggered the
+run, so an automatic lane would spend the maintainers' quota on every push by
+everyone, and would impose one model on contributors who may prefer their own.
+Keeping the criteria in the repository and the compute with whoever runs it
+avoids both.
