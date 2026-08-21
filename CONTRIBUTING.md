@@ -290,12 +290,5 @@ re-run the script and commit the new `.rdata` file alongside the change.
 
 ## Reviewing a change
 
-`.github/REVIEW.md` describes what a review of this repository looks for, and
-what is not worth reporting — the second being the more useful half. It is
-written to be followed by a person or by a coding assistant; if you use one,
-point it at that file.
-
-Nothing here reviews pull requests automatically. A GitHub Actions secret
-belongs to the repository rather than to whoever triggered the run, so an
-automatic lane would put every contributor's reviews through a single shared
-token and a single model.
+`.github/REVIEW.md` says what a review of this repository looks for, and what is
+not worth reporting. Follow it yourself, or point a coding assistant at it.

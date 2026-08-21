@@ -1,19 +1,19 @@
 # Reviewing a change to mfiidd
 
-What to look for in a change to the MFIIDD course materials specifically — a
-Quarto site of teaching sessions (`sessions/*.qmd`) whose Julia executes at
+What to look for in a change to the MFIIDD course materials specifically. This
+is a Quarto site of teaching sessions (`sessions/*.qmd`) whose Julia executes at
 render time, using Turing.jl for the inference the course teaches. The reviewing
-method — how to scope a review, what counts as a finding, how to report and
-suggest the fix, the trust rules — is the org half of this spec
-(`mfiidd/.github` → `REVIEW.md`), and a review follows both. The repository's
+method (how to scope a review, what counts as a finding, how to report and
+suggest the fix, the trust rules) is the org half of this spec, in
+`mfiidd/.github`, and a review follows both. The repository's
 conventions are in `CONTRIBUTING.md` and `CLAUDE.md`.
 
 **This is teaching material, and that changes the bar.** Code here is written to
 be read by someone learning the method, not to be idiomatic or fast. A loop
 written out longhand where a comprehension would do, a model written inline
-rather than factored into a function, a variable named for the notation in the
-lecture rather than for Julia style — these are pedagogy, not defects. Do not
-suggest a refactor whose only benefit is elegance. The question is whether a
+instead of factored into a function, a variable named for the notation in the
+lecture: these are pedagogy, not defects. Do not suggest a refactor whose only
+benefit is elegance. The question is whether a
 participant following the session would be misled, not whether an experienced
 Julia programmer would have written it differently.
 
