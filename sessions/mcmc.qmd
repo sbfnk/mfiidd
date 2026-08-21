@@ -322,7 +322,7 @@ The choice of proposal standard deviation matters:
 ```{julia}
 # Test different proposal standard deviations
 proposal_stds = [0.1, 0.5, 1.0, 5.0, 10.0, 50.0]
-results = @NamedTuple{std::Float64, samples::Vector{Float64}, acc_rate::Float64}[]
+results = []
 
 for prop_std in proposal_stds
     samples, acc_rate = metropolis_hastings_1d(eval_log_density, 5000, 0.0, prop_std)
