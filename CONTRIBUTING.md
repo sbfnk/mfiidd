@@ -288,21 +288,14 @@ that generate those results live in `scripts/`, and the sessions load the saved
 output from `data/`. If you change a model that a precomputed chain depends on,
 re-run the script and commit the new `.rdata` file alongside the change.
 
-## Getting a review
+## Reviewing a change
 
-Pull requests here are reviewed by a person, but you can get an automated pass
-first, and it is worth doing before you ask anyone to look.
+`.github/REVIEW.md` describes what a review of this repository looks for, and
+what is not worth reporting — the second being the more useful half. It is
+written to be followed by a person or by a coding assistant; if you use one,
+point it at that file.
 
-`.github/REVIEW.md` says what a review of this repository checks and — as
-importantly — what is not worth reporting. It is written for any coding
-assistant, not one in particular: point yours at the file and ask it to review
-your branch against it. With Claude Code, `/review` does this; with Codex,
-Cursor or anything else, asking it to follow `.github/REVIEW.md` works the same
-way.
-
-It runs on your own account, with whatever model you use. Nothing in this
-repository reviews pull requests automatically — an Actions secret belongs to
-the repository rather than to whoever triggered the run, so an automatic lane
-would put every contributor's reviews through a single shared token and a single
-model. Keeping the criteria here and the compute with whoever runs it means the
-standard is shared without the quota being.
+Nothing here reviews pull requests automatically. A GitHub Actions secret
+belongs to the repository rather than to whoever triggered the run, so an
+automatic lane would put every contributor's reviews through a single shared
+token and a single model.
