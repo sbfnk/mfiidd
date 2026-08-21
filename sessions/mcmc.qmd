@@ -221,7 +221,7 @@ The histogram of samples closely matches the true density.
 
 Notice the acceptance rate, which is over 80%.
 That is comfortable rather than efficient: the chain accepts nearly everything it proposes because it proposes such small steps.
-The next section shows what happens as the proposal widens, and why around 23% turns out to be the target to aim for.
+Widening the proposal buys bigger steps at the price of more rejections, and the section on proposal distributions below works out where the best trade lies.
 
 ::: {.callout-tip title="Exercise: What is the proposal distribution?"}
 Look back at `metropolis_hastings_1d`.
@@ -359,8 +359,11 @@ plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 
 - **Too small proposals** give high acceptance but slow exploration
 - **Too large proposals** give low acceptance and wasted computation
-- **The optimum** for random walk Metropolis is around 23% acceptance
+- **The best acceptance rate depends on how many parameters you are sampling**: around 44% for a single parameter, falling towards 23% as the number grows
 :::
+
+The runs above show this. The chain mixes best at a proposal standard deviation of 5, which accepts around 43% of what it proposes, while the run at a standard deviation of 10 accepts 24% and wanders visibly more slowly.
+The 23% figure is the limit for a large number of parameters, so it is the wrong target for the single parameter sampled here.
 
 For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
 This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
@@ -577,7 +580,7 @@ Try these experiments (run each for 5000 samples):
 
 Questions to answer:
 
-- What acceptance rate gives the best mixing? (Hint: aim for ~23% for random walk MH.)
+- What acceptance rate gives the best mixing? (Hint: with two parameters, aim somewhere in the 30–40% range.)
 - Can you find settings that give a well-mixed trace for *both* parameters simultaneously?
 - How long did tuning take you? Imagine doing this for 10+ parameters.
 
@@ -586,7 +589,7 @@ Acceptance rate too high (>50%)? Your proposals are too small. The chain accepts
 
 Acceptance rate too low (<10%)? Your proposals are too large. Most proposed jumps land in low-probability regions and get rejected; you'll see the trace plot stuck for many iterations.
 
-Sweet spot (~20–30%): a healthy balance of exploration and acceptance.
+Sweet spot (~30–40% for these two parameters): a healthy balance of exploration and acceptance.
 
 Check your acceptance rate with: `mean(diff(vec(chain[:R_0])) .!= 0)`
 :::
