@@ -15,7 +15,7 @@ Simulate SEITL for one time unit using the Gillespie algorithm.
 # Returns
 - `incidence`: Number of new cases (E→I transitions)
 """
-function gillespie_step_seitl!(state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
+function gillespie_step_seitl!(state::Vector{Float64}, θ::Dict, dt::Float64 = 1.0)
     β = θ[:R_0] / θ[:D_inf]
     ϵ = 1.0 / θ[:D_lat]
     ν = 1.0 / θ[:D_inf]
@@ -28,7 +28,7 @@ function gillespie_step_seitl!(state::Vector{Float64}, θ::Dict, dt::Float64=1.0
         [0, -1, 1, 0, 0],   # E → I (becoming infectious)
         [0, 0, -1, 1, 0],   # I → T (recovery)
         [1, 0, 0, -1, 0],   # T → S (immunity wanes)
-        [0, 0, 0, -1, 1]    # T → L (long-term immunity)
+        [0, 0, 0, -1, 1],    # T → L (long-term immunity)
     ]
 
     function rates(s)
@@ -83,8 +83,12 @@ Run bootstrap particle filter for SEITL and return log-likelihood.
 # Returns
 - `log_likelihood`: Estimated log-likelihood
 """
-function particle_filter_seitl(θ, obs, n_particles;
-                               init_state=[279.0, 0.0, 2.0, 3.0, 0.0])
+function particle_filter_seitl(
+    θ,
+    obs,
+    n_particles;
+    init_state = [279.0, 0.0, 2.0, 3.0, 0.0],
+)
     n_obs = length(obs)
     ρ = θ[:ρ]
 
@@ -107,7 +111,7 @@ function particle_filter_seitl(θ, obs, n_particles;
         w ./= sum(w)
 
         # Resample if ESS too low
-        ess = 1.0 / sum(w.^2)
+        ess = 1.0 / sum(w .^ 2)
         if ess < n_particles / 2
             idx = wsample(1:n_particles, Weights(w), n_particles)
             particles = [copy(particles[i]) for i in idx]

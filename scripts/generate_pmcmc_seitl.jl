@@ -26,15 +26,21 @@ using MFIIDD
 # =============================================================================
 
 @model function pmmh_seitl(obs, n_particles)
-    R_0 ~ truncated(Normal(3.0, 2.0), lower=1.0)
-    D_lat ~ truncated(Normal(2.0, 1.0), lower=0.5)
-    D_inf ~ truncated(Normal(3.0, 2.0), lower=0.5)
+    R_0 ~ truncated(Normal(3.0, 2.0), lower = 1.0)
+    D_lat ~ truncated(Normal(2.0, 1.0), lower = 0.5)
+    D_inf ~ truncated(Normal(3.0, 2.0), lower = 0.5)
     α ~ Beta(2, 2)
-    D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
+    D_imm ~ truncated(Normal(15.0, 10.0), lower = 1.0)
     ρ ~ Beta(2, 2)
 
-    θ = Dict(:R_0 => R_0, :D_lat => D_lat, :D_inf => D_inf,
-             :α => α, :D_imm => D_imm, :ρ => ρ)
+    θ = Dict(
+        :R_0 => R_0,
+        :D_lat => D_lat,
+        :D_inf => D_inf,
+        :α => α,
+        :D_imm => D_imm,
+        :ρ => ρ,
+    )
 
     log_lik = particle_filter_seitl(θ, obs, n_particles)
     Turing.@addlogprob! log_lik
@@ -75,15 +81,15 @@ chain_seitl_full = sample(
     model_seitl,
     externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     n_samples;
-    check_model=false,
-    progress=true
+    check_model = false,
+    progress = true,
 )
 
 t_elapsed = time() - t_start
 println("\nSEITL sampling took $(round(t_elapsed/60, digits=1)) minutes")
 
 # Remove burnin and thin
-chain_seitl = chain_seitl_full[burnin+1:thinning:end]
+chain_seitl = chain_seitl_full[(burnin + 1):thinning:end]
 println("After burnin and thinning: $(length(chain_seitl)) samples")
 
 # Save
