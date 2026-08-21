@@ -287,3 +287,8 @@ Anything that takes more than a couple of minutes is precomputed. The scripts
 that generate those results live in `scripts/`, and the sessions load the saved
 output from `data/`. If you change a model that a precomputed chain depends on,
 re-run the script and commit the new `.rdata` file alongside the change.
+
+## Reviewing a change
+
+`.github/REVIEW.md` says what a review of this repository looks for, and what is
+not worth reporting. Follow it yourself, or point a coding assistant at it.
