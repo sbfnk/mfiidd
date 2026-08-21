@@ -209,10 +209,9 @@ your branch against it. With Claude Code, `/review` does this; with Codex,
 Cursor or anything else, asking it to follow `.github/REVIEW.md` works the same
 way.
 
-This runs on **your** account, with whatever model you use. There is deliberately
-no workflow in this repository that reviews pull requests automatically: a GitHub
-Actions secret belongs to the repository rather than to whoever triggered the
-run, so an automatic lane would spend the maintainers' quota on every push by
-everyone, and would impose one model on contributors who may prefer their own.
-Keeping the criteria in the repository and the compute with whoever runs it
-avoids both.
+It runs on your own account, with whatever model you use. Nothing in this
+repository reviews pull requests automatically — an Actions secret belongs to
+the repository rather than to whoever triggered the run, so an automatic lane
+would put every contributor's reviews through a single shared token and a single
+model. Keeping the criteria here and the compute with whoever runs it means the
+standard is shared without the quota being.
