@@ -26,7 +26,7 @@ catch
     error(
         "tensorboard_callback needs TensorBoardLogger.jl. Install it with " *
         "`] add TensorBoardLogger` and load it with `using TensorBoardLogger` " *
-        "before including this file."
+        "before including this file.",
     )
 end
 
@@ -56,18 +56,34 @@ across the threads `MCMCThreads()` spawns; writes are guarded by a
 share the logger and interleave.
 """
 function tensorboard_callback(
-        logdir::AbstractString; every::Integer = 1, histograms::Bool = true)
+    logdir::AbstractString;
+    every::Integer = 1,
+    histograms::Bool = true,
+)
     logger = TBLogger(logdir)
     lk = ReentrantLock()
     history = Dict{String, Vector{Float64}}()
-    return function (rng, model, sampler, transition, state, iteration;
-            kwargs...)
+    return function (rng, model, sampler, transition, state, iteration; kwargs...)
         try
             Base.@lock lk begin
-                _emit!(logger, history, "params/", pairs(transition.params),
-                    iteration, every, histograms)
-                _emit!(logger, history, "diagnostics/", pairs(transition.stats),
-                    iteration, every, histograms)
+                _emit!(
+                    logger,
+                    history,
+                    "params/",
+                    pairs(transition.params),
+                    iteration,
+                    every,
+                    histograms,
+                )
+                _emit!(
+                    logger,
+                    history,
+                    "diagnostics/",
+                    pairs(transition.stats),
+                    iteration,
+                    every,
+                    histograms,
+                )
             end
         catch
             # A streaming callback must never bring down a fit.
@@ -89,8 +105,7 @@ function _emit!(logger, history, prefix, entries, iteration, every, histograms)
             draws = get!(() -> Float64[], history, tag)
             push!(draws, v)
             if iteration % every == 0 && length(draws) > 1
-                log_histogram(logger, string(tag, "/distribution"), draws;
-                    step = iteration)
+                log_histogram(logger, string(tag, "/distribution"), draws; step = iteration)
             end
         end
     end
