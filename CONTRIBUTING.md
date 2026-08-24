@@ -71,9 +71,100 @@ support Julia, which is why CompatHelper is there instead.
 - Data: `CSV.read(datadir("filename.csv"), DataFrame)`
 - Diagnostics: StatsPlots.jl for trace plots, density plots, convergence checks
 
-## Style
+## House style
 
-- Use British English in all written content
+### Prose
+
+- **British English throughout**: modelling, behaviour, summarise, visualise,
+  centre. This applies to prose, comments, commit messages and the text of figure
+  labels. It does not apply to code: identifiers, CSS properties and Quarto or
+  reveal attribute values keep their own spelling, so `fig-align: center`,
+  `text-align: center` and the `{.center}` class stay as they are.
+- **No contractions.** Write "do not", "we will", "it is", "let us". The course
+  reads as written teaching material rather than as a transcript of the lecture.
+  Only `julia_ecosystem.qmd` currently follows this throughout; the other eleven
+  sessions carry between 4 and 37 contractions each, so applying the rule to the
+  existing material is a substantial sweep rather than a tidy-up.
+- **One sentence per line** in the `.qmd` source. Start each sentence on a new
+  line and do not wrap within a sentence, however long it runs. Markdown joins
+  the lines when rendering, so the output is unchanged, and a reworded sentence
+  then shows up as a single changed line instead of a reflowed paragraph. The
+  gain is entirely in review: prose diffs become readable.
+  - A sentence beginning with a numeral and a full stop ("1998. That year...")
+    is parsed as an ordered-list item, but only when it is the first line of a
+    paragraph. Mid-paragraph it stays inline, which is where most sentences end
+    up under this rule. Reword only when it bites.
+  - Tables, YAML, callout delimiters and code blocks are exempt.
+- **Sentence case for headings**: "Prior predictive checks", not "Prior
+  Predictive Checks". Proper nouns keep their capitals ("Sampling with
+  DynamicHMC.jl").
+- **"We" for what the session does, "you" for what the reader does.** "We fit
+  the model with NUTS" describes the worked example; "you should see a warning"
+  addresses the reader. Both are used throughout and neither should be purged.
+- Avoid "X, not Y" and "X, rather than Y" unless a reader who has not seen the
+  drafting history would recognise Y as a real alternative worth weighing. State
+  the positive claim on its own.
+- **End-of-line comments in Julia use `##`**, as in `using Random ## for random
+  numbers`. This is a course convention rather than a Julia one, which uses a
+  single `#`, but the sessions are near-unanimous: `##` outnumbers `#` by about
+  sixty to four. Follow it, or change it everywhere in one sweep and update this
+  line. Do not fix it session by session, which only splits the corpus further.
+
+### Session structure
+
+Every session has the first six of these, in this order. The closing sections
+vary across the corpus, and the ordering given here is the target rather than a
+description:
+
+1. YAML front matter. Every session carries `title`, `format: html`,
+   `engine: julia` and `order`; without the last two the Julia does not execute
+   and the rendered page is codeless. `subtitle` is optional and four sessions
+   use it.
+2. The estimated-time banner, a `callout-note appearance="simple"`. Every session
+   gives an estimated time. Add a level marker where one applies, as
+   `**Advanced session**` or `**Optional session**`, and `**Requires**:` where
+   the session genuinely depends on earlier ones, which is five of the twelve
+   today. Linking the prerequisites is welcome but not the norm yet.
+3. `# Introduction`, motivating the session from where the previous one stopped.
+4. `# Objectives`, a numbered list of what the reader will be able to do.
+5. `# Setup`, loading packages and data. Data loading belongs here rather than
+   in a top-level section of its own.
+6. The body.
+7. A `callout-tip title="Learning points"` box of bullet points, once per
+   session, at the end of the body. The Callout conventions section below says the
+   same thing; this is the only place the placement is specified.
+8. Optionally `# Going further` and `# Next session`.
+9. `# References` last, holding the `::: {#refs}` block.
+
+Four sessions do not match points 8 and 9 today: `observation_models.qmd` has no
+`# References` section at all, `abc.qmd` ends `Going further` → `References` →
+`Next session`, `seitl.qmd` ends `References` → `Going further`, and
+`universal_differential_equations.qmd` places `Going further` before its Learning
+points box. Bring a session into line when you are editing it for another reason
+rather than making a sweep of its own.
+
+### Exercise placement
+
+- **Interleave by default**, placing each exercise immediately after the material
+  it tests. Most sessions do this and it keeps the exercise next to the code it
+  refers to.
+- **Advanced sessions may collect exercises** in a single `# Exercises` section
+  before `# Going further`, which is what the variational inference and universal
+  differential equations sessions do. Pick one arrangement per session rather
+  than splitting between the two.
+- Two or more per session, each with a collapsed answer. See "Exercises" below
+  for what makes a good one.
+
+### "Coming from R?"
+
+Write one where R genuinely does the thing differently and the difference would
+otherwise trip up an R-speaking reader: a different default, a missing library, a
+convention that does not transfer. Do not add one to a session for the sake of
+having one, and do not write one that only says the syntax differs. Sessions
+without a real contrast are better without the note.
+
+### Other conventions
+
 - Models follow a standardised structure for educational consistency
 - Cache directories and generated HTML should not be committed
 
@@ -196,3 +287,8 @@ Anything that takes more than a couple of minutes is precomputed. The scripts
 that generate those results live in `scripts/`, and the sessions load the saved
 output from `data/`. If you change a model that a precomputed chain depends on,
 re-run the script and commit the new `.rdata` file alongside the change.
+
+## Reviewing a change
+
+`.github/REVIEW.md` says what a review of this repository looks for, and what is
+not worth reporting. Follow it yourself, or point a coding assistant at it.

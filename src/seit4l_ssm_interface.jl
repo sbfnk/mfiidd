@@ -11,8 +11,13 @@ struct SEIT4LDynamics <: SSMProblems.LatentDynamics
     θ::Dict{Symbol, Float64}
 end
 
-function SSMProblems.simulate(rng::AbstractRNG, dyn::SEIT4LDynamics,
-                              step::Integer, prev_state; kwargs...)
+function SSMProblems.simulate(
+    rng::AbstractRNG,
+    dyn::SEIT4LDynamics,
+    step::Integer,
+    prev_state;
+    kwargs...,
+)
     state = collect(prev_state[1:8])  # Extract compartments
     new_state, daily_inc = gillespie_step(rng, state, dyn.θ)
     return vcat(new_state, daily_inc)  # Append daily incidence
@@ -26,8 +31,7 @@ struct PoissonObservation <: SSMProblems.ObservationProcess
     ρ::Float64
 end
 
-function SSMProblems.distribution(obs::PoissonObservation, step::Integer,
-                                  state; kwargs...)
+function SSMProblems.distribution(obs::PoissonObservation, step::Integer, state; kwargs...)
     daily_inc = state[end]
     Poisson(max(obs.ρ * daily_inc, 1e-10))
 end

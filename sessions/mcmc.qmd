@@ -153,13 +153,13 @@ function metropolis_hastings_1d(log_density_fn, n_samples, initial_value,
     current_log_prob = log_density_fn(current_x)
     # Track number of acceptances
     n_accepted = 0
-    
+
     for i in 1:n_samples
         # Propose new state
         proposal_x = current_x + randn() * proposal_std
         # Evaluate log probability at target
         proposal_log_prob = log_density_fn(proposal_x)
-        
+
         # Calculate acceptance probability (in log space)
         # Note: This is the Metropolis ratio (symmetric proposal)
         # Full Metropolis-Hastings would include proposal ratio q(x|x')/q(x'|x)
@@ -173,10 +173,10 @@ function metropolis_hastings_1d(log_density_fn, n_samples, initial_value,
             current_log_prob = proposal_log_prob
             n_accepted += 1
         end # if reject, current_x stays what it is
-        
+
         push!(samples, current_x)
     end
-    
+
     acceptance_rate = n_accepted / n_samples
     return samples, acceptance_rate
 end
@@ -303,7 +303,7 @@ When you call `randn()` in Julia or `rnorm()` in R, the computer uses transforma
 2. **Inverse CDF method**: Transform uniform → normal via inverse cumulative distribution function
 3. **Ziggurat algorithm**: Fast, more complex method (what Julia actually uses)
 
-Even "easy" distributions require clever tricks. 
+Even "easy" distributions require clever tricks.
 For complex posteriors with correlations, ODEs, and constraints, no such formula exists, and we need a method like MCMC.
 :::
 
@@ -344,7 +344,7 @@ for (i, result) in enumerate(results)
     p = plot(
         result.samples,
         title = "Prop. std = $(result.std), " *
-            "Acc = $(round(result.acc_rate*100, digits = 1))%", 
+            "Acc = $(round(result.acc_rate*100, digits = 1))%",
         xlabel = "Iteration", ylabel = "x", linewidth = 1, ylim = (-5, 15)
     )
     hline!(p, [target_mean], color = :red, linewidth = 2, label = "")
