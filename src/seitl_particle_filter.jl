@@ -21,8 +21,12 @@ filter does.
 # Returns
 - `incidence`: Number of new cases (E→I transitions)
 """
-function gillespie_step_seitl!(rng::AbstractRNG, state::Vector{Float64}, θ::Dict,
-                               dt::Float64=1.0)
+function gillespie_step_seitl!(
+    rng::AbstractRNG,
+    state::Vector{Float64},
+    θ::Dict,
+    dt::Float64 = 1.0,
+)
     β = θ[:R_0] / θ[:D_inf]
     ϵ = 1.0 / θ[:D_lat]
     ν = 1.0 / θ[:D_inf]
@@ -35,7 +39,7 @@ function gillespie_step_seitl!(rng::AbstractRNG, state::Vector{Float64}, θ::Dic
         [0, -1, 1, 0, 0],   # E → I (becoming infectious)
         [0, 0, -1, 1, 0],   # I → T (recovery)
         [1, 0, 0, -1, 0],   # T → S (immunity wanes)
-        [0, 0, 0, -1, 1]    # T → L (long-term immunity)
+        [0, 0, 0, -1, 1],    # T → L (long-term immunity)
     ]
 
     function rates(s)
@@ -76,6 +80,6 @@ function gillespie_step_seitl!(rng::AbstractRNG, state::Vector{Float64}, θ::Dic
     return incidence
 end
 
-function gillespie_step_seitl!(state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
+function gillespie_step_seitl!(state::Vector{Float64}, θ::Dict, dt::Float64 = 1.0)
     return gillespie_step_seitl!(Random.default_rng(), state, θ, dt)
 end

@@ -20,7 +20,7 @@ Wrapping in our own sampler type lets us define the missing forwarding on a type
 we own. Use [`adapting_externalsampler`](@ref) to construct one, and pass
 `num_warmup` to `sample`; without warmup iterations there is nothing to adapt in.
 """
-struct AdaptingExternalSampler{S<:Turing.Inference.ExternalSampler} <:
+struct AdaptingExternalSampler{S <: Turing.Inference.ExternalSampler} <:
        AbstractMCMC.AbstractSampler
     inner::S
 end
@@ -40,7 +40,10 @@ adapting_externalsampler(sampler; kwargs...) =
     AdaptingExternalSampler(externalsampler(sampler; kwargs...))
 
 function AbstractMCMC.step(
-    rng::AbstractRNG, model::DynamicPPL.Model, spl::AdaptingExternalSampler; kwargs...
+    rng::AbstractRNG,
+    model::DynamicPPL.Model,
+    spl::AdaptingExternalSampler;
+    kwargs...,
 )
     return AbstractMCMC.step(rng, model, spl.inner; kwargs...)
 end
@@ -60,12 +63,16 @@ function AbstractMCMC.step_warmup(
     model::DynamicPPL.Model,
     spl::AdaptingExternalSampler,
     state::Turing.Inference.TuringState;
-    discard_sample=false,
+    discard_sample = false,
     kwargs...,
 )
     f = state.ldf
     _, inner_state = AbstractMCMC.step_warmup(
-        rng, AbstractMCMC.LogDensityModel(f), spl.inner.sampler, state.state; kwargs...
+        rng,
+        AbstractMCMC.LogDensityModel(f),
+        spl.inner.sampler,
+        state.state;
+        kwargs...,
     )
     params = AbstractMCMC.getparams(f.model, inner_state)
     # Building the transition re-evaluates the model, which for a particle filter

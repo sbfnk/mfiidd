@@ -41,19 +41,21 @@ probe pushes through the model. The particle filter is not differentiable, and
 its resampling step errors on Dual-valued weights.
 """
 @model function pmmh(obs, n_particles, particle_filter)
-    R_0 ~ truncated(Normal(3.0, 2.0), lower=1.0)
-    D_lat ~ truncated(Normal(2.0, 1.0), lower=0.5)
-    D_inf ~ truncated(Normal(3.0, 2.0), lower=0.5)
+    R_0 ~ truncated(Normal(3.0, 2.0), lower = 1.0)
+    D_lat ~ truncated(Normal(2.0, 1.0), lower = 0.5)
+    D_inf ~ truncated(Normal(3.0, 2.0), lower = 0.5)
     α ~ Beta(2, 2)
-    D_imm ~ truncated(Normal(15.0, 10.0), lower=1.0)
+    D_imm ~ truncated(Normal(15.0, 10.0), lower = 1.0)
     ρ ~ Beta(2, 2)
 
-    θ = Dict(:R_0 => ForwardDiff.value(R_0),
-             :D_lat => ForwardDiff.value(D_lat),
-             :D_inf => ForwardDiff.value(D_inf),
-             :α => ForwardDiff.value(α),
-             :D_imm => ForwardDiff.value(D_imm),
-             :ρ => ForwardDiff.value(ρ))
+    θ = Dict(
+        :R_0 => ForwardDiff.value(R_0),
+        :D_lat => ForwardDiff.value(D_lat),
+        :D_inf => ForwardDiff.value(D_inf),
+        :α => ForwardDiff.value(α),
+        :D_imm => ForwardDiff.value(D_imm),
+        :ρ => ForwardDiff.value(ρ),
+    )
 
     log_lik = particle_filter(θ, obs, n_particles)
     Turing.@addlogprob! log_lik
@@ -101,7 +103,7 @@ where the parameters changed are the accepted ones.
 """
 function acceptance_rate(chain)
     x = chain_frame(chain)[!, first(PARAMETERS)]
-    return mean(x[2:end] .!= x[1:end-1])
+    return mean(x[2:end] .!= x[1:(end - 1)])
 end
 
 """
@@ -116,8 +118,13 @@ Without it the proposal stays at the identity matrix and acceptance sits near
 0.5% instead of the 23% RAM aims for. `adapting_externalsampler` is what carries
 the warmup phase through to the sampler; see `src/adapting_sampler.jl`.
 """
-function run_pmmh(model, name; n_warmup=N_WARMUP, n_samples=N_SAMPLES,
-                  thinning=THINNING)
+function run_pmmh(
+    model,
+    name;
+    n_warmup = N_WARMUP,
+    n_samples = N_SAMPLES,
+    thinning = THINNING,
+)
     println("=" ^ 60)
     println("Running PMMH for $name with RAM")
     println("  Particles: $N_PARTICLES")
@@ -132,9 +139,9 @@ function run_pmmh(model, name; n_warmup=N_WARMUP, n_samples=N_SAMPLES,
         model,
         adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
         n_samples;
-        num_warmup=n_warmup,
-        check_model=false,
-        progress=true
+        num_warmup = n_warmup,
+        check_model = false,
+        progress = true,
     )
     t_elapsed = time() - t_start
     println("\n$name sampling took $(round(t_elapsed/60, digits=1)) minutes")
