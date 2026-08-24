@@ -25,20 +25,20 @@ function seit4l_rates(state, θ)
         τ * T2,             # T2 → T3
         τ * T3,             # T3 → T4
         (1 - α) * τ * T4,   # T4 → S
-        α * τ * T4          # T4 → L
+        α * τ * T4,          # T4 → L
     ]
 end
 
 # Stoichiometry for SEIT4L (without incidence tracking)
 const STOICH = [
-    -1  1  0  0  0  0  0  0;   # S → E
-     0 -1  1  0  0  0  0  0;   # E → I
-     0  0 -1  1  0  0  0  0;   # I → T1
-     0  0  0 -1  1  0  0  0;   # T1 → T2
-     0  0  0  0 -1  1  0  0;   # T2 → T3
-     0  0  0  0  0 -1  1  0;   # T3 → T4
-     1  0  0  0  0  0 -1  0;   # T4 → S
-     0  0  0  0  0  0 -1  1    # T4 → L
+    -1 1 0 0 0 0 0 0;   # S → E
+    0 -1 1 0 0 0 0 0;   # E → I
+    0 0 -1 1 0 0 0 0;   # I → T1
+    0 0 0 -1 1 0 0 0;   # T1 → T2
+    0 0 0 0 -1 1 0 0;   # T2 → T3
+    0 0 0 0 0 -1 1 0;   # T3 → T4
+    1 0 0 0 0 0 -1 0;   # T4 → S
+    0 0 0 0 0 0 -1 1    # T4 → L
 ]
 
 # Simulate one step of Gillespie algorithm from t to t+dt, return new state and incidence
@@ -91,7 +91,12 @@ end
 Bootstrap particle filter with resampling.
 Returns log-likelihood estimate and whether particle depletion occurred.
 """
-function particle_filter(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+function particle_filter(
+    θ,
+    obs,
+    n_particles;
+    init_state = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0],
+)
     n_obs = length(obs)
     ρ = θ[:ρ]
 
@@ -127,7 +132,7 @@ function particle_filter(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0,
         weights ./= sum_weights
 
         # Check for particle depletion (effective sample size)
-        ess = 1.0 / sum(weights.^2)
+        ess = 1.0 / sum(weights .^ 2)
         if ess < n_particles / 2
             # Resample
             indices = wsample(1:n_particles, weights, n_particles)
@@ -146,13 +151,13 @@ end
 """
 Run calibration: compute mean, SD of log-likelihood and depletion rate for different particle counts.
 """
-function calibrate(θ, obs, particle_counts; n_reps=100)
+function calibrate(θ, obs, particle_counts; n_reps = 100)
     results = DataFrame(
         n_particles = Int[],
         mean_ll = Float64[],
         sd_ll = Float64[],
         prop_depleted = Float64[],
-        time_per_iter = Float64[]
+        time_per_iter = Float64[],
     )
 
     for n in particle_counts
@@ -171,33 +176,32 @@ function calibrate(θ, obs, particle_counts; n_reps=100)
         end
         t_elapsed = time() - t_start
 
-        push!(results, (
-            n_particles = n,
-            mean_ll = mean(logliks),
-            sd_ll = std(logliks),
-            prop_depleted = n_depleted / n_reps,
-            time_per_iter = t_elapsed / n_reps
-        ))
+        push!(
+            results,
+            (
+                n_particles = n,
+                mean_ll = mean(logliks),
+                sd_ll = std(logliks),
+                prop_depleted = n_depleted / n_reps,
+                time_per_iter = t_elapsed / n_reps,
+            ),
+        )
 
-        println("  mean=$(round(mean(logliks), digits=1)), SD=$(round(std(logliks), digits=2)), depleted=$(round(100*n_depleted/n_reps, digits=1))%")
+        println(
+            "  mean=$(round(mean(logliks), digits=1)), SD=$(round(std(logliks), digits=2)), depleted=$(round(100*n_depleted/n_reps, digits=1))%",
+        )
     end
 
     return results
 end
 
 # Reference parameters (from deterministic fit)
-θ_ref = Dict(
-    :R_0 => 6.0,
-    :D_lat => 1.3,
-    :D_inf => 2.0,
-    :α => 0.5,
-    :D_imm => 10.5,
-    :ρ => 0.7
-)
+θ_ref =
+    Dict(:R_0 => 6.0, :D_lat => 1.3, :D_inf => 2.0, :α => 0.5, :D_imm => 10.5, :ρ => 0.7)
 
 # Run calibration
 particle_counts = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
-results = calibrate(θ_ref, flu_tdc.obs, particle_counts, n_reps=100)
+results = calibrate(θ_ref, flu_tdc.obs, particle_counts, n_reps = 100)
 
 println("\nResults:")
 println(results)
@@ -207,27 +211,55 @@ CSV.write(datadir("particle_calibration.csv"), results)
 println("\nSaved to data/particle_calibration.csv")
 
 # Create 4-panel plot like the R version
-p1 = plot(results.n_particles, results.mean_ll,
-    xlabel="Number of particles", ylabel="Mean log-likelihood",
-    title="mean", legend=false, marker=:circle, linewidth=2)
-vline!(p1, [128], color=:red, linestyle=:dash)
+p1 = plot(
+    results.n_particles,
+    results.mean_ll,
+    xlabel = "Number of particles",
+    ylabel = "Mean log-likelihood",
+    title = "mean",
+    legend = false,
+    marker = :circle,
+    linewidth = 2,
+)
+vline!(p1, [128], color = :red, linestyle = :dash)
 
-p2 = plot(results.n_particles, results.prop_depleted,
-    xlabel="Number of particles", ylabel="Proportion",
-    title="prop. of samples with particle depletion", legend=false, marker=:circle, linewidth=2)
-vline!(p2, [128], color=:red, linestyle=:dash)
+p2 = plot(
+    results.n_particles,
+    results.prop_depleted,
+    xlabel = "Number of particles",
+    ylabel = "Proportion",
+    title = "prop. of samples with particle depletion",
+    legend = false,
+    marker = :circle,
+    linewidth = 2,
+)
+vline!(p2, [128], color = :red, linestyle = :dash)
 
-p3 = plot(results.n_particles, results.sd_ll,
-    xlabel="Number of particles", ylabel="SD",
-    title="sd", legend=false, marker=:circle, linewidth=2)
-hline!(p3, [1, 3], color=:grey, linestyle=:dot, alpha=0.5)
-vline!(p3, [128], color=:red, linestyle=:dash)
+p3 = plot(
+    results.n_particles,
+    results.sd_ll,
+    xlabel = "Number of particles",
+    ylabel = "SD",
+    title = "sd",
+    legend = false,
+    marker = :circle,
+    linewidth = 2,
+)
+hline!(p3, [1, 3], color = :grey, linestyle = :dot, alpha = 0.5)
+vline!(p3, [128], color = :red, linestyle = :dash)
 
-p4 = plot(results.n_particles, results.time_per_iter .* 10000,
-    xlabel="Number of particles", ylabel="Time (seconds)",
-    title="time 10000 iter", legend=false, marker=:circle, linewidth=2)
-vline!(p4, [128], color=:red, linestyle=:dash)
+p4 = plot(
+    results.n_particles,
+    results.time_per_iter .* 10000,
+    xlabel = "Number of particles",
+    ylabel = "Time (seconds)",
+    title = "time 10000 iter",
+    legend = false,
+    marker = :circle,
+    linewidth = 2,
+)
+vline!(p4, [128], color = :red, linestyle = :dash)
 
-p = plot(p1, p2, p3, p4, layout=(2,2), size=(800, 600))
+p = plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
 savefig(p, datadir("particle_calibration.png"))
 println("Saved plot to data/particle_calibration.png")
