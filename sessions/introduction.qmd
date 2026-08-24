@@ -871,7 +871,7 @@ D_inf_values = 1.0:0.2:3.0
 # Store results
 best_log_posterior = -Inf
 best_params = nothing
-results = @NamedTuple{R_0::Float64, D_inf::Float64, log_posterior::Float64}[]
+results = []
 
 for R_0 in R_0_values
     for D_inf in D_inf_values
@@ -1002,7 +1002,7 @@ To see the parameter uncertainty we have to refine the grid around the mode.
 R_0_fine = (best_params.R_0 - 0.3):0.01:(best_params.R_0 + 0.3)
 D_inf_fine = (best_params.D_inf - 0.3):0.01:(best_params.D_inf + 0.3)
 
-fine_results = @NamedTuple{R_0::Float64, D_inf::Float64, log_posterior::Float64}[]
+fine_results = []
 for R_0 in R_0_fine, D_inf in D_inf_fine
     log_prior = logpdf(Uniform(1, 20), R_0) + logpdf(Uniform(1, 14), D_inf)
     result = simulate_and_loglik(R_0, D_inf, epi1)
