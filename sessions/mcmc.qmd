@@ -580,7 +580,7 @@ Try these experiments (run each for 5000 samples):
 
 Questions to answer:
 
-- What acceptance rate gives the best mixing? (Hint: with two parameters, aim somewhere in the 30–40% range.)
+- What acceptance rate gives the best mixing? (Hint: with a proposal shaped like the posterior, two parameters do best near 35%; with the diagonal proposals above, nearer 20–25%.)
 - Can you find settings that give a well-mixed trace for *both* parameters simultaneously?
 - How long did tuning take you? Imagine doing this for 10+ parameters.
 
@@ -589,7 +589,8 @@ Acceptance rate too high (>50%)? Your proposals are too small. The chain accepts
 
 Acceptance rate too low (<10%)? Your proposals are too large. Most proposed jumps land in low-probability regions and get rejected; you'll see the trace plot stuck for many iterations.
 
-Sweet spot (~30–40% for these two parameters): a healthy balance of exploration and acceptance.
+Sweet spot: a healthy balance of exploration and acceptance.
+Where it falls depends on the shape of the proposal as well as the number of parameters: around 20–25% for the diagonal proposals above, and nearer 35–45% once the proposal is aligned with the posterior.
 
 Check your acceptance rate with: `mean(diff(vec(chain[:R_0])) .!= 0)`
 :::
