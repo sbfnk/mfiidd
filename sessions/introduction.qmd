@@ -991,7 +991,9 @@ println("$(n_95) of $(length(post_weights)) grid points carry 95% of the posteri
 
 One point out of 143 holds essentially all of it.
 The grid steps in units of 0.2 while the posterior is only about 0.03 wide, so the grid is roughly six posterior standard deviations coarse and cannot resolve the distribution at all.
-Everything the grid can tell us is "the answer is near 2.3", which is why the surface above looks like a single bright cell.
+Everything the grid can tell us is "the answer is near 2.3".
+The surface above does not show that starkly, because it plots the *log* posterior: the best cell beats the next one by about 14 log units, a factor of roughly a million, which the colour scale flattens into a single shade of yellow.
+The concentration only becomes visible once those values are exponentiated and normalised, which is what the cell above does.
 
 To see the parameter uncertainty we have to refine the grid around the mode.
 
