@@ -524,8 +524,8 @@ test_params = [
 ]
 
 # Calculate prior densities for both flat and informed priors
-log_priors_flat = Float64[]
-log_priors_informed = Float64[]
+log_priors_flat = []
+log_priors_informed = []
 
 println("Flat vs Informed prior log-densities:")
 for theta in test_params
