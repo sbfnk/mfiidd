@@ -16,6 +16,11 @@ order: 1
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
 We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms that explore the posterior in the next session.
 
+By the end of the course you will have met several different ways of doing this,
+and the closing session puts them side by side so you can work out which one your
+own problem needs. It is worth keeping that question in mind as you go: each
+method here exists because the one before it ran out of road.
+
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
@@ -99,7 +104,7 @@ function sir_ode!(du, u, p, t)
     S, I, R = u
     R_0, D_inf = p
     N = S + I + R
-        
+
     β = R_0 / D_inf
     ν = 1 / D_inf
 
@@ -176,7 +181,7 @@ tend = 40
 prob = ODEProblem(sir_ode!, init_state, (t0, tend), p)
 ```
 
-This defines our ODE system. 
+This defines our ODE system.
 The first argument to `ODEproblem()` is a function that contains the equations of the ODE, in our case the `sir_ode!()` function we defined earlier.
 The second argument is the initial state.
 The third argument defines that start and end time of the simulation, here given as a _tuple_ indicated by round parentheses, `(t0, tend)`.
@@ -247,7 +252,7 @@ R_0_samples = rand(R_0_prior, n_samples)
 D_inf_samples = rand(D_inf_prior, n_samples)
 
 println(
-    "R_0 prior samples - mean: ", round(mean(R_0_samples), digits = 2), 
+    "R_0 prior samples - mean: ", round(mean(R_0_samples), digits = 2),
     ", range: ", round(minimum(R_0_samples), digits = 2), " to ",
     round(maximum(R_0_samples), digits = 2)
 )
@@ -584,7 +589,7 @@ We first visualise this data set.
 ```{julia}
 # Visualise the observed data
 scatter(
-    epi1.time, epi1.obs, xlabel = "Time", ylabel = "Observed Cases", 
+    epi1.time, epi1.obs, xlabel = "Time", ylabel = "Observed Cases",
     title = "Epidemic Data", label = "Observed", markersize = 4, color = :red
 )
 ```

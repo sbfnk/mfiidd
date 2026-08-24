@@ -15,23 +15,6 @@ using Distributions
 
 # Introduction
 
-## *Model* fitting and inference for infectious disease dynamics
-
-> A simplified description, especially a **mathematical** one, of a system or
-> process, **to assist calculations and predictions**
->
-> — Oxford English Dictionary
-
-::: {.fragment}
-### Mathematical model
-
-Takes *parameters* and produces *output*, using some set of rules or equations.
-:::
-
-## Model fitting and inference for *infectious disease dynamics*
-
-![](images/traditional_sir.svg)
-
 ## SIR-type models
 
 :::: {.columns}
@@ -84,18 +67,6 @@ Given a model, what are the parameter combinations that best **fit** the data?
 Given what we observe, what is the **state** of the system?
 
 ![](images/state_estimation.svg)
-
-## Model *inference*: model selection
-
-Given a set of potential models, how do we decide which is the right one?
-
-::: {.r-stack}
-![](images/model_comparison_1.svg){.step .fragment .fade-out fragment-index=1}
-![](images/model_comparison_2.svg){.step .fragment .current-visible fragment-index=1}
-![](images/model_comparison_3.svg){.step .fragment .current-visible fragment-index=2}
-![](images/model_comparison_4.svg){.step .fragment .current-visible fragment-index=3}
-![](images/model_comparison_5.svg){.step .fragment fragment-index=4}
-:::
 
 # Linking models to data
 
@@ -236,25 +207,6 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 - Likelihoods can span a wide range of orders of magnitude, which causes
   numerical problems. Taking the **logarithm** gives the **log-likelihood**.
 
-## Frequentist vs Bayesian inference {.smaller}
-
-### Frequentist inference
-
-- There are *true* parameters in the world; the uncertainty comes from the data
-- Encoded in the **likelihood**: $L(\theta) = p(\text{data} \mid \theta)$
-- Inference tries to estimate these parameters
-- Probabilities express outcomes of repeated experiments
-
-::: {.fragment}
-### Bayesian inference
-
-- There are no true parameters; the *data* are true, and uncertainty is in the
-  parameters and hypotheses
-- Encoded in the **posterior**: $p(\theta \mid \text{data})$
-- Probabilities express belief in a given parameter value
-- The posterior is the *probability distribution* of a *random variable* $\theta$
-:::
-
 # Bayesian inference
 
 ## Bayes' rule {.smaller}
@@ -361,12 +313,43 @@ posterior, never a way of fitting one — which is what the next session is abou
 
 [mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
 
-# Appendix: probability refresher {visibility="uncounted"}
+# Appendix: held in reserve {visibility="uncounted"}
 
 ::: {.callout-note}
 The slides that follow are held in reserve. Skip them if the room is
 comfortable with probability notation, or come back to them if questions come up
 during the practical.
+:::
+
+## Frequentist vs Bayesian inference {.smaller visibility="uncounted"}
+
+### Frequentist inference
+
+- There are *true* parameters in the world; the uncertainty comes from the data
+- Encoded in the **likelihood**: $L(\theta) = p(\text{data} \mid \theta)$
+- Inference tries to estimate these parameters
+- Probabilities express outcomes of repeated experiments
+
+::: {.fragment}
+### Bayesian inference
+
+- There are no true parameters; the *data* are true, and uncertainty is in the
+  parameters and hypotheses
+- Encoded in the **posterior**: $p(\theta \mid \text{data})$
+- Probabilities express belief in a given parameter value
+- The posterior is the *probability distribution* of a *random variable* $\theta$
+:::
+
+## Model *inference*: model selection {visibility="uncounted"}
+
+Given a set of potential models, how do we decide which is the right one?
+
+::: {.r-stack}
+![](images/model_comparison_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/model_comparison_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/model_comparison_3.svg){.step .fragment .current-visible fragment-index=2}
+![](images/model_comparison_4.svg){.step .fragment .current-visible fragment-index=3}
+![](images/model_comparison_5.svg){.step .fragment fragment-index=4}
 :::
 
 ## Probabilities {.smaller visibility="uncounted"}

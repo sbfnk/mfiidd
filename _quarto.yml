@@ -41,6 +41,7 @@ website:
         - sessions/particle_filters.qmd
         - sessions/pmcmc.qmd
         - sessions/observation_models.qmd
+        - sessions/abc.qmd
         - sessions/variational_inference.qmd
         - sessions/neural_posterior_estimation.qmd
         - sessions/universal_differential_equations.qmd

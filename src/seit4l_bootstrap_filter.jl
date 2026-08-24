@@ -16,8 +16,12 @@ Used by chain generation scripts.
 # Returns
 - `log_likelihood`: Estimated log-likelihood
 """
-function particle_filter_seit4l(θ, obs, n_particles::Integer;
-                                init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+function particle_filter_seit4l(
+    θ,
+    obs,
+    n_particles::Integer;
+    init_state = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0],
+)
     n_particles > 0 || throw(ArgumentError("n_particles must be > 0"))
     n_obs = length(obs)
     ρ = θ[:ρ]
@@ -41,7 +45,7 @@ function particle_filter_seit4l(θ, obs, n_particles::Integer;
         w ./= sum(w)
 
         # Resample if ESS too low
-        ess = 1.0 / sum(w.^2)
+        ess = 1.0 / sum(w .^ 2)
         if ess < n_particles / 2
             idx = wsample(1:n_particles, Weights(w), n_particles)
             particles = [copy(particles[i]) for i in idx]

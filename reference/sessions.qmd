@@ -42,11 +42,11 @@ fixing what has gone wrong, not for starting from scratch.
 
 Monday 7 September: 10.30-11.00, 11.30-12.30 and 13.30-14.00
 
--   [Introduction](../sessions/slides/introduction.qmd): what model fitting and inference mean, likelihoods, and Bayes' rule (20 mins)
+-   [Introduction](../sessions/slides/introduction.qmd): what model fitting and inference mean, likelihoods, and Bayes' rule (25 mins)
 -   [Practice](../sessions/introduction.qmd):
-    - simulating an SIR model and exploring what the priors imply (35 mins)
-    - evaluating a Poisson likelihood against observed data (30 mins)
-    - combining them into a posterior and exploring it by grid search (25 mins)
+    - simulating an SIR model and exploring what the priors imply (33 mins)
+    - evaluating a Poisson likelihood against observed data (28 mins)
+    - combining them into a posterior and exploring it by grid search (24 mins)
 -   Wrap up (10 mins)
 
 ## Session 2: Markov chain Monte Carlo
@@ -98,7 +98,7 @@ Tuesday 8 September: 14.30-15.15 and 15.45-17.00
     - simulating it deterministically and stochastically, and comparing (45 mins)
 -   Wrap up (10 mins)
 
-# Day 3: Particle-based methods
+# Day 3: Particle-based methods and observation models
 
 **Wednesday 9 September**
 
@@ -128,17 +128,25 @@ Wednesday 9 September: 13.30-15.15
     - working with a pre-computed long chain, and comparing against the deterministic fit (15 mins)
 -   Wrap up (10 mins)
 
-## Open session and review
+## Session 8: Observation models
 
 Wednesday 9 September: 15.45-17.00
 
--   Time to catch up on anything unfinished, revisit earlier sessions, or discuss your own work with the instructors (75 mins)
+-   [Introduction](../sessions/slides/observation_models.qmd): what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (15 mins)
+-   [Practice](../sessions/observation_models.qmd):
+    - fitting with Poisson, and checking whether its variance assumption holds for the data (30 mins)
+    - the negative binomial, and seeing a likelihood as a distance function (25 mins)
+-   Wrap up (5 mins)
+
+The session ends on a question rather than an answer: if a likelihood is a
+distance function, why not choose the distance directly? That is the first thing
+Thursday morning takes up.
 
 Wednesday 9 September: 19.00
 
 -   Course dinner
 
-# Day 4: Observation models and Approximate Bayesian Computation
+# Day 4: Likelihood-free inference and closing
 
 **Thursday 10 September**
 
@@ -146,20 +154,29 @@ Thursday 10 September: 09.30-09.45
 
 -   [Day 3 review](../sessions/slides/day3_review.qmd): where the week has got to, from deterministic fitting to particle MCMC (15 mins)
 
-## Session 8: Observation models and ABC
+## Session 9: Approximate Bayesian Computation
 
-Thursday 10 September: 09.45-11.00 and 11.30-12.15
+Thursday 10 September: 09.45-11.00
 
--   [Introduction](../sessions/slides/observation_models.qmd): what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (15 mins)
--   [Practice](../sessions/observation_models.qmd):
-    - fitting with Poisson, and checking whether its variance assumption holds for the data (30 mins)
-    - the negative binomial, and seeing a likelihood as a distance function (25 mins)
-    - ABC rejection sampling, and finding a workable acceptance threshold (35 mins)
-    - ABC-SMC, and comparing it against rejection ABC (10 mins)
--   Wrap up (5 mins)
+-   [Introduction](../sessions/slides/abc.qmd): likelihood-free inference, and choosing a distance instead (15 mins)
+-   [Practice](../sessions/abc.qmd):
+    - ABC rejection sampling, and finding a workable acceptance threshold (30 mins)
+    - ABC-SMC, and comparing it against rejection ABC (20 mins)
+-   Wrap up (10 mins)
 
-If time allows, the closing section asks how much a single outlying observation
-moves each approach — a good discussion to finish on.
+The closing part asks how much a single outlying observation moves each approach,
+which is the sharpest illustration that a likelihood and a distance are the same
+kind of object.
+
+## Session 10: Choosing an inference approach
+
+Thursday 10 September: 11.30-12.15
+
+-   [Choosing an inference approach](../sessions/slides/choosing_an_approach.qmd): the methods side by side, the two questions that decide between them, and what actually goes wrong (25 mins)
+-   Discussion: work through the five worked problems, then place your own on the map, in pairs and then as a group (20 mins)
+
+Bring a model you actually want to fit. The discussion works best when people
+argue about real problems rather than the worked examples.
 
 ## Close
 

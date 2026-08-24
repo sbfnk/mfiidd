@@ -24,6 +24,7 @@ jobs:
     # default, which is read-only for new organisations.
     permissions:
       contents: write
+      pull-requests: write
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       LANG: "en_US.UTF-8"
@@ -39,7 +40,16 @@ jobs:
           version: '1.12.6'
 
       - name: Install Julia dependencies
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.resolve()'
+        run: |
+          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.resolve()'
+          # Sessions that cannot share the main environment declare their own via
+          # `exeflags` in the front matter. Instantiate each so the render can find
+          # its packages. No resolve here: those manifests are pinned deliberately.
+          for env in envs/*/; do
+            if [ -f "$env/Project.toml" ]; then
+              julia --project="$env" -e 'using Pkg; Pkg.instantiate()'
+            fi
+          done
 
       - name: Render site
         run: quarto render
@@ -66,6 +76,42 @@ jobs:
           folder: _site
           target-folder: previews/PR-${{ github.event.pull_request.number }}
           clean: false
+
+      # A preview nobody can find is no preview. Post its address as a comment
+      # and edit that same comment on later pushes, so the thread does not
+      # collect one link per commit.
+      - name: Comment with the preview link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const marker = '<!-- preview-link -->';
+            const {owner, repo} = context.repo;
+            const number = context.issue.number;
+            const url =
+              `https://${owner}.github.io/${repo}/previews/PR-${number}/`;
+            const body = [
+              marker,
+              `📖 Preview of this pull request: ${url}`,
+              '',
+              'Rebuilt on every push to the branch.',
+            ].join('\n');
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {owner, repo, issue_number: number},
+            );
+            const existing = comments.find((c) => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment(
+                {owner, repo, comment_id: existing.id, body},
+              );
+            } else {
+              await github.rest.issues.createComment(
+                {owner, repo, issue_number: number, body},
+              );
+            }
 
       - name: Deploy to GitHub pages 🚀
         if: github.event_name == 'push' && github.ref_name == 'main'
