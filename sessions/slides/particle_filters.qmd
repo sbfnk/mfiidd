@@ -4,6 +4,8 @@ title: "Fitting stochastic models"
 subtitle: "Sequential Monte Carlo and particle filters"
 ---
 
+# The likelihood for stochastic models
+
 ## Where we are
 
 We know how to get a posterior when the model is **deterministic**:

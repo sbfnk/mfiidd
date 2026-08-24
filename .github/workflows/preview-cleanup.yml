@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: preview-cleanup-${{ github.event.pull_request.number }}
@@ -33,3 +34,21 @@ jobs:
           else
             echo "No preview to clean up for PR-${PR_NUMBER}"
           fi
+
+      # The deploy job's comment points at the folder just deleted, so take it
+      # down with it. The marker is the one in build-and-deploy.yml.
+      - name: Remove the preview comment
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const marker = '<!-- preview-link -->';
+            const {owner, repo} = context.repo;
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {owner, repo, issue_number: context.issue.number},
+            );
+            for (const c of comments.filter((c) => c.body.includes(marker))) {
+              await github.rest.issues.deleteComment(
+                {owner, repo, comment_id: c.id},
+              );
+            }

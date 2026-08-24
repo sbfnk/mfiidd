@@ -73,11 +73,11 @@ Alternative IDEs: Emacs with julia-mode, Vim with julia-vim, or Jupyter notebook
 Back in your **terminal** (not the Julia REPL), download the course materials:
 
 ```bash
-git clone https://github.com/sbfnk/mfiidd.julia.git
+git clone https://github.com/mfiidd/mfiidd.git
 cd mfiidd.julia
 ```
 
-If you don't have git, you can download the repository as a ZIP file from the [GitHub page](https://github.com/sbfnk/mfiidd.julia).
+If you don't have git, you can download the repository as a ZIP file from the [GitHub page](https://github.com/mfiidd/mfiidd).
 
 Then open the course folder in VS Code: either run `code mfiidd.julia` from the terminal, or use **File → Open Folder** in VS Code and navigate to the `mfiidd.julia` directory.
 

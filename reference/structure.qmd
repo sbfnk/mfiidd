@@ -27,7 +27,7 @@ No prior Julia experience is required; the course introduces Julia syntax as you
 
 # Course map
 
-The course has 11 sessions organised into three tiers.
+The course has 13 sessions organised into three tiers.
 Work through them in order, or use this map to plan your time.
 
 **Core sessions** (10-12 hours) - complete in order:
@@ -41,8 +41,10 @@ Work through them in order, or use this map to plan your time.
 **Advanced sessions** (2-3 hours each) - independent, pick based on interest:
 
 > - **Observation Models** — requires MCMC (can skip stochastic track)
+> - **Approximate Bayesian Computation** — requires Observation Models
 > - **Variational Inference** — requires MCMC only (can skip stochastic track)
 > - **Universal Differential Equations** — requires Introduction only (independent track)
+> - **Beyond Turing: the wider Julia ecosystem** — requires MCMC only (independent track)
 
 **If you only have limited time:**
 

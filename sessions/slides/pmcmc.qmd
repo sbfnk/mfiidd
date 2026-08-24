@@ -4,6 +4,8 @@ title: "Particle MCMC"
 subtitle: "Fitting parameters of stochastic models"
 ---
 
+# Plugging in an estimated likelihood
+
 ## Where we got to
 
 The particle filter gives us an estimate of the marginal likelihood for **one**
@@ -142,6 +144,29 @@ stochastic models:
 And we get the latent trajectories for free: each accepted $\theta$ comes with a
 sampled state path, which is **state estimation** alongside parameter
 estimation.
+:::
+
+## Comparing models, not just fitting one {.smaller}
+
+Is temporary immunity better described by one compartment or four?
+
+::: {.fragment}
+That is not a question about parameters. No amount of sampling SEITL tells you
+whether SEIT4L would have done better — you have to fit both.
+:::
+
+::: {.fragment}
+Ways to compare:
+
+- **Posterior predictive checks** — which reproduces the features you care about?
+- **Predictive performance** on held-out data
+- **The marginal likelihood**, if you can estimate it — expensive, and the
+  particle filter already gives you an estimate of it
+:::
+
+::: {.fragment}
+In the practical you fit both and compare. Expect them to agree on the first wave
+and differ on the timing of the second.
 :::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}

@@ -15,23 +15,6 @@ using Distributions
 
 # Introduction
 
-## *Model* fitting and inference for infectious disease dynamics
-
-> A simplified description, especially a **mathematical** one, of a system or
-> process, **to assist calculations and predictions**
->
-> — Oxford English Dictionary
-
-::: {.fragment}
-### Mathematical model
-
-Takes *parameters* and produces *output*, using some set of rules or equations.
-:::
-
-## Model fitting and inference for *infectious disease dynamics*
-
-![](images/traditional_sir.png)
-
 ## SIR-type models
 
 :::: {.columns}
@@ -45,7 +28,7 @@ $$
 $$
 :::
 ::: {.column width="62%"}
-![](images/sir_ode_noinfo.png)
+![](images/sir_ode_noinfo.svg)
 :::
 ::::
 
@@ -72,47 +55,35 @@ Given a model, what are the parameter combinations that best **fit** the data?
 ## What do we mean by "best fit the data"?
 
 ::: {.r-stack}
-![](images/model_fitting_sketch_1.png){.step .fragment .fade-out fragment-index=1}
-![](images/model_fitting_sketch_2.png){.step .fragment .current-visible fragment-index=1}
-![](images/model_fitting_sketch_3.png){.step .fragment .current-visible fragment-index=2}
-![](images/model_fitting_sketch_4.png){.step .fragment .current-visible fragment-index=3}
-![](images/model_fitting_sketch_5.png){.step .fragment fragment-index=4}
+![](images/model_fitting_sketch_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/model_fitting_sketch_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/model_fitting_sketch_3.svg){.step .fragment .current-visible fragment-index=2}
+![](images/model_fitting_sketch_4.svg){.step .fragment .current-visible fragment-index=3}
+![](images/model_fitting_sketch_5.svg){.step .fragment fragment-index=4}
 :::
 
 ## Model *inference*: state estimation
 
 Given what we observe, what is the **state** of the system?
 
-![](images/state_estimation.png)
-
-## Model *inference*: model selection
-
-Given a set of potential models, how do we decide which is the right one?
-
-::: {.r-stack}
-![](images/model_comparison_1.png){.step .fragment .fade-out fragment-index=1}
-![](images/model_comparison_2.png){.step .fragment .current-visible fragment-index=1}
-![](images/model_comparison_3.png){.step .fragment .current-visible fragment-index=2}
-![](images/model_comparison_4.png){.step .fragment .current-visible fragment-index=3}
-![](images/model_comparison_5.png){.step .fragment fragment-index=4}
-:::
+![](images/state_estimation.svg)
 
 # Linking models to data
 
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_simplest.png){.step .fragment .fade-out fragment-index=1}
-![](images/Big_picture_empty.png){.step .fragment .current-visible fragment-index=1}
-![](images/Big_picture_empty_question.png){.step .fragment fragment-index=2}
+![](images/Big_picture_simplest.svg){.step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_empty.svg){.step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_empty_question.svg){.step .fragment fragment-index=2}
 :::
 
 ## Assessing the "closeness" of model output and data
 
 ::: {.r-stack}
-![](images/least_squares_bad_1.png){.step .fragment .fade-out fragment-index=1}
-![](images/least_squares_bad_2.png){.step .fragment .current-visible fragment-index=1}
-![](images/least_squares_bad_3.png){.step .fragment fragment-index=2}
+![](images/least_squares_bad_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/least_squares_bad_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/least_squares_bad_3.svg){.step .fragment fragment-index=2}
 :::
 
 ## Probabilistic formulation
@@ -132,12 +103,12 @@ Given a set of potential models, how do we decide which is the right one?
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](images/poisson_likelihood.png){.mini}
+![](images/poisson_likelihood.svg){.mini}
 
 Discrete, e.g. **Poisson**: how many die of horse kicks at 0.61 kicks per year?
 :::
 ::: {.column width="50%"}
-![](images/weather.png){.mini}
+![](images/weather.svg){.mini}
 
 Continuous, e.g. **normal**: the temperature in London tomorrow.
 :::
@@ -172,11 +143,11 @@ $\rho = 0.5$.
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.r-stack}
-![](images/likelihood_data.png){.step .fragment .fade-out fragment-index=1}
-![](images/likelihood_data_model.png){.step .fragment .current-visible fragment-index=1}
-![](images/likelihood_data_model_10.png){.step .fragment .current-visible fragment-index=2}
-![](images/likelihood_data_model_10_x.png){.step .fragment .current-visible fragment-index=3}
-![](images/likelihood_data_model_dist.png){.step .fragment fragment-index=4}
+![](images/likelihood_data.svg){.step .fragment .fade-out fragment-index=1}
+![](images/likelihood_data_model.svg){.step .fragment .current-visible fragment-index=1}
+![](images/likelihood_data_model_10.svg){.step .fragment .current-visible fragment-index=2}
+![](images/likelihood_data_model_10_x.svg){.step .fragment .current-visible fragment-index=3}
+![](images/likelihood_data_model_dist.svg){.step .fragment fragment-index=4}
 :::
 :::
 ::: {.column width="50%"}
@@ -189,8 +160,8 @@ In the model, 31.1 cases.
 :::
 
 ::: {.r-stack}
-![](images/point_likelihood.png){.step .fragment .current-visible fragment-index=4}
-![](images/point_likelihood_18.png){.step .fragment fragment-index=5}
+![](images/point_likelihood.svg){.step .fragment .current-visible fragment-index=4}
+![](images/point_likelihood_18.svg){.step .fragment fragment-index=5}
 :::
 
 ::: {.fragment fragment-index=5}
@@ -216,8 +187,8 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_deterministic_models_with_observations_simple.png){.step .fragment .fade-out fragment-index=1}
-![](images/Big_picture_deterministic_models_with_observations.png){.step .fragment fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations_simple.svg){.step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations.svg){.step .fragment fragment-index=1}
 :::
 
 ## The likelihood {.smaller}
@@ -235,25 +206,6 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 
 - Likelihoods can span a wide range of orders of magnitude, which causes
   numerical problems. Taking the **logarithm** gives the **log-likelihood**.
-
-## Frequentist vs Bayesian inference {.smaller}
-
-### Frequentist inference
-
-- There are *true* parameters in the world; the uncertainty comes from the data
-- Encoded in the **likelihood**: $L(\theta) = p(\text{data} \mid \theta)$
-- Inference tries to estimate these parameters
-- Probabilities express outcomes of repeated experiments
-
-::: {.fragment}
-### Bayesian inference
-
-- There are no true parameters; the *data* are true, and uncertainty is in the
-  parameters and hypotheses
-- Encoded in the **posterior**: $p(\theta \mid \text{data})$
-- Probabilities express belief in a given parameter value
-- The posterior is the *probability distribution* of a *random variable* $\theta$
-:::
 
 # Bayesian inference
 
@@ -281,14 +233,29 @@ literature, experts and so on.
 
 Example: $R_0$ of measles
 
-![](images/R0plot.png){.step}
+![](images/R0plot.svg){.step}
 
 ## Example: estimating $R_0$ of measles
 
 ::: {.r-stack}
-![](images/r0_likelihood.png){.step .fragment .fade-out fragment-index=1}
-![](images/r0_likelihood_prior.png){.step .fragment .current-visible fragment-index=1}
-![](images/r0_posterior.png){.step .fragment fragment-index=2}
+![](images/r0_likelihood.svg){.step .fragment .fade-out fragment-index=1}
+![](images/r0_likelihood_prior.svg){.step .fragment .current-visible fragment-index=1}
+![](images/r0_posterior.svg){.step .fragment fragment-index=2}
+:::
+
+## Checking a prior by simulating from it {.smaller}
+
+A prior on $R_0$ is hard to have intuition about. An epidemic curve is not.
+
+::: {.fragment}
+So draw parameters from the prior, run the model, and look at what you get. This
+is a **prior predictive simulation**, and it turns an abstract claim into a
+picture you can judge.
+:::
+
+::: {.fragment}
+If your prior produces epidemics that infect the whole population in four days,
+you have learned something you could not have seen from the parameter range.
 :::
 
 ## Sampling from the posterior
@@ -304,33 +271,39 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 ##  {.center}
 
-![](images/Big_picture_deterministic_models_no_init.png)
+![](images/Big_picture_deterministic_models_no_init.svg)
 
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Course_outline_day_12.png){.step .fragment .fade-out fragment-index=1}
-![](images/Course_outline.png){.step .fragment fragment-index=1}
+![](images/Course_outline_day_12.svg){.step .fragment .fade-out fragment-index=1}
+![](images/Course_outline.svg){.step .fragment fragment-index=1}
+:::
+
+## Why we cannot just try everything {.smaller}
+
+You can explore a two-parameter posterior on a grid. Fifteen values each is 225
+model runs, which is nothing.
+
+::: {.fragment}
+| Parameters | Grid points at 15 each |
+|---|---|
+| 2 | 225 |
+| 4 | 50,625 |
+| 6 | 11,390,625 |
+| 10 | 576,650,390,625 |
+:::
+
+::: {.fragment}
+Real models have six parameters, or sixty. Grid search is a way of *seeing* a
+posterior, never a way of fitting one — which is what the next session is about.
 :::
 
 # Practical session
 
 ## The same arrows, in Julia
 
-::: {.annotated-figure}
-![](images/big_picture_functions_base.png)
-
-[]{.mask style="left:16.2%; top:11.0%; width:11.4%; height:6.8%;"}
-[]{.mask style="left:30.5%; top:19.5%; width:31.2%; height:17.2%;"}
-[]{.mask style="left:32.6%; top:48.9%; width:13.6%; height:6.4%;"}
-[]{.mask style="left:69.2%; top:22.6%; width:15.8%; height:7.0%;"}
-[]{.mask style="left:68.6%; top:75.8%; width:17.4%; height:8.6%;"}
-
-[`logpdf`]{.label style="left:16.4%; top:11.4%;"}
-[`solve`]{.label style="left:33.4%; top:49.3%;"}
-[`rand`]{.label style="left:71.0%; top:23.2%;"}
-[`logpdf`]{.label style="left:70.2%; top:76.6%;"}
-:::
+![](images/big_picture_functions_base.svg)
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
@@ -338,14 +311,45 @@ We want to generate **samples** of $\theta$ from this distribution.
 - Evaluate a Poisson likelihood against observed data
 - Combine them into a posterior, and explore it by grid search
 
-[sbfnk.github.io/mfiidd](https://sbfnk.github.io/mfiidd/)
+[mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
 
-# Appendix: probability refresher {visibility="uncounted"}
+# Appendix: held in reserve {visibility="uncounted"}
 
 ::: {.callout-note}
 The slides that follow are held in reserve. Skip them if the room is
 comfortable with probability notation, or come back to them if questions come up
 during the practical.
+:::
+
+## Frequentist vs Bayesian inference {.smaller visibility="uncounted"}
+
+### Frequentist inference
+
+- There are *true* parameters in the world; the uncertainty comes from the data
+- Encoded in the **likelihood**: $L(\theta) = p(\text{data} \mid \theta)$
+- Inference tries to estimate these parameters
+- Probabilities express outcomes of repeated experiments
+
+::: {.fragment}
+### Bayesian inference
+
+- There are no true parameters; the *data* are true, and uncertainty is in the
+  parameters and hypotheses
+- Encoded in the **posterior**: $p(\theta \mid \text{data})$
+- Probabilities express belief in a given parameter value
+- The posterior is the *probability distribution* of a *random variable* $\theta$
+:::
+
+## Model *inference*: model selection {visibility="uncounted"}
+
+Given a set of potential models, how do we decide which is the right one?
+
+::: {.r-stack}
+![](images/model_comparison_1.svg){.step .fragment .fade-out fragment-index=1}
+![](images/model_comparison_2.svg){.step .fragment .current-visible fragment-index=1}
+![](images/model_comparison_3.svg){.step .fragment .current-visible fragment-index=2}
+![](images/model_comparison_4.svg){.step .fragment .current-visible fragment-index=3}
+![](images/model_comparison_5.svg){.step .fragment fragment-index=4}
 :::
 
 ## Probabilities {.smaller visibility="uncounted"}

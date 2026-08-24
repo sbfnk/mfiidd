@@ -14,7 +14,12 @@ Simulate SEIT4L for `dt` time units using the Gillespie algorithm.
 # Returns
 - `(new_state, incidence)`: Updated state and number of new cases over `dt`
 """
-function gillespie_step(rng::AbstractRNG, state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
+function gillespie_step(
+    rng::AbstractRNG,
+    state::Vector{Float64},
+    θ::Dict,
+    dt::Float64 = 1.0,
+)
     β = θ[:R_0] / θ[:D_inf]
     ϵ = 1.0 / θ[:D_lat]
     ν = 1.0 / θ[:D_inf]
@@ -33,7 +38,7 @@ function gillespie_step(rng::AbstractRNG, state::Vector{Float64}, θ::Dict, dt::
         [0, 0, 0, 0, -1, 1, 0, 0],   # T2 → T3
         [0, 0, 0, 0, 0, -1, 1, 0],   # T3 → T4
         [1, 0, 0, 0, 0, 0, -1, 0],   # T4 → S (immunity wanes)
-        [0, 0, 0, 0, 0, 0, -1, 1]    # T4 → L (long-term immunity)
+        [0, 0, 0, 0, 0, 0, -1, 1],    # T4 → L (long-term immunity)
     ]
 
     function rates(s)
@@ -81,7 +86,7 @@ end
 
 In-place version for simple bootstrap filter (no RNG argument, uses global RNG).
 """
-function gillespie_step_seit4l!(state::Vector{Float64}, θ::Dict, dt::Float64=1.0)
+function gillespie_step_seit4l!(state::Vector{Float64}, θ::Dict, dt::Float64 = 1.0)
     new_state, inc = gillespie_step(Random.default_rng(), state, θ, dt)
     for i in 1:8
         state[i] = new_state[i]

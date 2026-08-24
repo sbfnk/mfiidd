@@ -355,6 +355,29 @@ Look at the three plots above (propagation, weighting, resampling).
 3. After resampling, some particles are duplicated many times while others disappear entirely. Why is this beneficial for estimating the likelihood?
 :::
 
+::: {.callout-tip title="Solution" collapse="true"}
+**Why they spread.** Each particle takes its own random draws at each step. Two
+particles starting from the same state see different infection and recovery
+events, so they diverge, and the divergence compounds. That spread is not noise
+in the algorithm — it is the model's genuine uncertainty about what the epidemic
+did, which is exactly the thing a deterministic model cannot represent.
+
+**Why Poisson weights behave that way.** The weight is
+$p(y_t \mid x_t)$, the Poisson probability of the observed count given the
+particle's predicted incidence. Poisson probability falls off fast as the
+observation moves away from the mean, so a particle predicting 12 when 11 were
+observed scores far higher than one predicting 40. The weights are the likelihood
+of each particle's guess, no more than that.
+
+**Why resampling helps.** Without it, after a few steps almost all the weight
+sits on one or two particles and the rest contribute nothing while still costing
+computation — degeneracy. Resampling spends your fixed budget of particles on the
+regions of state space that are actually consistent with the data so far, so the
+next propagation step explores where it matters. You are not throwing information
+away: the discarded particles had negligible weight, and their contribution is
+already recorded in the running likelihood estimate.
+:::
+
 ::: {.callout-tip}
 ## Why resampling is essential: particle degeneracy
 
@@ -385,7 +408,7 @@ A state-space model has three components:
 2. **Transition dynamics** (`SEIT4LDynamics`) - how does the state evolve? (uses `gillespie_step`)
 3. **Observation process** (`PoissonObservation`) - how do observations relate to the state?
 
-Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/sbfnk/mfiidd/blob/main/src/seit4l_ssm_interface.jl)). Each type carries a docstring spelling out its state vector and the method it implements — useful for reference once you've read the prose above.
+Here is the full interface implementation (defined in [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl)). Each type carries a docstring spelling out its state vector and the method it implements — useful for reference once you've read the prose above.
 
 ```{julia}
 #| echo: false
@@ -535,6 +558,25 @@ Based on the calibration plots above:
 3. Why might you want to use more particles than the minimum needed?
 :::
 
+::: {.callout-tip title="What to look for" collapse="true"}
+Read the first answer off your own calibration plot rather than taking a number
+from here — it depends on the parameters you calibrated at, and the point of the
+exercise is that this is something you measure rather than guess.
+
+**128 against 256.** Doubling the particles roughly doubles the cost per
+likelihood evaluation and cuts the standard deviation of the estimate by about
+$\sqrt{2}$. In PMCMC that noise is what makes chains sticky, so you are trading
+time per iteration against the number of iterations you need. The usual advice is
+to aim for a standard deviation somewhere between 1 and 3 on the log scale, which
+is where the total cost tends to be lowest.
+
+**Why go above the minimum.** The noise depends on where in parameter space you
+are. A count calibrated at the posterior mode will be too few out in the tails,
+which is precisely where a chain gets stuck and stays stuck. Calibrating at a
+reasonable parameter set and then taking some headroom is cheaper than diagnosing
+a chain that will not move.
+:::
+
 ::: {.callout-tip title="Exercise: Sensitivity to parameters"}
 
 The particle filter likelihood estimate depends on the parameters. Explore how the log-likelihood changes as you vary R₀:
@@ -562,6 +604,24 @@ plot(R0_values, ll_results, xlabel="R_0", ylabel="Log-likelihood",
 2. Run the same R₀ value multiple times. How much does the log-likelihood vary? (This is the noise from particle filtering)
 3. How does the shape of this likelihood surface compare to what you'd expect from deterministic model fitting?
 
+:::
+
+::: {.callout-tip title="What to look for" collapse="true"}
+Two things, and the second is the one that matters.
+
+The log-likelihood should peak somewhere in the middle of the range you sweep and
+fall away on both sides, giving the usual shape you would get from a deterministic
+likelihood. That is reassuring: a noisy estimate still carries the signal.
+
+But run the same $R_0$ twice and you will not get the same number. The curve is
+noisy, and near the peak — where it is flattest — the noise can be comparable to
+the difference between neighbouring parameter values. That is the whole difficulty
+of PMCMC in one plot: the sampler has to decide between two parameters using
+numbers that wobble by a similar amount as the difference it is trying to detect.
+More particles shrink the wobble, at a cost per evaluation.
+
+If you want to see it plainly, compute the likelihood at a single $R_0$ ten times
+over and look at the spread.
 :::
 
 ::: {.callout-tip title="Learning points"}

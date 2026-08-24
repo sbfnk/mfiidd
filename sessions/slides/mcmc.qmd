@@ -4,6 +4,8 @@ title: "Introduction to Markov Chain Monte Carlo"
 subtitle: "Model fitting and inference for infectious disease dynamics"
 ---
 
+# Recap
+
 ## Recap: Bayesian inference
 
 Last time we saw that the [posterior distribution]{.alert} of $\theta$, given observed
@@ -197,6 +199,29 @@ $$r = \min\left(1, \frac{f(\theta^*)\,q(\theta \mid \theta^*)}{f(\theta)\,q(\the
 :::
 :::
 ::::
+
+## Handing it to a library {.smaller}
+
+You will write Metropolis-Hastings once, to know what it does. After that, use a
+[probabilistic programming language]{.alert}.
+
+::: {.fragment}
+In Julia that is **Turing.jl**. You declare the model and it works out the rest:
+
+```julia
+@model function sir_model(obs)
+    R_0 ~ Uniform(1, 20)          # ~ declares a prior
+    D_inf ~ Uniform(1, 14)
+    traj = simulate(R_0, D_inf)
+    obs ~ arraydist(Poisson.(traj))   # ...and a likelihood
+end
+```
+:::
+
+::: {.fragment}
+`|` conditions the model on data; `sample()` then runs whichever algorithm you
+name. The same model definition works with MH, RAM or NUTS.
+:::
 
 # Better proposals
 

@@ -29,7 +29,6 @@ In this session you will:
 1. Use prior predictive checks to validate model specification
 2. Use posterior predictive checks to assess model fit
 3. Interpret residual patterns to diagnose model problems
-4. Understand simulation-based calibration for validating inference pipelines
 
 # Setup
 
@@ -89,13 +88,13 @@ Let's use the SIR model from the introduction:
 function sir_ode!(du, u, p, t)
     R_0, D_inf = p
     β = R_0 / D_inf
-    γ = 1.0 / D_inf
+    ν = 1.0 / D_inf
     S, I, R, C = u
     N = S + I + R
 
     du[1] = -β * S * I / N
-    du[2] = β * S * I / N - γ * I
-    du[3] = γ * I
+    du[2] = β * S * I / N - ν * I
+    du[3] = ν * I
     du[4] = β * S * I / N  # Cumulative incidence
 end
 
@@ -105,8 +104,10 @@ function simulate_sir(R_0, D_inf, S0, I0, times)
     prob = ODEProblem(sir_ode!, u0, (times_vec[1], times_vec[end]), [R_0, D_inf])
     sol = solve(prob, Tsit5(), saveat=times_vec)
 
+    # The model tracks cumulative incidence, so daily incidence is the difference
+    # between consecutive days.
     inc_cumulative = sol[4, :]
-    inc_daily = [0.0; diff(inc_cumulative)]
+    inc_daily = diff(inc_cumulative)
 
     return inc_daily
 end
@@ -121,7 +122,7 @@ Now let's define a model with priors and sample from the prior predictive distri
     D_inf ~ Uniform(1.0, 14.0)
     ρ ~ Uniform(0.0, 1.0)  # Reporting rate
 
-    # Simulate
+    # Simulate.
     inc = simulate_sir(R_0, D_inf, S0, I0, times)
 
     # Likelihood
@@ -136,17 +137,19 @@ You'll see `max(value, 1e-10)` throughout the course wherever we create a Poisso
 :::
 
 ```{julia}
-# Prior predictive sampling
+# Prior predictive sampling.
 times = 0.0:1.0:59.0
 S0, I0 = 279.0, 5.0
 
 # Sample from priors (no data conditioning — obs will be sampled from the model)
-prior_samples = sample(sir_model(times, S0, I0, 60), Prior(), 200, progress=false)
+prior_samples = sample(
+    sir_model(times, S0, I0, length(times) - 1), Prior(), 200, progress=false
+)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code walkthrough
-- `sir_model(times, S0, I0, 60)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively — Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks) — here we never conditioned the model in the first place.
+- `sir_model(times, S0, I0, length(times) - 1)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively, i.e. Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks).
 - [`Prior()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a sampler that draws from prior distributions only, ignoring the likelihood. This gives us parameter combinations purely from our prior beliefs.
 :::
 
@@ -168,10 +171,10 @@ for i in 1:100
 
     inc = simulate_sir(R_0, D_inf, S0, I0, times)
     obs_expected = ρ .* inc
-    plot!(p_prior, collect(times), obs_expected, alpha=0.2, color=:blue)
+    plot!(p_prior, collect(times)[2:end], obs_expected, alpha=0.2, color=:blue)
 end
 
-plot!(p_prior, ylim=(0, 150))
+plot!(p_prior)
 ```
 
 **Questions to ask:**
@@ -179,6 +182,9 @@ plot!(p_prior, ylim=(0, 150))
 - Do the simulated epidemics look plausible given what you know about influenza?
 - Is the range of peak sizes reasonable?
 - Are there impossible trajectories (negative values, explosions)?
+
+Leave the vertical axis alone while you look.
+Capping it makes the picture tidier and hides exactly the trajectories the third question asks about.
 
 If prior predictive simulations look unreasonable, revise your priors before fitting data. This is much easier than debugging a fitted model.
 
@@ -190,6 +196,23 @@ The current priors allow $R_0$ up to 10, which is unrealistic for influenza. Try
 3. Plot the new trajectories alongside the originals
 
 How does the range of epidemic curves change? Are the new trajectories more realistic?
+:::
+
+::: {.callout-tip title="What to look for" collapse="true"}
+The spread narrows sharply, and it narrows at the top. The trajectories that
+disappear are the ones that infected the island in a few days, because those came
+from the upper half of the old prior.
+
+What survives still covers a wide range of epidemic sizes and speeds, which is
+what you want: the prior should exclude the impossible without pretending you
+already know the answer.
+
+Whether they are "more realistic" depends on knowing something about influenza
+before you see the data, and that is exactly the point. Prior predictive checking
+turns a claim about a parameter, which is hard to have intuition about, into a
+picture of epidemics, which is easy to judge. If you cannot say whether an $R_0$
+prior is reasonable, you can almost certainly say whether an epidemic that infects
+everyone in four days is.
 :::
 
 ::: {.callout-tip}
@@ -269,7 +292,7 @@ Visual checks are valuable but subjective. We can also compute summary statistic
 # Compute summary statistics for each posterior predictive sample
 function compute_summaries(trajectory)
     peak_value = maximum(trajectory)
-    peak_time = argmax(trajectory) - 1  # Convert to 0-indexed time
+    peak_time = argmax(trajectory)
     total_cases = sum(trajectory)
     return (peak=peak_value, peak_time=peak_time, total=total_cases)
 end
@@ -312,7 +335,35 @@ If the observed value (red line) falls in the tails of the posterior predictive 
 3. What does this tell you about which aspects of the epidemic the SIR model captures well vs poorly?
 :::
 
-We can quantify this with a *posterior predictive p-value*: the proportion of simulated values that are as extreme as or more extreme than the observed value.
+::: {.callout-tip title="What to look for" collapse="true"}
+Question 1 has no answer here, and that is the finding: **none** of the three sits
+comfortably inside its posterior predictive distribution. All three land in a
+tail.
+
+Read it off the printed p-values: near 0 for peak size and for total cases, near 1
+for peak timing. The observed peak of 47 is larger than every simulated peak, the
+observed total of 312 larger than every simulated total, and the observed peak day
+of 7 earlier than almost every simulated one. Too small, too late, too few.
+
+The fitted mean trajectory says the same thing in units you can picture: it peaks
+at about 12 cases around day 14 and accounts for roughly 226 of the 312 reported
+cases.
+
+The reason is visible in the data before any fitting.
+There are 312 reported cases in a population of 284.
+A single SIR wave infects each person at most once, so no combination of $R_0$, $D_\mathrm{inf}$ and $\rho$ can reproduce that total, and the fit settles for a flatter, later, smaller epidemic that splits the difference between the two waves.
+That is a model whose *structure* is wrong, not one whose parameters are badly chosen, and the checks say so in three different ways at once.
+
+The general lesson is worth more than the specific answer. A statistic the model
+reproduces tells you little, because a flexible model reproduces many things. A
+statistic it consistently misses points straight at the missing mechanism, which
+is why it is worth choosing summaries that could plausibly fail rather than ones
+you know will pass.
+:::
+
+We can quantify this with a *posterior predictive p-value*.
+The version below is one-sided: the proportion of simulated values that are at least as large as the observed one.
+A value near 0.5 means the observation sits in the middle of what the model predicts, and values near 0 or 1 mean it sits in one of the tails.
 
 ```{julia}
 # Posterior predictive p-values
@@ -326,7 +377,9 @@ println("  Peak timing: $p_time")
 println("  Total cases: $p_total")
 ```
 
-Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data. A p-value of 0.02 for peak timing, for example, would mean only 2% of simulated epidemics peaked as late as or later than the observed data — suggesting the model systematically predicts earlier peaks.
+Values close to 0 or 1 indicate the model struggles to reproduce that aspect of the data.
+Peak timing comes out near 1 here, meaning almost every simulated epidemic peaked as late as or later than the observed one: the model is systematically late.
+A value near 0 would have carried the opposite meaning, that the model peaks too early.
 
 ::: {.callout-note}
 These p-values are *descriptive*, not hypothesis tests — there is no "reject if p < 0.05" rule here. They quantify how surprised you should be, given the model. A value of 0.15 doesn't mean the model is "fine"; a value of 0.03 doesn't mean it's "wrong". Use them alongside visual checks and scientific judgement.
@@ -342,14 +395,13 @@ mean_R_0 = mean(chain[:R_0])
 mean_D_inf = mean(chain[:D_inf])
 mean_ρ = mean(chain[:ρ])
 
-# Use the actual time points from the data
+# Simulate on the same grid the model was fitted on, so predictions line up with
+# the observations they are being compared against
 obs_times = flu_tdc.time
-mean_inc = simulate_sir(mean_R_0, mean_D_inf, S0, I0, obs_times)
+mean_inc = simulate_sir(mean_R_0, mean_D_inf, S0, I0, times)
 mean_pred = mean_ρ .* mean_inc
 
-# Compute residuals (use explicit indexing to match lengths)
-n_obs = length(flu_tdc.obs)
-resid = flu_tdc.obs .- mean_pred[1:n_obs]
+resid = flu_tdc.obs .- mean_pred
 ```
 
 ```{julia}
@@ -380,7 +432,73 @@ p_acf = scatter(lag1_resid, lag0_resid,
 
 Strong correlation here suggests the model is missing important dynamics - exactly what we'd expect when fitting SIR to two-wave data.
 
-# Simulation-based calibration
+# When models fail checks
+
+What should you do when model checks reveal problems?
+
+If prior predictive simulations look unreasonable, start by examining your priors. Priors that are too vague will generate wildly varying trajectories so you should use your knowledge of the system to constrain them. If you see impossible values (negative counts, probabilities outside [0,1]), add appropriate bounds or switch to a distribution family that respects the constraints.
+
+When posterior predictive checks fail, the model itself needs attention. Systematic bias such as predictions consistently too high or too low suggests missing mechanisms. If the model captures the mean but not the variability, your observation model may be wrong; switching from Poisson to Negative Binomial, for instance, allows for overdispersion. When specific features are missed (like a second epidemic wave), consider what biological mechanisms could explain them.
+
+Residual patterns point to specific fixes. Temporal trends in residuals suggest time-varying parameters or additional compartments. Autocorrelated residuals indicate the model dynamics are incomplete. And if residual variance grows with predicted values (heteroscedasticity), the observation model's variance structure needs adjustment.
+
+Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
+
+::: {.callout-tip}
+## When is a model "good enough"?
+There is no universal threshold. All models are wrong — the question is whether yours is useful for your specific purpose. A model is good enough when:
+
+- It captures the features you care about (e.g. peak timing for planning surge capacity)
+- Posterior predictive checks don't show systematic failures in those features
+- Adding complexity doesn't meaningfully improve fit for your question
+- You've documented what the model does and doesn't capture
+
+A model that misses a second wave is fine if you only care about the first wave's peak. It's not fine if you're trying to understand long-term immunity.
+:::
+
+::: {.callout-tip title="Exercise: Diagnosing the SIR failure"}
+The SIR model fails to capture the second wave in the Tristan da Cunha data. Based on the residual patterns and posterior predictive checks above:
+
+1. What biological mechanism might explain a second wave after the first has subsided?
+2. What structural change to the model would be needed to accommodate this?
+3. Would changing the observation model (e.g., Poisson to Negative Binomial) help, or is this a problem with the underlying dynamics?
+
+The next session on SEITL models explores one potential answer to these questions.
+:::
+
+::: {.callout-tip title="Solution" collapse="true"}
+**A mechanism.** The straightforward explanation is that immunity after
+infection is not permanent. If recovered islanders return to being susceptible
+after a week or two, a second wave can run through the same population while the
+outbreak is still going. Other candidates exist — a second introduction, or
+behaviour change part-way through — but temporary immunity is the one that fits a
+closed island population with no new arrivals.
+
+**The structural change.** You need at least one more compartment, so that
+recovery leads to a temporary state that drains back into susceptible rather than
+into permanent immunity. That is the T and L of SEITL: a temporary immune state
+followed by long-term immunity, with only a fraction reaching the latter.
+
+**Would a different observation model help?** No, and this is the important half
+of the question. The negative binomial widens the range of counts the model
+tolerates at any given time, so it would make the second wave look less
+*surprising* — the posterior would simply become less confident. It cannot make a
+single-wave trajectory produce two peaks. Changing the observation model adjusts
+how you score the gap between model and data; it never changes what the model can
+do. When a check fails on the shape of the dynamics, the dynamics are what has to
+change.
+:::
+
+::: {.callout-tip title="Learning points"}
+- **Prior predictive checks** validate that your priors generate plausible data before you see observations
+- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
+- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
+- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
+:::
+
+# Going further
+
+## Simulation-based calibration
 
 A more rigorous check asks: *does my inference procedure recover true parameters when I know them?*
 
@@ -447,49 +565,6 @@ A uniform histogram indicates well-calibrated inference. Peaks at the edges sugg
 Full SBC requires many simulations (100+) and is computationally expensive. It is particularly important when implementing new models, using complex inference algorithms, or when you need high confidence that your computational pipeline is correct. For established models with well-tested software, prior and posterior predictive checks catch most problems, but SBC provides the strongest guarantee that inference is working as intended.
 :::
 
-# When models fail checks
-
-What should you do when model checks reveal problems?
-
-If prior predictive simulations look unreasonable, start by examining your priors. Priors that are too vague will generate wildly varying trajectories so you should use your knowledge of the system to constrain them. If you see impossible values (negative counts, probabilities outside [0,1]), add appropriate bounds or switch to a distribution family that respects the constraints.
-
-When posterior predictive checks fail, the model itself needs attention. Systematic bias such as predictions consistently too high or too low suggests missing mechanisms. If the model captures the mean but not the variability, your observation model may be wrong; switching from Poisson to Negative Binomial, for instance, allows for overdispersion. When specific features are missed (like a second epidemic wave), consider what biological mechanisms could explain them.
-
-Residual patterns point to specific fixes. Temporal trends in residuals suggest time-varying parameters or additional compartments. Autocorrelated residuals indicate the model dynamics are incomplete. And if residual variance grows with predicted values (heteroscedasticity), the observation model's variance structure needs adjustment.
-
-Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
-
-::: {.callout-tip}
-## When is a model "good enough"?
-There is no universal threshold. All models are wrong — the question is whether yours is useful for your specific purpose. A model is good enough when:
-
-- It captures the features you care about (e.g. peak timing for planning surge capacity)
-- Posterior predictive checks don't show systematic failures in those features
-- Adding complexity doesn't meaningfully improve fit for your question
-- You've documented what the model does and doesn't capture
-
-A model that misses a second wave is fine if you only care about the first wave's peak. It's not fine if you're trying to understand long-term immunity.
-:::
-
-::: {.callout-tip title="Exercise: Diagnosing the SIR failure"}
-The SIR model fails to capture the second wave in the Tristan da Cunha data. Based on the residual patterns and posterior predictive checks above:
-
-1. What biological mechanism might explain a second wave after the first has subsided?
-2. What structural change to the model would be needed to accommodate this?
-3. Would changing the observation model (e.g., Poisson to Negative Binomial) help, or is this a problem with the underlying dynamics?
-
-The next session on SEITL models explores one potential answer to these questions.
-:::
-
-::: {.callout-tip title="Learning points"}
-- **Prior predictive checks** validate that your priors generate plausible data before you see observations
-- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
-- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
-- **Simulation-based calibration** rigorously tests whether inference recovers known parameters
-- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
-:::
-
-# Going further
 
 ## Prior sensitivity analysis
 
