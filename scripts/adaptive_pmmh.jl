@@ -25,7 +25,12 @@ flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 # Particle filter for SEIT4L (same as before)
 # =============================================================================
 
-function particle_filter_seit4l(θ, obs, n_particles; init_state=[279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0])
+function particle_filter_seit4l(
+    θ,
+    obs,
+    n_particles;
+    init_state = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0],
+)
     n_obs = length(obs)
     ρ = θ[:ρ]
 
@@ -39,9 +44,16 @@ function particle_filter_seit4l(θ, obs, n_particles; init_state=[279.0, 0.0, 2.
         [β*S*I/N, ϵ*E, ν*I, τ*T1, τ*T2, τ*T3, (1-θ[:α])*τ*T4, θ[:α]*τ*T4]
     end
 
-    stoich = [[-1,1,0,0,0,0,0,0], [0,-1,1,0,0,0,0,0], [0,0,-1,1,0,0,0,0],
-              [0,0,0,-1,1,0,0,0], [0,0,0,0,-1,1,0,0], [0,0,0,0,0,-1,1,0],
-              [1,0,0,0,0,0,-1,0], [0,0,0,0,0,0,-1,1]]
+    stoich = [
+        [-1, 1, 0, 0, 0, 0, 0, 0],
+        [0, -1, 1, 0, 0, 0, 0, 0],
+        [0, 0, -1, 1, 0, 0, 0, 0],
+        [0, 0, 0, -1, 1, 0, 0, 0],
+        [0, 0, 0, 0, -1, 1, 0, 0],
+        [0, 0, 0, 0, 0, -1, 1, 0],
+        [1, 0, 0, 0, 0, 0, -1, 0],
+        [0, 0, 0, 0, 0, 0, -1, 1],
+    ]
 
     function gillespie_step!(state, dt)
         t, incidence = 0.0, 0
@@ -55,9 +67,16 @@ function particle_filter_seit4l(θ, obs, n_particles; init_state=[279.0, 0.0, 2.
             cum, rnd, ev = 0.0, rand()*total, 0
             for i in 1:8
                 cum += r[i]
-                if rnd ≤ cum; ev = i; break; end
+                if rnd ≤ cum
+                    ;
+                    ev = i;
+                    break;
+                end
             end
-            for j in 1:8; state[j] += stoich[ev][j]; end
+            for j in 1:8
+                ;
+                state[j] += stoich[ev][j];
+            end
             ev == 2 && (incidence += 1)
         end
         incidence
@@ -73,7 +92,7 @@ function particle_filter_seit4l(θ, obs, n_particles; init_state=[279.0, 0.0, 2.
         w = exp.(log_w .- max_lw)
         log_lik += max_lw + log(mean(w))
         w ./= sum(w)
-        ess = 1.0 / sum(w.^2)
+        ess = 1.0 / sum(w .^ 2)
         if ess < n_particles / 2
             idx = wsample(1:n_particles, w, n_particles)
             particles = [copy(particles[i]) for i in idx]
@@ -93,7 +112,7 @@ const BOUNDS = (
     D_inf = (0.1, 15.0),
     α = (0.0, 1.0),
     D_imm = (1.0, 50.0),
-    ρ = (0.0, 1.0)
+    ρ = (0.0, 1.0),
 )
 const PARAM_NAMES = [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
 
@@ -127,11 +146,15 @@ end
 # Adaptive Metropolis (Haario et al. 2001)
 # =============================================================================
 
-function adaptive_mcmc(obs, n_particles, n_samples;
-                       init_x=nothing,
-                       init_Σ=nothing,
-                       adapt_start=100,
-                       ε=1e-6)
+function adaptive_mcmc(
+    obs,
+    n_particles,
+    n_samples;
+    init_x = nothing,
+    init_Σ = nothing,
+    adapt_start = 100,
+    ε = 1e-6,
+)
     d = 6  # number of parameters
 
     # Initial state
@@ -141,7 +164,7 @@ function adaptive_mcmc(obs, n_particles, n_samples;
 
     # Initial proposal covariance (diagonal, will adapt)
     if init_Σ === nothing
-        init_Σ = diagm([4.0, 0.3, 1.5, 0.05, 2.0, 0.05].^2)
+        init_Σ = diagm([4.0, 0.3, 1.5, 0.05, 2.0, 0.05] .^ 2)
     end
 
     # Scaling factor (optimal for d-dimensional Gaussian: 2.38²/d)
@@ -201,7 +224,9 @@ function adaptive_mcmc(obs, n_particles, n_samples;
             elapsed = time() - t_start
             rate = i / elapsed
             accept_rate = 100 * n_accept / i
-            println("  $i/$n_samples ($(round(rate, digits=1))/s, accept=$(round(accept_rate, digits=1))%)")
+            println(
+                "  $i/$n_samples ($(round(rate, digits=1))/s, accept=$(round(accept_rate, digits=1))%)",
+            )
         end
     end
 
@@ -222,18 +247,20 @@ n_samples = 20000  # Adaptive should need fewer samples
 # Use empirical covariance from previous run as starting point
 # (This gives adaptation a head start)
 Σ_init = [
-    13.52  0.5361  2.216  0.01045  1.378  0.0004056;
-    0.5361  0.1486  -0.2839  -0.001504  0.1571  0.002234;
-    2.216  -0.2839  2.132  0.01455  -0.2214  -0.01215;
-    0.01045  -0.001504  0.01455  0.0003732  -0.005007  -0.0001918;
-    1.378  0.1571  -0.2214  -0.005007  1.566  0.001945;
-    0.0004056  0.002234  -0.01215  -0.0001918  0.001945  0.0003544
+    13.52 0.5361 2.216 0.01045 1.378 0.0004056;
+    0.5361 0.1486 -0.2839 -0.001504 0.1571 0.002234;
+    2.216 -0.2839 2.132 0.01455 -0.2214 -0.01215;
+    0.01045 -0.001504 0.01455 0.0003732 -0.005007 -0.0001918;
+    1.378 0.1571 -0.2214 -0.005007 1.566 0.001945;
+    0.0004056 0.002234 -0.01215 -0.0001918 0.001945 0.0003544
 ]
 
 samples, log_posts, final_cov = adaptive_mcmc(
-    flu_tdc.obs, n_particles, n_samples;
+    flu_tdc.obs,
+    n_particles,
+    n_samples;
     init_Σ = Σ_init,
-    adapt_start = 500  # Start adapting after 500 samples
+    adapt_start = 500,  # Start adapting after 500 samples
 )
 
 # Convert to MCMCChains for diagnostics
@@ -258,7 +285,7 @@ println("\nSaved $(nrow(df)) samples to $output_path")
 println("\n=== Final adapted covariance (for future runs) ===")
 println("Σ_adapted = [")
 for i in 1:6
-    vals = [round(final_cov[i,j], sigdigits=4) for j in 1:6]
+    vals = [round(final_cov[i, j], sigdigits = 4) for j in 1:6]
     println("  ", join(vals, "  "), ";")
 end
 println("]")
