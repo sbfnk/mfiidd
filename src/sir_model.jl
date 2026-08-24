@@ -48,13 +48,13 @@ function simulate_sir(R_0, D_inf, S0, I0, times)
     times_vec = collect(times)
     u0 = Float64[S0, I0, 0.0]
     prob = ODEProblem(sir_ode!, u0, (times_vec[1], times_vec[end]), [R_0, D_inf])
-    sol = solve(prob, Tsit5(), saveat=times_vec)
+    sol = solve(prob, Tsit5(), saveat = times_vec)
 
     df = DataFrame(
         time = sol.t,
         S = [u[1] for u in sol.u],
         I = [u[2] for u in sol.u],
-        R = [u[3] for u in sol.u]
+        R = [u[3] for u in sol.u],
     )
 
     # Compute daily incidence from change in R

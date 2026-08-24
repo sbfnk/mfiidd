@@ -5,11 +5,11 @@ comments: false
 about:
   template: jolla
   links:
-    - icon: chat-fill
-      text: Dive into the course
+    - icon: book
+      text: Get started
       href: ./getting-started.html
     - icon: github
-      text: Visit us on GitHub
+      text: Source on GitHub
       href: https://github.com/mfiidd/mfiidd
 ---
 
