@@ -1,3 +1,7 @@
+# Quarto extensions under _extensions/ are vendored third-party code. The
+# hygiene hooks would rewrite them, and the next `quarto add` would undo it.
+exclude: ^_extensions/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0

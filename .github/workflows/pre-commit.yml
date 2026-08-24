@@ -1,0 +1,51 @@
+name: pre-commit
+
+# The hooks run over the files a pull request touches rather than the whole
+# tree. The repository predates them and does not pass them everywhere, so
+# scoping to the diff holds new work to the standard without a reformatting
+# sweep landing on top of every open branch.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-commit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      # Both ends of the pull request's diff have to be present for --from-ref.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # julia-formatter is a `language: system` hook: it shells out to `julia`
+      # and expects JuliaFormatter to be importable, so pre-commit installs
+      # neither for us. The version is pinned to the hook revision in
+      # .pre-commit-config.yaml, since that revision governs the hook script
+      # and not the formatter that does the work.
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.12.6'
+
+      - run: julia -e 'using Pkg; Pkg.add(name="JuliaFormatter", version="2.5.5")'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ env.pythonLocation }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run the hooks over this pull request's changes
+        run: |
+          python -m pip install pre-commit
+          pre-commit run --show-diff-on-failure --color=always \
+            --from-ref ${{ github.event.pull_request.base.sha }} \
+            --to-ref ${{ github.event.pull_request.head.sha }}

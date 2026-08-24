@@ -62,11 +62,17 @@ DataFrame with columns: time, S, E, I, T, L, Inc (daily incidence)
 function simulate_seitl_deterministic(θ, init_state, times)
     params = [θ[:R_0], θ[:D_lat], θ[:D_inf], θ[:α], θ[:D_imm]]
 
-    u0 = [init_state[:S], init_state[:E], init_state[:I],
-          init_state[:T], init_state[:L], 0.0]
+    u0 = [
+        init_state[:S],
+        init_state[:E],
+        init_state[:I],
+        init_state[:T],
+        init_state[:L],
+        0.0,
+    ]
 
     prob = ODEProblem(seitl_ode!, u0, (times[1], times[end]), params)
-    sol = solve(prob, Tsit5(), saveat=times)
+    sol = solve(prob, Tsit5(), saveat = times)
 
     state_names = [:S, :E, :I, :T, :L, :Inc_cumulative]
     sol_matrix = reduce(hcat, sol.u)'
@@ -100,8 +106,13 @@ function simulate_seitl_stochastic(θ, init_state, times)
     τ = 1.0 / D_imm
 
     # State: [S, E, I, T, L]
-    state = Float64[init_state[:S], init_state[:E], init_state[:I],
-                    init_state[:T], init_state[:L]]
+    state = Float64[
+        init_state[:S],
+        init_state[:E],
+        init_state[:I],
+        init_state[:T],
+        init_state[:L],
+    ]
 
     # Stoichiometry: how each transition changes [S, E, I, T, L]
     stoich = [
@@ -109,7 +120,7 @@ function simulate_seitl_stochastic(θ, init_state, times)
         [0, -1, 1, 0, 0],   # E → I
         [0, 0, -1, 1, 0],   # I → T
         [1, 0, 0, -1, 0],   # T → S
-        [0, 0, 0, -1, 1]    # T → L
+        [0, 0, 0, -1, 1],    # T → L
     ]
 
     function rates(s)
@@ -149,15 +160,21 @@ function simulate_seitl_stochastic(θ, init_state, times)
 
     # Simulate day-by-day
     n_days = length(times)
-    results = DataFrame(time=collect(times), S=zeros(n_days), E=zeros(n_days),
-                       I=zeros(n_days), T=zeros(n_days), L=zeros(n_days),
-                       Inc=zeros(n_days))
+    results = DataFrame(
+        time = collect(times),
+        S = zeros(n_days),
+        E = zeros(n_days),
+        I = zeros(n_days),
+        T = zeros(n_days),
+        L = zeros(n_days),
+        Inc = zeros(n_days),
+    )
 
     for (i, t) in enumerate(times)
         results.S[i], results.E[i], results.I[i] = state[1], state[2], state[3]
         results.T[i], results.L[i] = state[4], state[5]
         if i < n_days
-            results.Inc[i+1] = gillespie_step!(state, times[i+1] - t)
+            results.Inc[i + 1] = gillespie_step!(state, times[i + 1] - t)
         end
     end
 
@@ -217,12 +234,20 @@ DataFrame with columns: time, S, E, I, T1, T2, T3, T4, L, Inc
 function simulate_seit4l_deterministic(θ, init_state, times)
     params = [θ[:R_0], θ[:D_lat], θ[:D_inf], θ[:α], θ[:D_imm]]
 
-    u0 = [init_state[:S], init_state[:E], init_state[:I],
-          init_state[:T1], init_state[:T2], init_state[:T3], init_state[:T4],
-          init_state[:L], 0.0]
+    u0 = [
+        init_state[:S],
+        init_state[:E],
+        init_state[:I],
+        init_state[:T1],
+        init_state[:T2],
+        init_state[:T3],
+        init_state[:T4],
+        init_state[:L],
+        0.0,
+    ]
 
     prob = ODEProblem(seit4l_ode!, u0, (times[1], times[end]), params)
-    sol = solve(prob, Tsit5(), saveat=times)
+    sol = solve(prob, Tsit5(), saveat = times)
 
     state_names = [:S, :E, :I, :T1, :T2, :T3, :T4, :L, :Inc_cumulative]
     sol_matrix = reduce(hcat, sol.u)'
