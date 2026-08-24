@@ -189,7 +189,6 @@ A tuple is similar to an array (defined with brackets as we did above in definin
 Here we could also have used a vector `[t0, tend]`.
 Either will be correctly interpreted by `ODEProblem()`.
 The fourth argument gives the parameters of the model `sir_params` as a vector.
-`params` would have been the natural name, but `Distributions` exports a function of that name and assigning to it would shadow it for the rest of the session.
 
 ```julia
 sol = solve(prob, saveat = 1)
