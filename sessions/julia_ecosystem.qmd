@@ -290,9 +290,8 @@ This is not hypothetical. The
 [universal differential equations](universal_differential_equations.qmd) session
 trains a neural network inside an ODE with ForwardDiff, and gets away with it
 only because the network is deliberately tiny: 33 parameters, chosen partly so
-that forward mode stays affordable. That is already at the edge of the range in
-the table above. Widen the network and forward mode becomes the bottleneck,
-because each parameter costs another pass through the model.
+that forward mode stays affordable. Widen the network and forward mode becomes
+the bottleneck, because each parameter costs another pass through the model.
 
 If a gradient-based sampler or optimiser slows to a crawl, or stops working
 altogether, after you change your model, the AD backend is one of the first
