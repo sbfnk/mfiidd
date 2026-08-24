@@ -614,7 +614,7 @@ With that in mind, we explore the likelihood by trying the parameter combination
 
 ```{julia}
 # Calculate and store likelihood values for our test parameters
-log_likelihoods = Float64[]
+log_likelihoods = []
 
 # Generate plot
 p = plot(title = "Model Fit Comparison", xlabel = "Time", ylabel = "Cases")
