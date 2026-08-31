@@ -711,6 +711,7 @@ The problems are:
 A fixed version:
 
 ```{julia}
+#| output: false
 @model function fixed_model()
     R_0 ~ Normal(0, 1)       # Moderate scale
     D_inf ~ Normal(0, 1)     # Same scale as R_0
@@ -724,6 +725,9 @@ A fixed version:
 end
 
 chain_fixed = sample(fixed_model(), NUTS(), MCMCThreads(), 1000, n_chains)
+```
+
+```{julia}
 plot(chain_fixed)
 ```
 
