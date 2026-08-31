@@ -168,6 +168,9 @@ Let's start with full MCMC to establish a baseline:
 
 ```{julia}
 println("Running MCMC with NUTS...")
+## A short run first, so that the timing below measures sampling and not Julia
+## compiling the sampler for the first time
+sample(model, NUTS(0.65), 10, progress=false)
 t_mcmc = @elapsed chain_mcmc = sample(model, NUTS(0.65), 500, progress=false)
 println("MCMC time: $(round(t_mcmc, digits=1)) seconds")
 ```
@@ -188,7 +191,8 @@ plot(chain_mcmc[[:R_0, :D_inf, :ρ]], size=(900, 600))
 summarystats(chain_mcmc)
 ```
 
-Note the time printed above, and compare it with the variational runs below rather than with any particular number quoted here: it depends on the machine, and on this model it is tens of seconds rather than the hours a larger model would take.
+Note the time printed above and compare it with the variational runs below.
+Each timing cell runs the method once before measuring it, so what you see is the cost of sampling rather than the cost of Julia compiling the sampler for the first time, which on a model this small would otherwise dominate everything.
 
 # Approach 1: Mean-Field Variational Inference
 
@@ -240,6 +244,7 @@ Passing `q_meanfield_gaussian` to `vi` tells Turing to construct an initial mean
 
 ```{julia}
 println("\nRunning Mean-Field VI...")
+vi(model, q_meanfield_gaussian, 10; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
 t_vi_mf = @elapsed result_mf = vi(model, q_meanfield_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
 q_mf = result_mf.q
 stats_mf = result_mf.info
@@ -367,10 +372,12 @@ For our 3-parameter model, this means:
 The additional parameters allow the approximation to capture correlations. The elliptical contours of a full Gaussian can be tilted and stretched to match the ridge-like structure of the true posterior.
 
 The trade-off is that more parameters means more to optimise, and for high-dimensional problems the covariance matrix grows as $O(n^2)$, which can become prohibitive; in those cases low-rank approximations or structured covariances are used.
-With three parameters that cost is invisible, and the timing cell below has full-rank finishing *faster* than mean-field on this run, because the number of optimiser iterations rather than the size of the covariance is what dominates here.
+With three parameters that cost is invisible: both families run the same 500 iterations, and the extra covariance entries are a handful of numbers.
+Expect the two timings below to come out close, with full-rank a shade slower.
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
+vi(model, q_fullrank_gaussian, 10; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
 t_vi_full = @elapsed result_full = vi(model, q_fullrank_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
 q_full = result_full.q
 stats_full = result_full.info
@@ -461,9 +468,9 @@ println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
 println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
 ```
 
-Note how modest the speedup is here: a few fold, on a model with three parameters that MCMC handles comfortably in seconds.
-Variational inference earns its keep on problems where MCMC takes hours, or where the same model has to be refitted to hundreds of datasets, and this example is neither.
-Comparing the two on a small model is the right way to check that VI is telling the truth, and the wrong way to decide whether you need it.
+Once compilation is out of the way, there is almost nothing between the three on this model: all of them finish in around a second.
+Variational inference earns its keep on problems where MCMC takes hours, or where the same model has to be refitted to hundreds of datasets, and a three-parameter SIR is neither.
+Comparing the two here is the right way to check that VI is telling the truth about the posterior, and the wrong way to decide whether you need it.
 
 ## Trade-offs summary
 
@@ -473,9 +480,9 @@ Comparing the two on a small model is the right way to check that VI is telling 
 | Mean-field VI | Fast | Approximate | No | Quick exploration, many datasets |
 | Full-rank VI | Fast | Better | Yes | Real-time forecasting |
 
-On this three-parameter model the difference is a few fold rather than orders of
-magnitude, as the timings above show. Read the table as the shape of the trade-off
-rather than as a promise about seconds.
+On this three-parameter model the timings above separate the three methods hardly
+at all. Read the table as the shape of the trade-off on problems large enough for
+it to appear, rather than as a promise about seconds here.
 
 # When to use each method
 
