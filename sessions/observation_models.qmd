@@ -255,7 +255,7 @@ lands in the residuals.
 
 Either way the consequence for the Poisson fit is the same.
 It treats every departure from the trajectory as strong evidence against it, so the posterior comes out far too narrow.
-Nor can it buy its way out by moving the parameters: the four days around the observed peak are underpredicted roughly tenfold and stay that way, because the many low-count days of the second wave outweigh them.
+Nor can it buy its way out by moving the parameters: the four days around the observed peak are underpredicted by factors of four to ten and stay that way, because the many low-count days of the second wave outweigh them.
 The negative binomial in the next section loosens that grip, but notice that it does so by explaining the misfit as noise rather than by fixing the model.
 :::
 
@@ -462,8 +462,8 @@ This reveals that different likelihoods are just different ways of measuring dis
   surveillance data routinely breaks it
 - A negative log-likelihood is a distance function, so choosing an observation
   model is choosing how to measure the gap between prediction and data
-- An observation model that is too tight makes the posterior overconfident and
-  lets a single unusual day dominate the fit
+- An observation model that is too tight makes the posterior overconfident, and
+  can leave the trajectory unable to reach the days it fits worst
 
 :::
 

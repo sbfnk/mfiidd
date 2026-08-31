@@ -52,14 +52,14 @@ every unusual week as strong evidence against the trajectory.
 ## Why it matters for inference
 
 An observation model that is too tight makes the posterior too confident, and
-makes outliers dominate the fit.
+leaves the fit unable to reach the days it explains worst.
 
 ::: {.fragment}
-A single week with 35 cases where the model expects 5 is near-impossible under
-Poisson, so the likelihood collapses and the sampler is dragged towards
-parameters that accommodate the outlier.
+A day with 47 cases where the model expects 5 is near-impossible under Poisson.
+The likelihood cannot absorb it, and with the rest of the series pulling the
+other way the trajectory stays where the quiet days put it, far below the peak.
 
-Under a negative binomial the same week is merely unusual.
+Under a negative binomial the same day is merely unusual.
 :::
 
 ## Likelihood as a distance
