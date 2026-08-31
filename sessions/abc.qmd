@@ -221,7 +221,9 @@ function abc_rejection(prior_sampler, simulator, distance_fn, observed_data,
     println("Acceptance rate: $(round(acceptance_rate * 100, digits=2))%")
     println("Attempts needed: $n_attempts")
 
-    return samples
+    ## The attempt count is returned as well as printed, so the comparison at the
+    ## end of the session can put it beside the ABC-SMC simulation count
+    return samples, n_attempts
 end
 ```
 
@@ -288,7 +290,7 @@ ABC rejection sampling is sensitive to the threshold choice:
 
 - **Too strict** (e.g., 100): Long wait times, few or zero accepted samples
 - **Too loose** (e.g., 1000): Fast, but approximate posterior is close to the prior
-- **Just right** (e.g., 200-400): Reasonable acceptance rate with meaningful posterior concentration
+- **In between** (e.g., 200-400): Runs quickly, but at the loose end of this band the posterior still carries a good deal of the prior
 
 We start with a relaxed threshold (300) here.
 Note what that costs: the run below accepts around 30% of what it proposes, which by the guidance later in this session is loose enough that the posterior is still carrying a good deal of the prior.
@@ -302,7 +304,7 @@ The exercise that follows asks you to tighten it.
 threshold = 300.0  # Relaxed for faster acceptance
 
 println("Running ABC rejection sampler...")
-abc_samples = abc_rejection(
+abc_samples, abc_attempts = abc_rejection(
     sample_from_prior,
     simulate_sir_abc,
     distance_L1,
@@ -453,7 +455,7 @@ Notice that choosing a distance metric in ABC is philosophically similar to choo
 
 ## ABC-SMC: Sequential Monte Carlo ABC
 
-The rejection sampler above is inefficient - most samples from the prior are rejected, wasting computation. ABC-SMC (Sequential Monte Carlo ABC) dramatically improves efficiency by gradually tightening the acceptance threshold across multiple generations.
+The rejection sampler above is inefficient - most samples from the prior are rejected, wasting computation. ABC-SMC (Sequential Monte Carlo ABC) attacks that by gradually tightening the acceptance threshold across multiple generations, reusing the particles that survived the previous one.
 
 The key idea, introduced by [Toni et al. (2009)](https://doi.org/10.1098/rsif.2008.0172), is:
 
@@ -473,9 +475,10 @@ One approximation remains here. Perturbations that land outside the prior are re
 **Note on `Threads.@threads`**: The code below uses `Threads.@threads` to parallelise the particle loop — this macro distributes iterations across available CPU threads, so each particle can be simulated concurrently. For this to have any effect, Julia must be started with multiple threads (e.g., `julia -t auto`). See the [threading note in MCMC Diagnostics](mcmc_diagnostics.qmd#running-julia-with-multiple-threads) for setup instructions. Without multiple threads, the loop runs sequentially (slower but still correct).
 
 ```{julia}
-# The prior, written twice: once to sample from and once to evaluate. ABC-SMC
-# needs both, because the importance weights below are a ratio of prior density
-# to perturbation density.
+# The prior appears twice: as bounds to sample from, and as a support check used
+# when weighting. The importance weights below are a ratio of prior density to
+# perturbation density, and because all three priors are uniform that numerator
+# is a constant which cancels in the normalisation, so only the support matters.
 const PRIOR_BOUNDS = [(1.0, 20.0), (1.0, 10.0), (0.1, 1.0)]
 
 in_prior(θ) = all(lo <= θ[i] <= hi for (i, (lo, hi)) in enumerate(PRIOR_BOUNDS))
@@ -539,9 +542,12 @@ function abc_smc(prior_sampler, in_prior, simulator, distance_fn, observed_data,
         # Importance weights. A particle reached this generation through the
         # perturbation kernel rather than from the prior, and the weights undo
         # that: numerator is the prior density, denominator is how likely the
-        # previous generation was to propose it. Skipping this step, which is
-        # tempting because the arithmetic is fiddly, leaves the sample biased
-        # towards wherever the kernel happens to concentrate.
+        # previous generation was to propose it. The numerator is written as 1.0
+        # because these priors are uniform, so the density is the same constant
+        # for every particle and divides out when the weights are normalised.
+        # With a non-uniform prior it would have to be evaluated. Skipping the
+        # weights altogether leaves the sample biased towards wherever the
+        # kernel happens to concentrate.
         new_weights = if t_idx == 1
             fill(1.0 / n_particles, n_particles)
         else
@@ -605,6 +611,7 @@ println("="^50)
 println("Rejection ABC:")
 println("  Samples obtained: $(length(abc_samples))")
 println("  Threshold used: 300.0")
+println("  Simulations in total: $abc_attempts")
 
 println("\nABC-SMC:")
 println("  Particles: $(length(abc_smc_samples))")
@@ -654,7 +661,7 @@ Whether the total beats rejection sampling depends on the schedule, and on a pro
 
 Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally. After that it drops sharply, often to a small fraction of the particle count, and how far varies a great deal between runs: repeat this with different seeds and generation 2 can land anywhere from single figures to about half the particles. What does not vary is the direction.
 
-That is weight degeneracy. A handful of particles carry most of the mass, so the histogram below is drawn from far fewer distinct parameter vectors than its 1000 draws suggest, and its apparent concentration is partly an artefact of duplication rather than evidence of a sharper posterior. Production implementations resample between generations and adapt the kernel width to control this; ours does neither, so read the final spread as indicative rather than as a posterior you would report.
+That is weight degeneracy. A handful of particles carry most of the mass, so the density plot above is drawn from far fewer distinct parameter vectors than its 1000 draws suggest, and its apparent concentration is partly an artefact of duplication rather than evidence of a sharper posterior. Production implementations resample between generations and adapt the kernel width to control this; ours does neither, so read the final spread as indicative rather than as a posterior you would report.
 
 ::: {.callout-important}
 ## Assessing ABC posterior quality
@@ -856,7 +863,7 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
 - The acceptance threshold is the hard part: too tight and nothing is accepted,
   too loose and you are sampling the prior
 - ABC-SMC walks the threshold down in stages, which reaches thresholds rejection
-  sampling cannot afford, at the cost of weights that grow steadily more uneven
+  sampling cannot afford, at the cost of weights that can become very uneven
 - Likelihoods are fast and need a tractable model; ABC is slow and needs only a
   simulator
 - A single outlying observation moves a Poisson likelihood far more than an L1
