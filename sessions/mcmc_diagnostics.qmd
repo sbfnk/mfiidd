@@ -661,17 +661,21 @@ end
 
 ```{julia}
 #| output: false
-# This model will have problems. Run several chains, as the workflow above says
-# to: R̂ compares chains, so a single chain tells you much less.
+# This model will have problems. Sample it twice, once with a single chain and
+# once with several, so that the two can be compared below.
+chain_problematic_one = sample(problematic_model(), NUTS(), 1000)
 chain_problematic = sample(problematic_model(), NUTS(), MCMCThreads(), 1000, n_chains)
 ```
 
 ```{julia}
 # Diagnose it
-println("R̂ values:")
+println("R̂ from a single chain:")
+display(DataFrame(rhat(chain_problematic_one)))
+
+println("\nR̂ from several chains:")
 display(DataFrame(rhat(chain_problematic)))
 
-println("\nESS values:")
+println("\nESS values (several chains):")
 display(DataFrame(ess(chain_problematic)))
 ```
 
@@ -679,6 +683,11 @@ display(DataFrame(ess(chain_problematic)))
 # Look at the trace plots
 plot(chain_problematic)
 ```
+
+The two R̂ columns disagree, and the single-chain one is the more forgiving.
+Split-R̂ on one chain compares the first half of a chain against its second half, and a chain that never leaves the region it started in has little to disagree with.
+Across repeated runs it sometimes drops below the 1.1 threshold while the effective sample size is still in single figures.
+Several chains start from different points, and that is what gives R̂ something to detect.
 
 ::: {.callout-tip title="Exercise: Diagnose and fix the problematic model"}
 1. Look at the trace plots and quantitative diagnostics above. What specific problems can you identify?
@@ -695,7 +704,7 @@ The problems are:
 
 A fixed version:
 
-```julia
+```{julia}
 @model function fixed_model()
     R_0 ~ Normal(0, 1)       # Moderate scale
     D_inf ~ Normal(0, 1)     # Same scale as R_0
@@ -708,25 +717,26 @@ A fixed version:
     end
 end
 
-chain_fixed = sample(fixed_model(), NUTS(), 1000)
+chain_fixed = sample(fixed_model(), NUTS(), MCMCThreads(), 1000, n_chains)
 plot(chain_fixed)
 ```
 
-Run both and compare. Both diagnostics object, but not equally reliably, and the
-difference is the lesson.
+```{julia}
+println("R̂ values:")
+display(DataFrame(rhat(chain_fixed)))
 
-**ESS notices every time.** It collapses to the low tens across the whole chain,
-against something in the low thousands for the fixed model: a hundredfold
-difference that does not depend on the seed.
+println("\nESS values:")
+display(DataFrame(ess(chain_fixed)))
+```
 
-**R̂ usually notices, but not always.** Across repeated runs of the problematic
-model it usually lands past the 1.1 threshold, sometimes as high as 1.7. On some
-seeds, though, it comes back around 1.01 while the effective sample size is still
-in single figures.
+Both models are now sampled the same way, so the two sets of diagnostics can be read against each other.
 
-So a passing R̂ is not on its own evidence that a chain is usable, and a single run
-of any diagnostic can mislead you. That is the argument for running several chains
-and reading more than one number, which is what the workflow above asks for.
+ESS is the sharper signal.
+For the problematic model it is in single figures for three of the four parameters, and two orders of magnitude higher for the fixed model, from the same number of iterations.
+
+R̂ separates them as well, though on a much narrower scale, and the single-chain column earlier showed how easily it can be satisfied.
+A passing R̂ is not on its own evidence that a chain is usable, and one run of any diagnostic can mislead you.
+That is the argument for running several chains and reading more than one number, which is what the workflow above asks for.
 :::
 
 The general recipe:
