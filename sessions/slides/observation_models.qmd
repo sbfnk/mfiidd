@@ -51,15 +51,15 @@ every unusual week as strong evidence against the trajectory.
 
 ## Why it matters for inference
 
-An observation model that is too tight makes the posterior too confident, and
-leaves the fit unable to reach the days it explains worst.
+An observation model that is too tight makes the posterior too confident.
 
 ::: {.fragment}
-A day with 47 cases where the model expects 5 is near-impossible under Poisson.
-The likelihood cannot absorb it, and with the rest of the series pulling the
-other way the trajectory stays where the quiet days put it, far below the peak.
+A day with 47 cases where the model expects 5 is near-impossible under Poisson,
+so the intervals collapse around a trajectory that never reaches it.
 
-Under a negative binomial the same day is merely unusual.
+Under a negative binomial the same day is merely unusual and the intervals widen.
+The trajectory does not move closer: a single-wave model still cannot fit a
+two-wave outbreak.
 :::
 
 ## Likelihood as a distance

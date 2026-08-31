@@ -462,8 +462,10 @@ This reveals that different likelihoods are just different ways of measuring dis
   surveillance data routinely breaks it
 - A negative log-likelihood is a distance function, so choosing an observation
   model is choosing how to measure the gap between prediction and data
-- An observation model that is too tight makes the posterior overconfident, and
-  can leave the trajectory unable to reach the days it fits worst
+- An observation model that is too tight makes the posterior overconfident.
+  Loosening it widens the intervals honestly, but the trajectory stays where it
+  was: a mean that is wrong for structural reasons is not fixed by the
+  observation model
 
 :::
 
