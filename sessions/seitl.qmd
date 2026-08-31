@@ -605,63 +605,18 @@ The extended model looks as follows:
 
 ## SEIT4L model implementation
 
+These two live in [`src/seitl_model.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seitl_model.jl) beside the SEITL pair, and arrived with `using MFIIDD` in the same way.
+They are shown from that source for the same reason.
+
 ```{julia}
-"""
-SEIT4L model: SEITL with T compartment split into 4 stages (Erlang-4 distribution).
-"""
-function seit4l_ode!(du, u, p, t)
-    # Unpack parameters
-    R_0, D_lat, D_inf, α, D_imm = p
+#| echo: false
+#| output: asis
+println("```julia\n", source_for(seit4l_ode!), "\n\n", source_for(simulate_seit4l_deterministic), "\n```")
+```
 
-    # Convert to rates
-    β = R_0 / D_inf
-    ϵ = 1.0 / D_lat
-    ν = 1.0 / D_inf
-    τ = 4.0 / D_imm  # Rate through each T sub-stage (4 stages total)
+The Turing model wrapping them belongs to this session:
 
-    # Unpack states: S, E, I, T1, T2, T3, T4, L, Inc
-    S, E, I, T1, T2, T3, T4, L, Inc = u
-
-    # Total population
-    N = S + E + I + T1 + T2 + T3 + T4 + L
-
-    # ODEs
-    du[1] = -β * S * I / N + (1 - α) * τ * T4  # dS/dt
-    du[2] = β * S * I / N - ϵ * E              # dE/dt
-    du[3] = ϵ * E - ν * I                      # dI/dt
-    du[4] = ν * I - τ * T1                     # dT1/dt
-    du[5] = τ * T1 - τ * T2                    # dT2/dt
-    du[6] = τ * T2 - τ * T3                    # dT3/dt
-    du[7] = τ * T3 - τ * T4                    # dT4/dt
-    du[8] = α * τ * T4                         # dL/dt
-    du[9] = ϵ * E                              # dInc/dt
-end
-
-"""
-Simulate the deterministic SEIT4L model.
-"""
-function simulate_seit4l_deterministic(θ, init_state, times)
-    params = [θ[:R_0], θ[:D_lat], θ[:D_inf], θ[:α], θ[:D_imm]]
-
-    # Initial state with Inc = 0 and T split into 4 stages
-    u0 = [init_state[:S], init_state[:E], init_state[:I],
-          init_state[:T1], init_state[:T2], init_state[:T3], init_state[:T4],
-          init_state[:L], 0.0]
-
-    prob = ODEProblem(seit4l_ode!, u0, (times[1], times[end]), params)
-    sol = solve(prob, Tsit5(), saveat=times)
-
-    # Convert to DataFrame
-    state_names = [:S, :E, :I, :T1, :T2, :T3, :T4, :L, :Inc_cumulative]
-    sol_matrix = reduce(hcat, sol.u)'
-    df = DataFrame(sol_matrix, state_names)
-    df[!, :time] = sol.t
-
-    df[!, :Inc] = [0.0; diff(df.Inc_cumulative)]
-
-    return df
-end
-
+```{julia}
 """
 Turing model for SEIT4L - enables both simulation and inference.
 This version uses an Erlang-4 distribution for the T compartment.
