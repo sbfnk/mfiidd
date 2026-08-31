@@ -674,15 +674,21 @@ chain_problematic = sample(problematic_model(), NUTS(), MCMCThreads(), 1000, n_c
 ```
 
 ```{julia}
-# Diagnose it
+# Diagnose it. Each table gets its own cell, because `println` output is
+# collected separately from displayed tables and would otherwise arrive
+# detached from the label naming it.
 println("R̂ from a single chain:")
-display(DataFrame(rhat(chain_problematic_one)))
+DataFrame(rhat(chain_problematic_one))
+```
 
-println("\nR̂ from several chains:")
-display(DataFrame(rhat(chain_problematic)))
+```{julia}
+println("R̂ from several chains:")
+DataFrame(rhat(chain_problematic))
+```
 
-println("\nESS values (several chains):")
-display(DataFrame(ess(chain_problematic)))
+```{julia}
+println("ESS values (several chains):")
+DataFrame(ess(chain_problematic))
 ```
 
 ```{julia}
@@ -690,8 +696,9 @@ display(DataFrame(ess(chain_problematic)))
 plot(chain_problematic)
 ```
 
-The single chain reports an R̂ inside the usual 1.1 threshold, while the several-chain figure below it is far outside, for the same model and the same number of draws per chain.
-The effective sample size below shows how little independent information those draws actually carry.
+The first table is the single chain and the second is several chains, on the same model with the same number of draws per chain.
+Only the second is outside the usual 1.1 threshold.
+The third table shows how little independent information those draws carry.
 Split-R̂ on one chain compares the first half of a chain against its second half, and a chain that never leaves the region it started in has little to disagree with.
 Several chains start from different points, and that is what gives R̂ something to detect.
 
@@ -733,10 +740,12 @@ plot(chain_fixed)
 
 ```{julia}
 println("R̂ values:")
-display(DataFrame(rhat(chain_fixed)))
+DataFrame(rhat(chain_fixed))
+```
 
-println("\nESS values:")
-display(DataFrame(ess(chain_fixed)))
+```{julia}
+println("ESS values:")
+DataFrame(ess(chain_fixed))
 ```
 
 Both models are now sampled the same way, so the two sets of diagnostics can be read against each other.
