@@ -352,9 +352,8 @@ ESS tells you how many independent samples your correlated MCMC samples are equi
 
 ```{julia}
 ess_values = DataFrame(ess(chain_multi))
-# ESS is computed across every draw in every chain, so compare it against that
-# total. `length(chain_multi)` counts iterations in one chain, which would divide
-# by too small a number and overstate the efficiency by a factor of `n_chains`.
+# ESS pools every draw from every chain, so the total to compare it against is
+# iterations times chains.
 n_samples = size(chain_multi, 1) * size(chain_multi, 3)
 ```
 
@@ -379,7 +378,8 @@ end
 
 An ESS close to N means little autocorrelation and efficient sampling. An ESS much smaller than N means the samples are highly correlated and you need to run longer. As a rule of thumb, ESS below 100 is generally not enough for reliable inference.
 
-An ESS slightly *above* N is possible rather than a bug: NUTS can produce draws that are mildly anti-correlated, which carry a little more information than independent ones.
+ESS can come out slightly *above* N.
+NUTS sometimes produces mildly anti-correlated draws, and those carry a little more information than independent ones would.
 
 ## 3. Monte Carlo Standard Error (MCSE)
 
