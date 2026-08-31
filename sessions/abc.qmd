@@ -434,7 +434,15 @@ for (label, sim) in (("poorly fitting simulation", test_sim),
                           ("weighted", weighted_terms))
         t = terms(sim, spiked)
         println("  ", rpad(name, 9), " day 30 contributes ",
-                round(100 * t[30] / sum(t), digits=1), "% of the total")
+                round(100 * t[30] / sum(t), digits=1), "% of the summed terms")
+    end
+    ## And what the spike does to the distances the session actually uses, which
+    ## take a root in the L2 case
+    for (name, d) in (("L1", distance_L1), ("L2", distance_L2),
+                      ("weighted", distance_weighted))
+        before, after = d(sim, observed_data), d(sim, spiked)
+        println("  ", rpad(name, 9), " distance moves ",
+                round(100 * (after - before) / before, digits=1), "%")
     end
 end
 ```
@@ -442,8 +450,12 @@ end
 The ordering depends on how well the rest of the trajectory fits, which is worth
 more than the headline rule.
 Against the well fitting simulation, the spiked day accounts for about a fifth of
-the L2 total and about a tenth of the L1 total, which is the textbook behaviour:
-squaring makes one bad day dominate.
+the summed squares and about a tenth of the summed absolute errors, so squaring
+does concentrate attention on it.
+Look at the second block, though. `distance_L2` takes the square root of those
+summed squares, and once it does the two distances move by almost the same
+amount. The textbook claim that squaring lets one bad day dominate is about the
+summed terms, and the root undoes much of it.
 Against the poorly fitting one the ordering reverses, because L2 is already
 saturated by the model's own errors and one more large deviation barely registers
 among them.
@@ -657,7 +669,7 @@ Compare the printed counts rather than taking any efficiency claim on trust, inc
 
 The generations get *more* expensive, not less: the first is cheap because a loose threshold accepts almost anything, and each tightening costs more simulations per particle than the last.
 
-Whether the total beats rejection sampling depends on the schedule, and on a problem this small it is not a comfortable win. Compare the printed total against the rejection sampler's own count at its looser threshold before believing any speedup. What ABC-SMC reliably buys here is the tighter threshold itself, which rejection sampling could only reach by rejecting very much more.
+Whether the total beats rejection sampling depends on the schedule, and on a problem this small it does not. Compare the printed totals: ABC-SMC spends more simulations on 100 particles than rejection sampling spends on 200 samples, and the particles it returns are weighted, so its effective sample size is smaller again. Prior acceptance here is about 32% at a threshold of 300 and still about 11% at 250, so rejection sampling can reach the tighter threshold directly and cheaply. What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
 
 Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally. After that it drops sharply, often to a small fraction of the particle count, and how far varies a great deal between runs: repeat this with different seeds and generation 2 can land anywhere from single figures to about half the particles. What does not vary is the direction.
 
@@ -666,7 +678,7 @@ That is weight degeneracy. A handful of particles carry most of the mass, so the
 ::: {.callout-important}
 ## Assessing ABC posterior quality
 
-Unlike MCMC, ABC does not produce chains, so standard diagnostics like ESS (effective sample size) and R-hat do not apply. Instead, assess ABC posterior quality by:
+Rejection ABC does not produce chains, so chain diagnostics like R-hat have nothing to work with. ABC-SMC does carry weights, and the effective sample size of those weights is worth watching, as above. Beyond that, assess ABC posterior quality by:
 
 - **Acceptance rate**: Very low rates (< 0.1%) suggest the threshold is too strict or the model is a poor fit. Very high rates (> 10%) suggest the threshold is too loose and the posterior is close to the prior.
 - **Visual comparison with likelihood-based posteriors**: When a likelihood is available (as in this session), run both methods and compare. Large discrepancies suggest either the ABC threshold is too loose or the distance metric captures different features than the likelihood.
@@ -862,8 +874,10 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
   negative binomial
 - The acceptance threshold is the hard part: too tight and nothing is accepted,
   too loose and you are sampling the prior
-- ABC-SMC walks the threshold down in stages, which reaches thresholds rejection
-  sampling cannot afford, at the cost of weights that can become very uneven
+- ABC-SMC walks the threshold down in stages, concentrating effort where the data
+  are without being told where that is, at the cost of weights that can become
+  very uneven. On a problem as small as this one, where the prior already accepts
+  often, it does not pay for itself
 - Likelihoods are fast and need a tractable model; ABC is slow and needs only a
   simulator
 - A single outlying observation moves a Poisson likelihood far more than an L1
