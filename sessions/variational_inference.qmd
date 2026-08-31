@@ -16,7 +16,7 @@ order: 9
 
 So far in this course, we've used Markov Chain Monte Carlo (MCMC) for Bayesian inference. MCMC is asymptotically exact and provides reliable uncertainty quantification. But it has a key limitation: it's slow.
 
-For a single dataset with a simple model, MCMC is usually affordable: the model in this session takes tens of seconds. The problem is what happens next:
+For a single dataset with a simple model, MCMC is usually affordable: the model in this session fits in seconds. The problem is what happens next:
 
 - Real-time forecasting: Update predictions as new data arrives every hour
 - Many datasets: Analyse hundreds of outbreaks from different locations
@@ -273,7 +273,8 @@ plot(elbo_vals_mf, xlabel="Iteration", ylabel="ELBO",
 
 The ELBO should increase (become less negative) and eventually plateau. If the curve is still climbing at the end, you need more iterations. Typical counts range from a few hundred to a few thousand, depending on model complexity — for our simple 3-parameter model, 500 iterations is usually sufficient, but more complex models may need 1000–5000 or more.
 
-Much faster! But is it accurate?
+That is a similar cost to MCMC on a model this small.
+The question worth asking here is whether it is accurate.
 
 Before any of that can be compared with MCMC, the draws have to be put back on
 the scale of the parameters.
@@ -468,7 +469,7 @@ println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
 println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
 ```
 
-Once compilation is out of the way, there is almost nothing between the three on this model: all of them finish in around a second.
+Once compilation is out of the way, there is almost nothing between the three on this model, whatever machine renders the page.
 Variational inference earns its keep on problems where MCMC takes hours, or where the same model has to be refitted to hundreds of datasets, and a three-parameter SIR is neither.
 Comparing the two here is the right way to check that VI is telling the truth about the posterior, and the wrong way to decide whether you need it.
 
@@ -531,7 +532,7 @@ When you suspect these issues, MCMC remains the more reliable choice. A useful d
 
 ## Why speed matters in practice
 
-The speed comparisons above might seem academic for a single analysis - who cares if inference takes 30 seconds vs 5 minutes? But the difference becomes critical in operational settings:
+On a single small analysis the choice hardly matters, as the timings above show. The difference becomes critical in operational settings:
 
 **Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. If each MCMC run takes 5 minutes, you can afford to wait. But if you're fitting models for 100 different regions, that's over 8 hours of compute time per update cycle. With VI, the same analysis might take under an hour.
 
@@ -656,7 +657,7 @@ If you see substantial disagreement between full-rank VI and MCMC, it may indica
 - **Mean-field VI** assumes parameter independence - very fast, but misses correlations that are common in epidemic models
 - **Full-rank VI** captures correlations using a full covariance matrix - good balance between speed and accuracy
 - **ELBO (Evidence Lower Bound)** is the objective function - higher values mean better approximations
-- **Speed vs accuracy trade-off**: VI is much faster than MCMC but provides approximations; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
+- **Speed vs accuracy trade-off**: VI trades exactness for speed, and the saving grows with the size of the problem rather than showing up on a model like this one; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
 :::
 
 VI is not a replacement for MCMC - it's a complementary tool that enables applications where MCMC is too slow!
