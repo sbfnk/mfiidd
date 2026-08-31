@@ -476,6 +476,10 @@ end
 
 ```{julia}
 #| output: false
+# Seeded so the four chains below reliably split between the two modes, which is
+# the behaviour this example is about.
+Random.seed!(6)
+
 # Single chain might miss one mode
 chain_single = sample(multimodal_example(), NUTS(), 1000)
 
@@ -732,9 +736,9 @@ display(DataFrame(ess(chain_fixed)))
 Both models are now sampled the same way, so the two sets of diagnostics can be read against each other.
 
 ESS is the sharper signal.
-For the problematic model it collapses to around ten for three of the four parameters, and is two orders of magnitude higher for the fixed model, from the same number of iterations.
+For three of the four parameters it is two orders of magnitude lower for the problematic model than for the fixed one, from the same number of iterations.
 
-R̂ separates them as well, though on a much narrower scale, and the single-chain column earlier showed how easily it can be satisfied.
+R̂ separates them as well, though on a much narrower scale, and single-chain R̂ can be satisfied more easily still.
 A passing R̂ is not on its own evidence that a chain is usable, and one run of any diagnostic can mislead you.
 That is the argument for running several chains and reading more than one number, which is what the workflow above asks for.
 :::
