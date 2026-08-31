@@ -684,7 +684,7 @@ display(DataFrame(ess(chain_problematic)))
 plot(chain_problematic)
 ```
 
-The two R̂ columns disagree, and the single-chain one is the more forgiving.
+The two R̂ columns disagree, and single-chain split-R̂ is usually the more forgiving of the two.
 Split-R̂ on one chain compares the first half of a chain against its second half, and a chain that never leaves the region it started in has little to disagree with.
 Across repeated runs it sometimes drops below the 1.1 threshold while the effective sample size is still in single figures.
 Several chains start from different points, and that is what gives R̂ something to detect.
@@ -732,7 +732,7 @@ display(DataFrame(ess(chain_fixed)))
 Both models are now sampled the same way, so the two sets of diagnostics can be read against each other.
 
 ESS is the sharper signal.
-For the problematic model it is in single figures for three of the four parameters, and two orders of magnitude higher for the fixed model, from the same number of iterations.
+For the problematic model it collapses to around ten for three of the four parameters, and is two orders of magnitude higher for the fixed model, from the same number of iterations.
 
 R̂ separates them as well, though on a much narrower scale, and the single-chain column earlier showed how easily it can be satisfied.
 A passing R̂ is not on its own evidence that a chain is usable, and one run of any diagnostic can mislead you.
