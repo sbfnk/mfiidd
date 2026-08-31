@@ -292,12 +292,14 @@ Then fit it below and check.
    to about 2.6, several Poisson standard deviations apart. The two models do not
    merely disagree about the uncertainty, they disagree about the answer.
 
-   The reason is not a handful of extreme days. The fitted Poisson trajectory
-   accounts for about 192 of the 312 reported cases, so it is falling short across
-   the whole second half of the outbreak rather than being dragged by outliers.
-   Under a Poisson likelihood the only way to buy any of those missing cases is to
-   move the trajectory parameters, so they move. The negative binomial can call the
-   shortfall noise instead, and leaves them where the first wave puts them.
+   The shortfall sits almost entirely in the first wave.
+   Days 6 to 9 carry about four fifths of the squared residual, and day 7 alone about a third: 47 cases reported against fewer than five predicted.
+   The fitted trajectory accounts for about 192 of the 312 reported cases, and nearly all of the gap is there.
+   The Poisson fit cannot lift its peak to meet those days, because a larger $R_0$ also raises the long quiet tail, and a Poisson variance equal to its mean makes the near-zero days from day 19 onwards expensive.
+   Fit the same model to the first eighteen days alone and $R_0$ comes out around 7, which shows how much the tail is holding it down.
+
+   The negative binomial has a dispersion parameter, so those quiet days cost it much less: its log-likelihood over days 19 to 59 is about 40 units better.
+   Its trajectory is free to grow, which is why the larger $R_0$ above arrives with a larger predicted total, about 233 cases against 192.
 
    Look at $\rho$ in the comparison table below. The Poisson fit pushes it to about
    0.99, against the upper bound of its `Uniform(0.1, 1.0)` prior. A parameter
