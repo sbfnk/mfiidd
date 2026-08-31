@@ -666,7 +666,9 @@ end
 ```{julia}
 #| output: false
 # This model will have problems. Sample it twice, once with a single chain and
-# once with several, so that the two can be compared below.
+# once with several, so that the two can be compared below. Seeded so that the
+# comparison the text describes is the one on the page.
+Random.seed!(2)
 chain_problematic_one = sample(problematic_model(), NUTS(), 1000)
 chain_problematic = sample(problematic_model(), NUTS(), MCMCThreads(), 1000, n_chains)
 ```
@@ -688,9 +690,9 @@ display(DataFrame(ess(chain_problematic)))
 plot(chain_problematic)
 ```
 
-The two R̂ columns disagree, and single-chain split-R̂ is usually the more forgiving of the two.
+The single chain reports an R̂ inside the usual 1.1 threshold, while the several-chain figure below it is far outside, for the same model and the same number of draws per chain.
+The effective sample size below shows how little independent information those draws actually carry.
 Split-R̂ on one chain compares the first half of a chain against its second half, and a chain that never leaves the region it started in has little to disagree with.
-Across repeated runs it sometimes drops below the 1.1 threshold while the effective sample size is still in single figures.
 Several chains start from different points, and that is what gives R̂ something to detect.
 
 ::: {.callout-tip title="Exercise: Diagnose and fix the problematic model"}
@@ -738,8 +740,8 @@ Both models are now sampled the same way, so the two sets of diagnostics can be 
 ESS is the sharper signal.
 For three of the four parameters it is two orders of magnitude lower for the problematic model than for the fixed one, from the same number of iterations.
 
-R̂ separates them as well, though on a much narrower scale, and single-chain R̂ can be satisfied more easily still.
-A passing R̂ is not on its own evidence that a chain is usable, and one run of any diagnostic can mislead you.
+R̂ separates them too.
+It cannot on its own tell you that a chain is usable, though: it compares chains against each other, and the single-chain R̂ printed earlier passed this very model while its effective sample size stayed in single figures.
 That is the argument for running several chains and reading more than one number, which is what the workflow above asks for.
 :::
 
