@@ -281,7 +281,7 @@ the scale of the parameters.
 
 ```{julia}
 # `vi` optimises in the unconstrained space Turing transforms the model into, so
-# `rand(q, n)` returns numbers on that scale: an R_0 near 0 rather than near 10. Each
+# `rand(q, n)` returns numbers on that scale: an R_0 of about -3 rather than 1.8. Each
 # parameter goes back through the inverse of the bijector belonging to its prior.
 const Bijectors = Turing.Bijectors
 
@@ -302,7 +302,7 @@ Forgetting this step is quiet rather than loud. `rand(q, n)` returns a perfectly
 ordinary matrix of numbers, and nothing complains if you label its rows `R_0`,
 `D_inf` and `ρ` and plot them against an MCMC posterior. The result is a
 comparison between the real posterior and a set of numbers that are not the
-parameters at all: an `R_0` of about 0.07 for a quantity that cannot go below 1, and a `ρ` of about -4 for one bounded in (0, 1).
+parameters at all: an `R_0` of about -3.2 for a quantity that cannot go below 1, and a `ρ` of about +4.8 for one that cannot go above it.
 :::
 
 ```{julia}
@@ -327,7 +327,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are **correlated** in the posterior, and here that correlation is positive. It is modest, around 0.27, because the posterior for $D_{\text{inf}}$ is pressed against the upper bound of its prior, which clips the ridge.
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are strongly **correlated** in the posterior, and here that correlation is positive: the cell below prints it at about 0.92.
 
 Why does this correlation arise? Consider the SIR model dynamics:
 
@@ -335,7 +335,7 @@ Why does this correlation arise? Consider the SIR model dynamics:
 - If we increase $R_0$ while keeping $\beta$ roughly constant (to match observed epidemic speed), we must also increase $D_{\text{inf}}$
 - Conversely, a shorter infectious period goes with a lower $R_0$, since $\beta$ is their ratio and the data pin $\beta$ down
 
-In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space, truncated here by the prior bound - exactly the kind of correlation mean-field VI cannot capture.
+In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space - exactly the kind of correlation mean-field VI cannot capture.
 
 The sign follows from that argument. Holding $\beta = R_0 / D_{\text{inf}}$ roughly fixed, a larger $R_0$ has to be paid for with a larger $D_{\text{inf}}$, so the two move together and the correlation comes out positive. The cell below measures it rather than asserting it, which is worth doing whenever you are about to claim a direction.
 
