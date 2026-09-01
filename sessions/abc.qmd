@@ -251,7 +251,7 @@ function simulate_sir_abc(params)
     R_0, D_inf, ρ = params
     θ = Dict(:R_0 => R_0, :D_inf => D_inf)
     traj = simulate_sir(θ, init_test, times)
-    return ρ .* traj.Inc[2:end]  ## drop the leading day, to match the observations
+    return ρ .* traj.Inc[2:end]  ## drop the padding zero at t = 0, to match the observations
 end
 
 # Distance functions
@@ -757,7 +757,7 @@ function simulate_and_summarize(params)
     R_0, D_inf, ρ = params
     θ = Dict(:R_0 => R_0, :D_inf => D_inf)
     traj = simulate_sir(θ, init_test, times)
-    return ρ .* traj.Inc[2:end]  ## drop the leading day, to match the observations
+    return ρ .* traj.Inc[2:end]  ## drop the padding zero at t = 0, to match the observations
 end
 
 # Create one synthetic dataset, then a copy of it with a single day disturbed.
