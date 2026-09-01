@@ -120,8 +120,15 @@ function simulate_sir(θ, init_state, times)
 end
 
 # Test
-times = flu_tdc.time
-init_state = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
+## `times` starts the day before the first observation, because the three index
+## cases fell ill during the voyage rather than on the island. `traj.Inc[i + 1]`
+## is then the incidence over the day the i-th observation counts
+times = [0.0; flu_tdc.time]
+
+## Of the five islanders landed on day 0, three had been ill during the eight day
+## voyage and are past their infectious period, so they start recovered; the two
+## who fell ill on landing start infectious. N = 284, the island population
+init_state = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 ```
 
 # Turing model for inference
@@ -146,7 +153,7 @@ const PRIORS = (
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
@@ -302,7 +309,7 @@ Forgetting this step is quiet rather than loud. `rand(q, n)` returns a perfectly
 ordinary matrix of numbers, and nothing complains if you label its rows `R_0`,
 `D_inf` and `ρ` and plot them against an MCMC posterior. The result is a
 comparison between the real posterior and a set of numbers that are not the
-parameters at all: an `R_0` of about -3.2 for a quantity that cannot go below 1, and a `ρ` of about +4.8 for one that cannot go above it.
+parameters at all: an `R_0` of about -3.1 for a quantity that cannot go below 1, and a `ρ` of about +4.6 for one that cannot go above it.
 :::
 
 ```{julia}
@@ -327,7 +334,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are strongly **correlated** in the posterior, and here that correlation is positive: the cell below prints it at about 0.92.
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are strongly **correlated** in the posterior, and here that correlation is positive: the cell below prints it at about 0.95.
 
 Why does this correlation arise? Consider the SIR model dynamics:
 
@@ -402,7 +409,7 @@ println("VI full-rank correlation (R_0, D_inf): ",
 ```
 
 The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction.
-The correlation is not the only casualty, though. Mean-field also reports marginals about two and a half times too narrow, while full-rank matches MCMC on those too, and it is the narrow marginals that make its credible intervals untrustworthy in practice.
+The correlation is not the only casualty, though. Mean-field also reports marginals about three times too narrow, while full-rank errs slightly the other way, and it is the narrow marginals that make its credible intervals untrustworthy in practice.
 
 ```{julia}
 #| code-fold: true
