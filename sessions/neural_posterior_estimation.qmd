@@ -94,7 +94,7 @@ Given enough of those numbers it can approximate almost any smooth function, and
 
 In this session the networks never see a posterior and never output one directly.
 Each takes half the parameter vector plus a summary of the data, and returns a scale and a shift for the *other* half.
-The statistics live in the flow construction around them: the change-of-variables formula is what turns those scales and shifts into a density, and the invertibility is what lets us sample.
+The statistics live in the flow construction around them: the change-of-variables formula turns those scales and shifts into a density, and the invertibility lets us sample.
 You can follow every statistical claim below while treating each network as a black-box flexible function.
 :::
 
@@ -225,7 +225,7 @@ All the information about missingness lives in the mask.
 Without it the network sees a zero on day 12 and cannot tell whether nobody reported that day or whether genuinely zero cases were reported, and those two imply very different things about $\theta$.
 
 Because a random mask is drawn for every training example, the network learns $p(\theta \mid y, m)$ — a posterior *conditioned on the observation schedule itself*.
-That is what lets one trained network serve every schedule, including ones we invent later.
+That lets one trained network serve every schedule, including ones we invent later.
 
 ::: {.callout-warning}
 ## Train on the schedules you intend to use
@@ -807,7 +807,7 @@ d. **NPE**. The question is not really about one posterior — it is about compa
 
 ::: {.callout-tip title="Learning points"}
 - **Amortised inference** pays a large one-off cost in simulation and training, and then returns posteriors in milliseconds for any dataset the model can produce
-- **NPE needs only a simulator**, never a likelihood, which is what makes it available for models where no tractable likelihood exists
+- **NPE needs only a simulator**, never a likelihood, which makes it available for models where no tractable likelihood exists
 - **A conditional coupling flow** is invertible by construction: one half of the parameter vector decides an affine transformation of the other, so the density and the samples both come cheaply
 - **Transform the parameters before the flow sees them.** The probit of the prior CDF starts the estimator at the prior and keeps every draw inside the prior support
 - **A mask makes the schedule part of what is conditioned on**, so one trained network serves observation schedules invented after training
