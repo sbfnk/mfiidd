@@ -525,7 +525,7 @@ Looking at the posterior densities above, we can see differences between the two
 
 **Information criteria** estimate out-of-sample predictive accuracy by penalising model complexity:
 
-- **DIC (Deviance Information Criterion)**: Adds a penalty based on "effective number of parameters". It needs only the deviance, so it is the cheapest of the three to compute here, but it is not invariant to how the model is parameterised and is now largely superseded.
+- **DIC (Deviance Information Criterion)**: Adds a penalty based on "effective number of parameters". Easy to compute but can be unstable for complex models.
 - **WAIC (Widely Applicable Information Criterion)**: More robust than DIC, based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
 - **LOO-CV (Leave-One-Out Cross-Validation)**: Gold standard for predictive accuracy. [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO approximation.
 
@@ -585,8 +585,8 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 For particle MCMC model comparison:
 
 1. **Start with posterior predictive checks** - do the models make qualitatively different predictions?
-2. **Use WAIC or LOO-CV** - more robust, with standard errors, and what current practice expects
-3. **Reach for DIC only if the pointwise terms are out of reach** - it survives in this setting because a particle filter estimates the total likelihood rather than the per-observation contributions WAIC and LOO need, not because it is the better criterion
+2. **Use DIC for quick comparisons** - it's easy to compute and gives a rough ranking
+3. **Use WAIC or LOO-CV for publication** - more robust, with standard errors
 4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
