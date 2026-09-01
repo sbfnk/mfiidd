@@ -157,7 +157,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 All these components were loaded via `using MFIIDD` in the setup above (defined in [`src/seit4l_gillespie.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_gillespie.jl), [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl), and [`src/seit4l_runner.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_runner.jl)). Now we'll use them for full Bayesian inference.
 
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on the PMMH algorithm.
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We leave them until the model comparison below, so that this part stays on the PMMH algorithm.
 
 # Particle MCMC (PMMH) with Turing.jl
 
@@ -536,7 +536,7 @@ $$\text{BF}_{12} = \frac{P(\text{data}|M_1)}{P(\text{data}|M_2)}$$
 
 Values > 10 indicate strong evidence for $M_1$; values < 0.1 indicate strong evidence for $M_2$. The marginal likelihood can be estimated from particle filter output using techniques like [path sampling](https://academic.oup.com/biomet/article/95/2/401/223193) or [thermodynamic integration](https://doi.org/10.1198/016214508000000571), but these are computationally intensive.
 
-**Posterior predictive checks** provide a qualitative but intuitive comparison: which model generates data that looks more like the observations? This doesn't give a single number, but can reveal *how* models differ in their predictions. A full posterior predictive comparison would simulate many datasets from each fitted model and compare them to the observed data - we leave this as an exercise.
+**Posterior predictive checks** provide a qualitative but intuitive comparison: which model generates data that looks more like the observations? This doesn't give a single number, but can reveal *how* models differ in their predictions. The section below simulates many datasets from each fitted model and compares them against the data.
 
 ### Comparing parameter estimates
 
@@ -646,6 +646,13 @@ here, but it grows as you cut the particle count.
 No single number can say whether the winner fits the data at all, so the
 comparison this session leans on is the posterior predictive one. Simulate from
 each posterior and look:
+
+Each replicate draws parameters from the posterior and then runs the epidemic
+forward from the same starting state, so it gets a fresh latent trajectory.
+Filtering would condition that trajectory on the observations, which makes it
+track the data whatever the model and so checks nothing. Simulating forward
+instead costs wide envelopes, since every replicate re-rolls the whole outbreak
+along with the parameters.
 
 ```{julia}
 #| output: false
