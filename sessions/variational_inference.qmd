@@ -401,7 +401,8 @@ println("VI full-rank correlation (R_0, D_inf): ",
         round(cor(vi_full_df.R_0, vi_full_df.D_inf), digits=3))
 ```
 
-The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction. That is the whole of the difference between the two families on this model.
+The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction.
+The correlation is not the only casualty, though. Mean-field also reports marginals about two and a half times too narrow, while full-rank matches MCMC on those too, and it is the narrow marginals that make its credible intervals untrustworthy in practice.
 
 ```{julia}
 #| code-fold: true
