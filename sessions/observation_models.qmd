@@ -299,7 +299,7 @@ Then fit it below and check.
    to about 2.7, several Poisson standard deviations apart. The two models do not
    merely disagree about the uncertainty, they disagree about the answer.
 
-   The shortfall sits almost entirely in the first wave.
+   The misfit sits almost entirely in the first wave.
    Days 6 to 9 carry about three quarters of the squared residual, and day 7 alone about a third: 47 cases reported against about five predicted.
    The fitted trajectory accounts for about 211 of the 312 reported cases, and two thirds of that shortfall falls in the first eighteen days, which carry about 90% of the squared residual.
    The Poisson fit cannot lift its peak to meet those days, because the outbreak has a second wave and a single SIR curve has only one peak to spend.
