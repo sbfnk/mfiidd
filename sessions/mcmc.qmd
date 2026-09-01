@@ -656,7 +656,7 @@ chain_ram = sample(
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`RobustAdaptiveMetropolis(S = ...)`](https://turinglang.org/AdvancedMH.jl/dev/) - from AdvancedMH.jl. `S` is a lower-triangular Cholesky factor of the initial proposal covariance; the sampler updates it during warmup, growing or shrinking it to hit a target acceptance rate, and then holds it fixed for the sampling that follows.
-- `adapting_externalsampler()` - from `MFIIDD`. Wraps an external sampler (from AdvancedMH.jl) for use with Turing models, and passes the warmup phase through to it. Turing's own `externalsampler` does not, and RAM adapts only during warmup, so through plain `externalsampler` the proposal would stay at `initial_scale` for the entire run.
+- `adapting_externalsampler()` - from `MFIIDD`. Wraps an AdvancedMH.jl sampler for use with Turing models, passing the warmup phase through so that RAM has iterations to adapt in.
 - `num_warmup = 5000` - 5000 adaptation iterations. They are discarded, so the returned chain is the 5000 that follow, drawn with the adapted proposal.
 - `check_model = false` - skips model validation (needed for some external samplers).
 :::
