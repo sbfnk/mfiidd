@@ -499,7 +499,7 @@ The key idea, introduced by [Toni et al. (2009)](https://doi.org/10.1098/rsif.20
 The aim is to reach a threshold that rejection sampling could not afford, by refining particles that are already close rather than searching blindly from the prior each time. How much that saves depends entirely on the problem, the schedule and the kernel, so treat quoted speedup factors with suspicion until you have counted your own.
 
 ::: {.callout-note collapse="true"}
-## Implementation: ABC-SMC (click to expand)
+## Implementation: ABC-SMC
 
 This is a simplified ABC-SMC for pedagogical purposes. It does compute the importance weights, which is what makes the sample valid, but production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) add adaptive thresholds and better perturbation kernels.
 

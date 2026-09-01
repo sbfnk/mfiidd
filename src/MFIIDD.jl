@@ -53,7 +53,10 @@ function source_for(f::Function)
     for m in methods(f)
         d = definition(String, m)
         d === nothing && continue
-        push!(chunks, first(d))
+        src = first(d)
+        ## A default argument gives a function several methods that share one
+        ## definition, so show each distinct definition once
+        src in chunks || push!(chunks, src)
     end
     return join(chunks, "\n\n")
 end
