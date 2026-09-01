@@ -439,24 +439,38 @@ N_total = sum(u0)
     β_val[1]
 end for t in t_plot]
 
-# Plot with wave markers
-plot(t_plot, β_along_trajectory,
-     label="Learned β(t)", linewidth=2,
-     xlabel="Time (days)", ylabel="β",
-     title="Learned Transmission Rate (along trajectory)",
-     legend=:topright)
-hline!([β_guess], label="Constant β baseline", linestyle=:dash)
+# β on its own is hard to read, so convert to reproduction numbers: R_0(t) is
+# what the learned β implies about transmissibility, and R_eff(t) accounts for
+# the susceptibles actually left
+R0_along = β_along_trajectory ./ γ_guess
+Reff_along = [R0_along[i] * sol_trained(t_plot[i])[1] / N_total
+              for i in eachindex(t_plot)]
+
+plot(t_plot, R0_along,
+     label="R₀(t) implied by learned β", linewidth=2,
+     xlabel="Time (days)", ylabel="Reproduction number",
+     title="What the network learned, in reproduction numbers",
+     legend=:topleft)
+plot!(t_plot, Reff_along, label="R_eff(t)", linewidth=2)
+hline!([1.0], label="R_eff = 1", linestyle=:dash, color=:black)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-The curve above starts low, well *below* the constant-β baseline, and climbs for
-the rest of the outbreak, ending several times the baseline value by day 59.
+Read R_eff first, because it is the quantity with a threshold. It rises to
+roughly 2.8 as the first wave takes off, falls to about 0.3 by day 15 as that wave
+burns through the susceptibles, and is then held close to 1 through days 20 to 30,
+which is what sustains the second wave. After that it settles a little below 1 and
+the tail decays.
 
-Read alongside the fit, that shape says what the network was doing. A low β early
-is enough to produce the first wave, because almost everyone is still susceptible.
-Keeping cases coming later takes an ever-larger β, because the susceptible pool
-has been draining the whole time and each infectious person meets fewer people who
-can be infected. The rise is the network compensating for that depletion.
+Now read R₀ against it. To keep R_eff near 1 while the susceptible fraction falls
+from about 35% to under 5%, the implied R₀ has to climb from about 3 to nearly 19.
+The network is not describing a change in behaviour; it is buying back, through
+transmissibility, exactly what susceptible depletion takes away.
+
+The underlying β is not monotone either: it rises through the first wave, falls
+back as that wave dies, and only then climbs. Plotting it alone hides both the
+threshold and the implausibility, which is why the reproduction numbers are the
+better lens.
 
 Treat the values at the far right with care. By then susceptibles are nearly
 exhausted, so β has very little effect on incidence and the data barely constrain
@@ -466,7 +480,7 @@ parameter you should not interpret.
 
 The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below), so treat these numbers as this run's, not the model's.
 
-Before interpreting this curve, look back at Step 5. How well does the UDE actually fit the data? The fit may be imperfect. An imperfect fit tells us either that the network needs more capacity, or that the SIR structure itself can't capture the dynamics. We'll explore this in the next section.
+Before interpreting this curve, look back at Step 5. The fit is good, so the question is not whether the network found something but whether what it found is believable. The next section takes that up.
 
 Interpreting a learned β(t), in general:
 
@@ -474,12 +488,12 @@ A dip followed by a recovery suggests the network found that transmission has to
 vary to explain the shape of the data, which is consistent with behavioural
 relaxation: initial caution, then a return to normal contact patterns.
 
-A β(t) that rises without ever coming back down, as ours does, is a different
+An implied R₀ that climbs without limit, as ours does after day 15, is a different
 signal. It says the network is compensating for something the *structure* cannot
-do, rather than describing a behaviour. Here it is compensating for a susceptible
-pool that only ever shrinks, which a single closed SIR compartment forces on it.
-Real reintroduction or waning immunity would show up this way too, and the shape
-alone cannot tell you which you have.
+do, rather than describing a behaviour: here, a susceptible pool that only ever
+shrinks, which a single closed SIR compartment forces on it. Real reintroduction
+or waning immunity would show up this way too, and the shape alone cannot tell you
+which you have.
 
 A roughly constant β(t) would say the network did not find time-varying
 transmission useful, which might mean the network is too small, that more
