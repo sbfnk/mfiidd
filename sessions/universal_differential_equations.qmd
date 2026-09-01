@@ -63,7 +63,7 @@ By the end of this session, you will:
 2. Apply appropriate likelihood functions (Poisson) for count data
 3. Interpret learned β(t) in terms of possible mechanisms
 4. Understand when UDEs are useful vs. when simpler models suffice
-5. Appreciate the challenges of learning from sparse data (~60 points)
+5. Appreciate the challenges of learning from sparse data (59 points)
 
 # Setup
 
@@ -108,7 +108,7 @@ vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave?")
 ```
 
 ::: {.callout-important title="TdC is a pedagogical example, not an ideal UDE dataset"}
-The Tristan da Cunha dataset has only ~60 data points. As we note in [When to use UDEs](#when-to-use-udes), UDEs really benefit from hundreds to thousands of observations — for 60 points, simpler approaches such as Gaussian processes or splines are likely more appropriate. We use TdC here because it is familiar from earlier sessions and its two-wave pattern poses an interesting modelling challenge, not because it is a good candidate for UDEs in practice. Keep this limitation in mind when interpreting results.
+The Tristan da Cunha dataset has only 59 data points. As we note in [When to use UDEs](#when-to-use-udes), UDEs really benefit from hundreds to thousands of observations — for 59 points, simpler approaches such as Gaussian processes or splines are likely more appropriate. We use TdC here because it is familiar from earlier sessions and its two-wave pattern poses an interesting modelling challenge, not because it is a good candidate for UDEs in practice. Keep this limitation in mind when interpreting results.
 :::
 
 ::: {.callout-note title="Skipped step: synthetic data validation"}
@@ -148,15 +148,17 @@ R_0_guess = 2.5
 D_inf_guess = 2.0
 γ_guess = 1.0 / D_inf_guess
 β_guess = R_0_guess * γ_guess
-## Of the five islanders landed on day 0, three had been ill during the eight day
-## voyage and are past their infectious period, so they start recovered; the two
-## who fell ill on landing start infectious. N = 284, the island population
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had been ill during the eight day voyage and are past their
+## infectious period, so they start recovered; the two who fell ill on landing
+## start infectious. N = 284, the island population
 u0 = [279.0, 2.0, 3.0]
 tspan = (0.0, maximum(flu_tdc.time))
 
-## `times` starts the day before the first observation, because the three index
-## cases fell ill during the voyage rather than on the island. Dropping the
-## leading point then lines the incidence up with the days the observations count
+## `times` starts at 0.0, the left edge of the first observation day, because the
+## incidence over that day is S(0) - S(1) and there is no way to form it without a
+## point at 0. Dropping the leading point then lines the incidence up with the
+## days the observations count
 times = [0.0; flu_tdc.time]
 
 prob_constant = ODEProblem(sir_constant_beta, u0, tspan, [β_guess, γ_guess])
@@ -463,7 +465,7 @@ vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
 Read R_eff first, because it is the quantity with a threshold. It rises to
-to about 3 as the first wave takes off, falls to about 0.3 by day 15, and is then
+about 3 as the first wave takes off, falls to about 0.3 by day 15, and is then
 held a little above 1 through days 20 to 30, which is what sustains the second wave.
 Both of those moves are the network's doing rather than the structure's: the fall
 is mostly the learned β collapsing, with depletion contributing about two fifths
@@ -543,7 +545,7 @@ Everything above is a single optimisation run — the learned β(t) is a point e
 
 Training UDEs is difficult, especially with limited data. Understanding why helps set realistic expectations.
 
-The fundamental tension is between flexibility and data. Our network has 33 parameters and we have 60 data points - roughly 2 points per parameter. In classical statistics, you'd want at least 10-20 observations per parameter for reliable inference. With neural networks embedded in ODEs, the situation is even more constrained because the parameters interact nonlinearly through the differential equation.
+The fundamental tension is between flexibility and data. Our network has 33 parameters and we have 59 data points - roughly 2 points per parameter. In classical statistics, you'd want at least 10-20 observations per parameter for reliable inference. With neural networks embedded in ODEs, the situation is even more constrained because the parameters interact nonlinearly through the differential equation.
 
 Identifiability is another challenge. Many different β(t) curves could produce similar epidemic trajectories. The data doesn't uniquely determine β(t) — there's a family of solutions. The ODE structure constrains this family (not every β(t) produces a valid epidemic), but it doesn't eliminate the ambiguity entirely.
 
@@ -673,7 +675,7 @@ UDEs aren't always appropriate. Here's when they add value.
 | **GP for β(t)** | Medium | Medium (but with UQ) | Medium (50-200) | Medium |
 | **UDE** | High | Low | High (100-1000+) | High |
 
-**For TdC data (60 points)**: GPs or splines are likely more appropriate than UDEs.
+**For TdC data (59 points)**: GPs or splines are likely more appropriate than UDEs.
 
 # Where UDEs have been applied
 
