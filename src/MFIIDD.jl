@@ -61,15 +61,21 @@ end
 @compile_workload begin
     sir_df = simulate_sir(2.0, 4.0, 999.0, 1.0, 0.0:1.0:10.0)
 
-    θ_seitl = Dict(:R_0 => 2.0, :D_lat => 2.0, :D_inf => 4.0,
-                   :α => 0.5, :D_imm => 10.0, :ρ => 0.5)
+    θ_seitl = Dict(
+        :R_0 => 2.0,
+        :D_lat => 2.0,
+        :D_inf => 4.0,
+        :α => 0.5,
+        :D_imm => 10.0,
+        :ρ => 0.5,
+    )
     init_seitl = Dict(:S => 99.0, :E => 0.0, :I => 1.0, :T => 0.0, :L => 0.0)
     seitl_df = simulate_seitl_deterministic(θ_seitl, init_seitl, 0.0:1.0:5.0)
     obs = generate_observations(seitl_df, 0.5)
 
     init_seit4l = [99.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    particle_filter_seit4l(θ_seitl, obs, 20; init_state=init_seit4l)
-    run_particle_filter(θ_seitl, obs, 20; init_state=init_seit4l)
+    particle_filter_seit4l(θ_seitl, obs, 20; init_state = init_seit4l)
+    run_particle_filter(θ_seitl, obs, 20; init_state = init_seit4l)
 end
 
 end # module MFIIDD

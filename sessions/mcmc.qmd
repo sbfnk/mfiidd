@@ -153,13 +153,13 @@ function metropolis_hastings_1d(log_density_fn, n_samples, initial_value,
     current_log_prob = log_density_fn(current_x)
     # Track number of acceptances
     n_accepted = 0
-    
+
     for i in 1:n_samples
         # Propose new state
         proposal_x = current_x + randn() * proposal_std
         # Evaluate log probability at target
         proposal_log_prob = log_density_fn(proposal_x)
-        
+
         # Calculate acceptance probability (in log space)
         # Note: This is the Metropolis ratio (symmetric proposal)
         # Full Metropolis-Hastings would include proposal ratio q(x|x')/q(x'|x)
@@ -173,10 +173,10 @@ function metropolis_hastings_1d(log_density_fn, n_samples, initial_value,
             current_log_prob = proposal_log_prob
             n_accepted += 1
         end # if reject, current_x stays what it is
-        
+
         push!(samples, current_x)
     end
-    
+
     acceptance_rate = n_accepted / n_samples
     return samples, acceptance_rate
 end
@@ -218,6 +218,10 @@ plot(p1, p2, layout = (2, 1), size = (800, 600))
 
 The trace plot shows the chain rapidly settling into the region around the true mean and then bouncing around it — a well-mixed chain is often described as looking like a fat, [hairy caterpillar](https://en.wikipedia.org/wiki/Pyrrharctia_isabella) that fills the vertical band around its target.
 The histogram of samples closely matches the true density.
+
+Notice the acceptance rate, which is over 80%.
+That is comfortable rather than efficient: the chain accepts nearly everything it proposes because it proposes such small steps.
+Widening the proposal buys bigger steps at the price of more rejections, and the section on proposal distributions below works out where the best trade lies.
 
 ::: {.callout-tip title="Exercise: What is the proposal distribution?"}
 Look back at `metropolis_hastings_1d`.
@@ -299,7 +303,7 @@ When you call `randn()` in Julia or `rnorm()` in R, the computer uses transforma
 2. **Inverse CDF method**: Transform uniform → normal via inverse cumulative distribution function
 3. **Ziggurat algorithm**: Fast, more complex method (what Julia actually uses)
 
-Even "easy" distributions require clever tricks. 
+Even "easy" distributions require clever tricks.
 For complex posteriors with correlations, ODEs, and constraints, no such formula exists, and we need a method like MCMC.
 :::
 
@@ -335,12 +339,12 @@ for result in results
 end
 
 # Plot trace plots for different proposal stds
-plots = []
+plots = Plots.Plot[]
 for (i, result) in enumerate(results)
     p = plot(
         result.samples,
         title = "Prop. std = $(result.std), " *
-            "Acc = $(round(result.acc_rate*100, digits = 1))%", 
+            "Acc = $(round(result.acc_rate*100, digits = 1))%",
         xlabel = "Iteration", ylabel = "x", linewidth = 1, ylim = (-5, 15)
     )
     hline!(p, [target_mean], color = :red, linewidth = 2, label = "")
@@ -350,11 +354,16 @@ end
 plot(plots..., layout = (length(plots), 1), size = (800, 1000))
 ```
 
-::: {.callout-tip title = "Learning points"}
-- **Too small proposals** → High acceptance, but slow exploration
-- **Too large proposals** → Low acceptance, wasted computation
-- **Optimal**: ~23% acceptance rate for random walk Metropolis
+::: {.callout-important}
+## Choosing the proposal width
+
+- **Too small proposals** give high acceptance but slow exploration
+- **Too large proposals** give low acceptance and wasted computation
+- **The best acceptance rate depends on how many parameters you are sampling**: around 44% for a single parameter, falling towards 23% as the number grows
 :::
+
+The runs above show this. The chain mixes best at a proposal standard deviation of 5, which accepts around 43% of what it proposes, while the run at a standard deviation of 10 accepts 24% and wanders visibly more slowly.
+The 23% figure is the limit for a large number of parameters, so it is the wrong target for the single parameter sampled here.
 
 For the normal distribution, sampling was straightforward. But efficient sampling from complex posterior distributions requires a good proposal distribution, which can be difficult to find.
 This is where more sophisticated algorithms that tune the proposal distribution automatically to a given problem really help.
@@ -412,14 +421,15 @@ Now let's run the same Metropolis-Hastings algorithm as before, but with Turing 
 
 ```{julia}
 #| output: false
-# Sample using Metropolis-Hastings (normal proposals with std 10.0)
-chain_normal_mh = sample(normal_model(), MH([10.0;;]), 50000)
+# Sample using Metropolis-Hastings, with the same proposal width and the same
+# number of iterations as the sampler we wrote by hand
+chain_normal_mh = sample(normal_model(), MH([1.0;;]), 5000)
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - [`sample(model, sampler, n)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - runs the MCMC sampler on the model for `n` iterations, returning a chain of samples.
-- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` expects a *matrix* for the proposal covariance. The `[10.0;;]` syntax creates a 1×1 matrix — the double semicolon `;;` tells Julia "this is a matrix, not a vector". Without it, `[10.0]` would be a 1-element vector, which `MH` wouldn't accept. The value 10.0 sets the proposal variance (so the proposal standard deviation is √10 ≈ 3.2).
+- [`MH(proposal)`](https://turinglang.org/docs/tutorials/docs-00-getting-started/#inference) - Metropolis-Hastings sampler. `MH` takes the proposal covariance. The `[1.0;;]` syntax creates a 1×1 matrix, where the double semicolon `;;` tells Julia to build a matrix rather than a vector. The value sets the proposal *variance*, and since the variance is 1.0 here it happens to equal the standard deviation of 1.0 we passed to `metropolis_hastings_1d`. That coincidence is only true at 1.0: a variance of 0.04 is a standard deviation of 0.2.
 :::
 
 ```{julia}
@@ -463,7 +473,9 @@ p2 = histogram(
 plot(p1, p2, layout = (1, 2), size = (800, 300))
 ```
 
-Turing.jl did exactly what we coded earlier, but in a single call to the `sample()` function.
+Turing.jl ran the same algorithm with the same proposal width, in a single call to the `sample()` function.
+The two chains start from different points, because Turing draws its starting value from the model rather than taking the 0.0 we passed by hand, so the samples are not identical draw for draw.
+The distributions they explore are the same.
 
 ## Applying Turing.jl to the SIR model
 
@@ -490,9 +502,7 @@ This is the same structure we've been using manually (priors, simulation, likeli
 end
 
 # Create model instance
-#| output: false
-
-model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs)
+model = sir_model(init_state, epi1.time, length(epi1.obs)) | (; obs = epi1.obs);
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -519,7 +529,7 @@ chain_mh = sample(model, MH([1.0 0.0; 0.0 1.0]), 5000)
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- `[1.0 0.0; 0.0 1.0]` - a 2×2 matrix in Julia. Spaces separate columns, semicolons separate rows. This is the identity matrix, used here as the proposal covariance for MH. The diagonal values (1.0) set the proposal standard deviation for each parameter; off-diagonal zeros mean proposals are independent.
+- `[1.0 0.0; 0.0 1.0]` - a 2×2 matrix in Julia. Spaces separate columns, semicolons separate rows. This is the identity matrix, used here as the proposal covariance for MH. The diagonal values are *variances*, one per parameter, so 1.0 here is a proposal standard deviation of 1.0; off-diagonal zeros mean proposals are independent.
 :::
 
 ```{julia}
@@ -566,11 +576,11 @@ Try these experiments (run each for 5000 samples):
 1. Smaller proposals: `MH([0.01 0.0; 0.0 0.01])` — what happens to acceptance rate?
 2. Larger proposals: `MH([5.0 0.0; 0.0 5.0])` — does it explore faster or slower?
 3. Even smaller: `MH([0.001 0.0; 0.0 0.001])` — the posterior turns out to be very concentrated for this dataset.
-4. Add correlation: `MH([0.001 -0.0005; -0.0005 0.001])` — if parameters are correlated in the posterior, correlated proposals may help.
+4. Add correlation: `MH([0.001 0.0009; 0.0009 0.001])` — if parameters are correlated in the posterior, correlated proposals may help.
 
 Questions to answer:
 
-- What acceptance rate gives the best mixing? (Hint: aim for ~23% for random walk MH.)
+- What acceptance rate gives the best mixing? (Hint: with a proposal shaped like the posterior, two parameters do best near 35%; with the diagonal proposals above, nearer 20–25%.)
 - Can you find settings that give a well-mixed trace for *both* parameters simultaneously?
 - How long did tuning take you? Imagine doing this for 10+ parameters.
 
@@ -579,7 +589,8 @@ Acceptance rate too high (>50%)? Your proposals are too small. The chain accepts
 
 Acceptance rate too low (<10%)? Your proposals are too large. Most proposed jumps land in low-probability regions and get rejected; you'll see the trace plot stuck for many iterations.
 
-Sweet spot (~20–30%): a healthy balance of exploration and acceptance.
+Sweet spot: a healthy balance of exploration and acceptance.
+Where it falls depends on the shape of the proposal as well as the number of parameters: around 20–25% for the diagonal proposals above, and nearer 35–45% once the proposal is aligned with the posterior.
 
 Check your acceptance rate with: `mean(diff(vec(chain[:R_0])) .!= 0)`
 :::
@@ -592,11 +603,11 @@ Rule of thumb: proposal std ≈ 0.5–1× posterior std, i.e. proposal variance 
 :::
 
 ::: {.callout-tip title="Hint 3: why correlation might help" collapse="true"}
-Run the chain and look at a scatter plot of R₀ vs D_inf samples. If they're negatively correlated (higher R₀ → lower D_inf), then independent proposals are inefficient.
+Run the chain and look at a scatter plot of R₀ vs D_inf samples. Here they are strongly positively correlated (higher R₀ → higher D_inf, correlation about 0.9), so independent proposals are inefficient.
 
 Imagine the posterior is a narrow diagonal ridge. Independent proposals move horizontally or vertically, often stepping off the ridge. Correlated proposals can move *along* the ridge.
 
-Try a small negative off-diagonal value, e.g. `MH([0.001 -0.0005; -0.0005 0.001])`.
+Try an off-diagonal value of the same sign as the correlation, e.g. `MH([0.001 0.0009; 0.0009 0.001])`.
 :::
 
 :::
@@ -612,14 +623,14 @@ Try a small negative off-diagonal value, e.g. `MH([0.001 -0.0005; -0.0005 0.001]
 After experimentation, a proposal like this works reasonably well:
 
 ```julia
-# Proposal variance ~0.001, with a small negative correlation
-chain_tuned = sample(model, MH([0.001 -0.0005; -0.0005 0.001]), 5000)
+# Proposal variance ~0.001, with a strong positive correlation
+chain_tuned = sample(model, MH([0.001 0.0009; 0.0009 0.001]), 5000)
 ```
 
 Why this works:
 
 1. Small proposals (variance 0.001, std ≈ 0.03): the posterior for both parameters has standard deviation ≈ 0.04 for this dataset — much narrower than the priors suggest. Any proposal much wider than that gets rejected almost every time.
-2. Negative correlation: higher R₀ values are consistent with lower D_inf values (both increase transmission rate). Correlated proposals explore this diagonal ridge more efficiently.
+2. Positive correlation: the data pin down the epidemic's early growth rate, roughly $(R_0 - 1) / D_{inf}$, so a longer infectious period needs a larger R₀ to produce the same epidemic. The posterior is therefore a ridge running along the positive diagonal, with a correlation of about 0.9, and a proposal aligned with it moves along the ridge instead of stepping off it. On this dataset that is worth about seven times the effective sample size of the negatively correlated proposal, and about three times that of the plain diagonal one.
 
 :::
 
@@ -749,7 +760,6 @@ What NUTS gives you automatically:
 
 ```{julia}
 # Built-in convergence diagnostics
-using MCMCChains
 summarystats(chain_nuts)
 ```
 
