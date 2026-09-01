@@ -374,7 +374,7 @@ The additional parameters allow the approximation to capture correlations. The e
 
 The trade-off is that more parameters means more to optimise, and for high-dimensional problems the covariance matrix grows as $O(n^2)$, which can become prohibitive; in those cases low-rank approximations or structured covariances are used.
 With three parameters that cost is invisible: both families run the same 500 iterations, and the extra covariance entries are a handful of numbers.
-Expect the two timings below to come out close, with full-rank a shade slower.
+Expect the two timings below to come out close enough that the difference is not worth reading.
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
@@ -470,7 +470,7 @@ println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
 ```
 
 Once compilation is out of the way, there is almost nothing between the three on this model, whatever machine renders the page.
-Variational inference earns its keep on problems where MCMC takes hours, or where the same model has to be refitted to hundreds of datasets, and a three-parameter SIR is neither.
+Variational inference earns its keep on problems large enough for a real per-fit gap to open up, and then especially when that gap is multiplied across many datasets. A three-parameter SIR gives it nothing to work with.
 Comparing the two here is the right way to check that VI is telling the truth about the posterior, and the wrong way to decide whether you need it.
 
 ## Trade-offs summary
@@ -534,7 +534,7 @@ When you suspect these issues, MCMC remains the more reliable choice. A useful d
 
 On a single small analysis the choice hardly matters, as the timings above show. The difference becomes critical in operational settings:
 
-**Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. If each MCMC run takes 5 minutes, you can afford to wait. But if you're fitting models for 100 different regions, that's over 8 hours of compute time per update cycle. With VI, the same analysis might take under an hour.
+**Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. Take a model large enough that MCMC needs five minutes a fit and VI under a minute, which is a far bigger gap than the one this session's three-parameter model shows. Fitting 100 regions is then over 8 hours per update cycle against about an hour. The per-fit gap is what does the work; the hundred regions multiply whatever gap you have rather than creating one.
 
 **Model development and debugging**: When developing a new model, you'll run inference hundreds of times as you iterate on the specification, fix bugs, and tune priors. Fast iteration cycles (seconds vs minutes) dramatically accelerate development.
 
