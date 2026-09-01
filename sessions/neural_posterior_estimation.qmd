@@ -99,7 +99,8 @@ Both VI and NPE replace sampling with optimisation, so it is worth being precise
 |---|---|---|
 | What is optimised | $q(\theta)$ for **one** dataset | $q_\phi(\theta \mid y)$ over **all** datasets |
 | Divergence | reverse KL, $\mathrm{KL}(q \,\|\, p)$ | forward KL, in expectation over $y$ |
-| Typical failure | mode-seeking, **too narrow** | mass-covering, **too wide** |
+| Behaviour at the optimum | mode-seeking, **too narrow** | mass-covering, **too wide** |
+| Typical failure in practice | too narrow | **too narrow**, when training is short of what the flow needs |
 | Needs | the likelihood | only the simulator |
 | New dataset | re-optimise from scratch | free |
 
@@ -158,7 +159,7 @@ simulate_obs(θ_test)                       # warm up
 ::: {.callout-tip}
 ## Why Julia suits simulation-based inference
 
-A single outbreak takes well under a millisecond. Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms. Streaming the 512,000 simulations this training run consumes takes under a minute, against roughly five hours for the same number of 256-particle likelihood evaluations. This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free. In a slower language the simulation stage is usually the bottleneck.
+A single outbreak takes well under a millisecond. Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms. Streaming the 512,000 simulations this training run consumes takes under a minute, against nearly three hours for the same number of 256-particle likelihood evaluations at the 20 ms above. This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free. In a slower language the simulation stage is usually the bottleneck.
 :::
 
 # Representing the parameters
@@ -340,12 +341,10 @@ Lux.parameterlength(ps)          # how many weights we are about to train
 :::
 
 We can check that claim rather than trust it — a density estimator whose inverse
-does not invert is not estimating anything.
-
-```{julia}
-z_check, _ = flow_forward(model, ps, st, Xva[:, 1:64], Yva[:, 1:64])
-maximum(abs, flow_inverse(model, ps, st, z_check, Yva[:, 1:64]) .- Xva[:, 1:64])
-```
+does not invert is not estimating anything. The check has to wait until after
+training: at initialisation every scale and shift is exactly zero, so the flow is
+the identity and the round trip would return zero for any inverse at all,
+including a wrong one.
 
 ::: {.callout-tip}
 ## Never reuse a simulation
@@ -407,6 +406,15 @@ vline!([best.step], ls=:dash, c=:grey)
 ```
 
 Because every batch is new, the validation objective settles onto a plateau rather than turning back upwards. We still keep the best network rather than the last, since the plateau is noisy.
+
+Now the invertibility check promised earlier is worth running, because the scales and shifts are no longer zero:
+
+```{julia}
+z_check, _ = flow_forward(model, best.ps, st, Xva[:, 1:64], Yva[:, 1:64])
+maximum(abs, flow_inverse(model, best.ps, st, z_check, Yva[:, 1:64]) .- Xva[:, 1:64])
+```
+
+A number at the level of floating-point noise means the two directions really are inverses of each other.
 
 ::: {.callout-warning}
 ## Watch the objective
