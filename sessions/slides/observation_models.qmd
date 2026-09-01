@@ -46,7 +46,7 @@ $$y_t \sim \text{NegativeBinomial}(\lambda_t, \phi)$$
 
 ::: {.fragment}
 The cost is one extra parameter. The benefit is that the model stops treating
-every unusual week as strong evidence against the trajectory.
+every unusual day as strong evidence against the trajectory.
 :::
 
 ## Why it matters for inference

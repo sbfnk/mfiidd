@@ -301,7 +301,7 @@ Then fit it below and check.
 
    The shortfall sits almost entirely in the first wave.
    Days 6 to 9 carry about three quarters of the squared residual, and day 7 alone about a third: 47 cases reported against about five predicted.
-   The fitted trajectory accounts for about 211 of the 312 reported cases, and nearly all of the gap is there.
+   The fitted trajectory accounts for about 211 of the 312 reported cases, and two thirds of that shortfall falls in the first eighteen days, which carry about 90% of the squared residual.
    The Poisson fit cannot lift its peak to meet those days, because the outbreak has a second wave and a single SIR curve has only one peak to spend.
    Days 19 to 59 carry 109 of the 312 cases and rise again to 12 on day 32.
    Raising $R_0$ makes the epidemic burn out sooner: at $R_0 = 7$, holding $D_\mathrm{inf}$ at its fitted value, the trajectory peaks on day 3 and predicts almost no cases at all after day 19, where the Poisson likelihood then gives those 109 observed cases essentially no probability.
