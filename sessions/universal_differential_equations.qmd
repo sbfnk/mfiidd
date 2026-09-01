@@ -418,7 +418,7 @@ to give and it spends it on the first.
 The UDE reaches a similar peak, around 41, and then keeps generating cases through
 days 20 to 50, where the data really do have them and the baseline has none. Over
 that window it produces about 90 cases against the 104 observed. A time-varying β
-is what lets one model do both, which is the whole claim of the approach and the
+lets one model do both, which is the whole claim of the approach and the
 reason to prefer it here.
 
 The loss is doing the work that makes the tail matter. Predicting *nothing* on a
@@ -466,7 +466,7 @@ vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 
 Read R_eff first, because it is the quantity with a threshold. It rises to
 about 3 as the first wave takes off, falls to about 0.3 by day 15, and is then
-held a little above 1 through days 20 to 30, which is what sustains the second wave.
+held a little above 1 through days 20 to 30, which sustains the second wave.
 Both of those moves are the network's doing rather than the structure's: the fall
 is mostly the learned β collapsing, with depletion contributing about two fifths
 of it, and the recovery is β climbing again while the susceptible fraction barely
