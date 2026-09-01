@@ -566,8 +566,8 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 
 For particle MCMC model comparison:
 
-1. **Start with posterior predictive checks** - do the models make qualitatively different predictions?
-2. **Use WAIC or LOO-CV** - with standard errors, and what current practice expects
+1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? For a time series fitted with a particle filter this is usually as far as you can get, and it is what the section above does.
+2. **Check that an information criterion applies before reaching for one** - WAIC and LOO-CV want the pointwise terms a particle filter does not give you, and leaving a single observation out of a time series is the wrong question anyway. Leave-future-out cross-validation is the closer analogue.
 3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
