@@ -98,9 +98,9 @@ function sir_ode!(du, u, p, t)
     du[4] = β * S * I / N  # Cumulative incidence
 end
 
-function simulate_sir(R_0, D_inf, S0, I0, times)
+function simulate_sir(R_0, D_inf, init_state, times)
     times_vec = collect(times)
-    u0 = [S0, I0, 0.0, 0.0]
+    u0 = [init_state[:S], init_state[:I], init_state[:R], 0.0]
     prob = ODEProblem(sir_ode!, u0, (times_vec[1], times_vec[end]), [R_0, D_inf])
     sol = solve(prob, Tsit5(), saveat=times_vec)
 
@@ -116,14 +116,14 @@ end
 Now let's define a model with priors and sample from the prior predictive distribution:
 
 ```{julia}
-@model function sir_model(times, S0, I0, n_obs)
+@model function sir_model(times, init_state, n_obs)
     # Priors
     R_0 ~ Uniform(0.5, 10.0)
     D_inf ~ Uniform(1.0, 14.0)
     ρ ~ Uniform(0.0, 1.0)  # Reporting rate
 
     # Simulate.
-    inc = simulate_sir(R_0, D_inf, S0, I0, times)
+    inc = simulate_sir(R_0, D_inf, init_state, times)
 
     # Likelihood
     lambdas = [max(ρ * inc[i], 1e-10) for i in 1:n_obs]
@@ -139,17 +139,21 @@ You'll see `max(value, 1e-10)` throughout the course wherever we create a Poisso
 ```{julia}
 # Prior predictive sampling.
 times = 0.0:1.0:59.0
-S0, I0 = 279.0, 5.0
+
+## Of the five islanders landed on day 0, three had been ill during the eight day
+## voyage and are past their infectious period, so they start recovered; the two
+## who fell ill on landing start infectious. N = 284, the island population
+init_state = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 
 # Sample from priors (no data conditioning — obs will be sampled from the model)
 prior_samples = sample(
-    sir_model(times, S0, I0, length(times) - 1), Prior(), 200, progress=false
+    sir_model(times, init_state, length(times) - 1), Prior(), 200, progress=false
 )
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code walkthrough
-- `sir_model(times, S0, I0, length(times) - 1)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively, i.e. Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks).
+- `sir_model(times, init_state, length(times) - 1)` - creates a model instance *without conditioning on data*. Because no observations are provided via `|`, the `obs ~ arraydist(Poisson.(lambdas))` statement acts generatively, i.e. Turing samples new observations rather than computing likelihoods. This is different from `decondition()` (which you'll see below for posterior predictive checks).
 - [`Prior()`](https://turinglang.org/docs/tutorials/docs-00-getting-started/) - a sampler that draws from prior distributions only, ignoring the likelihood. This gives us parameter combinations purely from our prior beliefs.
 :::
 
@@ -169,7 +173,7 @@ for i in 1:100
     D_inf = prior_samples[:D_inf][i]
     ρ = prior_samples[:ρ][i]
 
-    inc = simulate_sir(R_0, D_inf, S0, I0, times)
+    inc = simulate_sir(R_0, D_inf, init_state, times)
     obs_expected = ρ .* inc
     plot!(p_prior, collect(times)[2:end], obs_expected, alpha=0.2, color=:blue)
 end
@@ -233,7 +237,7 @@ The SIR model we're about to fit will not capture the Tristan da Cunha data well
 # Load data and fit model
 flu_tdc = CSV.read(datadir("flu_tdc_1971.csv"), DataFrame)
 
-model = sir_model(times, S0, I0, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
+model = sir_model(times, init_state, length(flu_tdc.obs)) | (; obs = flu_tdc.obs)
 chain = sample(model, NUTS(), 1000, progress=false)
 ```
 
@@ -346,7 +350,7 @@ observed total of 312 larger than every simulated total, and the observed peak d
 of 7 earlier than almost every simulated one. Too small, too late, too few.
 
 The fitted mean trajectory says the same thing in units you can picture: it peaks
-at about 12 cases around day 14 and accounts for roughly 226 of the 312 reported
+at about 12 cases around day 15 and accounts for roughly 206 of the 312 reported
 cases.
 
 The reason is visible in the data before any fitting.
@@ -398,7 +402,7 @@ mean_ρ = mean(chain[:ρ])
 # Simulate on the same grid the model was fitted on, so predictions line up with
 # the observations they are being compared against
 obs_times = flu_tdc.time
-mean_inc = simulate_sir(mean_R_0, mean_D_inf, S0, I0, times)
+mean_inc = simulate_sir(mean_R_0, mean_D_inf, init_state, times)
 mean_pred = mean_ρ .* mean_inc
 
 resid = flu_tdc.obs .- mean_pred
@@ -524,11 +528,11 @@ function run_sbc(n_sbc=20)
         ρ_true = rand(Uniform(0.0, 1.0))
 
         # 2. Simulate data
-        inc = simulate_sir(R_0_true, D_inf_true, S0, I0, times)
+        inc = simulate_sir(R_0_true, D_inf_true, init_state, times)
         obs_sim = rand.(Poisson.(max.(ρ_true .* inc, 1e-10)))
 
         # 3. Fit model (short chain for speed)
-        model_sim = sir_model(times, S0, I0, length(obs_sim)) | (; obs = obs_sim)
+        model_sim = sir_model(times, init_state, length(obs_sim)) | (; obs = obs_sim)
         chain_sim = sample(model_sim, NUTS(), 200, progress=false)
 
         # 4. Compute rank of true value

@@ -71,6 +71,20 @@ support Julia, which is why CompatHelper is there instead.
 - Data: `CSV.read(datadir("filename.csv"), DataFrame)`
 - Diagnostics: StatsPlots.jl for trace plots, density plots, convergence checks
 
+### Time indexing and the initial state
+
+Every session that fits the Tristan da Cunha data shares these two conventions.
+A session that departs from either will disagree with the rest of the course by a day or by a few cases, and the disagreement is quiet enough to survive a review.
+
+`times` starts at `0.0`, the day before the first observation, so the solver has a day to integrate over before the first count.
+The incidence on that leading day is then discarded: write `traj.Inc[i + 1]` in a likelihood, and return `Inc[2:end]` or a bare `diff(...)` from a simulator wrapper.
+Observation `i` then lines up with the day it counts.
+Plot predictions against `flu_tdc.time`, because the trimmed vector is one element shorter than `times`.
+
+The initial state is `S = 279`, `I = 2`, `R = 3`, giving N = 284, the island population.
+Of the five islanders who landed on day 0, three had been ill during the eight day voyage and are past their infectious period, so they start recovered; the two who fell ill on landing start infectious.
+The 312 reported cases exceed N because islanders were infected more than once, which is the observation the SEITL session is built on and the structural failure the single-wave sessions diagnose.
+
 ## Style
 
 - Use British English in all written content
