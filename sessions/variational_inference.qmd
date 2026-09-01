@@ -23,7 +23,7 @@ For a single dataset with a simple model, MCMC is usually affordable: the model 
 - High-dimensional models: Age-stratified models with 50+ parameters
 - Rapid prototyping: Quickly explore many model variants
 
-This is where variational inference (VI) comes in. VI trades some accuracy for speed improvements - the gains depend on problem complexity, from modest speedups for simple models to orders of magnitude for large neural networks or models with many latent variables.
+This is where variational inference (VI) comes in. VI trades some accuracy for speed improvements - the gains depend on problem complexity, from no useful saving at all on models as small as this session's to orders of magnitude for large neural networks or models with many latent variables.
 
 # Objectives
 
@@ -170,7 +170,7 @@ Let's start with full MCMC to establish a baseline:
 println("Running MCMC with NUTS...")
 ## A short run first, so that the timing below measures sampling and not Julia
 ## compiling the sampler for the first time
-sample(model, NUTS(0.65), 10, progress=false)
+sample(model, NUTS(0.65), 100, progress=false)
 t_mcmc = @elapsed chain_mcmc = sample(model, NUTS(0.65), 500, progress=false)
 println("MCMC time: $(round(t_mcmc, digits=1)) seconds")
 ```
@@ -208,7 +208,7 @@ The key idea is to turn inference into an **optimisation problem**:
 2. **Optimise parameters** of $q$ to make it as close as possible to the true posterior
 3. **Use gradient descent** instead of MCMC sampling
 
-Why is this faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence (which can take many thousands of iterations).
+Why should this ever be faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence. Whether that pays off depends on the model, and on the small one in this session it does not (which can take many thousands of iterations).
 
 ## The ELBO objective
 
@@ -244,7 +244,7 @@ Passing `q_meanfield_gaussian` to `vi` tells Turing to construct an initial mean
 
 ```{julia}
 println("\nRunning Mean-Field VI...")
-vi(model, q_meanfield_gaussian, 10; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
+vi(model, q_meanfield_gaussian, 100; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
 t_vi_mf = @elapsed result_mf = vi(model, q_meanfield_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
 q_mf = result_mf.q
 stats_mf = result_mf.info
@@ -378,7 +378,7 @@ Expect the two timings below to come out close enough that the difference is not
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
-vi(model, q_fullrank_gaussian, 10; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
+vi(model, q_fullrank_gaussian, 100; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
 t_vi_full = @elapsed result_full = vi(model, q_fullrank_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
 q_full = result_full.q
 stats_full = result_full.info
@@ -465,8 +465,8 @@ println("MCMC (500 samples):      $(round(t_mcmc, digits=1)) seconds")
 println("Mean-field VI (500 iter): $(round(t_vi_mf, digits=1)) seconds")
 println("Full-rank VI (500 iter):  $(round(t_vi_full, digits=1)) seconds")
 println("="^50)
-println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
-println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
+println("MCMC time / mean-field VI time: $(round(t_mcmc / t_vi_mf, digits=1))")
+println("MCMC time / full-rank VI time:  $(round(t_mcmc / t_vi_full, digits=1))")
 ```
 
 Once compilation is out of the way, there is almost nothing between the three on this model, whatever machine renders the page.
