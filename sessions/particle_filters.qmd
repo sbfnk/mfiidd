@@ -153,7 +153,7 @@ hand, so that the page and the code cannot drift apart. This is the function
 `SEIT4LDynamics` calls once per particle per day:
 
 ::: {.callout-note collapse="true"}
-## Gillespie step implementation (click to expand)
+## Gillespie step implementation
 
 ```{julia}
 #| echo: false
