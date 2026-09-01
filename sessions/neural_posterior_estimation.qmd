@@ -538,7 +538,7 @@ Its curve sits below zero everywhere and leaves the band between roughly 0.3 and
 Ranks skewed high mean the true value falls above the NPE draws more often than it should, which is the estimator centring `R_0` too low.
 `D_lat` is bowed the same way and also leaves the band, and `ρ` bows the other way; `D_inf`, `α` and `D_imm` stay inside it.
 So the calibration check is not simply confirming the width comparison above: that comparison said the `R_0` posterior is narrow, and this one says its centre is off as well.
-Both are what an amortised estimator trained on this many simulations buys you, and together they are why the comparison with PMMH is worth making at all.
+Both follow from training an amortised estimator on this many simulations. You find them by comparing against PMMH.
 
 Two things to keep in mind when reading it.
 The band is pointwise, computed separately at each of the 100 grid points, so under perfect calibration a curve still strays outside it somewhere reasonably often; judge the shape of the excursion rather than the fact of one.
