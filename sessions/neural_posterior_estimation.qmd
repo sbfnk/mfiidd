@@ -783,26 +783,18 @@ The lesson is the one the warning states rather than the one the table appears t
 No code for this one.
 For each scenario, decide whether you would reach for NUTS, PMMH, VI, or NPE, and say why:
 
-a.
-A one-off fit of a deterministic SIR model to a single outbreak. b.
-Nowcasting 300 local authorities every morning with the same stochastic model. c.
-A first exploratory fit of a brand-new individual-based model with no tractable likelihood. d.
-Deciding how often to survey olive groves for a slow-spreading plant pathogen over ten years.
+a. A one-off fit of a deterministic SIR model to a single outbreak.
+b. Nowcasting 300 local authorities every morning with the same stochastic model.
+c. A first exploratory fit of a brand-new individual-based model with no tractable likelihood.
+d. Deciding how often to survey olive groves for a slow-spreading plant pathogen over ten years.
 
 ::: {.callout-tip collapse="true"}
 ## Solution
 
-a.
-**NUTS**.
-The likelihood is tractable and differentiable, and there is only one dataset — no reason to approximate anything. b.
-**NPE**.
-Same model, 300 datasets, every day.
-This is exactly what amortisation is for; the training cost is repaid on the first morning. c.
-**PMMH** (or another likelihood-free method) for the first look.
-You want an answer you can trust while the model is still changing, and retraining an amortised estimator after every model change destroys the amortisation. d.
-**NPE**.
-The question is not really about one posterior — it is about comparing many hypothetical observation schedules, which needs a posterior per schedule.
-That is unaffordable with MCMC and free once amortised.
+a. **NUTS**. The likelihood is tractable and differentiable, and there is only one dataset — no reason to approximate anything.
+b. **NPE**. Same model, 300 datasets, every day. This is exactly what amortisation is for; the training cost is repaid on the first morning.
+c. **PMMH** (or another likelihood-free method) for the first look. You want an answer you can trust while the model is still changing, and retraining an amortised estimator after every model change destroys the amortisation.
+d. **NPE**. The question is not really about one posterior — it is about comparing many hypothetical observation schedules, which needs a posterior per schedule. That is unaffordable with MCMC and free once amortised.
 :::
 
 ::: {.callout-tip title="Learning points"}
