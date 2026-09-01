@@ -701,7 +701,7 @@ That gap is not stable, though.
 The effective sample size of the last generation swings widely between runs, and across repeated runs the median comes out nearer 20 per effective sample, which puts rejection about twice ahead rather than four times.
 A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight.
 Prior acceptance is about a quarter at a threshold of 300 and still around 9% at 250, so rejection can reach the tighter threshold directly.
-What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
+ABC-SMC concentrates its effort where the data are, without being told where that is, and that pays on problems whose prior acceptance is orders of magnitude lower than this one.
 
 Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally. After that it drops sharply, often to a small fraction of the particle count, and how far varies a great deal between runs: repeat this with different seeds and generation 2 can land anywhere from single figures to about half the particles. What does not vary is the direction.
 
