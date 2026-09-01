@@ -580,7 +580,7 @@ In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds a
 
 **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
 
-The fit itself is not the problem here: time-varying transmission does reproduce both waves. What it costs is the problem. By day 30, where the data still constrain the answer, the implied R_0 is already about 5, twice the literature value the constant-β baseline uses, and it is still rising. That is a strong hint that a different structure would explain the data more plausibly.
+The fit itself is not the problem here, since time-varying transmission does reproduce both waves. The problem is the price it pays for that. By day 30, where the data still constrain the answer, the implied R_0 is already about 5, twice the literature value the constant-β baseline uses, and it is still rising. That is a strong hint that a different structure would explain the data more plausibly.
 
 ## Common failure modes
 
