@@ -1,8 +1,8 @@
 # Generate the pre-computed SEIT4L PMMH chain loaded by sessions/pmcmc.qmd.
 # Run with: julia --project=. scripts/generate_pmcmc_seit4l.jl
 #
-# Takes around 14 hours at 256 particles, so run it on the cluster
-# (scripts/run_pmcmc.slurm) rather than on a laptop.
+# Takes around 14 hours at 256 particles, which is why the chains it produces
+# are committed to data/ and the session loads those instead of running this.
 
 include(joinpath(@__DIR__, "pmmh_setup.jl"))
 

@@ -1,9 +1,9 @@
 # Generate both pre-computed PMMH chains loaded by sessions/pmcmc.qmd.
 # Run with: julia --project=. scripts/generate_pmcmc_chains.jl
 #
-# The two models take around 15 hours each at 256 particles. Run them on the
-# cluster (scripts/run_pmcmc.slurm), or run generate_pmcmc_seitl.jl and
-# generate_pmcmc_seit4l.jl side by side to halve the wall clock.
+# The two models take around 15 hours each at 256 particles, which is why their
+# chains are committed to data/ and the session loads those. Run generate_pmcmc_seitl.jl
+# and generate_pmcmc_seit4l.jl side by side to halve the wall clock if regenerating.
 
 include(joinpath(@__DIR__, "pmmh_setup.jl"))
 
