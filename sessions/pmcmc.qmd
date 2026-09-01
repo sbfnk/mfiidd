@@ -227,9 +227,9 @@ Let's start with a short chain to see the challenges:
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
 # Run a short chain with RAM
-# adapting_externalsampler() wraps an AdvancedMH.jl sampler for use with Turing
-# models, and carries the warmup phase through to it so that RAM can adapt
-# num_warmup=500 gives the sampler 500 discarded iterations to adapt in
+# adapting_externalsampler() (from MFIIDD) wraps an AdvancedMH.jl sampler for use
+# with Turing models, so that RAM adapts during warmup
+# num_warmup=500 gives it 500 discarded iterations to adapt in
 # check_model=false is needed because our model uses @addlogprob! instead of standard ~ syntax
 chain_short = sample(
     model_pmmh,
@@ -314,12 +314,17 @@ display(chain_pmcmc)
 plot(chain_pmcmc)
 ```
 
-Compare these traces to the short chain above - the well-mixed chain shows:
+Compare these traces to the short chain above.
+The chains cross the posterior repeatedly instead of sticking for hundreds of iterations, and the summary above puts numbers on it: R-hat is 1.00 for every parameter and the smallest effective sample size is a couple of thousand of the 9,000 kept draws.
+
+The saved chain also records whether each draw was accepted, which is the diagnostic that says whether RAM's adaptation worked:
 
 ```{julia}
-# Plot posterior densities (3 rows x 2 columns for 6 parameters)
-density(chain_pmcmc, size = (800, 900), layout = (3, 2))
+# `accepted` is kept alongside the parameters, so we can check the rate RAM reached
+println("acceptance rate: ", round(100 * mean(chain_df.accepted), digits = 1), "%")
 ```
+
+That is the target RAM aims for, and it is the payoff from the warmup iterations described below.
 
 ::: {.callout-tip}
 ## Why Robust Adaptive Metropolis?
@@ -341,11 +346,10 @@ warmup the proposal stays at the identity matrix it started from and acceptance
 sits near 0.5% instead of the 23% RAM aims for, whatever the chain length. The
 saved chains use 50,000 warmup iterations.
 
-`adapting_externalsampler` (from `MFIIDD`, in
-[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl))
-exists for the same reason: Turing's own `externalsampler` does not pass the
-warmup phase on to the sampler it wraps, so an adaptive sampler used through it
-never adapts.
+We sample through `adapting_externalsampler` from `MFIIDD` rather than Turing's
+`externalsampler` for the same reason; the docstring in
+[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl)
+gives the details.
 :::
 :::
 
@@ -521,8 +525,7 @@ Looking at the posterior densities above, we can see differences between the two
 
 **Information criteria** estimate out-of-sample predictive accuracy by penalising model complexity:
 
-- **DIC (Deviance Information Criterion)**: Adds a penalty based on "effective number of parameters". Easy to compute but can be unstable for complex models.
-- **WAIC (Widely Applicable Information Criterion)**: More robust than DIC, based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
+- **WAIC (Widely Applicable Information Criterion)**: Based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
 - **LOO-CV (Leave-One-Out Cross-Validation)**: Gold standard for predictive accuracy. [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO approximation.
 
 For particle MCMC, these criteria require care because the likelihood estimates are noisy. The noise doesn't bias the posterior, but it *does* affect pointwise likelihood calculations needed for WAIC and LOO-CV. Solutions include using more particles when computing criteria, or averaging over multiple likelihood estimates per parameter sample.
@@ -564,9 +567,8 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 For particle MCMC model comparison:
 
 1. **Start with posterior predictive checks** - do the models make qualitatively different predictions?
-2. **Use DIC for quick comparisons** - it's easy to compute and gives a rough ranking
-3. **Use WAIC or LOO-CV for publication** - more robust, with standard errors
-4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
+2. **Use WAIC or LOO-CV** - with standard errors, and what current practice expects
+3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
 
