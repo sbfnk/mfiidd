@@ -587,9 +587,10 @@ per-observation contributions.
 
 That assumption does hold in the deterministic sessions, where the trajectory is
 fixed by $\theta$ and each day's count is an independent Poisson draw around it.
-Here the trajectory is itself random, and every observation depends on the same
-simulated path, which is the feature that makes the model stochastic in the first
-place.
+Here the trajectory is itself random. Within any one run the whole series depends
+on the single path that run happened to take, and a second run takes a different
+one. That shared dependence is the feature that makes the model stochastic, and
+it is why the observations are not independent given the parameters alone.
 
 DIC is the one that fits what a particle filter gives you. It needs the deviance
 $D(\theta) = -2 \log p(y \mid \theta)$ at the posterior mean, plus its spread across
