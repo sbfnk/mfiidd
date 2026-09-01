@@ -166,7 +166,7 @@ sol_constant = solve(prob_constant, Tsit5(), saveat=times)
 
 # Extract incidence
 S_values = sol_constant[1, :]
-incidence_constant = -diff(S_values)  ## drop the leading day, to match the observations
+incidence_constant = -diff(S_values)  ## 59 daily values from the 60 grid points
 
 # Plot
 plot(flu_tdc.time, incidence_constant, label="Constant β", linewidth=2)
@@ -285,7 +285,7 @@ function predict_ude(p_all)
 
     S_pred = sol_ude[1, :]
 
-    return -diff(S_pred)  ## drop the leading day, to match the observations
+    return -diff(S_pred)  ## 59 daily values from the 60 grid points
 end
 
 """
