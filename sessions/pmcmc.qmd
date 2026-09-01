@@ -577,15 +577,20 @@ When criteria disagree, consider what question you're actually asking: best pred
 The criteria above are described but not computed, so nothing so far has actually
 compared the two models. We can do it directly with the chains we already have.
 
-The criteria above are the ones to reach for in general, but none of them can be
-computed here. WAIC and leave-one-out both need the pointwise terms
-$p(y_i \mid \theta)$, and a particle filter estimates the likelihood of the whole
-series rather than handing you the per-observation contributions. Leaving one
-observation out of a time series is the wrong question in any case, since the
-remaining observations are not independent of it given the parameters.
+Which criterion can we actually use? Not WAIC or leave-one-out: both need the
+pointwise terms $p(y_i \mid \theta)$, and a particle filter estimates the likelihood
+of the whole series rather than handing you the per-observation contributions.
+Leaving one observation out of a time series is the wrong question in any case,
+since the remaining observations are not independent of it given the parameters.
 
-What the chains do carry is the log-likelihood of every draw, so we can at least
-see which model assigns the data more probability:
+DIC is the one that fits what a particle filter gives you. It needs the deviance
+$D(\theta) = -2 \log p(y \mid \theta)$ at the posterior mean, plus its spread across
+the posterior, and both come from the total likelihood alone. That is why
+[Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) used it on these
+models, and it is the reason to reach for it here despite the general advice
+above.
+
+First, the log-likelihood of every draw is already saved:
 
 ```{julia}
 seitl_ll  = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame).loglikelihood
@@ -599,10 +604,39 @@ spread of either chain, so this is not sampling noise.
 That agrees with [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300),
 who preferred SEIT4L.
 
-Treat that number carefully. A mean log-likelihood is not an information
-criterion: it rewards fit and penalises nothing, so on its own it will always
-favour the more flexible model. Here the two models have the same six parameters,
-which is the only reason it is worth quoting at all.
+On its own that is not a comparison: a mean log-likelihood rewards fit and
+penalises nothing, so it will always favour the more flexible model. DIC adds the
+penalty, using the effective number of parameters $p_D$, taken as half the
+variance of the deviance across the posterior:
+
+```{julia}
+init_seit4l = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]
+
+function dic(chain_df)
+    p_D = var(-2 .* chain_df.loglikelihood) / 2
+    θ_bar = Dict(:R_0 => mean(chain_df.R_0), :D_lat => mean(chain_df.D_lat),
+                 :D_inf => mean(chain_df.D_inf), :α => mean(chain_df.α),
+                 :D_imm => mean(chain_df.D_imm), :ρ => mean(chain_df.ρ))
+    ## the filter estimate is noisy, so average a few runs at the posterior mean
+    D_bar = -2 * mean(run_particle_filter(θ_bar, flu_tdc.obs, 256;
+                                          init_state = init_seit4l) for _ in 1:5)
+    return D_bar + 2 * p_D
+end
+
+Random.seed!(1)
+println("DIC, SEITL:  ", round(dic(CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame)), digits = 1))
+println("DIC, SEIT4L: ", round(dic(CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame)), digits = 1))
+```
+
+Lower is better, and the gap of about twenty is large enough to take seriously.
+SEIT4L wins on both terms: it fits better *and* uses fewer effective parameters,
+which is what you would hope for from the model with the more realistic waiting
+time.
+
+One caveat specific to this setting. $p_D$ is computed from log-likelihoods the
+particle filter only estimates, so it carries a little of the filter's noise as
+well as the posterior's spread. With 256 particles that contribution is small
+here, but it grows as you cut the particle count.
 
 No single number can say whether the winner fits the data at all, so the
 comparison this session leans on is the posterior predictive one. Simulate from
