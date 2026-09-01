@@ -289,6 +289,7 @@ Before any of that can be compared with MCMC, the draws have to be put back on
 the scale of the parameters.
 
 ```{julia}
+#| output: false
 # `vi` optimises in the unconstrained space Turing transforms the model into, so
 # `rand(q, n)` returns numbers on that scale: an R_0 of about -3 rather than 1.8. Each
 # parameter goes back through the inverse of the bijector belonging to its prior.
@@ -302,7 +303,6 @@ function to_constrained(samples)
     end
     return DataFrame(columns)
 end
-nothing
 ```
 
 ::: {.callout-warning}
