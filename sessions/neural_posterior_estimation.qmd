@@ -107,7 +107,7 @@ Both VI and NPE replace sampling with optimisation, so it is worth being precise
 | What is optimised | $q(\theta)$ for **one** dataset | $q_\phi(\theta \mid y)$ over **all** datasets |
 | Divergence | reverse KL, $\mathrm{KL}(q \,\|\, p)$ | forward KL, in expectation over $y$ |
 | Behaviour at the optimum | mode-seeking, **too narrow** | mass-covering, **too wide** |
-| Typical failure in practice | too narrow | **too narrow**, when training is short of what the flow needs |
+| Typical failure in practice | too narrow | **too narrow**, though an undertrained flow errs wide instead |
 | Needs | the likelihood | only the simulator |
 | New dataset | re-optimise from scratch | free |
 
@@ -159,7 +159,8 @@ end
 How expensive is one simulation?
 
 ```{julia}
-θ_test = [rand(p) for p in PRIORS]
+rng_test = Xoshiro(20)                     ## seeded: Gillespie cost varies sharply with θ
+θ_test = [rand(rng_test, p) for p in PRIORS]
 simulate_obs(θ_test)                       # warm up
 @elapsed for _ in 1:1000; simulate_obs(θ_test); end
 ```
@@ -168,7 +169,7 @@ simulate_obs(θ_test)                       # warm up
 ## Why Julia suits simulation-based inference
 
 A single outbreak takes well under a millisecond.
-Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms.
+Compare that with the SEITL particle filter used in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms.
 Streaming the 512,000 simulations this training run consumes takes under a minute, against nearly three hours for the same number of 256-particle likelihood evaluations at the 20 ms above.
 This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free.
 In a slower language the simulation stage is usually the bottleneck.
@@ -461,7 +462,7 @@ posterior = DataFrame(post, PNAMES)
 describe(posterior, :median, :std)
 ```
 
-Ten thousand posterior draws, in well under a second, with no MCMC and no further simulation.
+Ten thousand posterior draws, with no MCMC and no further simulation. The time printed above is a first call, so most of it is compilation.
 
 ## Comparison with particle MCMC
 
@@ -527,11 +528,16 @@ end
 plot(sbc_plots..., layout=(2, 3), size=(950, 520))
 ```
 
-A curve wandering outside the grey band means the posterior is miscalibrated for that parameter: an S-shape indicates bias, a bowed curve indicates intervals that are systematically too narrow or too wide.
+A curve wandering outside the grey band means the posterior is miscalibrated for that parameter, and its shape says how.
+A curve that crosses zero in the middle, running above the line on one side and below it on the other, is a width problem: intervals systematically too narrow or too wide.
+A curve bowed to one side, staying above or below the line across the whole range, is bias.
 
 Look at `R_0`.
-Its curve leaves the band over a good part of the range, which is the calibration check confirming what the width comparison above suggested: the NPE posterior for `R_0` is too tight.
-That is the expected weakness of an amortised estimator trained on this many simulations, and it is why the comparison with PMMH is worth making at all.
+Its curve sits below zero everywhere and leaves the band between roughly 0.3 and 0.8, with no sign change, so this is bias rather than width.
+Ranks skewed high mean the true value falls above the NPE draws more often than it should, which is the estimator centring `R_0` too low.
+`D_lat` is bowed the same way and also leaves the band, and `ρ` bows the other way; `D_inf`, `α` and `D_imm` stay inside it.
+So the calibration check is not simply confirming the width comparison above: that comparison said the `R_0` posterior is narrow, and this one says its centre is off as well.
+Both are what an amortised estimator trained on this many simulations buys you, and together they are why the comparison with PMMH is worth making at all.
 
 Two things to keep in mind when reading it.
 The band is pointwise, computed separately at each of the 100 grid points, so under perfect calibration a curve still strays outside it somewhere reasonably often; judge the shape of the excursion rather than the fact of one.
