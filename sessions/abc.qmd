@@ -416,8 +416,8 @@ count.
 :::
 
 The three distances are on different scales, so their raw values say nothing
-about sensitivity. What matters is how much each one *moves* when a single day
-goes wrong.
+about sensitivity. Watch instead how much each one *moves* when a single day goes
+wrong.
 
 ```{julia}
 # Take one simulation, disturb a single day of the data it is compared against,
