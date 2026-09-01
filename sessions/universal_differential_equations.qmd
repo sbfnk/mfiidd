@@ -23,7 +23,7 @@ We discuss when UDEs are appropriate (and when simpler methods suffice) in [When
 
 ## From model comparison to model discovery
 
-In the [pMCMC session](pmcmc.qmd), we formally compared two mechanistic models for the Tristan da Cunha two-wave outbreak: SEITL and SEIT4L. Both encode the same biological hypothesis - temporary immunity followed by potential reinfection - but with different assumptions about timing. We used LOO-CV to show that SEIT4L (Erlang-distributed immunity) fits better than SEITL (exponential).
+In the [pMCMC session](pmcmc.qmd), we formally compared two mechanistic models for the Tristan da Cunha two-wave outbreak: SEITL and SEIT4L. Both encode the same biological hypothesis - temporary immunity followed by potential reinfection - but with different assumptions about timing. The original study compared them with an information criterion and found SEIT4L (Erlang-distributed immunity) the better fit.
 
 But what if we *didn't know* the mechanism? What if we were seeing a two-wave pattern for the first time and had no theory to guide us?
 
