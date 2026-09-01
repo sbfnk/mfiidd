@@ -157,8 +157,8 @@ tspan = (0.0, maximum(flu_tdc.time))
 
 ## `times` starts at 0.0, the left edge of the first observation day, because the
 ## incidence over that day is S(0) - S(1) and there is no way to form it without a
-## point at 0. Dropping the leading point then lines the incidence up with the
-## days the observations count
+## point at 0. Differencing the 60 saved values then gives one incidence per
+## observed day, already lined up with the days the observations count
 times = [0.0; flu_tdc.time]
 
 prob_constant = ODEProblem(sir_constant_beta, u0, tspan, [β_guess, γ_guess])
