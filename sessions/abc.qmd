@@ -132,9 +132,15 @@ end
 
 ```{julia}
 # Try some parameters
-times = flu_tdc.time
+## `times` starts the day before the first observation, because the three index
+## cases fell ill during the voyage rather than on the island. `traj.Inc[i + 1]`
+## is then the incidence over the day the i-th observation counts
+times = [0.0; flu_tdc.time]
 θ_test = Dict(:R_0 => 10.0, :D_inf => 2.5)
-init_test = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
+## Of the five islanders landed on day 0, three had been ill during the eight day
+## voyage and are past their infectious period, so they start recovered; the two
+## who fell ill on landing start infectious. N = 284, the island population
+init_test = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 
 traj_test = simulate_sir(θ_test, init_test, times)
 
@@ -165,7 +171,7 @@ here so this session stands on its own.
 
     traj = simulate_sir(Dict(:R_0 => R_0, :D_inf => D_inf), init_state, times)
 
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
@@ -243,7 +249,7 @@ function simulate_sir_abc(params)
     R_0, D_inf, ρ = params
     θ = Dict(:R_0 => R_0, :D_inf => D_inf)
     traj = simulate_sir(θ, init_test, times)
-    return ρ .* traj.Inc
+    return ρ .* traj.Inc[2:end]  ## drop the leading day, to match the observations
 end
 
 # Distance functions
@@ -293,7 +299,7 @@ ABC rejection sampling is sensitive to the threshold choice:
 - **In between** (e.g., 200-400): Runs quickly, but at the loose end of this band the posterior still carries a good deal of the prior
 
 We start with a relaxed threshold (300) here.
-Note what that costs: the run below accepts around 30% of what it proposes, which by the guidance later in this session is loose enough that the posterior is still carrying a good deal of the prior.
+Note what that costs: the run below accepts around a quarter of what it proposes, which by the guidance later in this session is loose enough that the posterior is still carrying a good deal of the prior.
 The exercise that follows asks you to tighten it.
 
 **If you get 0 samples**: Increase the threshold (try 400, then 500). The sampler may be struggling to find parameter combinations that produce simulations close to the data. This can happen due to random variation - ABC is inherently stochastic.
@@ -669,7 +675,7 @@ Compare the printed counts rather than taking any efficiency claim on trust, inc
 
 The generations usually get *more* expensive, not less: the first is cheap because a loose threshold accepts almost anything, and each tightening tends to cost more simulations per particle than the last. Now and then a later generation comes out cheaper, so read the direction rather than the individual numbers.
 
-Whether the total beats rejection sampling depends on the schedule, and on a problem this small it does not. Compare them per effective sample rather than per draw, using the numbers printed above. Rejection sampling's 200 draws are unweighted, so its effective sample size is 200 and its cost is its simulation total divided by that. ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100. Do that division and rejection sampling comes out several times cheaper per effective sample on this problem. Both totals move a good deal from run to run, and either can come out ahead on raw simulations, but the per-effective-sample comparison consistently favours rejection here. A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight. Prior acceptance is just under a third at a threshold of 300 and still about 11% at 250, so rejection can reach the tighter threshold directly. What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
+Whether the total beats rejection sampling depends on the schedule, and on a problem this small it does not. Compare them per effective sample rather than per draw, using the numbers printed above. Rejection sampling's 200 draws are unweighted, so its effective sample size is 200 and its cost is its simulation total divided by that. ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100. Do that division and rejection sampling comes out several times cheaper per effective sample on this problem. Both totals move a good deal from run to run, and either can come out ahead on raw simulations, but the per-effective-sample comparison consistently favours rejection here. A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight. Prior acceptance is about a quarter at a threshold of 300 and still around 8% at 250, so rejection can reach the tighter threshold directly. What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
 
 Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally. After that it drops sharply, often to a small fraction of the particle count, and how far varies a great deal between runs: repeat this with different seeds and generation 2 can land anywhere from single figures to about half the particles. What does not vary is the direction.
 
@@ -749,7 +755,7 @@ function simulate_and_summarize(params)
     R_0, D_inf, ρ = params
     θ = Dict(:R_0 => R_0, :D_inf => D_inf)
     traj = simulate_sir(θ, init_test, times)
-    return ρ .* traj.Inc
+    return ρ .* traj.Inc[2:end]  ## drop the leading day, to match the observations
 end
 
 # Create one synthetic dataset, then a copy of it with a single day disturbed.
@@ -769,8 +775,8 @@ data_outlier[30] += 30.0  # Artificial spike on a single day
 # Plot
 # The two series differ at one day only, so draw the second dashed or it hides
 # the first completely
-plot(times, data_clean, label="Clean data", linewidth=3, alpha=0.5)
-plot!(times, data_outlier, label="Data with outlier", linewidth=2, linestyle=:dash,
+plot(flu_tdc.time, data_clean, label="Clean data", linewidth=3, alpha=0.5)
+plot!(flu_tdc.time, data_outlier, label="Data with outlier", linewidth=2, linestyle=:dash,
       xlabel="Time", ylabel="Cases",
       title="Effect of Outliers on Observation Data")
 ```
