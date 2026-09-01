@@ -50,7 +50,7 @@ dR/dt = +γ * I
 
 Replace the unknown β with a **neural network** that respects constraints:
 ```
-β(t) = NeuralNetwork([I/N, t])  # Must be positive
+β(t) = NeuralNetwork([I/N, t])  # Must be non-negative
 ```
 
 What does "replace β with a neural network" actually mean? Instead of writing `β = 0.5` (a fixed number) or even `β(t) = β₀ * (1 + sin(t))` (a parametric function we specify), we let the neural network *learn* the function from data. The network takes inputs (current prevalence, time) and outputs a transmission rate. During training, we adjust the network's internal weights so that the resulting epidemic trajectory matches observed data. The network is just a flexible function approximator - we're not assuming any particular form for how β varies, we're letting the data tell us.
@@ -472,19 +472,18 @@ back as that wave dies, and only then climbs. Plotting it alone hides both the
 threshold and the implausibility, which is why the reproduction numbers are the
 better lens.
 
-Be careful about what that shape can be attributed to. The network takes
-prevalence and time, and along the fitted trajectory β is at a low exactly when
-prevalence peaks, around day 10, then climbs through the second wave. Read one
-way that is a behavioural response: transmission falls while the epidemic is
-visibly large. Read another way it is susceptible depletion, since S is *not* an
-input and falls monotonically with time, so anything the network learns about the
-shrinking susceptible pool has to be expressed through the time input. Those two
-readings are not separable from this fit.
+Be careful about what that shape can be attributed to. Susceptible depletion is
+already in the model: the `S` factor in `-β * S * I / N` accounts for it, which is
+exactly what R_eff divides by. So a β that has to climb is not the network
+describing depletion. It is compensating for what the structure cannot do once the
+susceptibles are gone, which is the argument the next section takes up.
 
-The reason is worth holding on to, because it is a property of the method rather
-than of this dataset. The training data trace a single path through the network's
-two-dimensional input space: each day corresponds to one prevalence, so the
-network is only ever constrained along that curve. Ask it what β would be at a
+What the network's inputs can support is also narrower than it looks. Along the
+fitted trajectory β is at a low just as prevalence peaks around day 10, which
+reads as a behavioural response to a visibly large epidemic. But the training data
+trace a single path through the network's two-dimensional input space: each day
+corresponds to one prevalence, so dependence on prevalence and dependence on time
+cannot be told apart from this fit. Ask the network what β would be at a
 prevalence the epidemic never reached on a given day and it will answer, but
 nothing in the data informed that answer.
 
