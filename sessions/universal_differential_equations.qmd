@@ -463,12 +463,12 @@ which is what sustains the second wave. After that it settles a little below 1 a
 the tail decays.
 
 Now read R₀ against it, over the window where R_eff is actually near 1. Between
-days 20 and 31 the susceptible fraction falls from about 35% to 21%, and the
+days 20 and 30 the susceptible fraction falls from about 35% to 21%, and the
 implied R₀ climbs from about 3 to about 5 to hold R_eff up. The network is not
 describing a change in behaviour there; it is buying back, through
 transmissibility, what susceptible depletion takes away.
 
-Past day 31 it stops keeping up. R₀ goes on climbing, but not fast enough, and
+Past day 31, where R_eff crosses back below 1, it stops keeping up. R₀ goes on climbing, but not fast enough, and
 R_eff drifts down to about 0.65 by day 59 as the tail decays.
 
 The underlying β is not monotone either: it rises through the first wave, falls
