@@ -566,7 +566,7 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 
 For particle MCMC model comparison:
 
-1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? For a time series fitted with a particle filter this is usually as far as you can get, and the section above does exactly that.
+1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? For a time series fitted with a particle filter this is usually as far as you can get, and it is what the section above does.
 2. **Use WAIC or LOO-CV where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
 3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
