@@ -130,14 +130,21 @@ end
 
 ```{julia}
 # Try some parameters
-times = flu_tdc.time
+## `times` starts the day before the first observation, because the three index
+## cases fell ill during the voyage rather than on the island. `traj.Inc[i + 1]`
+## is then the incidence over the day the i-th observation counts
+times = [0.0; flu_tdc.time]
 θ_test = Dict(:R_0 => 10.0, :D_inf => 2.5)
-init_test = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
+
+## Of the five islanders landed on day 0, three had been ill during the eight day
+## voyage and are past their infectious period, so they start recovered; the two
+## who fell ill on landing start infectious. N = 284, the island population
+init_test = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 
 traj_test = simulate_sir(θ_test, init_test, times)
 
 # Plot
-plot(traj_test.time, traj_test.Inc,
+plot(flu_tdc.time, traj_test.Inc[2:end],
      label="Predicted incidence", linewidth=2, color=:blue)
 scatter!(flu_tdc.time, flu_tdc.obs,
          label="Observed cases", markersize=4, color=:red,
@@ -166,7 +173,7 @@ This is what we've been doing throughout the course:
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood: Poisson observation model
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
@@ -233,7 +240,7 @@ What do you find, and what would it imply for the parameter estimates?
 ```{julia}
 # Residual variance against mean prediction, under the Poisson fit
 θ_fit = Dict(:R_0 => mean(chain_poisson[:R_0]), :D_inf => mean(chain_poisson[:D_inf]))
-pred_fit = mean(chain_poisson[:ρ]) .* simulate_sir(θ_fit, init_test, times).Inc
+pred_fit = mean(chain_poisson[:ρ]) .* simulate_sir(θ_fit, init_test, times).Inc[2:end]
 resid_fit = flu_tdc.obs .- pred_fit
 
 println("mean prediction:    ", round(mean(pred_fit), digits = 2))
@@ -281,32 +288,32 @@ Then fit it below and check.
 ::: {.callout-tip title="Solution" collapse="true"}
 1. **Wider**, and by a lot. The negative binomial can attribute a departure from
    the trajectory to observation noise, so the data pin the parameters down less
-   tightly. Here the posterior standard deviation for $R_0$ grows roughly
-   fourfold. Loosening the observation model transfers uncertainty back to the
+   tightly. Here the posterior standard deviation for $R_0$ roughly doubles.
+   Loosening the observation model transfers uncertainty back to the
    parameters, which is the honest direction: the Poisson intervals were narrow
    because the model was forbidden from admitting the data were noisy.
 
-2. **The mean moves too, and that is the surprise.** $R_0$ goes from about 1.8
-   to about 2.6, several Poisson standard deviations apart. The two models do not
+2. **The mean moves too, and that is the surprise.** $R_0$ goes from about 1.9
+   to about 2.7, several Poisson standard deviations apart. The two models do not
    merely disagree about the uncertainty, they disagree about the answer.
 
    The shortfall sits almost entirely in the first wave.
-   Days 6 to 9 carry about four fifths of the squared residual, and day 7 alone about a third: 47 cases reported against fewer than five predicted.
-   The fitted trajectory accounts for about 192 of the 312 reported cases, and nearly all of the gap is there.
+   Days 6 to 9 carry about three quarters of the squared residual, and day 7 alone about a third: 47 cases reported against about five predicted.
+   The fitted trajectory accounts for about 211 of the 312 reported cases, and nearly all of the gap is there.
    The Poisson fit cannot lift its peak to meet those days, because the outbreak has a second wave and a single SIR curve has only one peak to spend.
    Days 19 to 59 carry 109 of the 312 cases and rise again to 12 on day 32.
-   Raising $R_0$ makes the epidemic burn out sooner: at $R_0 = 7$, holding $D_\mathrm{inf}$ at its fitted value, the trajectory peaks on day 4 and predicts almost no cases at all after day 19, where the Poisson likelihood then gives those 109 observed cases essentially no probability.
+   Raising $R_0$ makes the epidemic burn out sooner: at $R_0 = 7$, holding $D_\mathrm{inf}$ at its fitted value, the trajectory peaks on day 3 and predicts almost no cases at all after day 19, where the Poisson likelihood then gives those 109 observed cases essentially no probability.
    Fitting the same model to the first eighteen days alone removes the second wave, and $R_0$ comes out around 7.
 
-   The negative binomial adds a dispersion parameter, so departures from its mean cost much less: over days 19 to 59 its log-likelihood is about 40 units better than the Poisson's.
-   Less bound to track every day exactly, it settles on a longer infectious period and a larger $R_0$, and so on a larger predicted total, about 233 cases against 192.
+   The negative binomial adds a dispersion parameter, so departures from its mean cost much less: over days 19 to 59 its log-likelihood is about 54 units better than the Poisson's.
+   Less bound to track every day exactly, it settles on a longer infectious period and a larger $R_0$, and so on a larger predicted total, about 245 cases against 211.
 
    Look at $\rho$ in the comparison table below. The Poisson fit pushes it to about
    0.99, against the upper bound of its `Uniform(0.1, 1.0)` prior. A parameter
    pinned to the edge of its prior is a model straining against a constraint, and
    here it is straining for the same reason. Even reporting everybody would not be
-   enough: the model starts with 270 susceptibles, so it can never produce more
-   than 270 cases against the 312 observed. The reporting rate is pinned at a
+   enough: the model starts with 279 susceptibles, so it can never produce more
+   than 279 cases against the 312 observed. The reporting rate is pinned at a
    bound that still cannot close the gap, which is about as clear a sign as this
    session offers that the shortfall is structural.
 
@@ -349,7 +356,7 @@ where:
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood: Negative Binomial observation model
-    mus = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    mus = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     # NegativeBinomial(r, p) where r=φ, p=φ/(φ+μ)
     obs ~ arraydist([NegativeBinomial(φ, φ/(φ+μ)) for μ in mus])
 
@@ -388,7 +395,7 @@ comparison
 
 Both fits here are 500 NUTS draws, which is enough to see the difference in
 question but not enough to report. The negative binomial chain in particular comes
-back with Monte Carlo standard errors of about 0.16 on $D_\mathrm{inf}$ and 0.045
+back with Monte Carlo standard errors of about 0.17 on $D_\mathrm{inf}$ and 0.05
 on $R_0$, so the first decimal of one and the second of the other are already
 noise, however many digits the table prints. Those two are the parameters the
 comparison is about. The [diagnostics session](mcmc_diagnostics.qmd)
