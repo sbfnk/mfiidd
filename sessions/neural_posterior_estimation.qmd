@@ -72,7 +72,7 @@ const T = length(YOBS)
 const INIT = [279.0, 0.0, 2.0, 3.0, 0.0]   # S, E, I, T, L
 ```
 
-# How it works
+# Estimating the posterior directly
 
 Bayesian inference wants $p(\theta \mid y)$.
 NPE approximates it by training a conditional density estimator $q_\phi(\theta \mid y)$ on pairs drawn from the joint distribution:
@@ -86,7 +86,7 @@ The density estimator is a **normalising flow**: an invertible neural network th
 Because it is invertible with a tractable Jacobian, we can both evaluate its density (needed for training) and sample from it (needed for inference).
 
 ::: {.callout-note collapse="true"}
-## What the neural network is actually doing
+## A narrow use of neural networks
 
 If you have not used neural networks before, the ones here are doing something narrow.
 A network is a function with adjustable numbers inside it, built by alternating a linear map with a simple nonlinear function such as `gelu`.
@@ -98,7 +98,7 @@ The statistics live in the flow construction around them: the change-of-variable
 You can follow every statistical claim below while treating each network as a black-box flexible function.
 :::
 
-## How this differs from variational inference
+## Comparison with variational inference
 
 Both VI and NPE replace sampling with optimisation, so it is worth being precise about the difference.
 
@@ -166,7 +166,7 @@ simulate_obs(θ_test)                       # warm up
 ```
 
 ::: {.callout-tip}
-## Why Julia suits simulation-based inference
+## Simulation cost in Julia
 
 A single outbreak takes well under a millisecond.
 Compare that with the SEITL particle filter behind the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms.
@@ -493,7 +493,7 @@ Read the weakly identified parameters differently from the well identified ones.
 A single 59-day outbreak says little about `D_lat` and `D_inf` separately, because a shorter latent period and a longer infectious period reproduce much the same epidemic curve, so the two posteriors have most licence to disagree there.
 :::
 
-# Is it calibrated?
+# Calibration
 
 Agreement with PMMH is reassuring but is not a check in itself.
 The standard check for a simulation-based posterior is **simulation-based calibration** [@talts2018]: draw $\theta$ from the prior, simulate data, fit, and record the rank of the true $\theta$ among the posterior draws.
@@ -608,7 +608,7 @@ pl
 Each of those posteriors took milliseconds.
 Doing the same with PMMH would mean 30 separate chains, and hours of compute.
 
-# When to use this
+# Where NPE fits
 
 ::: {.callout-important}
 ## Honest trade-offs
@@ -721,7 +721,7 @@ Deploying it on a schedule far outside that distribution is extrapolation.
 In a real surveillance system the missingness is informative — reporting starts because the epidemic arrived — and neither mask distribution captures that.
 :::
 
-## Exercise 3: Is the data in distribution?
+## Exercise 3: Prior predictive coverage
 
 Simulate 500 datasets from the prior and plot them against the Tristan da Cunha data.
 Does the observed outbreak look like something this model and prior can produce?
@@ -786,7 +786,7 @@ All three schedules here sit outside the distribution the estimator was trained 
 The lesson is the one the warning states rather than the one the table appears to offer: amortisation makes this calculation cheap, and that is exactly why it is easy to run it somewhere the estimator was never trained.
 :::
 
-## Exercise 5: Which method for which job?
+## Exercise 5: Choosing a method
 
 No code for this one.
 For each scenario, decide whether you would reach for NUTS, PMMH, VI, or NPE, and say why:
@@ -804,6 +804,8 @@ b. **NPE**. Same model, 300 datasets, every day. This is exactly what amortisati
 c. **PMMH** (or another likelihood-free method) for the first look. You want an answer you can trust while the model is still changing, and retraining an amortised estimator after every model change destroys the amortisation.
 d. **NPE**. The question is not really about one posterior — it is about comparing many hypothetical observation schedules, which needs a posterior per schedule. That is unaffordable with MCMC and free once amortised.
 :::
+
+# Learning points
 
 ::: {.callout-tip title="Learning points"}
 - **Amortised inference** pays a large one-off cost in simulation and training, and then returns posteriors in milliseconds for any dataset the model can produce
