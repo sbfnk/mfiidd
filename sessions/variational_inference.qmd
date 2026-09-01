@@ -282,7 +282,7 @@ plot(elbo_vals_mf, xlabel="Iteration", ylabel="ELBO",
 
 The ELBO should increase (become less negative) and eventually plateau. If the curve is still climbing at the end, you need more iterations. Typical counts range from a few hundred to a few thousand, depending on model complexity — for our simple 3-parameter model, 500 iterations is usually sufficient, but more complex models may need 1000–5000 or more.
 
-That is a similar cost to MCMC on a model this small.
+The mean-field run above took about as long as MCMC did, which is what a model this small buys you.
 The question worth asking here is whether it is accurate.
 
 Before any of that can be compared with MCMC, the draws have to be put back on
@@ -302,6 +302,7 @@ function to_constrained(samples)
     end
     return DataFrame(columns)
 end
+nothing
 ```
 
 ::: {.callout-warning}
@@ -411,7 +412,10 @@ println("VI full-rank correlation (R_0, D_inf): ",
 ```
 
 The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction.
-The correlation is not the only casualty, though. Mean-field also reports marginals about three times too narrow, while full-rank errs slightly the other way, and it is the narrow marginals that make its credible intervals untrustworthy in practice.
+The correlation is not the only casualty, though.
+Mean-field reports the $R_0$ and $D_{\text{inf}}$ marginals about three times too narrow, and leaves $\rho$ alone, where it comes out slightly wider than MCMC.
+The narrowing falls on exactly the pair whose correlation it discarded, which is what the independence assumption costs here; full-rank errs slightly wide on all three.
+Those narrow marginals are what make mean-field's credible intervals untrustworthy in practice.
 
 ```{julia}
 #| code-fold: true
