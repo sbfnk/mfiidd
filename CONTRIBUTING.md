@@ -71,6 +71,24 @@ support Julia, which is why CompatHelper is there instead.
 - Data: `CSV.read(datadir("filename.csv"), DataFrame)`
 - Diagnostics: StatsPlots.jl for trace plots, density plots, convergence checks
 
+### Time indexing and the initial state
+
+Use these two conventions in any session that fits the Tristan da Cunha data.
+A session that departs from either disagrees with the others by a day or by a few cases, quietly enough to survive a review, so it is worth checking a session against this section rather than against whichever session happens to be open.
+
+`times` starts at `0.0`, one point before the first observation, because the incidence over observation day 1 is `S(0) - S(1)` and there is no way to compute it without a day 0.
+The extra point is accounted for in exactly one of two places.
+Either the simulator wrapper removes it, returning `Inc[2:end]` or a bare `diff(...)` that yields one value per observed day, and the likelihood indexes `inc[i]`; or the wrapper returns the full padded vector and the likelihood indexes `traj.Inc[i + 1]`.
+Either way observation `i` lines up with the day it counts.
+Doing neither is the quiet failure this section exists for: a full padded vector indexed `inc[i]` pairs the first observation with the zero at `t = 0` and every later one with the day before it, so the session renders, the fit looks plausible, and the parameters come out a day off.
+Doing both is loud instead: a wrapper that removes the point and a likelihood that also shifts ask for one index past the end of the vector, so the session fails to render with a `BoundsError`.
+Plot predictions against `flu_tdc.time`, or against `collect(times)[2:end]` in a cell that runs before the data are loaded, because the trimmed vector is one element shorter than `times`.
+
+The initial state is `S = 279`, `I = 2`, `R = 3`, giving N = 284, the island population.
+It is the island as the ship lands, at the start of day 1: `flu_tdc_1971.csv` dates `time = 1` as 13 August, the day the ship arrived.
+Of the five islanders it brought back, three had been ill during the eight day voyage and are past their infectious period, so they start recovered; the two who fell ill on landing start infectious.
+The 312 reported cases exceed N because islanders were infected more than once, which is the observation the SEITL session is built on and the structural failure the single-wave sessions diagnose.
+
 ## House style
 
 ### Prose
