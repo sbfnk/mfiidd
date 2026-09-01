@@ -296,7 +296,7 @@ Run ABC with L1 distance:
 ## Choosing the threshold
 ABC rejection sampling is sensitive to the threshold choice:
 
-- **Too strict** (e.g., 100): Long wait times, few or zero accepted samples
+- **Too strict** (e.g., 100): below the closest this model can get, so it accepts nothing at all and exhausts the attempt budget
 - **Too loose** (e.g., 1000): Fast, but approximate posterior is close to the prior
 - **In between** (e.g., 200-400): Runs quickly, but at the loose end of this band the posterior still carries a good deal of the prior
 
@@ -341,9 +341,10 @@ Tightening the threshold narrows the posterior but the acceptance rate collapses
 so you wait much longer for the same number of samples: at 200 about 2% of prior
 draws are accepted against about a quarter at 300, so the same 200 samples cost
 roughly ten times as many simulations.
-There is a floor as well. The closest this SIR gets to these data anywhere in the
-prior box is a distance of about 165, so a threshold below that accepts nothing
-however long you leave it running.
+There is a floor as well.
+The closest this SIR gets to these data anywhere in the prior box is a distance of
+about 165, so a threshold below that accepts nothing however long you leave it
+running.
 
 Loosening it accepts almost everything, so the sampler is fast but the posterior
 drifts back towards the prior: you are no longer conditioning on the data very
@@ -433,15 +434,15 @@ l1_terms(sim, obs) = abs.(sim .- obs)
 l2_terms(sim, obs) = (sim .- obs) .^ 2
 weighted_terms(sim, obs) = abs.(sim .- obs) ./ (obs .+ 1.0)
 
-# The closest this SIR gets: the posterior mean from the likelihood fit above,
-# taken from the chain rather than copied out of it. It is still a poor fit, with
-# a distance of about 308 to the data, which the threshold of 300 would reject
-best_params = [mean(chain_poisson[:R_0]), mean(chain_poisson[:D_inf]),
-               mean(chain_poisson[:ρ])]
-best_sim = simulate_sir_abc(best_params)
+# The likelihood fit's posterior mean, taken from the chain rather than copied out
+# of it. It is closer than the simulation above but still a poor fit, at a distance
+# of about 308, which the threshold of 300 would reject
+fitted_params = [mean(chain_poisson[:R_0]), mean(chain_poisson[:D_inf]),
+                 mean(chain_poisson[:ρ])]
+fitted_sim = simulate_sir_abc(fitted_params)
 
 for (label, sim) in (("poorly fitting simulation", test_sim),
-                     ("closest simulation", best_sim))
+                     ("closer simulation", fitted_sim))
     println(label)
     for (name, terms) in (("L1", l1_terms), ("L2", l2_terms),
                           ("weighted", weighted_terms))
@@ -472,9 +473,10 @@ That is not the root cancelling the squaring in general.
 It happens because neither simulation here is close to the data: the spike is
 small against a sum of squares the model's own errors already dominate, so the
 root linearises the change.
-Give the same spike to a trajectory that does fit and the textbook behaviour
-comes back. The best fit available anywhere in the prior box moves L1 by 18% and
-L2 by 48%, and a near-perfect series moves them by 38% and 161%.
+Give the same spike to a trajectory that does fit and the textbook behaviour comes
+back.
+The best fit available anywhere in the prior box moves L1 by 18% and L2 by 48%, and
+a near-perfect series moves them by 38% and 161%.
 Against the poorly fitting one the ordering reverses, because L2 is already
 saturated by the model's own errors and one more large deviation barely registers
 among them.
@@ -692,8 +694,10 @@ Whether the total beats rejection sampling depends on the schedule, and on a pro
 The two totals printed above are not comparable as they stand, though: the rejection run stops at a threshold of 300 and ABC-SMC goes on to 250, so one has bought a tighter posterior than the other.
 Compare them at the same final threshold, and per effective sample rather than per draw.
 Rejection sampling's draws are unweighted, so its effective sample size is the number of draws; run to 250 it needs about 2300 simulations for 200 of them, which is about 11 each.
-ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100, and that comes to about 20 per effective sample.
-Rejection is cheaper here by a factor of under two, and it stays ahead over repeated runs, but by nothing like the margin the raw totals suggest.
+ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100.
+Its whole total counts, because the earlier generations cannot be skipped: 831 simulations against a final effective sample size of 18.5 is about 45 each.
+So rejection is roughly four times cheaper on this run.
+That gap is not stable, though. The effective sample size of the last generation swings widely between runs, and across repeated runs the median comes out nearer 20 per effective sample, which puts rejection about twice ahead rather than four times.
 A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight.
 Prior acceptance is about a quarter at a threshold of 300 and still around 9% at 250, so rejection can reach the tighter threshold directly.
 What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
