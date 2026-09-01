@@ -201,7 +201,7 @@ summarystats(chain_mcmc)
 ```
 
 Note the time printed above and compare it with the variational runs below.
-Each timing cell runs the method once before measuring it, so what you see is the cost of sampling rather than the cost of Julia compiling the sampler for the first time, which on a model this small would otherwise dominate everything.
+Each timing cell runs the method once before measuring it, so the figure is the cost of sampling and not the cost of Julia compiling the sampler for the first time, which on a model this small would otherwise dominate everything.
 
 # Approach 1: Mean-Field Variational Inference
 
@@ -282,7 +282,7 @@ plot(elbo_vals_mf, xlabel="Iteration", ylabel="ELBO",
 
 The ELBO should increase (become less negative) and eventually plateau. If the curve is still climbing at the end, you need more iterations. Typical counts range from a few hundred to a few thousand, depending on model complexity — for our simple 3-parameter model, 500 iterations is usually sufficient, but more complex models may need 1000–5000 or more.
 
-The mean-field run above took about as long as MCMC did, which is what a model this small buys you.
+The mean-field run above took about as long as MCMC did. On a model this small there is nothing to save.
 The question worth asking here is whether it is accurate.
 
 Before any of that can be compared with MCMC, the draws have to be put back on
@@ -414,8 +414,9 @@ println("VI full-rank correlation (R_0, D_inf): ",
 The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction.
 The correlation is not the only casualty, though.
 Mean-field reports the $R_0$ and $D_{\text{inf}}$ marginals about three times too narrow, and leaves $\rho$ alone, where it comes out slightly wider than MCMC.
-The narrowing falls on exactly the pair whose correlation it discarded, which is what the independence assumption costs here; full-rank errs slightly wide on all three.
-Those narrow marginals are what make mean-field's credible intervals untrustworthy in practice.
+The narrowing falls on the pair whose correlation it discarded, which is the cost of assuming independence.
+Full-rank errs slightly wide on all three.
+Those narrow marginals make mean-field's credible intervals untrustworthy in practice.
 
 ```{julia}
 #| code-fold: true
