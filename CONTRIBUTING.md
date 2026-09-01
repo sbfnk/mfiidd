@@ -84,7 +84,8 @@ Either way observation `i` lines up with the day it counts.
 Plot predictions against `flu_tdc.time`, or against `collect(times)[2:end]` in a cell that runs before the data are loaded, because the trimmed vector is one element shorter than `times`.
 
 The initial state is `S = 279`, `I = 2`, `R = 3`, giving N = 284, the island population.
-Of the five islanders who landed on day 0, three had been ill during the eight day voyage and are past their infectious period, so they start recovered; the two who fell ill on landing start infectious.
+It is the island as the ship lands, at the start of day 1: `flu_tdc_1971.csv` dates `time = 1` as 13 August, the day the ship arrived.
+Of the five islanders it brought back, three had been ill during the eight day voyage and are past their infectious period, so they start recovered; the two who fell ill on landing start infectious.
 The 312 reported cases exceed N because islanders were infected more than once, which is the observation the SEITL session is built on and the structural failure the single-wave sessions diagnose.
 
 ## House style
