@@ -651,23 +651,24 @@ Let's run it on our SIR model:
 using LinearAlgebra
 # Adaptive MCMC - learns proposal covariance automatically.
 # Seed the adaptation with a reasonable initial scale so it doesn't spend
-# thousands of steps trying to find the posterior region, and discard the
-# first 5000 samples as warmup while the covariance is still adapting.
+# thousands of steps trying to find the posterior region, and give it 5000
+# warmup iterations to adapt in. Those are discarded, so the returned chain is
+# the 5000 iterations that follow, sampled with the adapted proposal.
 initial_scale = 0.05 .* Matrix{Float64}(I, 2, 2)
 chain_ram = sample(
     model,
-    externalsampler(AdvancedMH.RobustAdaptiveMetropolis(S = initial_scale)),
+    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis(S = initial_scale)),
     5000;
-    discard_initial = 5000,
+    num_warmup = 5000,
     check_model = false
 )
 ```
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`RobustAdaptiveMetropolis(S = ...)`](https://turinglang.org/AdvancedMH.jl/dev/) - from AdvancedMH.jl. `S` is a lower-triangular Cholesky factor of the initial proposal covariance; the sampler updates it as it goes, growing or shrinking to hit a target acceptance rate.
-- `externalsampler()` - wraps an external sampler (from AdvancedMH.jl) for use with Turing models.
-- `discard_initial = 5000` - drops the first 5000 samples as warmup, so the returned chain is only from after adaptation has settled.
+- [`RobustAdaptiveMetropolis(S = ...)`](https://turinglang.org/AdvancedMH.jl/dev/) - from AdvancedMH.jl. `S` is a lower-triangular Cholesky factor of the initial proposal covariance; the sampler updates it during warmup, growing or shrinking it to hit a target acceptance rate, and then holds it fixed for the sampling that follows.
+- `adapting_externalsampler()` - from `MFIIDD`. Wraps an external sampler (from AdvancedMH.jl) for use with Turing models, and passes the warmup phase through to it. Turing's own `externalsampler` does not, and RAM adapts only during warmup, so through plain `externalsampler` the proposal would stay at `initial_scale` for the entire run.
+- `num_warmup = 5000` - 5000 adaptation iterations. They are discarded, so the returned chain is the 5000 that follow, drawn with the adapted proposal.
 - `check_model = false` - skips model validation (needed for some external samplers).
 :::
 

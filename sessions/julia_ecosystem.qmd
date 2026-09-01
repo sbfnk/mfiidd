@@ -336,15 +336,21 @@ becomes available:
 | [Pathfinder.jl](https://github.com/mlcolab/Pathfinder.jl) | fast variational approximation, useful for initialising MCMC |
 | [MicroCanonicalHMC.jl](https://github.com/JaimeRZP/MicroCanonicalHMC.jl) | microcanonical Langevin sampler |
 
-You do not have to leave Turing to use several of these. `externalsampler` wraps
-a compatible sampler for use with a Turing model, which is how the
+You do not have to leave Turing to use several of these. A compatible sampler can
+be wrapped for use with a Turing model, which is how the
 [PMCMC session](pmcmc.qmd) uses robust adaptive Metropolis:
 
 ```julia
 using AdvancedMH
-sample(model, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 5000;
-       check_model = false)
+sample(model, adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 5000;
+       num_warmup = 5000, check_model = false)
 ```
+
+`adapting_externalsampler` is a thin wrapper this course defines in
+[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl).
+Turing's `externalsampler` forwards ordinary sampling steps to the wrapped
+sampler but not warmup steps, and an adaptive sampler that never sees a warmup
+step never adapts.
 
 ::: {.callout-note collapse="true"}
 ## Pathfinder, and why initialisation matters
