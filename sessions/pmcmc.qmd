@@ -521,8 +521,7 @@ Looking at the posterior densities above, we can see differences between the two
 
 **Information criteria** estimate out-of-sample predictive accuracy by penalising model complexity:
 
-- **DIC (Deviance Information Criterion)**: Adds a penalty based on "effective number of parameters". Easy to compute but can be unstable for complex models.
-- **WAIC (Widely Applicable Information Criterion)**: More robust than DIC, based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
+- **WAIC (Widely Applicable Information Criterion)**: Based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
 - **LOO-CV (Leave-One-Out Cross-Validation)**: Gold standard for predictive accuracy. [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO approximation.
 
 For particle MCMC, these criteria require care because the likelihood estimates are noisy. The noise doesn't bias the posterior, but it *does* affect pointwise likelihood calculations needed for WAIC and LOO-CV. Solutions include using more particles when computing criteria, or averaging over multiple likelihood estimates per parameter sample.
@@ -581,9 +580,8 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 For particle MCMC model comparison:
 
 1. **Start with posterior predictive checks** - do the models make qualitatively different predictions?
-2. **Use DIC for quick comparisons** - it's easy to compute and gives a rough ranking
-3. **Use WAIC or LOO-CV for publication** - more robust, with standard errors
-4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
+2. **Use WAIC or LOO-CV** - with standard errors, and what current practice expects
+3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
 
