@@ -130,15 +130,17 @@ end
 
 ```{julia}
 # Try some parameters
-## `times` starts the day before the first observation, because the three index
-## cases fell ill during the voyage rather than on the island. `traj.Inc[i + 1]`
-## is then the incidence over the day the i-th observation counts
+## `times` starts at 0.0, the left edge of the first observation day, because the
+## incidence over that day is S(0) - S(1) and there is no way to form it without a
+## point at 0. `traj.Inc[i + 1]` is then the incidence over the day the i-th
+## observation counts
 times = [0.0; flu_tdc.time]
 θ_test = Dict(:R_0 => 10.0, :D_inf => 2.5)
 
-## Of the five islanders landed on day 0, three had been ill during the eight day
-## voyage and are past their infectious period, so they start recovered; the two
-## who fell ill on landing start infectious. N = 284, the island population
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had been ill during the eight day voyage and are past their
+## infectious period, so they start recovered; the two who fell ill on landing
+## start infectious. N = 284, the island population
 init_test = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 
 traj_test = simulate_sir(θ_test, init_test, times)
@@ -262,7 +264,7 @@ lands in the residuals.
 
 Either way the consequence for the Poisson fit is the same.
 It treats every departure from the trajectory as strong evidence against it, so the posterior comes out far too narrow.
-Nor can it buy its way out by moving the parameters: the four days around the observed peak are underpredicted by factors of four to ten and stay that way, because the many low-count days of the second wave outweigh them.
+Nor can it buy its way out by moving the parameters: the four days around the observed peak are underpredicted by factors of about four to nine and stay that way, because the many low-count days of the second wave outweigh them.
 The negative binomial in the next section loosens that grip, but notice that it does so by explaining the misfit as noise rather than by fixing the model.
 :::
 
