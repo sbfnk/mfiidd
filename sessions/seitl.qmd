@@ -301,10 +301,6 @@ Now let's try some parameter values based on the literature:
 )
 
 # Initial state
-# 5 initial infected from the ship
-# L = 30: although cross-immunity between H1N1 (1954) and H3N2 (1971) is limited,
-# some islanders may have pre-existing immunity from other exposures or
-# non-specific resistance. This is a rough guess — inference will refine it.
 ## The island as the ship lands, at the start of day 1. Of the five islanders it
 ## brought back, three had fallen ill during the eight day voyage and are past
 ## their infectious period, so they start in T; the two who developed symptoms on
