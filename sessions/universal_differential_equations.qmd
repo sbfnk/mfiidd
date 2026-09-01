@@ -338,11 +338,11 @@ opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 # Train using Adam optimiser — store loss history for convergence check
 loss_history = Float64[]
 
-println("\nTraining with Adam optimiser (500 iterations)...")
-@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=500,
+println("\nTraining with Adam optimiser (10,000 iterations)...")
+@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=10_000,
                      callback = (state, l) -> begin
                          push!(loss_history, l)
-                         if state.iter % 100 == 0
+                         if state.iter % 1000 == 0
                              println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                          end
                          return false
@@ -367,7 +367,8 @@ p_trained = result.u
 
 Always check the loss curve, and be honest with yourself about what it shows.
 
-Ours drops steeply over the first ten iterations, rebounds, then descends slowly and unevenly for the rest of the run. It is *still falling* at iteration 500, by about 0.09 per iteration over the last twenty. By the advice in this section that means the fit has not converged and more iterations are warranted; we stop at 500 because this is a teaching example and the shape of the answer is already visible, which is a trade you should make deliberately rather than by not looking.
+Ours drops steeply over the first ten iterations, rebounds, then descends slowly and unevenly before flattening out. Running to 10,000 iterations gets the loss to within about two units of where 40,000 leaves it, so this is close enough to converged to interpret.
+Stopping early here would have been actively misleading rather than merely imprecise: at 500 iterations the loss is around -340 and the fitted trajectory peaks at about 11 cases, which is a different qualitative answer from the one below.
 
 The middle of the curve is worth a second glance too. Progress slows enough around iterations 50 to 200 to look like a plateau, and stopping there would have given a much worse fit while appearing converged.
 
@@ -402,28 +403,21 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 
 **Key question**: what did the UDE buy, and what did it pay?
 
-The answer is not the one you might expect. The constant-β baseline nearly matches
-the height of the first peak, about 41 against an observed 47, and then collapses
-to nothing by day 15. The UDE does the opposite: it peaks at about 11, missing the
-first wave badly, and in exchange keeps a low tail running through days 20 to 50
-where the data really do have cases and the baseline has none.
+The constant-β baseline nearly matches the height of the first peak, about 41
+against an observed 47, and then collapses to nothing by day 15. It has one wave
+to give and it spends it on the first.
 
-That trade is a direct consequence of the loss we chose, though not for the reason
-usually given. Day by day, a Poisson negative log-likelihood still charges more for
-a large absolute miss than a small one: missing by thirty on a day expecting forty
-costs several times what missing by five on a day expecting two does.
+The UDE reaches a similar peak, around 42, and then keeps generating cases through
+days 20 to 50, where the data really do have them and the baseline has none. Over
+that window it produces about 89 cases against the 104 observed. A time-varying β
+is what lets one model do both, which is the whole claim of the approach and the
+reason to prefer it here.
 
-What decides the outcome is arithmetic across the series. Predicting *nothing* on a
-day when cases occurred is close to unbounded under a log-likelihood, and the
-constant-β baseline predicts essentially nothing for the whole of days 20 to 50.
-Adding those forty days up outweighs everything the UDE gives away at the peak, so
-the optimiser buys the tail and sells the peak. Swap in sum of squared errors and
-the incentive reverses: an empty tail is cheap, a peak missed by thirty is not, and
-the fit would go the other way.
-
-So the network did learn something, and it is not what a glance at the peak would
-suggest. Neither curve reproduces both waves, which is the point the next section
-takes up.
+The loss is doing the work that makes the tail matter. Predicting *nothing* on a
+day when cases occurred is close to unbounded under a log-likelihood, so the forty
+days the baseline abandons cost it more than anything it gains at the peak. Swap in
+sum of squared errors and the incentive reverses: an empty tail is cheap and a
+missed peak is not, so the fit stops bothering with the second wave.
 
 ## Step 6: Visualise learned β(t)
 
@@ -455,17 +449,20 @@ hline!([β_guess], label="Constant β baseline", linestyle=:dash)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-The curve above starts at about 1.0, a little *below* the constant-β baseline,
-falls to a minimum near 0.7 around day 8, and then climbs steadily for the rest of
-the outbreak, crossing the baseline around day 24 and reaching roughly 2.5 by day
-59.
+The curve above starts low, well *below* the constant-β baseline, and climbs for
+the rest of the outbreak, ending several times the baseline value by day 59.
 
-Read alongside the fit, that shape says what the network was doing. It suppresses
-transmission through the first wave, which is how the trajectory stays down at 11
-cases instead of overshooting to 40, and then raises transmission continuously to
-keep generating the small numbers of cases in the tail. It is propping up a long
-low tail rather than producing a second wave, and it needs an ever-larger β to do
-so because the susceptible pool is draining the whole time.
+Read alongside the fit, that shape says what the network was doing. A low β early
+is enough to produce the first wave, because almost everyone is still susceptible.
+Keeping cases coming later takes an ever-larger β, because the susceptible pool
+has been draining the whole time and each infectious person meets fewer people who
+can be infected. The rise is the network compensating for that depletion.
+
+Treat the values at the far right with care. By then susceptibles are nearly
+exhausted, so β has very little effect on incidence and the data barely constrain
+it: training longer moves the final value substantially while leaving the fitted
+trajectory and the loss almost unchanged. A parameter the data cannot see is a
+parameter you should not interpret.
 
 The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below), so treat these numbers as this run's, not the model's.
 
@@ -480,7 +477,9 @@ relaxation: initial caution, then a return to normal contact patterns.
 A β(t) that rises without ever coming back down, as ours does, is a different
 signal. It says the network is compensating for something the *structure* cannot
 do, rather than describing a behaviour. Here it is compensating for a susceptible
-pool that only ever shrinks.
+pool that only ever shrinks, which a single closed SIR compartment forces on it.
+Real reintroduction or waning immunity would show up this way too, and the shape
+alone cannot tell you which you have.
 
 A roughly constant β(t) would say the network did not find time-varying
 transmission useful, which might mean the network is too small, that more
@@ -505,7 +504,7 @@ Numerical stability can be problematic. The combination of ODE solving and gradi
 
 ## The deeper issue: structural constraints
 
-If the fit is imperfect even with Poisson loss, this tells us something important: **maybe time-varying β isn't the full story**.
+The fit is decent, but look at what it cost: β has to climb to several times the constant-β baseline to keep the tail going. That price is itself a signal: **maybe time-varying β is not the full story**.
 
 Consider what happens during the trough (days 13-21):
 
@@ -517,7 +516,7 @@ Consider what happens during the trough (days 13-21):
 The neural network can only learn β(t), but the **SIR structure itself** constrains what's possible:
 
 1. **S only decreases**: Once recovered, people are immune forever — the susceptible pool is depleted by the first wave
-2. **The trough problem**: With I near zero and S depleted, restarting growth requires implausibly large β
+2. **The trough problem**: With I near zero and S depleted, sustaining cases requires a β that climbs without limit, which is exactly what the learned curve does
 3. **No memory**: The model has no way to "store" infection for later release
 
 In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds an exposed class and Erlang-distributed temporary immunity — explains the two waves through structural changes, not time-varying transmission. That is the more parsimonious explanation for this data.
@@ -560,7 +559,7 @@ for seed in [1234, 5678, 9012]
 
     opt_func_test = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
     opt_prob_test = OptimizationProblem(opt_func_test, p_test, nothing)
-    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=500,
+    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=10_000,
                         callback = (state, l) -> false)
 
     # Extract the learned β(t) along the trajectory for comparison
@@ -594,7 +593,7 @@ For each change, re-run from Step 1 through Step 6 and compare the β(t) plot to
 :::
 
 ::: {.callout-tip title="Exercise 2: Interpret the structural constraint"}
-In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) struggles to produce two waves. Can you explain, in your own words, why even a very large β during the trough is insufficient — considering both the depleted susceptible pool and near-zero prevalence? What structural change to the model would you propose, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
+In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) can only sustain the second wave by driving β ever higher. Can you explain, in your own words, why even a very large β during the trough is insufficient — considering both the depleted susceptible pool and near-zero prevalence? What structural change to the model would you propose, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
 :::
 
 # When to use UDEs
