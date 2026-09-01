@@ -282,7 +282,8 @@ plot(elbo_vals_mf, xlabel="Iteration", ylabel="ELBO",
 
 The ELBO should increase (become less negative) and eventually plateau. If the curve is still climbing at the end, you need more iterations. Typical counts range from a few hundred to a few thousand, depending on model complexity — for our simple 3-parameter model, 500 iterations is usually sufficient, but more complex models may need 1000–5000 or more.
 
-The mean-field run above took about as long as MCMC did. On a model this small there is nothing to save.
+The mean-field run above took about as long as MCMC did.
+On a model this small there is nothing to save.
 The question worth asking here is whether it is accurate.
 
 Before any of that can be compared with MCMC, the draws have to be put back on
@@ -413,7 +414,7 @@ println("VI full-rank correlation (R_0, D_inf): ",
 
 The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction.
 The correlation is not the only casualty, though.
-Mean-field reports the $R_0$ and $D_{\text{inf}}$ marginals about three times too narrow, and leaves $\rho$ alone, where it comes out slightly wider than MCMC.
+Mean-field reports the $R_0$ and $D_{\text{inf}}$ marginals about three times too narrow, while $\rho$ comes out slightly wider than MCMC rather than narrower.
 The narrowing falls on the pair whose correlation it discarded, which is the cost of assuming independence.
 Full-rank errs slightly wide on all three.
 Those narrow marginals make mean-field's credible intervals untrustworthy in practice.
@@ -459,7 +460,7 @@ println("  R_0: mean = ", round(mean(vi_mf_df.R_0), digits=2),
 println("  D_inf: mean = ", round(mean(vi_mf_df.D_inf), digits=2),
         ", std = ", round(std(vi_mf_df.D_inf), digits=2))
 println("  ρ: mean = ", round(mean(vi_mf_df.ρ), digits=2),
-        ", std = ", round(std(vi_mf_df.ρ), digits=2))
+        ", std = ", round(std(vi_mf_df.ρ), digits=4))
 
 println("\n" * "="^60)
 println("Full-Rank VI Summary:")
@@ -468,7 +469,7 @@ println("  R_0: mean = ", round(mean(vi_full_df.R_0), digits=2),
 println("  D_inf: mean = ", round(mean(vi_full_df.D_inf), digits=2),
         ", std = ", round(std(vi_full_df.D_inf), digits=2))
 println("  ρ: mean = ", round(mean(vi_full_df.ρ), digits=2),
-        ", std = ", round(std(vi_full_df.ρ), digits=2))
+        ", std = ", round(std(vi_full_df.ρ), digits=4))
 ```
 
 ## Speed comparison
@@ -652,9 +653,10 @@ println("Parameter | MCMC mean (std) | MF-VI mean (std) | FR-VI mean (std)")
 println("-"^75)
 for (i, pname) in enumerate(param_names)
     mcmc_vals = vec(chain_mcmc[Symbol(pname)])
-    println("$(rpad(pname, 9)) | $(round(mean(mcmc_vals), digits=2)) ($(round(std(mcmc_vals), digits=2))) | " *
-            "$(round(mean(samp_mf[!, pname]), digits=2)) ($(round(std(samp_mf[!, pname]), digits=2))) | " *
-            "$(round(mean(samp_full[!, pname]), digits=2)) ($(round(std(samp_full[!, pname]), digits=2)))")
+    ## standard deviations to two significant figures, so ρ's does not round to 0.01
+    println("$(rpad(pname, 9)) | $(round(mean(mcmc_vals), digits=2)) ($(round(std(mcmc_vals), sigdigits=2))) | " *
+            "$(round(mean(samp_mf[!, pname]), digits=2)) ($(round(std(samp_mf[!, pname]), sigdigits=2))) | " *
+            "$(round(mean(samp_full[!, pname]), digits=2)) ($(round(std(samp_full[!, pname]), sigdigits=2)))")
 end
 ```
 
