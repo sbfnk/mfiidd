@@ -117,7 +117,7 @@ Wednesday 9 September: 09.45-11.00 and 11.30-12.30
     - calibrating the number of particles (35 mins)
 -   Wrap up (10 mins)
 
-## Session 7: Particle MCMC
+## Session 7: Particle MCMC and model comparison
 
 Wednesday 9 September: 13.30-15.15
 

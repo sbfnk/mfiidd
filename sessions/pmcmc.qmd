@@ -1,5 +1,5 @@
 ---
-title: "Particle MCMC"
+title: "Particle MCMC and model comparison"
 format: html
 engine: julia
 order: 7
@@ -575,8 +575,15 @@ When criteria disagree, consider what question you're actually asking: best pred
 The criteria above are described but not computed, so nothing so far has actually
 compared the two models. We can do it directly with the chains we already have.
 
-Both saved chains carry the log-likelihood of every draw, so the simplest
-comparison needs no new sampling at all:
+The criteria above are the ones to reach for in general, but none of them can be
+computed here. WAIC and leave-one-out both need the pointwise terms
+$p(y_i \mid \theta)$, and a particle filter estimates the likelihood of the whole
+series rather than handing you the per-observation contributions. Leaving one
+observation out of a time series is the wrong question in any case, since the
+remaining observations are not independent of it given the parameters.
+
+What the chains do carry is the log-likelihood of every draw, so we can at least
+see which model assigns the data more probability:
 
 ```{julia}
 seitl_ll  = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame).loglikelihood
@@ -588,10 +595,16 @@ println("mean log-likelihood, SEIT4L: ", round(mean(seit4l_ll), digits = 2))
 SEIT4L is ahead by about three and a half log-likelihood units, more than the
 spread of either chain, so this is not sampling noise.
 That agrees with [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300),
-who preferred SEIT4L on DIC.
+who preferred SEIT4L.
 
-A single number cannot say whether the winner fits the data at all, though, so
-simulate from each posterior and look:
+Treat that number carefully. A mean log-likelihood is not an information
+criterion: it rewards fit and penalises nothing, so on its own it will always
+favour the more flexible model. Here the two models have the same six parameters,
+which is the only reason it is worth quoting at all.
+
+No single number can say whether the winner fits the data at all, so the
+comparison this session leans on is the posterior predictive one. Simulate from
+each posterior and look:
 
 ```{julia}
 #| output: false
