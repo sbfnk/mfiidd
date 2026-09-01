@@ -384,7 +384,7 @@ Automatic differentiation computes exact gradients of the loss with respect to p
 
 **The Adam optimiser** is a gradient descent variant that adapts learning rates for each parameter and uses momentum to smooth updates. The learning rate (0.01) controls step size: too large and training becomes unstable; too small and convergence is slow. Adam is widely used for neural network training because it works well across many problems without much tuning.
 
-**What to expect**: the loss should fall steadily and substantially. Do not expect it to fall by orders of magnitude here, and do not use that as your check: a Poisson negative log-likelihood is not bounded below by zero, and ours goes from about +356 to about -340, so ratios of it mean nothing. Watch the shape instead. A loss that sits exactly flat means no gradient is reaching the parameters, which is a bug rather than a converged fit; `NaN` usually means the learning rate is too high; and a curve still falling steeply at the end means run for longer.
+**What to expect**: the loss should fall steadily and substantially. Do not expect it to fall by orders of magnitude here, and do not use that as your check: a Poisson negative log-likelihood is not bounded below by zero, and ours goes from about +356 to about -460, so ratios of it mean nothing. Watch the shape instead. A loss that sits exactly flat means no gradient is reaching the parameters, which is a bug rather than a converged fit; `NaN` usually means the learning rate is too high; and a curve still falling steeply at the end means run for longer.
 
 ## Step 5: Compare results
 
@@ -457,7 +457,7 @@ vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
 Read R_eff first, because it is the quantity with a threshold. It rises to
-roughly 2.8 as the first wave takes off, falls to about 0.3 by day 15 as that wave
+a little over 3 as the first wave takes off, falls to about 0.3 by day 15 as that wave
 burns through the susceptibles, and is then held close to 1 through days 20 to 30,
 which is what sustains the second wave. After that it settles a little below 1 and
 the tail decays.
@@ -478,14 +478,18 @@ exactly what R_eff divides by. So a β that has to climb is not the network
 describing depletion. It is compensating for what the structure cannot do once the
 susceptibles are gone, which is the argument the next section takes up.
 
-What the network's inputs can support is also narrower than it looks. Along the
-fitted trajectory β is at a low just as prevalence peaks around day 10, which
-reads as a behavioural response to a visibly large epidemic. But the training data
-trace a single path through the network's two-dimensional input space: each day
-corresponds to one prevalence, so dependence on prevalence and dependence on time
-cannot be told apart from this fit. Ask the network what β would be at a
-prevalence the epidemic never reached on a given day and it will answer, but
-nothing in the data informed that answer.
+Resist reading behaviour into the early shape as well. β climbs from 0.28 to
+about 1.9 over the first six days while prevalence is still rising, turns down
+before prevalence peaks on day 8, and reaches its lowest point on day 14 once the
+wave has largely passed. Transmission rising as the epidemic grows and falling as
+it fades is not the signature of a population reacting to visible cases.
+
+In any case the training data cannot separate the two candidate explanations. They
+trace a single path through the network's two-dimensional input space, one
+prevalence for each day, so dependence on prevalence and dependence on time are
+indistinguishable from this fit. Ask the network what β would be at a prevalence
+the epidemic never reached on a given day and it will answer, but nothing in the
+data informed that answer.
 
 Treat the values at the far right with care. By then susceptibles are nearly
 exhausted, so β has very little effect on incidence and the data barely constrain
@@ -540,7 +544,7 @@ Consider what happens during the trough (days 13-21):
 - Cases drop to near-zero (0-5 per day)
 - By this point, S has been substantially depleted by the first wave
 - Even with I > 0, the product β·S·I/N is small because S is small
-- A large β can compensate somewhat, but there is a limit
+- A large β can compensate, and nothing in the model stops it growing without bound
 
 The neural network can only learn β(t), but the **SIR structure itself** constrains what's possible:
 
@@ -558,7 +562,7 @@ In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds a
 
 **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
 
-An imperfect fit tells us something: time-varying transmission alone is insufficient to explain the data, and we may need different model structure.
+The fit itself is not the problem here: time-varying transmission does reproduce both waves. What it costs is the problem, and an R_0 near 19 is a strong hint that a different structure would explain the data more plausibly.
 
 ## Common failure modes
 
@@ -622,7 +626,7 @@ For each change, re-run from Step 1 through Step 6 and compare the β(t) plot to
 :::
 
 ::: {.callout-tip title="Exercise 2: Interpret the structural constraint"}
-In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) can only sustain the second wave by driving β ever higher. Can you explain, in your own words, why even a very large β during the trough is insufficient — considering both the depleted susceptible pool and near-zero prevalence? What structural change to the model would you propose, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
+In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) can only sustain the second wave by driving β ever higher. Can you explain, in your own words, why sustaining the second wave requires R_0 to climb the way it does — considering both the depleted susceptible pool and near-zero prevalence during the trough? What structural change to the model would let it produce a second wave without an implausible R_0, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
 :::
 
 # When to use UDEs
