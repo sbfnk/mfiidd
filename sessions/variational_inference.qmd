@@ -16,14 +16,14 @@ order: 9
 
 So far in this course, we've used Markov Chain Monte Carlo (MCMC) for Bayesian inference. MCMC is asymptotically exact and provides reliable uncertainty quantification. But it has a key limitation: it's slow.
 
-For a single dataset with a simple model, MCMC takes minutes to hours. But what if we need:
+For a single dataset with a simple model, MCMC is usually affordable: the model in this session fits in seconds. The problem is what happens next:
 
 - Real-time forecasting: Update predictions as new data arrives every hour
 - Many datasets: Analyse hundreds of outbreaks from different locations
 - High-dimensional models: Age-stratified models with 50+ parameters
 - Rapid prototyping: Quickly explore many model variants
 
-This is where variational inference (VI) comes in. VI trades some accuracy for speed improvements - the gains depend on problem complexity, from modest speedups for simple models to orders of magnitude for large neural networks or models with many latent variables.
+This is where variational inference (VI) comes in. VI trades some accuracy for speed improvements - the gains depend on problem complexity, from no useful saving at all on models as small as this session's to orders of magnitude for large neural networks or models with many latent variables.
 
 # Objectives
 
@@ -120,25 +120,42 @@ function simulate_sir(θ, init_state, times)
 end
 
 # Test
-times = flu_tdc.time
-init_state = Dict(:S => 270.0, :I => 3.0, :R => 0.0)
+## `times` starts at 0.0, the left edge of the first observation day, because the
+## incidence over that day is S(0) - S(1) and there is no way to form it without a
+## point at 0. `traj.Inc[i + 1]` is then the incidence over the day the i-th
+## observation counts
+times = [0.0; flu_tdc.time]
+
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had been ill during the eight day voyage and are past their
+## infectious period, so they start recovered; the two who fell ill on landing
+## start infectious. N = 284, the island population
+init_state = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 ```
 
 # Turing model for inference
 
 ```{julia}
+# The priors, named once. The model draws from them and the transform below
+# inverts them, and naming them here keeps the two from disagreeing.
+const PRIORS = (
+    R_0 = Uniform(1.0, 20.0),
+    D_inf = Uniform(1.0, 10.0),
+    ρ = Uniform(0.1, 1.0),
+)
+
 @model function sir_model(times, init_state, n_obs)
     # Priors
-    R_0 ~ Uniform(1.0, 20.0)
-    D_inf ~ Uniform(1.0, 10.0)
-    ρ ~ Uniform(0.1, 1.0)
+    R_0 ~ PRIORS.R_0
+    D_inf ~ PRIORS.D_inf
+    ρ ~ PRIORS.ρ
 
     # Simulate
     θ = Dict(:R_0 => R_0, :D_inf => D_inf)
     traj = simulate_sir(θ, init_state, times)
 
     # Likelihood
-    lambdas = [max(ρ * traj.Inc[i], 1e-10) for i in 1:n_obs]
+    lambdas = [max(ρ * traj.Inc[i + 1], 1e-10) for i in 1:n_obs]
     obs ~ arraydist(Poisson.(lambdas))
 
     return traj
@@ -160,6 +177,9 @@ Let's start with full MCMC to establish a baseline:
 
 ```{julia}
 println("Running MCMC with NUTS...")
+## A short run first, so that the timing below measures sampling and not Julia
+## compiling the sampler for the first time
+sample(model, NUTS(0.65), 100, progress=false)
 t_mcmc = @elapsed chain_mcmc = sample(model, NUTS(0.65), 500, progress=false)
 println("MCMC time: $(round(t_mcmc, digits=1)) seconds")
 ```
@@ -180,7 +200,8 @@ plot(chain_mcmc[[:R_0, :D_inf, :ρ]], size=(900, 600))
 summarystats(chain_mcmc)
 ```
 
-Note the time: MCMC takes several minutes (varies by hardware).
+Note the time printed above and compare it with the variational runs below.
+Each timing cell runs the method once before measuring it, so the figure is the cost of sampling and not the cost of Julia compiling the sampler for the first time, which on a model this small would otherwise dominate everything.
 
 # Approach 1: Mean-Field Variational Inference
 
@@ -196,7 +217,7 @@ The key idea is to turn inference into an **optimisation problem**:
 2. **Optimise parameters** of $q$ to make it as close as possible to the true posterior
 3. **Use gradient descent** instead of MCMC sampling
 
-Why is this faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence (which can take many thousands of iterations).
+Why should this ever be faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence, which can take many thousands of iterations. Whether that pays off depends on the model, and on the small one in this session it does not.
 
 ## The ELBO objective
 
@@ -232,6 +253,7 @@ Passing `q_meanfield_gaussian` to `vi` tells Turing to construct an initial mean
 
 ```{julia}
 println("\nRunning Mean-Field VI...")
+vi(model, q_meanfield_gaussian, 100; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
 t_vi_mf = @elapsed result_mf = vi(model, q_meanfield_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
 q_mf = result_mf.q
 stats_mf = result_mf.info
@@ -260,19 +282,44 @@ plot(elbo_vals_mf, xlabel="Iteration", ylabel="ELBO",
 
 The ELBO should increase (become less negative) and eventually plateau. If the curve is still climbing at the end, you need more iterations. Typical counts range from a few hundred to a few thousand, depending on model complexity — for our simple 3-parameter model, 500 iterations is usually sufficient, but more complex models may need 1000–5000 or more.
 
-Much faster! But is it accurate?
+The mean-field run above took about as long as MCMC did.
+On a model this small there is nothing to save.
+The question worth asking here is whether it is accurate.
+
+Before any of that can be compared with MCMC, the draws have to be put back on
+the scale of the parameters.
 
 ```{julia}
-# Sample from variational approximation
-samples_vi_mf = rand(q_mf, 10_000)
+#| output: false
+# `vi` optimises in the unconstrained space Turing transforms the model into, so
+# `rand(q, n)` returns numbers on that scale: an R_0 of about -3 rather than 1.8. Each
+# parameter goes back through the inverse of the bijector belonging to its prior.
+const Bijectors = Turing.Bijectors
 
-# Convert to DataFrame for comparison
-# Note: samples are in unconstrained space, need to transform back
-vi_mf_df = DataFrame(
-    R_0 = samples_vi_mf[1, :],
-    D_inf = samples_vi_mf[2, :],
-    ρ = samples_vi_mf[3, :]
-)
+"Map draws from a variational approximation back to the parameter scale."
+function to_constrained(samples)
+    columns = map(enumerate(keys(PRIORS))) do (i, name)
+        back = Bijectors.inverse(Bijectors.bijector(PRIORS[name]))
+        name => [back(samples[i, j]) for j in axes(samples, 2)]
+    end
+    return DataFrame(columns)
+end
+```
+
+::: {.callout-warning}
+## Variational draws are not on the parameter scale
+
+Forgetting this step is quiet rather than loud. `rand(q, n)` returns a perfectly
+ordinary matrix of numbers, and nothing complains if you label its rows `R_0`,
+`D_inf` and `ρ` and plot them against an MCMC posterior. The result is a
+comparison between the real posterior and a set of numbers that are not the
+parameters at all: an `R_0` of about -3.1 for a quantity that cannot go below 1, and a `ρ` of about +4.6 for one that cannot go above it.
+:::
+
+```{julia}
+# Sample from variational approximation and put the draws on the parameter scale
+samples_vi_mf = rand(q_mf, 10_000)
+vi_mf_df = to_constrained(samples_vi_mf)
 
 # Plot comparison
 p1 = histogram(vec(chain_mcmc[:R_0]), bins=30, alpha=0.5, normalize=:pdf,
@@ -291,15 +338,17 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are often **negatively correlated** in the posterior!
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are strongly **correlated** in the posterior, and here that correlation is positive: the cell below prints it at about 0.95.
 
 Why does this correlation arise? Consider the SIR model dynamics:
 
 - The **transmission rate** $\beta = R_0 / D_{\text{inf}}$ determines how fast susceptibles become infected
 - If we increase $R_0$ while keeping $\beta$ roughly constant (to match observed epidemic speed), we must also increase $D_{\text{inf}}$
-- Conversely, a shorter infectious period requires a higher $R_0$ to produce the same transmission rate
+- Conversely, a shorter infectious period goes with a lower $R_0$, since $\beta$ is their ratio and the data pin $\beta$ down
 
 In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space - exactly the kind of correlation mean-field VI cannot capture.
+
+The sign follows from that argument. Holding $\beta = R_0 / D_{\text{inf}}$ roughly fixed, a larger $R_0$ has to be paid for with a larger $D_{\text{inf}}$, so the two move together and the correlation comes out positive. The cell below measures it rather than asserting it, which is worth doing whenever you are about to claim a direction.
 
 ```{julia}
 # Check correlation in MCMC samples
@@ -334,10 +383,13 @@ For our 3-parameter model, this means:
 
 The additional parameters allow the approximation to capture correlations. The elliptical contours of a full Gaussian can be tilted and stretched to match the ridge-like structure of the true posterior.
 
-The trade-off: more parameters means more to optimise, so full-rank VI is slower than mean-field (though still much faster than MCMC). For high-dimensional problems, the covariance matrix grows as $O(n^2)$, which can become prohibitive - in those cases, low-rank approximations or structured covariances are used.
+The trade-off is that more parameters means more to optimise, and for high-dimensional problems the covariance matrix grows as $O(n^2)$, which can become prohibitive; in those cases low-rank approximations or structured covariances are used.
+With three parameters that cost is invisible: both families run the same 500 iterations, and the extra covariance entries are a handful of numbers.
+Expect the two timings below to come out close enough that the difference is not worth reading.
 
 ```{julia}
 println("\nRunning Full-Rank VI...")
+vi(model, q_fullrank_gaussian, 100; adtype=AutoForwardDiff(), show_progress=false)  ## compile first
 t_vi_full = @elapsed result_full = vi(model, q_fullrank_gaussian, 500; adtype=AutoForwardDiff(), show_progress=false)
 q_full = result_full.q
 stats_full = result_full.info
@@ -351,21 +403,21 @@ println("Final ELBO: ", round(stats_full[end].elbo, digits=2))
 :::
 
 ```{julia}
-# Sample from full-rank approximation
+# Sample from full-rank approximation, on the parameter scale again
 samples_vi_full = rand(q_full, 10_000)
-
-vi_full_df = DataFrame(
-    R_0 = samples_vi_full[1, :],
-    D_inf = samples_vi_full[2, :],
-    ρ = samples_vi_full[3, :]
-)
+vi_full_df = to_constrained(samples_vi_full)
 
 # Check correlation - should now be closer to MCMC
 println("VI full-rank correlation (R_0, D_inf): ",
         round(cor(vi_full_df.R_0, vi_full_df.D_inf), digits=3))
 ```
 
-We can see that the full-rank approximation now captures the negative correlation between $R_0$ and $D_{\text{inf}}$, giving a much better approximation to the true posterior.
+The full-rank approximation recovers a correlation close to the one MCMC found, where mean-field was pinned at zero by construction.
+The correlation is not the only casualty, though.
+Mean-field reports the $R_0$ and $D_{\text{inf}}$ marginals about three times too narrow, while $\rho$ comes out slightly wider than MCMC rather than narrower.
+The narrowing falls on the pair whose correlation it discarded, which is the cost of assuming independence.
+Full-rank errs slightly wide on all three.
+Those narrow marginals make mean-field's credible intervals untrustworthy in practice.
 
 ```{julia}
 #| code-fold: true
@@ -408,7 +460,7 @@ println("  R_0: mean = ", round(mean(vi_mf_df.R_0), digits=2),
 println("  D_inf: mean = ", round(mean(vi_mf_df.D_inf), digits=2),
         ", std = ", round(std(vi_mf_df.D_inf), digits=2))
 println("  ρ: mean = ", round(mean(vi_mf_df.ρ), digits=2),
-        ", std = ", round(std(vi_mf_df.ρ), digits=2))
+        ", std = ", round(std(vi_mf_df.ρ), digits=4))
 
 println("\n" * "="^60)
 println("Full-Rank VI Summary:")
@@ -417,7 +469,7 @@ println("  R_0: mean = ", round(mean(vi_full_df.R_0), digits=2),
 println("  D_inf: mean = ", round(mean(vi_full_df.D_inf), digits=2),
         ", std = ", round(std(vi_full_df.D_inf), digits=2))
 println("  ρ: mean = ", round(mean(vi_full_df.ρ), digits=2),
-        ", std = ", round(std(vi_full_df.ρ), digits=2))
+        ", std = ", round(std(vi_full_df.ρ), digits=4))
 ```
 
 ## Speed comparison
@@ -429,19 +481,25 @@ println("MCMC (500 samples):      $(round(t_mcmc, digits=1)) seconds")
 println("Mean-field VI (500 iter): $(round(t_vi_mf, digits=1)) seconds")
 println("Full-rank VI (500 iter):  $(round(t_vi_full, digits=1)) seconds")
 println("="^50)
-println("Mean-field speedup: $(round(t_mcmc / t_vi_mf, digits=1))×")
-println("Full-rank speedup:  $(round(t_mcmc / t_vi_full, digits=1))×")
+println("MCMC time / mean-field VI time: $(round(t_mcmc / t_vi_mf, digits=1))")
+println("MCMC time / full-rank VI time:  $(round(t_mcmc / t_vi_full, digits=1))")
 ```
 
-The speedup becomes even more dramatic with larger models or more samples.
+Once compilation is out of the way, there is almost nothing between the three on this model, whatever machine renders the page.
+Variational inference earns its keep on problems large enough for a real per-fit gap to open up, and then especially when that gap is multiplied across many datasets. A three-parameter SIR gives it nothing to work with.
+Comparing the two here is the right way to check that VI is telling the truth about the posterior, and the wrong way to decide whether you need it.
 
 ## Trade-offs summary
 
 | Method | Speed | Accuracy | Correlations | Use Case |
 |--------|-------|----------|--------------|----------|
-| MCMC | Slow (minutes-hours) | Exact (asymptotically) | Yes | Final analysis, publications |
-| Mean-field VI | Very fast (seconds) | Approximate | No | Quick exploration, many datasets |
-| Full-rank VI | Fast (seconds) | Better | Yes | Real-time forecasting |
+| MCMC | Slower, and the gap grows with model size | Exact (asymptotically) | Yes | Final analysis, publications |
+| Mean-field VI | Fast | Approximate | No | Quick exploration, many datasets |
+| Full-rank VI | Fast | Better | Yes | Real-time forecasting |
+
+On this three-parameter model the timings above separate the three methods hardly
+at all. Read the table as the shape of the trade-off on problems large enough for
+it to appear, rather than as a promise about seconds here.
 
 # When to use each method
 
@@ -490,11 +548,11 @@ When you suspect these issues, MCMC remains the more reliable choice. A useful d
 
 ## Why speed matters in practice
 
-The speed comparisons above might seem academic for a single analysis - who cares if inference takes 30 seconds vs 5 minutes? But the difference becomes critical in operational settings:
+On a single small analysis the choice hardly matters, as the timings above show. The difference becomes critical in operational settings:
 
-**Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. If each MCMC run takes 5 minutes, you can afford to wait. But if you're fitting models for 100 different regions, that's over 8 hours of compute time per update cycle. With VI, the same analysis might take under an hour.
+**Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. Take a model large enough that MCMC needs five minutes a fit and VI under a minute, which is a far bigger gap than the one this session's three-parameter model shows. Fitting 100 regions is then over 8 hours per update cycle against about an hour. The per-fit gap is what does the work; the hundred regions multiply whatever gap you have rather than creating one.
 
-**Model development and debugging**: When developing a new model, you'll run inference hundreds of times as you iterate on the specification, fix bugs, and tune priors. Fast iteration cycles (seconds vs minutes) dramatically accelerate development.
+**Model development and debugging**: When developing a new model, you'll run inference hundreds of times as you iterate on the specification, fix bugs, and tune priors. On a model where the gap is real, faster iteration cycles accelerate development considerably.
 
 **Sensitivity analyses**: Checking how results change with different priors, data subsets, or model variants requires many inference runs. VI makes comprehensive sensitivity analysis practical.
 
@@ -511,6 +569,7 @@ Run mean-field VI with different numbers of iterations (50, 200, 500, 2000) and 
 ::: {.callout-tip collapse="true"}
 ## Hint
 Use a loop over iteration counts, storing the final ELBO and posterior mean of $R_0$ for each run.
+Remember to put the draws back on the parameter scale with `to_constrained` before summarising them.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -522,12 +581,13 @@ results = []
 
 for n_iter in iter_counts
     res = vi(model, q_meanfield_gaussian, n_iter; adtype=AutoForwardDiff(), show_progress=false)
-    samples = rand(res.q, 5_000)
+    # Back to the parameter scale before summarising, as in the main text
+    draws = to_constrained(rand(res.q, 5_000))
     push!(results, (
         n_iter = n_iter,
         final_elbo = res.info[end].elbo,
-        R0_mean = mean(samples[1, :]),
-        R0_std = std(samples[1, :]),
+        R0_mean = mean(draws.R_0),
+        R0_std = std(draws.R_0),
         elbo_trace = [s.elbo for s in res.info]
     ))
 end
@@ -566,9 +626,9 @@ Use the MCMC chain `chain_mcmc` and VI distributions `q_mf` and `q_full` that we
 ## Solution
 
 ```{julia}
-# Draw samples (reuse existing VI fits from above)
-samp_mf = rand(q_mf, 10_000)
-samp_full = rand(q_full, 10_000)
+# Draw samples (reuse existing VI fits from above), on the parameter scale
+samp_mf = to_constrained(rand(q_mf, 10_000))
+samp_full = to_constrained(rand(q_full, 10_000))
 
 param_names = ["R_0", "D_inf", "ρ"]
 plots_list = []
@@ -576,9 +636,9 @@ plots_list = []
 for (i, pname) in enumerate(param_names)
     p = histogram(vec(chain_mcmc[Symbol(pname)]), bins=40, alpha=0.4,
                   normalize=:pdf, label="MCMC", xlabel=pname, ylabel="Density")
-    histogram!(p, samp_mf[i, :], bins=40, alpha=0.4,
+    histogram!(p, samp_mf[!, pname], bins=40, alpha=0.4,
                normalize=:pdf, label="Mean-field VI")
-    histogram!(p, samp_full[i, :], bins=40, alpha=0.4,
+    histogram!(p, samp_full[!, pname], bins=40, alpha=0.4,
                normalize=:pdf, label="Full-rank VI")
     push!(plots_list, p)
 end
@@ -593,9 +653,10 @@ println("Parameter | MCMC mean (std) | MF-VI mean (std) | FR-VI mean (std)")
 println("-"^75)
 for (i, pname) in enumerate(param_names)
     mcmc_vals = vec(chain_mcmc[Symbol(pname)])
-    println("$(rpad(pname, 9)) | $(round(mean(mcmc_vals), digits=2)) ($(round(std(mcmc_vals), digits=2))) | " *
-            "$(round(mean(samp_mf[i, :]), digits=2)) ($(round(std(samp_mf[i, :]), digits=2))) | " *
-            "$(round(mean(samp_full[i, :]), digits=2)) ($(round(std(samp_full[i, :]), digits=2)))")
+    ## standard deviations to two significant figures, so ρ's does not round to 0.01
+    println("$(rpad(pname, 9)) | $(round(mean(mcmc_vals), digits=2)) ($(round(std(mcmc_vals), sigdigits=2))) | " *
+            "$(round(mean(samp_mf[!, pname]), digits=2)) ($(round(std(samp_mf[!, pname]), sigdigits=2))) | " *
+            "$(round(mean(samp_full[!, pname]), digits=2)) ($(round(std(samp_full[!, pname]), sigdigits=2)))")
 end
 ```
 
@@ -610,10 +671,10 @@ If you see substantial disagreement between full-rank VI and MCMC, it may indica
 
 ::: {.callout-tip title="Learning points"}
 - **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior
-- **Mean-field VI** assumes parameter independence - very fast, but misses correlations that are common in epidemic models
+- **Mean-field VI** assumes parameter independence - cheap per iteration, but misses correlations that are common in epidemic models
 - **Full-rank VI** captures correlations using a full covariance matrix - good balance between speed and accuracy
 - **ELBO (Evidence Lower Bound)** is the objective function - higher values mean better approximations
-- **Speed vs accuracy trade-off**: VI is much faster than MCMC but provides approximations; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
+- **Speed vs accuracy trade-off**: VI trades exactness for speed, and the saving grows with the size of the problem rather than showing up on a model like this one; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
 :::
 
 VI is not a replacement for MCMC - it's a complementary tool that enables applications where MCMC is too slow!
