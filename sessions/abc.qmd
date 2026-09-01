@@ -328,7 +328,7 @@ println("\nObtained $(length(abc_samples)) samples")
 The threshold above (300) was chosen for you. Find out what it is doing by
 changing it.
 
-1. Re-run the sampler with a stricter threshold, say 150. How many simulations
+1. Re-run the sampler with a stricter threshold, say 200. How many simulations
    does it get through, and how long does it take?
 2. Re-run with a loose one, say 800. How wide is the resulting posterior for
    $R_0$ compared with the run at 300?
@@ -338,8 +338,12 @@ changing it.
 
 ::: {.callout-tip title="Solution" collapse="true"}
 Tightening the threshold narrows the posterior but the acceptance rate collapses,
-so you wait much longer for the same number of samples — and at 150 you may get
-none at all on some runs, because ABC is stochastic.
+so you wait much longer for the same number of samples: at 200 about 2% of prior
+draws are accepted against about a quarter at 300, so the same 200 samples cost
+roughly ten times as many simulations.
+There is a floor as well. The closest this SIR gets to these data anywhere in the
+prior box is a distance of about 165, so a threshold below that accepts nothing
+however long you leave it running.
 
 Loosening it accepts almost everything, so the sampler is fast but the posterior
 drifts back towards the prior: you are no longer conditioning on the data very
@@ -429,14 +433,15 @@ l1_terms(sim, obs) = abs.(sim .- obs)
 l2_terms(sim, obs) = (sim .- obs) .^ 2
 weighted_terms(sim, obs) = abs.(sim .- obs) ./ (obs .+ 1.0)
 
-# A well-fitting simulation, for contrast: the posterior mean from the likelihood
-# fit above, taken from the chain rather than copied out of it
-good_params = [mean(chain_poisson[:R_0]), mean(chain_poisson[:D_inf]),
+# The closest this SIR gets: the posterior mean from the likelihood fit above,
+# taken from the chain rather than copied out of it. It is still a poor fit, with
+# a distance of about 308 to the data, which the threshold of 300 would reject
+best_params = [mean(chain_poisson[:R_0]), mean(chain_poisson[:D_inf]),
                mean(chain_poisson[:ρ])]
-good_sim = simulate_sir_abc(good_params)
+best_sim = simulate_sir_abc(best_params)
 
 for (label, sim) in (("poorly fitting simulation", test_sim),
-                     ("well fitting simulation", good_sim))
+                     ("closest simulation", best_sim))
     println(label)
     for (name, terms) in (("L1", l1_terms), ("L2", l2_terms),
                           ("weighted", weighted_terms))
@@ -457,13 +462,19 @@ end
 
 The ordering depends on how well the rest of the trajectory fits, which is worth
 more than the headline rule.
-Against the well fitting simulation, the spiked day accounts for about a fifth of
-the summed squares and about a tenth of the summed absolute errors, so squaring
-does concentrate attention on it.
-Look at the second block, though. `distance_L2` takes the square root of those
-summed squares, and once it does the two distances move by almost the same
-amount. The textbook claim that squaring lets one bad day dominate is about the
-summed terms, and the root undoes much of it.
+Against the closer simulation, the spiked day accounts for about a fifth of the
+summed squares and about a tenth of the summed absolute errors, so squaring does
+concentrate attention on it.
+Look at the second block, though.
+`distance_L2` takes the square root of those summed squares, and once it does the
+two distances move by almost the same amount.
+That is not the root cancelling the squaring in general.
+It happens because neither simulation here is close to the data: the spike is
+small against a sum of squares the model's own errors already dominate, so the
+root linearises the change.
+Give the same spike to a trajectory that does fit and the textbook behaviour
+comes back. The best fit available anywhere in the prior box moves L1 by 18% and
+L2 by 48%, and a near-perfect series moves them by 38% and 161%.
 Against the poorly fitting one the ordering reverses, because L2 is already
 saturated by the model's own errors and one more large deviation barely registers
 among them.
@@ -483,7 +494,7 @@ The key idea, introduced by [Toni et al. (2009)](https://doi.org/10.1098/rsif.20
 2. *Gradually tighten*: Reduce the threshold across generations
 3. *Reuse good samples*: Instead of sampling from the prior each time, perturb samples that passed the previous threshold
 
-The aim is to reach a threshold that rejection sampling could not afford, by refining particles that are already close rather than searching blindly from the prior each time. How much that saves depends entirely on the problem, the schedule and the kernel; on the small problem below it buys a tighter threshold rather than a lower simulation count, so treat quoted speedup factors with suspicion until you have counted your own.
+The aim is to reach a threshold that rejection sampling could not afford, by refining particles that are already close rather than searching blindly from the prior each time. How much that saves depends entirely on the problem, the schedule and the kernel, so treat quoted speedup factors with suspicion until you have counted your own.
 
 ::: {.callout-note collapse="true"}
 ## Implementation: ABC-SMC (click to expand)
@@ -677,7 +688,15 @@ Compare the printed counts rather than taking any efficiency claim on trust, inc
 
 The generations usually get *more* expensive, not less: the first is cheap because a loose threshold accepts almost anything, and each tightening tends to cost more simulations per particle than the last. Now and then a later generation comes out cheaper, so read the direction rather than the individual numbers.
 
-Whether the total beats rejection sampling depends on the schedule, and on a problem this small it does not. Compare them per effective sample rather than per draw, using the numbers printed above. Rejection sampling's 200 draws are unweighted, so its effective sample size is 200 and its cost is its simulation total divided by that. ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100. Do that division and rejection sampling comes out several times cheaper per effective sample on this problem. Both totals move a good deal from run to run, and either can come out ahead on raw simulations, but the per-effective-sample comparison consistently favours rejection here. A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight. Prior acceptance is about a quarter at a threshold of 300 and still around 8% at 250, so rejection can reach the tighter threshold directly. What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
+Whether the total beats rejection sampling depends on the schedule, and on a problem this small it does not.
+The two totals printed above are not comparable as they stand, though: the rejection run stops at a threshold of 300 and ABC-SMC goes on to 250, so one has bought a tighter posterior than the other.
+Compare them at the same final threshold, and per effective sample rather than per draw.
+Rejection sampling's draws are unweighted, so its effective sample size is the number of draws; run to 250 it needs about 2300 simulations for 200 of them, which is about 11 each.
+ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100, and that comes to about 20 per effective sample.
+Rejection is cheaper here by a factor of under two, and it stays ahead over repeated runs, but by nothing like the margin the raw totals suggest.
+A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight.
+Prior acceptance is about a quarter at a threshold of 300 and still around 9% at 250, so rejection can reach the tighter threshold directly.
+What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
 
 Watch the effective sample size as well. The first generation has all 100 particles, because they are drawn from the prior and weighted equally. After that it drops sharply, often to a small fraction of the particle count, and how far varies a great deal between runs: repeat this with different seeds and generation 2 can land anywhere from single figures to about half the particles. What does not vary is the direction.
 
