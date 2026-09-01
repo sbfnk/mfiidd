@@ -669,7 +669,7 @@ which is a strange claim about temporary immunity. Chaining four gives a
 distribution with a peak away from zero, so most individuals stay immune for
 something close to the average duration. This is the standard trick for putting a
 realistic waiting time into a compartmental model, and the number of compartments
-is what buys you the realism.
+controls how realistic the waiting time is.
 :::
 
 Now compare the dynamics of the SEITL and SEIT4L models.
@@ -759,7 +759,7 @@ The `obs` variable is not a function argument — it is a random variable define
 model = my_model(times, init_state, length(data)) | (; obs = data)
 ```
 
-That extra leading time point is what lets the model compare each observation with the incidence over the day it counts, rather than with the day before it.
+That extra leading time point lets the model compare each observation with the incidence over the day it counts, rather than with the day before it.
 
 This unified structure enables both:
 
