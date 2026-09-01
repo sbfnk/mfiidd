@@ -457,9 +457,12 @@ vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
 Read R_eff first, because it is the quantity with a threshold. It rises to
-a little over 3 as the first wave takes off, falls to about 0.3 by day 15 as that wave
-burns through the susceptibles, and is then held close to 1 through days 20 to 30,
-which is what sustains the second wave. After that it settles a little below 1 and
+a little over 3 as the first wave takes off, falls to about 0.3 by day 15, and is then held close to 1
+through days 20 to 30, which is what sustains the second wave.
+Both of those moves are the network's doing rather than the structure's: the fall
+is mostly the learned β collapsing, with depletion contributing about a third of
+it, and the recovery is β climbing again while the susceptible fraction barely
+changes. After that it settles a little below 1 and
 the tail decays.
 
 Now read R₀ against it, over the window where R_eff is actually near 1. Between
