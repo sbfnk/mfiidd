@@ -260,7 +260,7 @@ When conditioned with | (; obs = data), use for inference (in later sessions).
 @model function seitl_model(times, init_state, n_obs)
     # `times` starts one day before the first observation, so `traj.Inc[i + 1]`
     # is the incidence over the day the i-th observation counts
-    @assert length(times) >= n_obs + 1 "times must have one more point than there are observations"
+    @assert length(times) == n_obs + 1 "times must have one more point than there are observations"
 
     # Deliberately wide priors — we want the data to drive inference
     # rather than our prior beliefs. These ranges are generous enough
@@ -305,10 +305,10 @@ Now let's try some parameter values based on the literature:
 # L = 30: although cross-immunity between H1N1 (1954) and H3N2 (1971) is limited,
 # some islanders may have pre-existing immunity from other exposures or
 # non-specific resistance. This is a rough guess — inference will refine it.
-## The ship landed five islanders on day 0. Three had fallen ill during the eight
-## day voyage and are past their infectious period, so they start in T; the two
-## who developed symptoms on landing start in I. The rest of the 284 islanders
-## are susceptible
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had fallen ill during the eight day voyage and are past
+## their infectious period, so they start in T; the two who developed symptoms on
+## landing start in I. The rest of the 284 islanders are susceptible
 init_state_guess = Dict(
     :S => 279.0,
     :E => 0.0,
@@ -318,7 +318,7 @@ init_state_guess = Dict(
 )
 
 # Simulate
-times = collect(0.0:1.0:60.0)
+times = collect(0.0:1.0:59.0)
 traj = simulate_seitl_deterministic(θ_guess, init_state_guess, times)
 
 # Show first few rows
@@ -477,7 +477,7 @@ This version uses the Gillespie algorithm for demographic stochasticity.
 @model function seitl_stochastic_model(times, init_state, n_obs)
     # `times` starts one day before the first observation, so `traj.Inc[i + 1]`
     # is the incidence over the day the i-th observation counts
-    @assert length(times) >= n_obs + 1 "times must have one more point than there are observations"
+    @assert length(times) == n_obs + 1 "times must have one more point than there are observations"
 
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
@@ -628,7 +628,7 @@ This version uses an Erlang-4 distribution for the T compartment.
 @model function seit4l_model(times, init_state, n_obs)
     # `times` starts one day before the first observation, so `traj.Inc[i + 1]`
     # is the incidence over the day the i-th observation counts
-    @assert length(times) >= n_obs + 1 "times must have one more point than there are observations"
+    @assert length(times) == n_obs + 1 "times must have one more point than there are observations"
 
     # Priors
     R_0 ~ Uniform(1.0, 50.0)
