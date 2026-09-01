@@ -304,8 +304,11 @@ Then fit it below and check.
    Look at $\rho$ in the comparison table below. The Poisson fit pushes it to about
    0.99, against the upper bound of its `Uniform(0.1, 1.0)` prior. A parameter
    pinned to the edge of its prior is a model straining against a constraint, and
-   here it is straining for the same reason: reporting everybody is the only other
-   way to make the totals add up.
+   here it is straining for the same reason. Even reporting everybody would not be
+   enough: the model starts with 270 susceptibles, so it can never produce more
+   than 270 cases against the 312 observed. The reporting rate is pinned at a
+   bound that still cannot close the gap, which is about as clear a sign as this
+   session offers that the shortfall is structural.
 
 3. **Large $\phi$** is the right answer to the question as asked, because
    variance is $\mu + \mu^2/\phi$ and the second term vanishes as
@@ -385,8 +388,10 @@ comparison
 
 Both fits here are 500 NUTS draws, which is enough to see the difference in
 question but not enough to report. The negative binomial chain in particular comes
-back with a tail effective sample size in the tens for $\rho$, so treat the third
-decimal of anything above as noise. The [diagnostics session](mcmc_diagnostics.qmd)
+back with Monte Carlo standard errors of about 0.16 on $D_\mathrm{inf}$ and 0.045
+on $R_0$, so the first decimal of one and the second of the other are already
+noise, however many digits the table prints. Those two are the parameters the
+comparison is about. The [diagnostics session](mcmc_diagnostics.qmd)
 is the reason you should have looked at `summarystats` before reading the table,
 rather than after.
 :::
@@ -463,9 +468,9 @@ This reveals that different likelihoods are just different ways of measuring dis
 - A negative log-likelihood is a distance function, so choosing an observation
   model is choosing how to measure the gap between prediction and data
 - An observation model that is too tight makes the posterior overconfident.
-  Loosening it widens the intervals honestly, but the trajectory stays where it
-  was: a mean that is wrong for structural reasons is not fixed by the
-  observation model
+  Loosening it widens the intervals honestly and moves the mean, but not towards
+  the days the model fits worst: a mean that is wrong for structural reasons is
+  not fixed by the observation model
 
 :::
 
