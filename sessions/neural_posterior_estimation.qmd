@@ -158,7 +158,7 @@ simulate_obs(θ_test)                       # warm up
 ::: {.callout-tip}
 ## Why Julia suits simulation-based inference
 
-A single outbreak takes well under a millisecond. Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms. An entire NPE training set costs less than a second of PMMH sampling. This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free. In a slower language the simulation stage is usually the bottleneck.
+A single outbreak takes well under a millisecond. Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms. Streaming the 512,000 simulations this training run consumes takes under a minute, against roughly five hours for the same number of 256-particle likelihood evaluations. This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free. In a slower language the simulation stage is usually the bottleneck.
 :::
 
 # Representing the parameters
@@ -354,7 +354,7 @@ A neural network is normally trained by cycling repeatedly over a fixed training
 
 Here we do not have a fixed training set. A simulation costs well under a millisecond, so we draw a **fresh batch for every gradient step**. No example is ever seen twice, and overfitting becomes impossible by construction.
 
-Simulating a batch of 128 costs roughly twice the gradient step it feeds, so most of the training time goes on the simulator rather than the network. At this model size that is affordable, and it is the price of the guarantee. With a simulator a hundred times slower it would not be: you would go back to a fixed training set, and back to watching for overfitting.
+Simulating a batch of 128 costs a little less than the gradient step it feeds, so the simulator and the network take comparable shares of the training time. At this model size that is affordable, and it is the price of the guarantee. With a simulator a hundred times slower it would not be: you would go back to a fixed training set, and back to watching for overfitting.
 :::
 
 # Training
@@ -453,15 +453,21 @@ plot(plts..., layout=(2, 3), size=(950, 520))
 ::: {.callout-note}
 ## What to look for
 
-Expect broad agreement in location and somewhat wider NPE intervals — that is the amortisation gap, and the mass-covering forward KL, showing up exactly as predicted. More training simulations narrow it.
+Expect broad agreement in location, and expect the widths to disagree in both
+directions. On this run the NPE posterior is roughly half as wide as PMMH for
+`R_0`, `α` and `D_imm`, and somewhat wider for `D_lat`, `D_inf` and `ρ`.
 
-Read the weakly identified parameters differently from the well identified
-ones. A single 59-day outbreak says little about `D_lat` and `D_inf` separately,
-because a shorter latent period and a longer infectious period reproduce much the
-same epidemic curve, so those two are where the two posteriors have most licence
-to disagree and where NPE's extra width shows up first. `R_0`, `α` and `ρ` are
-pinned down by the shape and size of the two waves, and disagreement there would
-mean something is wrong rather than merely uncertain.
+Narrower is not better. A posterior that is too tight is the failure mode
+simulation-based inference is known for, and the reading you should take from this
+figure is that agreement in location says nothing on its own about whether the
+widths can be trusted. That is what the calibration check in the next section is
+for, and it is worth forming an expectation now about which parameters it will
+flag.
+
+Read the weakly identified parameters differently from the well identified ones.
+A single 59-day outbreak says little about `D_lat` and `D_inf` separately, because
+a shorter latent period and a longer infectious period reproduce much the same
+epidemic curve, so the two posteriors have most licence to disagree there.
 :::
 
 # Is it calibrated?
@@ -499,6 +505,8 @@ plot(sbc_plots..., layout=(2, 3), size=(950, 520))
 ```
 
 A curve wandering outside the grey band means the posterior is miscalibrated for that parameter: an S-shape indicates bias, a bowed curve indicates intervals that are systematically too narrow or too wide.
+
+Look at `R_0`. Its curve leaves the band over a good part of the range, which is the calibration check confirming what the width comparison above suggested: the NPE posterior for `R_0` is too tight. That is the expected weakness of an amortised estimator trained on this many simulations, and it is why the comparison with PMMH is worth making at all.
 
 Two things to keep in mind when reading it. The band is pointwise, computed
 separately at each of the 100 grid points, so under perfect calibration a curve
@@ -562,7 +570,7 @@ end
 pl
 ```
 
-Each of those posteriors took milliseconds. Doing the same with PMMH would mean 35 separate chains, and hours of compute.
+Each of those posteriors took milliseconds. Doing the same with PMMH would mean 30 separate chains, and hours of compute.
 
 # When to use this
 
@@ -722,7 +730,11 @@ end
 unstack(rows, :parameter, :schedule, :width)
 ```
 
-`R_0` is driven by the exponential growth phase, so early observations carry most of its information. `D_imm` governs the *second* wave, so it needs late observations — which is why the same number of observation days can be worth very different amounts depending on when they fall. This is exactly the calculation a surveillance planner wants, and amortisation is what makes it cheap.
+The mechanistic expectation is that `R_0` is driven by the exponential growth phase and so wants early observations, while `D_imm` governs the second wave and so wants late ones. Check that against the table you just printed: it is not what comes out. `R_0` is narrowest under "last 20" and `D_imm` under "every third", with "last 20" its *widest*.
+
+Before concluding anything about surveillance design, look back at `draw_mask`. It produces either a fully observed series or a uniformly random subset of days, so a contiguous block like days 1-20 has essentially no chance of appearing in training. All three schedules here sit outside the distribution the estimator was trained on, which is the extrapolation Exercise 2 was built to demonstrate and the warning above tells you not to trust.
+
+The lesson is the one the warning states rather than the one the table appears to offer: amortisation makes this calculation cheap, and that is exactly why it is easy to run it somewhere the estimator was never trained.
 :::
 
 ## Exercise 5: Which method for which job?
