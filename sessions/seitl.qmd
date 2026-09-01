@@ -305,12 +305,16 @@ Now let's try some parameter values based on the literature:
 # L = 30: although cross-immunity between H1N1 (1954) and H3N2 (1971) is limited,
 # some islanders may have pre-existing immunity from other exposures or
 # non-specific resistance. This is a rough guess — inference will refine it.
+## The ship landed five islanders on day 0. Three had fallen ill during the eight
+## day voyage and are past their infectious period, so they start in T; the two
+## who developed symptoms on landing start in I. The rest of the 284 islanders
+## are susceptible
 init_state_guess = Dict(
-    :S => 250.0,
+    :S => 279.0,
     :E => 0.0,
-    :I => 4.0,
-    :T => 0.0,
-    :L => 30.0
+    :I => 2.0,
+    :T => 3.0,
+    :L => 0.0
 )
 
 # Simulate
@@ -679,14 +683,14 @@ Note that although SEITL and SEIT4L share the same parameters, their state varia
 ```{julia}
 # Initial state for SEIT4L (need to split T into 4 stages)
 init_state_4l = Dict(
-    :S => 250.0,
+    :S => 279.0,
     :E => 0.0,
-    :I => 4.0,
-    :T1 => 0.0,
+    :I => 2.0,
+    :T1 => 3.0,
     :T2 => 0.0,
     :T3 => 0.0,
     :T4 => 0.0,
-    :L => 30.0
+    :L => 0.0
 )
 
 # Try with better parameter values that produce two waves
