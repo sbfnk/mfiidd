@@ -120,14 +120,16 @@ function simulate_sir(θ, init_state, times)
 end
 
 # Test
-## `times` starts the day before the first observation, because the three index
-## cases fell ill during the voyage rather than on the island. `traj.Inc[i + 1]`
-## is then the incidence over the day the i-th observation counts
+## `times` starts at 0.0, the left edge of the first observation day, because the
+## incidence over that day is S(0) - S(1) and there is no way to form it without a
+## point at 0. `traj.Inc[i + 1]` is then the incidence over the day the i-th
+## observation counts
 times = [0.0; flu_tdc.time]
 
-## Of the five islanders landed on day 0, three had been ill during the eight day
-## voyage and are past their infectious period, so they start recovered; the two
-## who fell ill on landing start infectious. N = 284, the island population
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had been ill during the eight day voyage and are past their
+## infectious period, so they start recovered; the two who fell ill on landing
+## start infectious. N = 284, the island population
 init_state = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 ```
 
