@@ -12,18 +12,27 @@ order: 10
 
 # Introduction
 
-In the [particle MCMC session](pmcmc.qmd) we fitted the stochastic SEITL model to the Tristan da Cunha outbreak. Every likelihood evaluation needed a full particle filter, every chain needed hundreds of thousands of those evaluations, and the resulting chain answered a question about exactly one dataset. Ask about a second dataset — a different island, a different reporting schedule, the same outbreak truncated at week three — and the whole cost is paid again.
+In the [particle MCMC session](pmcmc.qmd) we fitted the stochastic SEITL model to the Tristan da Cunha outbreak.
+Every likelihood evaluation needed a full particle filter, every chain needed hundreds of thousands of those evaluations, and the resulting chain answered a question about exactly one dataset.
+Ask about a second dataset — a different island, a different reporting schedule, the same outbreak truncated at week three — and the whole cost is paid again.
 
-The [variational inference session](variational_inference.qmd) already replaced sampling with optimisation. But it optimised an approximation to the posterior *for one dataset*: change the data and you re-run the optimisation from scratch.
+The [variational inference session](variational_inference.qmd) already replaced sampling with optimisation.
+But it optimised an approximation to the posterior *for one dataset*: change the data and you re-run the optimisation from scratch.
 
-This session goes one step further. We use the simulator to generate training data, and learn the mapping from data to posterior **once**. The learned estimator is **amortised**: afterwards a posterior costs milliseconds, for any dataset the model can produce, including observation schedules we invent after training.
+This session goes one step further.
+We use the simulator to generate training data, and learn the mapping from data to posterior **once**.
+The learned estimator is **amortised**: afterwards a posterior costs milliseconds, for any dataset the model can produce, including observation schedules we invent after training.
 
 The approach is **neural posterior estimation** (NPE), part of the wider family of *simulation-based inference* [@cranmer2020].
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
 
-There is no mature R equivalent. The established tools are Python's [`sbi`](https://sbi-dev.github.io/sbi/) and [BayesFlow](https://bayesflow.org/) [@radev2020]. Julia has no equivalent package, so we build the flow ourselves with [Lux.jl](https://lux.csail.mit.edu/) in about forty lines. For a course that is a feature: every part of the method stays visible in the session's own code. The ideas transfer directly — everything below is ordinary Bayesian inference for the same mechanistic model you have been fitting all week.
+There is no mature R equivalent.
+The established tools are Python's [`sbi`](https://sbi-dev.github.io/sbi/) and [BayesFlow](https://bayesflow.org/) [@radev2020].
+Julia has no equivalent package, so we build the flow ourselves with [Lux.jl](https://lux.csail.mit.edu/) in about forty lines.
+For a course that is a feature: every part of the method stays visible in the session's own code.
+The ideas transfer directly — everything below is ordinary Bayesian inference for the same mechanistic model you have been fitting all week.
 :::
 
 # Objectives
@@ -42,14 +51,14 @@ In this session you will:
 ::: {.callout-important}
 ## The model has not changed
 
-Everything here targets the same posterior as PMMH: the same SEITL model, the same priors, the same Poisson observation process. The neural network replaces the *sampler*, not the model. `R_0` still means what it meant in the [SEITL session](seitl.qmd) because it is still a parameter of a transmission model.
+Everything here targets the same posterior as PMMH: the same SEITL model, the same priors, the same Poisson observation process.
+The neural network replaces the *sampler*, not the model.
+`R_0` still means what it meant in the [SEITL session](seitl.qmd) because it is still a parameter of a transmission model.
 :::
 
 # Setup
 
-We build the flow with [Lux.jl](https://lux.csail.mit.edu/), the neural network
-library the [universal differential equations session](universal_differential_equations.qmd)
-also uses, so this session needs nothing beyond the course environment.
+We build the flow with [Lux.jl](https://lux.csail.mit.edu/), the neural network library the [universal differential equations session](universal_differential_equations.qmd) also uses, so this session needs nothing beyond the course environment.
 
 ```{julia}
 using Distributions, LinearAlgebra, Random, Statistics
@@ -65,30 +74,28 @@ const INIT = [279.0, 0.0, 2.0, 3.0, 0.0]   # S, E, I, T, L
 
 # How it works
 
-Bayesian inference wants $p(\theta \mid y)$. NPE approximates it by training a conditional density estimator $q_\phi(\theta \mid y)$ on pairs drawn from the joint distribution:
+Bayesian inference wants $p(\theta \mid y)$.
+NPE approximates it by training a conditional density estimator $q_\phi(\theta \mid y)$ on pairs drawn from the joint distribution:
 
 $$\theta \sim p(\theta), \qquad y \sim p(y \mid \theta), \qquad \text{minimise } -\sum_i \log q_\phi(\theta_i \mid y_i).$$
 
-Minimising that expected negative log density over draws from $p(\theta)p(y \mid \theta)$ has the true posterior as its minimiser [@papamakarios2016]. So this is the same inferential target you have been chasing with MCMC, reached by regression on simulations rather than by sampling.
+Minimising that expected negative log density over draws from $p(\theta)p(y \mid \theta)$ has the true posterior as its minimiser [@papamakarios2016].
+So this is the same inferential target you have been chasing with MCMC, reached by regression on simulations rather than by sampling.
 
-The density estimator is a **normalising flow**: an invertible neural network that maps a simple base distribution (a standard normal) to a complicated one, conditioned on the data. Because it is invertible with a tractable Jacobian, we can both evaluate its density (needed for training) and sample from it (needed for inference).
+The density estimator is a **normalising flow**: an invertible neural network that maps a simple base distribution (a standard normal) to a complicated one, conditioned on the data.
+Because it is invertible with a tractable Jacobian, we can both evaluate its density (needed for training) and sample from it (needed for inference).
 
 ::: {.callout-note collapse="true"}
 ## What the neural network is actually doing
 
-If you have not used neural networks before, the ones here are doing something
-narrow. A network is a function with adjustable numbers inside it, built by
-alternating a linear map with a simple nonlinear function such as `gelu`. Given
-enough of those numbers it can approximate almost any smooth function, and
-training means nudging them with gradient descent until some loss is small.
+If you have not used neural networks before, the ones here are doing something narrow.
+A network is a function with adjustable numbers inside it, built by alternating a linear map with a simple nonlinear function such as `gelu`.
+Given enough of those numbers it can approximate almost any smooth function, and training means nudging them with gradient descent until some loss is small.
 
 In this session the networks never see a posterior and never output one directly.
-Each takes half the parameter vector plus a summary of the data, and returns a
-scale and a shift for the *other* half. The statistics live in the flow
-construction around them: the change-of-variables formula is what turns those
-scales and shifts into a density, and the invertibility is what lets us sample.
-You can follow every statistical claim below while treating each network as a
-black-box flexible function.
+Each takes half the parameter vector plus a summary of the data, and returns a scale and a shift for the *other* half.
+The statistics live in the flow construction around them: the change-of-variables formula is what turns those scales and shifts into a density, and the invertibility is what lets us sample.
+You can follow every statistical claim below while treating each network as a black-box flexible function.
 :::
 
 ## How this differs from variational inference
@@ -104,19 +111,20 @@ Both VI and NPE replace sampling with optimisation, so it is worth being precise
 | Needs | the likelihood | only the simulator |
 | New dataset | re-optimise from scratch | free |
 
-The reverse KL that VI minimises is mode-seeking, which is why the mean-field posteriors in that session came out too narrow. NPE minimises a forward KL averaged over datasets, which is mass-covering, so at the optimum its errors tend towards posteriors that are too *wide*, and being conservative is the safer failure.
+The reverse KL that VI minimises is mode-seeking, which is why the mean-field posteriors in that session came out too narrow.
+NPE minimises a forward KL averaged over datasets, which is mass-covering, so at the optimum its errors tend towards posteriors that are too *wide*, and being conservative is the safer failure.
 
-That argument holds at the optimum. It is not a guarantee for a network trained on
-a finite budget: benchmarks across simulation-based inference find overconfident
-posteriors to be common [@hermans2022], which is why the calibration check below
-is not optional.
+That argument holds at the optimum.
+It is not a guarantee for a network trained on a finite budget: benchmarks across simulation-based inference find overconfident posteriors to be common [@hermans2022], which is why the calibration check below is not optional.
 
-The price of amortisation is the **amortisation gap**: the estimator must work for every dataset the prior can produce, so on any single dataset it will be worse than a bespoke fit. More training reduces the gap; it does not close it.
+The price of amortisation is the **amortisation gap**: the estimator must work for every dataset the prior can produce, so on any single dataset it will be worse than a bespoke fit.
+More training reduces the gap; it does not close it.
 
 ::: {.callout-tip}
 ## The connection is real
 
-NPE can be seen as *amortised* variational inference with the KL reversed. If you found the VI session's framing natural — pick a family, optimise until it fits — this is the same move, applied once to the whole joint distribution rather than repeatedly to individual posteriors.
+NPE can be seen as *amortised* variational inference with the KL reversed.
+If you found the VI session's framing natural — pick a family, optimise until it fits — this is the same move, applied once to the whole joint distribution rather than repeatedly to individual posteriors.
 :::
 
 # The simulator
@@ -159,16 +167,23 @@ simulate_obs(θ_test)                       # warm up
 ::: {.callout-tip}
 ## Why Julia suits simulation-based inference
 
-A single outbreak takes well under a millisecond. Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms. Streaming the 512,000 simulations this training run consumes takes under a minute, against nearly three hours for the same number of 256-particle likelihood evaluations at the 20 ms above. This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free. In a slower language the simulation stage is usually the bottleneck.
+A single outbreak takes well under a millisecond.
+Compare that with the particle filter in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms.
+Streaming the 512,000 simulations this training run consumes takes under a minute, against nearly three hours for the same number of 256-particle likelihood evaluations at the 20 ms above.
+This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free.
+In a slower language the simulation stage is usually the bottleneck.
 :::
 
 # Representing the parameters
 
-The flow's base distribution is a standard normal, so it helps enormously to give it parameters on a comparable scale. We use the **probit of the prior CDF**:
+The flow's base distribution is a standard normal, so it helps enormously to give it parameters on a comparable scale.
+We use the **probit of the prior CDF**:
 
 $$u_i = \Phi^{-1}\!\big(F_i(\theta_i)\big)$$
 
-where $F_i$ is the prior CDF of parameter $i$. Under the prior, $u$ is *exactly* standard normal. Two things follow: the flow starts out equal to the prior and learns the prior-to-posterior update, and inverting always lands back inside the prior support, so `D_lat` can never come out below its truncation bound.
+where $F_i$ is the prior CDF of parameter $i$.
+Under the prior, $u$ is *exactly* standard normal.
+Two things follow: the flow starts out equal to the prior and learns the prior-to-posterior update, and inverting always lands back inside the prior support, so `D_lat` can never come out below its truncation bound.
 
 ```{julia}
 const CLIP = 1e-6
@@ -179,12 +194,15 @@ constrain(u)   = [quantile(PRIORS[i], clamp(cdf(Normal(), u[i]), CLIP, 1 - CLIP)
 ::: {.callout-warning}
 ## A naive transform will not do
 
-The obvious choice, `log(θ - lower)`, blows up as a parameter approaches its truncation bound. Over 100,000 prior draws you will get values near $-12$, which are extreme outliers once standardised, and they destabilise training badly. The probit transform has no such tail.
+The obvious choice, `log(θ - lower)`, blows up as a parameter approaches its truncation bound.
+Over 100,000 prior draws you will get values near $-12$, which are extreme outliers once standardised, and they destabilise training badly.
+The probit transform has no such tail.
 :::
 
 # The observation mask
 
-Real surveillance is ragged: locations start reporting at different times, some days are missed, some studies visit a site twice in seven years. A neural network needs a **fixed-length** input, so we put every record on a common grid of `T` days and add a **binary mask** saying which days were actually observed [@wang2024].
+Real surveillance is ragged: locations start reporting at different times, some days are missed, some studies visit a site twice in seven years.
+A neural network needs a **fixed-length** input, so we put every record on a common grid of `T` days and add a **binary mask** saying which days were actually observed [@wang2024].
 
 ```{julia}
 "Pack an observation vector and its mask into the conditioning channels."
@@ -201,18 +219,19 @@ function draw_mask(rng)
 end
 ```
 
-The zero-filling is only padding — it carries no information. All the information about missingness lives in the mask. Without it the network sees a zero on day 12 and cannot tell whether nobody reported that day or whether genuinely zero cases were reported, and those two imply very different things about $\theta$.
+The zero-filling is only padding — it carries no information.
+All the information about missingness lives in the mask.
+Without it the network sees a zero on day 12 and cannot tell whether nobody reported that day or whether genuinely zero cases were reported, and those two imply very different things about $\theta$.
 
-Because a random mask is drawn for every training example, the network learns $p(\theta \mid y, m)$ — a posterior *conditioned on the observation schedule itself*. That is what lets one trained network serve every schedule, including ones we invent later.
+Because a random mask is drawn for every training example, the network learns $p(\theta \mid y, m)$ — a posterior *conditioned on the observation schedule itself*.
+That is what lets one trained network serve every schedule, including ones we invent later.
 
 ::: {.callout-warning}
 ## Train on the schedules you intend to use
 
-The network only learns about schedules it has seen. `draw_mask` is fully
-observed half the time and otherwise keeps a random 8 to `T` days, so a posterior
-conditioned on a schedule outside that range is an extrapolation, however
-confident it looks. Exercise 2 makes the point with a mask distribution that
-concentrates observations early.
+The network only learns about schedules it has seen.
+`draw_mask` is fully observed half the time and otherwise keeps a random 8 to `T` days, so a posterior conditioned on a schedule outside that range is an extrapolation, however confident it looks.
+Exercise 2 makes the point with a mask distribution that concentrates observations early.
 :::
 
 ```{julia}
@@ -244,16 +263,13 @@ size(Xva), size(Yva)
 
 # Building the flow
 
-We use a **conditional coupling flow**, the simplest invertible architecture that
-still has a tractable Jacobian [@dinh2017].
+We use a **conditional coupling flow**, the simplest invertible architecture that still has a tractable Jacobian [@dinh2017].
 
-Split the six parameters into two halves. Leave one half untouched, and use it —
-together with the observed data — to choose an affine transformation, a scale and
-a shift, for the other half. Because the untouched half decides the
-transformation, the step inverts exactly: recompute the same scale and shift, then
-undo them. The Jacobian is triangular, so its log-determinant is simply the sum of
-the log-scales. Stack several such layers, alternating which half moves, and the
-composition is flexible enough to represent the posterior.
+Split the six parameters into two halves.
+Leave one half untouched, and use it — together with the observed data — to choose an affine transformation, a scale and a shift, for the other half.
+Because the untouched half decides the transformation, the step inverts exactly: recompute the same scale and shift, then undo them.
+The Jacobian is triangular, so its log-determinant is simply the sum of the log-scales.
+Stack several such layers, alternating which half moves, and the composition is flexible enough to represent the posterior.
 
 ```{julia}
 n_couple = 8       # coupling layers
@@ -340,29 +356,28 @@ Lux.parameterlength(ps)          # how many weights we are about to train
   affine step. Nothing is approximated — it is the same arithmetic, backwards.
 :::
 
-We can check that claim rather than trust it — a density estimator whose inverse
-does not invert is not estimating anything. The check has to wait until after
-training: at initialisation every scale and shift is exactly zero, so the flow is
-the identity and the round trip would return zero for any inverse at all,
-including a wrong one.
+We can check that claim rather than trust it — a density estimator whose inverse does not invert is not estimating anything.
+The check has to wait until after training: at initialisation every scale and shift is exactly zero, so the flow is the identity and the round trip would return zero for any inverse at all, including a wrong one.
 
 ::: {.callout-tip}
 ## Never reuse a simulation
 
-A neural network is normally trained by cycling repeatedly over a fixed training set, and the usual failure is overfitting: validation loss bottoms out early and then climbs while training loss keeps falling. Density estimators are especially prone to it, because the model can win by placing a spike on each training point.
+A neural network is normally trained by cycling repeatedly over a fixed training set, and the usual failure is overfitting: validation loss bottoms out early and then climbs while training loss keeps falling.
+Density estimators are especially prone to it, because the model can win by placing a spike on each training point.
 
-Here we do not have a fixed training set. A simulation costs well under a millisecond, so we draw a **fresh batch for every gradient step**. No example is ever seen twice, and overfitting becomes impossible by construction.
+Here we do not have a fixed training set.
+A simulation costs well under a millisecond, so we draw a **fresh batch for every gradient step**.
+No example is ever seen twice, and overfitting becomes impossible by construction.
 
-Simulating a batch of 128 costs a little less than the gradient step it feeds, so the simulator and the network take comparable shares of the training time. At this model size that is affordable, and it is the price of the guarantee. With a simulator a hundred times slower it would not be: you would go back to a fixed training set, and back to watching for overfitting.
+Simulating a batch of 128 costs a little less than the gradient step it feeds, so the simulator and the network take comparable shares of the training time.
+At this model size that is affordable, and it is the price of the guarantee.
+With a simulator a hundred times slower it would not be: you would go back to a fixed training set, and back to watching for overfitting.
 :::
 
 # Training
 
-The training objective is the negative log density of the training parameters
-under the flow: half the squared norm of the latents (how far the flow pushed them
-from the standard normal) minus the log-determinant (how much it stretched the
-space). Averaging it over the batch and the six dimensions keeps the number
-readable.
+The training objective is the negative log density of the training parameters under the flow: half the squared norm of the latents (how far the flow pushed them from the standard normal) minus the log-determinant (how much it stretched the space).
+Averaging it over the batch and the six dimensions keeps the number readable.
 
 ```{julia}
 function objective(model, ps, st, x, y)
@@ -405,7 +420,8 @@ plot(history.step, history.val, lw=2, legend=false,
 vline!([best.step], ls=:dash, c=:grey)
 ```
 
-Because every batch is new, the validation objective settles onto a plateau rather than turning back upwards. We still keep the best network rather than the last, since the plateau is noisy.
+Because every batch is new, the validation objective settles onto a plateau rather than turning back upwards.
+We still keep the best network rather than the last, since the plateau is noisy.
 
 Now the invertibility check promised earlier is worth running, because the scales and shifts are no longer zero:
 
@@ -419,14 +435,17 @@ A number at the level of floating-point noise means the two directions really ar
 ::: {.callout-warning}
 ## Watch the objective
 
-Normalising flows can train unstably. A validation objective that falls and then climbs steadily means the flow is diverging, and no amount of extra training will rescue it. If that happens, reduce the learning rate or the number of coupling layers.
+Normalising flows can train unstably.
+A validation objective that falls and then climbs steadily means the flow is diverging, and no amount of extra training will rescue it.
+If that happens, reduce the learning rate or the number of coupling layers.
 
 Two choices in `build_flow` are doing the stabilising here, and both are worth copying into any flow you write: the zero-initialised output layer, which starts the network at the identity map, and the bounded log-scale, which stops a single coupling layer from stretching the space by an arbitrary factor.
 :::
 
 # Posterior inference
 
-Training is done. Every posterior from here on is essentially free.
+Training is done.
+Every posterior from here on is essentially free.
 
 ```{julia}
 function npe_sample(model, ps, st, y, m, nsamp; seed=7)
@@ -461,26 +480,22 @@ plot(plts..., layout=(2, 3), size=(950, 520))
 ::: {.callout-note}
 ## What to look for
 
-Expect broad agreement in location, and expect the widths to disagree in both
-directions. On this run the NPE posterior is roughly half as wide as PMMH for
-`R_0`, `α` and `D_imm`, and somewhat wider for `D_lat`, `D_inf` and `ρ`.
+Expect broad agreement in location, and expect the widths to disagree in both directions.
+On this run the NPE posterior is roughly half as wide as PMMH for `R_0`, `α` and `D_imm`, and somewhat wider for `D_lat`, `D_inf` and `ρ`.
 
-Narrower is not better. A posterior that is too tight is the failure mode
-simulation-based inference is known for, and the reading you should take from this
-figure is that agreement in location says nothing on its own about whether the
-widths can be trusted. That is what the calibration check in the next section is
-for, and it is worth forming an expectation now about which parameters it will
-flag.
+Narrower is not better.
+A posterior that is too tight is the failure mode simulation-based inference is known for, and the reading you should take from this figure is that agreement in location says nothing on its own about whether the widths can be trusted.
+That is what the calibration check in the next section is for, and it is worth forming an expectation now about which parameters it will flag.
 
 Read the weakly identified parameters differently from the well identified ones.
-A single 59-day outbreak says little about `D_lat` and `D_inf` separately, because
-a shorter latent period and a longer infectious period reproduce much the same
-epidemic curve, so the two posteriors have most licence to disagree there.
+A single 59-day outbreak says little about `D_lat` and `D_inf` separately, because a shorter latent period and a longer infectious period reproduce much the same epidemic curve, so the two posteriors have most licence to disagree there.
 :::
 
 # Is it calibrated?
 
-Agreement with PMMH is reassuring but is not a check in itself. The standard check for a simulation-based posterior is **simulation-based calibration** [@talts2018]: draw $\theta$ from the prior, simulate data, fit, and record the rank of the true $\theta$ among the posterior draws. If the posterior is calibrated, those ranks are uniform.
+Agreement with PMMH is reassuring but is not a check in itself.
+The standard check for a simulation-based posterior is **simulation-based calibration** [@talts2018]: draw $\theta$ from the prior, simulate data, fit, and record the rank of the true $\theta$ among the posterior draws.
+If the posterior is calibrated, those ranks are uniform.
 
 ```{julia}
 n_sbc, L_sbc = 200, 200
@@ -514,20 +529,21 @@ plot(sbc_plots..., layout=(2, 3), size=(950, 520))
 
 A curve wandering outside the grey band means the posterior is miscalibrated for that parameter: an S-shape indicates bias, a bowed curve indicates intervals that are systematically too narrow or too wide.
 
-Look at `R_0`. Its curve leaves the band over a good part of the range, which is the calibration check confirming what the width comparison above suggested: the NPE posterior for `R_0` is too tight. That is the expected weakness of an amortised estimator trained on this many simulations, and it is why the comparison with PMMH is worth making at all.
+Look at `R_0`.
+Its curve leaves the band over a good part of the range, which is the calibration check confirming what the width comparison above suggested: the NPE posterior for `R_0` is too tight.
+That is the expected weakness of an amortised estimator trained on this many simulations, and it is why the comparison with PMMH is worth making at all.
 
-Two things to keep in mind when reading it. The band is pointwise, computed
-separately at each of the 100 grid points, so under perfect calibration a curve
-still strays outside it somewhere reasonably often; judge the shape of the
-excursion rather than the fact of one. (Simultaneous bands for this plot are given
-by @sailynoja2022.) And the ranks average over the *distribution of schedules* the
-estimator was trained on, so passing here does not certify calibration for one
-particular mask, including the fully observed one used above.
+Two things to keep in mind when reading it.
+The band is pointwise, computed separately at each of the 100 grid points, so under perfect calibration a curve still strays outside it somewhere reasonably often; judge the shape of the excursion rather than the fact of one.
+(Simultaneous bands for this plot are given by @sailynoja2022.)
+And the ranks average over the *distribution of schedules* the estimator was trained on, so passing here does not certify calibration for one particular mask, including the fully observed one used above.
 
 ::: {.callout-warning}
 ## Calibration is necessary, not sufficient
 
-SBC checks the estimator against *the simulator it was trained on*. It cannot tell you that the simulator is a poor description of reality. A well-calibrated posterior for the wrong model is still the wrong answer [@hermans2022].
+SBC checks the estimator against *the simulator it was trained on*.
+It cannot tell you that the simulator is a poor description of reality.
+A well-calibrated posterior for the wrong model is still the wrong answer [@hermans2022].
 :::
 
 # Posterior predictive check
@@ -549,12 +565,15 @@ scatter!(tt, YOBS, c=:black, ms=3, label="observed",
 ::: {.callout-warning}
 ## This check matters more here than for MCMC
 
-MCMC on a badly specified model gives visibly bad fit and pathological diagnostics. A trained flow will happily map data that sits *outside* everything it was trained on to a tidy, narrow, confident and wrong posterior, with no convergence diagnostic to catch it. The posterior predictive check is your main guard.
+MCMC on a badly specified model gives visibly bad fit and pathological diagnostics.
+A trained flow will happily map data that sits *outside* everything it was trained on to a tidy, narrow, confident and wrong posterior, with no convergence diagnostic to catch it.
+The posterior predictive check is your main guard.
 :::
 
 # Amortisation in action: thinning the surveillance
 
-Here is the payoff. We never retrain — we just condition on a different mask.
+Here is the payoff.
+We never retrain — we just condition on a different mask.
 
 ```{julia}
 widths = DataFrame(nobs=Int[], param=String[], width=Float64[])
@@ -578,7 +597,8 @@ end
 pl
 ```
 
-Each of those posteriors took milliseconds. Doing the same with PMMH would mean 30 separate chains, and hours of compute.
+Each of those posteriors took milliseconds.
+Doing the same with PMMH would mean 30 separate chains, and hours of compute.
 
 # When to use this
 
@@ -599,19 +619,22 @@ Each of those posteriors took milliseconds. Doing the same with PMMH would mean 
 - Training masks here are drawn completely at random, but real missingness is informative: a site starts reporting *because* the epidemic arrived. The estimator has no way to use that.
 - Model misspecification can fail silently.
 
-For a one-off fit to a single dataset, use PMMH. For the hundredth fit of the same model, amortisation wins.
+For a one-off fit to a single dataset, use PMMH.
+For the hundredth fit of the same model, amortisation wins.
 :::
 
 # Exercises
 
 ## Exercise 1: The training budget
 
-Retrain with a much smaller budget and compare the posterior widths against the full run. Which parameters suffer most, and does the validation objective still reach a plateau?
+Retrain with a much smaller budget and compare the posterior widths against the full run.
+Which parameters suffer most, and does the validation objective still reach a plateau?
 
 ::: {.callout-tip collapse="true"}
 ## Hint
 
-Build a fresh flow with `build_flow` (reusing `best.ps` would continue from the trained weights) and call `train_streaming` with `steps=400`. Compare 90% interval widths.
+Build a fresh flow with `build_flow` (reusing `best.ps` would continue from the trained weights) and call `train_streaming` with `steps=400`.
+Compare 90% interval widths.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -632,23 +655,19 @@ comparison.ratio = round.(comparison.width_400 ./ comparison.width_4000, digits=
 comparison
 ```
 
-Every interval is wider, here by 17% to 54%. That direction is the
-robust result: with less training the estimator has learned less of the
-prior-to-posterior update, so it falls back towards the prior, and the
-amortisation gap closes from above rather than from below. An undertrained NPE
-posterior is a cautious one.
+Every interval is wider, here by 17% to 54%.
+That direction is the robust result: with less training the estimator has learned less of the prior-to-posterior update, so it falls back towards the prior, and the amortisation gap closes from above rather than from below.
+An undertrained NPE posterior is a cautious one.
 
-The ordering is worth reading sceptically. Repeat the exercise with a different
-seed in `build_flow` and the ranking of the other five reshuffles, because it
-depends on where the optimiser happened to be when training stopped. What survives
-the reshuffle is `α`, consistently the least affected: whether a second wave
-happens at all is written directly into the shape of the data, so even a short run
-captures most of that update.
+The ordering is worth reading sceptically.
+Repeat the exercise with a different seed in `build_flow` and the ranking of the other five reshuffles, because it depends on where the optimiser happened to be when training stopped.
+What survives the reshuffle is `α`, consistently the least affected: whether a second wave happens at all is written directly into the shape of the data, so even a short run captures most of that update.
 :::
 
 ## Exercise 2: Informative missingness
 
-`draw_mask` removes days completely at random, which is a strong assumption. Change it so missingness is *structured* — early days observed far more often than late ones — retrain briefly, and compare the posterior for the fully observed data.
+`draw_mask` removes days completely at random, which is a strong assumption.
+Change it so missingness is *structured* — early days observed far more often than late ones — retrain briefly, and compare the posterior for the fully observed data.
 
 ::: {.callout-tip collapse="true"}
 ## Hint
@@ -688,12 +707,17 @@ DataFrame(parameter = string.(PNAMES),
           structured_masks = [median(post_struct[:, i]) for i in 1:D])
 ```
 
-The two disagree, and that is the point. The estimator learns a posterior conditioned on the *distribution of schedules it was trained on*. Deploying it on a schedule far outside that distribution is extrapolation. In a real surveillance system the missingness is informative — reporting starts because the epidemic arrived — and neither mask distribution captures that.
+The two disagree, and that is the point.
+The estimator learns a posterior conditioned on the *distribution of schedules it was trained on*.
+Deploying it on a schedule far outside that distribution is extrapolation.
+In a real surveillance system the missingness is informative — reporting starts because the epidemic arrived — and neither mask distribution captures that.
 :::
 
 ## Exercise 3: Is the data in distribution?
 
-Simulate 500 datasets from the prior and plot them against the Tristan da Cunha data. Does the observed outbreak look like something this model and prior can produce? What would it mean for the NPE posterior if it did not?
+Simulate 500 datasets from the prior and plot them against the Tristan da Cunha data.
+Does the observed outbreak look like something this model and prior can produce?
+What would it mean for the NPE posterior if it did not?
 
 ::: {.callout-tip collapse="true"}
 ## Solution
@@ -709,12 +733,17 @@ scatter!(tt, YOBS, c=:black, ms=3, label="observed",
          xlabel="day", ylabel="reported cases", title="Prior predictive check")
 ```
 
-If the observed data fell outside the prior predictive range, the trained network would never have seen anything like it during training. It would still return a posterior — confidently — but that posterior would be an extrapolation with no guarantees at all. This is the silent failure mode discussed above, and it is why the prior and posterior predictive checks matter more for NPE than for MCMC.
+If the observed data fell outside the prior predictive range, the trained network would never have seen anything like it during training.
+It would still return a posterior — confidently — but that posterior would be an extrapolation with no guarantees at all.
+This is the silent failure mode discussed above, and it is why the prior and posterior predictive checks matter more for NPE than for MCMC.
 :::
 
 ## Exercise 4: Designing a schedule
 
-The thinning experiment used random schedules. Compare *specific* schedules with the same number of observations — the first 20 days, the last 20 days, and every third day. Which is most informative about `R_0`, and which about `D_imm`? Why might they differ?
+The thinning experiment used random schedules.
+Compare *specific* schedules with the same number of observations — the first 20 days, the last 20 days, and every third day.
+Which is most informative about `R_0`, and which about `D_imm`?
+Why might they differ?
 
 ::: {.callout-tip collapse="true"}
 ## Solution
@@ -738,29 +767,42 @@ end
 unstack(rows, :parameter, :schedule, :width)
 ```
 
-The mechanistic expectation is that `R_0` is driven by the exponential growth phase and so wants early observations, while `D_imm` governs the second wave and so wants late ones. Check that against the table you just printed: it is not what comes out. `R_0` is narrowest under "last 20" and `D_imm` under "every third", with "last 20" its *widest*.
+The mechanistic expectation is that `R_0` is driven by the exponential growth phase and so wants early observations, while `D_imm` governs the second wave and so wants late ones.
+Check that against the table you just printed: it is not what comes out.
+`R_0` is narrowest under "last 20" and `D_imm` under "every third", with "last 20" its *widest*.
 
-Before concluding anything about surveillance design, look back at `draw_mask`. It produces either a fully observed series or a uniformly random subset of days, so a contiguous block like days 1-20 has essentially no chance of appearing in training. All three schedules here sit outside the distribution the estimator was trained on, which is the extrapolation Exercise 2 was built to demonstrate and the warning above tells you not to trust.
+Before concluding anything about surveillance design, look back at `draw_mask`.
+It produces either a fully observed series or a uniformly random subset of days, so a contiguous block like days 1-20 has essentially no chance of appearing in training.
+All three schedules here sit outside the distribution the estimator was trained on, which is the extrapolation Exercise 2 was built to demonstrate and the warning above tells you not to trust.
 
 The lesson is the one the warning states rather than the one the table appears to offer: amortisation makes this calculation cheap, and that is exactly why it is easy to run it somewhere the estimator was never trained.
 :::
 
 ## Exercise 5: Which method for which job?
 
-No code for this one. For each scenario, decide whether you would reach for NUTS, PMMH, VI, or NPE, and say why:
+No code for this one.
+For each scenario, decide whether you would reach for NUTS, PMMH, VI, or NPE, and say why:
 
-a. A one-off fit of a deterministic SIR model to a single outbreak.
-b. Nowcasting 300 local authorities every morning with the same stochastic model.
-c. A first exploratory fit of a brand-new individual-based model with no tractable likelihood.
-d. Deciding how often to survey olive groves for a slow-spreading plant pathogen over ten years.
+a.
+A one-off fit of a deterministic SIR model to a single outbreak. b.
+Nowcasting 300 local authorities every morning with the same stochastic model. c.
+A first exploratory fit of a brand-new individual-based model with no tractable likelihood. d.
+Deciding how often to survey olive groves for a slow-spreading plant pathogen over ten years.
 
 ::: {.callout-tip collapse="true"}
 ## Solution
 
-a. **NUTS**. The likelihood is tractable and differentiable, and there is only one dataset — no reason to approximate anything.
-b. **NPE**. Same model, 300 datasets, every day. This is exactly what amortisation is for; the training cost is repaid on the first morning.
-c. **PMMH** (or another likelihood-free method) for the first look. You want an answer you can trust while the model is still changing, and retraining an amortised estimator after every model change destroys the amortisation.
-d. **NPE**. The question is not really about one posterior — it is about comparing many hypothetical observation schedules, which needs a posterior per schedule. That is unaffordable with MCMC and free once amortised.
+a.
+**NUTS**.
+The likelihood is tractable and differentiable, and there is only one dataset — no reason to approximate anything. b.
+**NPE**.
+Same model, 300 datasets, every day.
+This is exactly what amortisation is for; the training cost is repaid on the first morning. c.
+**PMMH** (or another likelihood-free method) for the first look.
+You want an answer you can trust while the model is still changing, and retraining an amortised estimator after every model change destroys the amortisation. d.
+**NPE**.
+The question is not really about one posterior — it is about comparing many hypothetical observation schedules, which needs a posterior per schedule.
+That is unaffordable with MCMC and free once amortised.
 :::
 
 ::: {.callout-tip title="Learning points"}
@@ -774,7 +816,10 @@ d. **NPE**. The question is not really about one posterior — it is about compa
 
 # Going further
 
-The framework extends well beyond what we have used it for. **Sequential** NPE focuses simulations near the observed data, buying accuracy at the cost of amortisation [@greenberg2019]. **Summary networks** learn their own summary statistics rather than taking the raw series, which handles longer and more structured data, and they also enable misspecification detection by testing whether observed data falls outside the training distribution in summary space. The same machinery has been applied to compartmental models of COVID-19 [@radev2021] and to plant pathogen surveillance.
+The framework extends well beyond what we have used it for.
+**Sequential** NPE focuses simulations near the observed data, buying accuracy at the cost of amortisation [@greenberg2019].
+**Summary networks** learn their own summary statistics rather than taking the raw series, which handles longer and more structured data, and they also enable misspecification detection by testing whether observed data falls outside the training distribution in summary space.
+The same machinery has been applied to compartmental models of COVID-19 [@radev2021] and to plant pathogen surveillance.
 
 The masking idea used here is not specific to epidemiology: any surveillance system combining a mechanistic model with irregular longitudinal observations faces the same problem [@wang2024].
 
