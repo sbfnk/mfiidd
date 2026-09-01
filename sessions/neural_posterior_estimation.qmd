@@ -159,8 +159,8 @@ end
 How expensive is one simulation?
 
 ```{julia}
-rng_test = Xoshiro(20)                     ## seeded: Gillespie cost varies sharply with θ
-θ_test = [rand(rng_test, p) for p in PRIORS]
+Random.seed!(20)                           ## θ and the Gillespie step both use the global RNG
+θ_test = [rand(p) for p in PRIORS]
 simulate_obs(θ_test)                       # warm up
 @elapsed for _ in 1:1000; simulate_obs(θ_test); end
 ```
@@ -169,7 +169,7 @@ simulate_obs(θ_test)                       # warm up
 ## Why Julia suits simulation-based inference
 
 A single outbreak takes well under a millisecond.
-Compare that with the SEITL particle filter used in the [PMMH session](pmcmc.qmd), where *one* likelihood evaluation with 256 particles takes around 20 ms.
+Compare that with `particle_filter_seitl`, where *one* likelihood evaluation with 256 particles takes around 20 ms.
 Streaming the 512,000 simulations this training run consumes takes under a minute, against nearly three hours for the same number of 256-particle likelihood evaluations at the 20 ms above.
 This is the trade NPE makes: pay a large one-off simulation and training cost, then get posteriors for free.
 In a slower language the simulation stage is usually the bottleneck.
@@ -462,7 +462,8 @@ posterior = DataFrame(post, PNAMES)
 describe(posterior, :median, :std)
 ```
 
-Ten thousand posterior draws, with no MCMC and no further simulation. The time printed above is a first call, so most of it is compilation.
+Ten thousand posterior draws, with no MCMC and no further simulation.
+The time printed above is a first call, so most of it is compilation.
 
 ## Comparison with particle MCMC
 
