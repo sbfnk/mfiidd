@@ -697,7 +697,8 @@ Rejection sampling's draws are unweighted, so its effective sample size is the n
 ABC-SMC's 100 particles are weighted, so the figure to divide by is the effective sample size printed for its final generation, which is well below 100.
 Its whole total counts, because the earlier generations cannot be skipped: 831 simulations against a final effective sample size of 18.5 is about 45 each.
 So rejection is roughly four times cheaper on this run.
-That gap is not stable, though. The effective sample size of the last generation swings widely between runs, and across repeated runs the median comes out nearer 20 per effective sample, which puts rejection about twice ahead rather than four times.
+That gap is not stable, though.
+The effective sample size of the last generation swings widely between runs, and across repeated runs the median comes out nearer 20 per effective sample, which puts rejection about twice ahead rather than four times.
 A generation whose effective sample size collapses tends to make the next one dearer, because the next generation perturbs from whatever few particles still carry weight.
 Prior acceptance is about a quarter at a threshold of 300 and still around 9% at 250, so rejection can reach the tighter threshold directly.
 What ABC-SMC does is concentrate its effort where the data are, without being told where that is, which is what pays on problems whose prior acceptance is orders of magnitude lower than this one.
