@@ -429,7 +429,7 @@ The key idea, introduced by [Toni et al. (2009)](https://doi.org/10.1098/rsif.20
 This is much more efficient because particles that are already "close" to the data are refined, rather than searching blindly from the prior each time. Typical speedups are 20-50× compared to rejection sampling.
 
 ::: {.callout-note collapse="true"}
-## Implementation: ABC-SMC (click to expand)
+## Implementation: ABC-SMC
 
 This is a simplified ABC-SMC for pedagogical purposes. Production implementations (like [ApproxBayes.jl](https://github.com/marcjwilliams1/ApproxBayes.jl) or [GpABC.jl](https://github.com/tanhevg/GpABC.jl)) have adaptive thresholds, better perturbation kernels, and importance weighting.
 
