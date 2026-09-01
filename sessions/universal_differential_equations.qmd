@@ -473,15 +473,15 @@ threshold and the implausibility, which is why the reproduction numbers are the
 better lens.
 
 Be careful about what that shape can be attributed to. Susceptible depletion is
-already in the model: the `S` factor in `-β * S * I / N` accounts for it, which is
-exactly what R_eff divides by. So a β that has to climb is not the network
+already in the model: the `S` factor in `-β * S * I / N` accounts for it, and R_eff
+is R_0 multiplied by that same susceptible fraction. So a β that has to climb is not the network
 describing depletion. It is compensating for what the structure cannot do once the
 susceptibles are gone, which is the argument the next section takes up.
 
 Resist reading behaviour into the early shape as well. β climbs from 0.28 to
 about 1.9 over the first six days while prevalence is still rising, turns down
-before prevalence peaks on day 8, and reaches its lowest point on day 14 once the
-wave has largely passed. Transmission rising as the epidemic grows and falling as
+before prevalence peaks on day 8, and is back to roughly its starting value by day
+14 once the wave has largely passed. Transmission rising as the epidemic grows and falling as
 it fades is not the signature of a population reacting to visible cases.
 
 In any case the training data cannot separate the two candidate explanations. They
@@ -505,7 +505,10 @@ Interpreting a learned β(t), in general:
 
 A dip followed by a recovery suggests the network found that transmission has to
 vary to explain the shape of the data, which is consistent with behavioural
-relaxation: initial caution, then a return to normal contact patterns.
+relaxation: initial caution, then a return to normal contact patterns. Note that
+our own curve has this shape, and that the section above gives reasons not to read
+it that way here. A shape alone cannot establish the reading: it takes data that
+separate prevalence from time, which a single outbreak does not.
 
 An implied R₀ that climbs without limit, as ours does after day 15, is a different
 signal. It says the network is compensating for something the *structure* cannot
