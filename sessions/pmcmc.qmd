@@ -628,7 +628,7 @@ println("DIC, SEITL:  ", round(dic(CSV.read(datadir("pmcmc_seitl_chain.csv"), Da
 println("DIC, SEIT4L: ", round(dic(CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame)), digits = 1))
 ```
 
-Lower is better, and the gap of about twenty is large enough to take seriously.
+Lower is better, and a gap of this size is large enough to take seriously.
 SEIT4L wins on both terms: it fits better *and* uses fewer effective parameters,
 which is what you would hope for from the model with the more realistic waiting
 time.
