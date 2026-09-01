@@ -439,7 +439,7 @@ The model has the following transitions:
 | T → L | $\alpha \tau T$ | T-1, L+1 |
 
 ::: {.callout-note collapse="true"}
-## Implementation: Gillespie algorithm (click to expand)
+## Implementation: Gillespie algorithm
 
 ```{julia}
 #| echo: false
