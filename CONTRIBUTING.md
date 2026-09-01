@@ -73,13 +73,15 @@ support Julia, which is why CompatHelper is there instead.
 
 ### Time indexing and the initial state
 
-Every session that fits the Tristan da Cunha data shares these two conventions.
+Sessions that fit the Tristan da Cunha data follow these two conventions.
 A session that departs from either will disagree with the rest of the course by a day or by a few cases, and the disagreement is quiet enough to survive a review.
 
-`times` starts at `0.0`, the day before the first observation, so the solver has a day to integrate over before the first count.
-The incidence on that leading day is then discarded: write `traj.Inc[i + 1]` in a likelihood, and return `Inc[2:end]` or a bare `diff(...)` from a simulator wrapper.
-Observation `i` then lines up with the day it counts.
-Plot predictions against `flu_tdc.time`, because the trimmed vector is one element shorter than `times`.
+`times` starts at `0.0`, one point before the first observation, because the incidence over observation day 1 is `S(0) - S(1)` and there is no way to compute it without a day 0.
+That leading day is then dropped, in exactly one of two places.
+Either the simulator wrapper trims it, returning `Inc[2:end]` or a bare `diff(...)`, and the likelihood indexes `inc[i]`; or the wrapper returns the full vector and the likelihood indexes `traj.Inc[i + 1]`.
+Do one or the other, never both: trimming twice drops the first observation and pairs `obs[i]` with day `i + 1`.
+Either way observation `i` lines up with the day it counts.
+Plot predictions against `flu_tdc.time`, or against `collect(times)[2:end]` in a cell that runs before the data are loaded, because the trimmed vector is one element shorter than `times`.
 
 The initial state is `S = 279`, `I = 2`, `R = 3`, giving N = 284, the island population.
 Of the five islanders who landed on day 0, three had been ill during the eight day voyage and are past their infectious period, so they start recovered; the two who fell ill on landing start infectious.
