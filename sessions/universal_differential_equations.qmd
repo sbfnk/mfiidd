@@ -409,7 +409,7 @@ to give and it spends it on the first.
 
 The UDE reaches a similar peak, around 42, and then keeps generating cases through
 days 20 to 50, where the data really do have them and the baseline has none. Over
-that window it produces about 89 cases against the 104 observed. A time-varying β
+that window it produces about 91 cases against the 104 observed. A time-varying β
 is what lets one model do both, which is the whole claim of the approach and the
 reason to prefer it here.
 
@@ -462,10 +462,14 @@ burns through the susceptibles, and is then held close to 1 through days 20 to 3
 which is what sustains the second wave. After that it settles a little below 1 and
 the tail decays.
 
-Now read R₀ against it. To keep R_eff near 1 while the susceptible fraction falls
-from about 35% to under 5%, the implied R₀ has to climb from about 3 to nearly 19.
-The network is not describing a change in behaviour; it is buying back, through
-transmissibility, exactly what susceptible depletion takes away.
+Now read R₀ against it, over the window where R_eff is actually near 1. Between
+days 20 and 31 the susceptible fraction falls from about 35% to 21%, and the
+implied R₀ climbs from about 3 to about 5 to hold R_eff up. The network is not
+describing a change in behaviour there; it is buying back, through
+transmissibility, what susceptible depletion takes away.
+
+Past day 31 it stops keeping up. R₀ goes on climbing, but not fast enough, and
+R_eff drifts down to about 0.65 by day 59 as the tail decays.
 
 The underlying β is not monotone either: it rises through the first wave, falls
 back as that wave dies, and only then climbs. Plotting it alone hides both the
@@ -565,7 +569,7 @@ In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds a
 
 **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
 
-The fit itself is not the problem here: time-varying transmission does reproduce both waves. What it costs is the problem, and an R_0 near 19 is a strong hint that a different structure would explain the data more plausibly.
+The fit itself is not the problem here: time-varying transmission does reproduce both waves. What it costs is the problem. By day 30, where the data still constrain the answer, the implied R_0 is already about 5, twice the literature value the constant-β baseline uses, and it is still rising. That is a strong hint that a different structure would explain the data more plausibly.
 
 ## Common failure modes
 
