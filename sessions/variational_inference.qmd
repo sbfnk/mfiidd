@@ -208,7 +208,7 @@ The key idea is to turn inference into an **optimisation problem**:
 2. **Optimise parameters** of $q$ to make it as close as possible to the true posterior
 3. **Use gradient descent** instead of MCMC sampling
 
-Why should this ever be faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence. Whether that pays off depends on the model, and on the small one in this session it does not (which can take many thousands of iterations).
+Why should this ever be faster? Optimisation can use parallel gradient computations and converges in a fixed number of steps, whereas MCMC must run sequentially until convergence, which can take many thousands of iterations. Whether that pays off depends on the model, and on the small one in this session it does not.
 
 ## The ELBO objective
 
@@ -281,7 +281,7 @@ the scale of the parameters.
 
 ```{julia}
 # `vi` optimises in the unconstrained space Turing transforms the model into, so
-# `rand(q, n)` returns numbers on that scale: an R_0 of -3 rather than of 5. Each
+# `rand(q, n)` returns numbers on that scale: an R_0 near 0 rather than near 10. Each
 # parameter goes back through the inverse of the bijector belonging to its prior.
 const Bijectors = Turing.Bijectors
 
@@ -302,7 +302,7 @@ Forgetting this step is quiet rather than loud. `rand(q, n)` returns a perfectly
 ordinary matrix of numbers, and nothing complains if you label its rows `R_0`,
 `D_inf` and `ρ` and plot them against an MCMC posterior. The result is a
 comparison between the real posterior and a set of numbers that are not the
-parameters at all, with an `R_0` around -3 for a quantity that cannot go below 1.
+parameters at all: an `R_0` of about 0.07 for a quantity that cannot go below 1, and a `ρ` of about -4 for one bounded in (0, 1).
 :::
 
 ```{julia}
@@ -327,7 +327,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400),
 
 ## The independence assumption problem
 
-Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are strongly **correlated** in the posterior, and here that correlation is positive.
+Mean-field assumes parameters are independent. But in epidemic models, $R_0$ and $D_{\text{inf}}$ are **correlated** in the posterior, and here that correlation is positive. It is modest, around 0.27, because the posterior for $D_{\text{inf}}$ is pressed against the upper bound of its prior, which clips the ridge.
 
 Why does this correlation arise? Consider the SIR model dynamics:
 
@@ -335,7 +335,7 @@ Why does this correlation arise? Consider the SIR model dynamics:
 - If we increase $R_0$ while keeping $\beta$ roughly constant (to match observed epidemic speed), we must also increase $D_{\text{inf}}$
 - Conversely, a shorter infectious period goes with a lower $R_0$, since $\beta$ is their ratio and the data pin $\beta$ down
 
-In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space - exactly the kind of correlation mean-field VI cannot capture.
+In other words, there are **multiple combinations** of ($R_0$, $D_{\text{inf}}$) that produce similar epidemic trajectories. The data constrains their ratio more tightly than their individual values. This creates a ridge of high posterior probability running diagonally through parameter space, truncated here by the prior bound - exactly the kind of correlation mean-field VI cannot capture.
 
 The sign follows from that argument. Holding $\beta = R_0 / D_{\text{inf}}$ roughly fixed, a larger $R_0$ has to be paid for with a larger $D_{\text{inf}}$, so the two move together and the correlation comes out positive. The cell below measures it rather than asserting it, which is worth doing whenever you are about to claim a direction.
 
@@ -536,7 +536,7 @@ On a single small analysis the choice hardly matters, as the timings above show.
 
 **Real-time epidemic forecasting**: During an outbreak, you might need to update estimates as new data arrives - daily or even hourly. Take a model large enough that MCMC needs five minutes a fit and VI under a minute, which is a far bigger gap than the one this session's three-parameter model shows. Fitting 100 regions is then over 8 hours per update cycle against about an hour. The per-fit gap is what does the work; the hundred regions multiply whatever gap you have rather than creating one.
 
-**Model development and debugging**: When developing a new model, you'll run inference hundreds of times as you iterate on the specification, fix bugs, and tune priors. Fast iteration cycles (seconds vs minutes) dramatically accelerate development.
+**Model development and debugging**: When developing a new model, you'll run inference hundreds of times as you iterate on the specification, fix bugs, and tune priors. On a model where the gap is real, faster iteration cycles accelerate development considerably.
 
 **Sensitivity analyses**: Checking how results change with different priors, data subsets, or model variants requires many inference runs. VI makes comprehensive sensitivity analysis practical.
 
@@ -654,7 +654,7 @@ If you see substantial disagreement between full-rank VI and MCMC, it may indica
 
 ::: {.callout-tip title="Learning points"}
 - **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior
-- **Mean-field VI** assumes parameter independence - very fast, but misses correlations that are common in epidemic models
+- **Mean-field VI** assumes parameter independence - cheap per iteration, but misses correlations that are common in epidemic models
 - **Full-rank VI** captures correlations using a full covariance matrix - good balance between speed and accuracy
 - **ELBO (Evidence Lower Bound)** is the objective function - higher values mean better approximations
 - **Speed vs accuracy trade-off**: VI trades exactness for speed, and the saving grows with the size of the problem rather than showing up on a model like this one; use VI for exploration and real-time systems, MCMC for final publication-quality analysis
