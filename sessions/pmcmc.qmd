@@ -566,7 +566,7 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 
 For particle MCMC model comparison:
 
-1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? For a time series fitted with a particle filter this is usually as far as you can get, and it is what the section above does.
+1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? For a time series fitted with a particle filter this is usually as far as you can get, and the section above does exactly that.
 2. **Use WAIC or LOO-CV where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
 3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
@@ -636,8 +636,7 @@ println("DIC, SEIT4L: ", round(dic(CSV.read(datadir("pmcmc_seit4l_chain.csv"), D
 
 Lower is better, and a gap of this size is large enough to take seriously.
 SEIT4L wins on both terms: it fits better *and* uses fewer effective parameters,
-which is what you would hope for from the model with the more realistic waiting
-time.
+which you would hope for from the model with the more realistic waiting time.
 
 One caveat specific to this setting. $p_D$ is computed from log-likelihoods the
 particle filter only estimates, so it carries a little of the filter's noise as
@@ -698,8 +697,8 @@ scatter!(p, flu_tdc.time, flu_tdc.obs, label = "observed",
 ```
 
 Both envelopes contain almost every observation, so neither model is refuted by
-the data as a whole. The interesting question is the second wave, which is what
-the two models disagree about mechanically. Take its size as a test statistic and
+the data as a whole. The interesting question is the second wave, which the two
+models disagree about mechanically. Take its size as a test statistic and
 compute a Bayesian p-value, as in the [model checking session](model_checking.qmd):
 
 ```{julia}
