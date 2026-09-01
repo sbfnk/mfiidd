@@ -73,13 +73,13 @@ support Julia, which is why CompatHelper is there instead.
 
 ### Time indexing and the initial state
 
-Sessions that fit the Tristan da Cunha data follow these two conventions.
-A session that departs from either will disagree with the rest of the course by a day or by a few cases, and the disagreement is quiet enough to survive a review.
+Use these two conventions in any session that fits the Tristan da Cunha data.
+A session that departs from either disagrees with the others by a day or by a few cases, quietly enough to survive a review, so it is worth checking a session against this section rather than against whichever session happens to be open.
 
 `times` starts at `0.0`, one point before the first observation, because the incidence over observation day 1 is `S(0) - S(1)` and there is no way to compute it without a day 0.
 That leading day is then dropped, in exactly one of two places.
 Either the simulator wrapper trims it, returning `Inc[2:end]` or a bare `diff(...)`, and the likelihood indexes `inc[i]`; or the wrapper returns the full vector and the likelihood indexes `traj.Inc[i + 1]`.
-Do one or the other, never both: trimming twice drops the first observation and pairs `obs[i]` with day `i + 1`.
+Do one or the other, never both: a wrapper that trims and a likelihood that also shifts ask for one index past the end of the vector, and the session fails to render with a `BoundsError`.
 Either way observation `i` lines up with the day it counts.
 Plot predictions against `flu_tdc.time`, or against `collect(times)[2:end]` in a cell that runs before the data are loaded, because the trimmed vector is one element shorter than `times`.
 
