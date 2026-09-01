@@ -50,7 +50,7 @@ dR/dt = +γ * I
 
 Replace the unknown β with a **neural network** that respects constraints:
 ```
-β(t) = NeuralNetwork([I/N, t])  # Must be positive, bounded
+β(t) = NeuralNetwork([I/N, t])  # Must be non-negative
 ```
 
 What does "replace β with a neural network" actually mean? Instead of writing `β = 0.5` (a fixed number) or even `β(t) = β₀ * (1 + sin(t))` (a parametric function we specify), we let the neural network *learn* the function from data. The network takes inputs (current prevalence, time) and outputs a transmission rate. During training, we adjust the network's internal weights so that the resulting epidemic trajectory matches observed data. The network is just a flexible function approximator - we're not assuming any particular form for how β varies, we're letting the data tell us.
@@ -63,7 +63,7 @@ By the end of this session, you will:
 2. Apply appropriate likelihood functions (Poisson) for count data
 3. Interpret learned β(t) in terms of possible mechanisms
 4. Understand when UDEs are useful vs. when simpler models suffice
-5. Appreciate the challenges of learning from sparse data (~60 points)
+5. Appreciate the challenges of learning from sparse data (59 points)
 
 # Setup
 
@@ -108,7 +108,7 @@ vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave?")
 ```
 
 ::: {.callout-important title="TdC is a pedagogical example, not an ideal UDE dataset"}
-The Tristan da Cunha dataset has only ~60 data points. As we note in [When to use UDEs](#when-to-use-udes), UDEs really benefit from hundreds to thousands of observations — for 60 points, simpler approaches such as Gaussian processes or splines are likely more appropriate. We use TdC here because it is familiar from earlier sessions and its two-wave pattern poses an interesting modelling challenge, not because it is a good candidate for UDEs in practice. Keep this limitation in mind when interpreting results.
+The Tristan da Cunha dataset has only 59 data points. As we note in [When to use UDEs](#when-to-use-udes), UDEs really benefit from hundreds to thousands of observations — for 59 points, simpler approaches such as Gaussian processes or splines are likely more appropriate. We use TdC here because it is familiar from earlier sessions and its two-wave pattern poses an interesting modelling challenge, not because it is a good candidate for UDEs in practice. Keep this limitation in mind when interpreting results.
 :::
 
 ::: {.callout-note title="Skipped step: synthetic data validation"}
@@ -148,19 +148,28 @@ R_0_guess = 2.5
 D_inf_guess = 2.0
 γ_guess = 1.0 / D_inf_guess
 β_guess = R_0_guess * γ_guess
-u0 = [281.0, 3.0, 0.0]  # N = 284 (total population of Tristan da Cunha)
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had been ill during the eight day voyage and are past their
+## infectious period, so they start recovered; the two who fell ill on landing
+## start infectious. N = 284, the island population
+u0 = [279.0, 2.0, 3.0]
 tspan = (0.0, maximum(flu_tdc.time))
-times = flu_tdc.time
+
+## `times` starts at 0.0, the left edge of the first observation day, because the
+## incidence over that day is S(0) - S(1) and there is no way to form it without a
+## point at 0. Differencing the 60 saved values then gives one incidence per
+## observed day, already lined up with the days the observations count
+times = [0.0; flu_tdc.time]
 
 prob_constant = ODEProblem(sir_constant_beta, u0, tspan, [β_guess, γ_guess])
 sol_constant = solve(prob_constant, Tsit5(), saveat=times)
 
 # Extract incidence
 S_values = sol_constant[1, :]
-incidence_constant = [0.0; -diff(S_values)]
+incidence_constant = -diff(S_values)  ## 59 daily values from the 60 grid points
 
 # Plot
-plot(times, incidence_constant, label="Constant β", linewidth=2)
+plot(flu_tdc.time, incidence_constant, label="Constant β", linewidth=2)
 scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
          markersize=4, color=:red,
          xlabel="Time (days)", ylabel="Cases",
@@ -173,9 +182,13 @@ scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
 
 ## Step 1: Define the neural network
 
-We'll use a small network - remember, we only have 60 data points!
+We'll use a small network - remember, we only have 59 data points!
 
 ```{julia}
+# The time normalisation used by the network's second input. It is a constant of
+# the problem, so it is defined here rather than carried in the parameter vector.
+const TMAX = maximum(times)
+
 # Network architecture: 2 inputs → 8 hidden → 1 output
 # Total parameters: ~33 (keeps training fast)
 
@@ -184,7 +197,7 @@ Random.seed!(rng, 1234)
 
 # Define network structure - small for fast ForwardDiff autodiff
 nn_architecture = Chain(
-    Dense(2 => 8, tanh),       # Input: [I/N, t/tmax]
+    Dense(2 => 8, tanh),       # Input: [I/N, t/TMAX]
     Dense(8 => 1, softplus)     # Output: β > 0 (softplus ensures positivity)
 )
 
@@ -209,30 +222,32 @@ println("Ratio: ", round(length(flu_tdc.obs) / length(p_nn), digits=2), " data p
 
 A few things to note about this architecture (expand the code explainer above for definitions of each function):
 
-- **Why 8 hidden units?** It's a balance: more units = more flexibility but more parameters to learn from limited data. With 60 data points, we keep the network small.
+- **Why 8 hidden units?** It's a balance: more units = more flexibility but more parameters to learn from limited data. With 59 data points, we keep the network small.
 
 - **Why softplus output?** It ensures β is always positive — transmission rates can't be negative.
 
-- **Why 2 inputs?** We feed the network both prevalence (I/N) and normalised time (t/tmax). This lets β depend on both "how bad is the epidemic right now" and "what day is it" — capturing both behavioural responses to prevalence and time-dependent changes like weekends or policy changes.
+- **Why 2 inputs?** We feed the network both prevalence (I/N) and normalised time (t/TMAX). This lets β depend on both "how bad is the epidemic right now" and "what day is it" — capturing both behavioural responses to prevalence and time-dependent changes like weekends or policy changes.
 
-- **Parameter count**: The first layer has 2×8 weights + 8 biases = 24 parameters. The second has 8×1 weights + 1 bias = 9 parameters. Total: 33 parameters for 60 data points — roughly 2 data points per parameter. In a standard neural network, this would be a recipe for overfitting, but in a UDE the network output has to flow through an ODE solver and produce a physically plausible epidemic trajectory. The network can't just memorise noise because arbitrary weight values would produce nonsensical dynamics (Rackauckas et al. 2020).
+- **Parameter count**: The first layer has 2×8 weights + 8 biases = 24 parameters. The second has 8×1 weights + 1 bias = 9 parameters. Total: 33 parameters for 59 data points — roughly 2 data points per parameter. In a standard neural network, this would be a recipe for overfitting, but in a UDE the network output has to flow through an ODE solver and produce a physically plausible epidemic trajectory. The network can't just memorise noise because arbitrary weight values would produce nonsensical dynamics (Rackauckas et al. 2020).
 
 ## Step 2: Define UDE with learned β(t)
 
 ```{julia}
 """
 SIR model where β is learned by neural network.
-β = NN([I/N, t/tmax]) predicts transmission rate.
+β = NN([I/N, t/TMAX]) predicts transmission rate.
 """
 function sir_ude!(du, u, p, t)
     S, I, R = u
     N = S + I + R
-    γ = p.γ  # Fixed here for simplicity; in practice you'd estimate γ jointly
+    γ = γ_guess  # Fixed here for simplicity; in practice you'd estimate γ jointly
 
     # Neural network predicts β(t, I)
-    # Inputs: prevalence (I/N) and normalized time (t/tmax)
-    tmax = p.tmax
-    nn_input = [I/N, t/tmax]
+    # Inputs: prevalence (I/N) and normalised time (t/TMAX). Both γ and TMAX are
+    # constants of the problem rather than things to be learned, so they are
+    # closed over here rather than carried in the parameter vector, which would
+    # hand them to the optimiser.
+    nn_input = [I/N, t/TMAX]
 
     # Evaluate neural network
     β_learned, _ = nn_architecture(nn_input, p.nn_params, st_nn)
@@ -261,14 +276,16 @@ function predict_ude(p_all)
     prob_ude = ODEProblem(sir_ude!, u0_promoted, tspan, p_all)
     sol_ude = solve(prob_ude, Tsit5(), saveat=times, dense=false)
 
-    if sol_ude.retcode != :Success
-        return fill(T(NaN), length(times))
+    # `retcode` is a SciMLBase enum, not a Symbol: comparing it against
+    # `:Success` is true even for a successful solve, which would send every
+    # prediction to NaN and flatten the loss.
+    if !SciMLBase.successful_retcode(sol_ude)
+        return fill(T(NaN), length(times) - 1)
     end
 
     S_pred = sol_ude[1, :]
-    incidence_pred = [zero(T); -diff(S_pred)]
 
-    return incidence_pred
+    return -diff(S_pred)  ## 59 daily values from the 60 grid points
 end
 
 """
@@ -297,7 +314,7 @@ As discussed above, the ODE structure constrains the network — the learned β(
 ::: {.callout-important}
 ## Set realistic expectations before training
 
-Training UDEs is hard, especially with limited data like ours (60 points, 33 parameters). You should expect:
+Training UDEs is hard, especially with limited data like ours (59 points, 33 parameters). You should expect:
 
 - **Variability**: Different random seeds give different β(t) curves. This reflects genuine uncertainty.
 - **Imperfect fits**: The SIR structure may not be able to capture two waves regardless of β(t) - this is informative, not failure.
@@ -311,12 +328,10 @@ If training produces NaN values, reduce the learning rate. If the loss doesn't d
 Training means finding network weights that minimise the loss function. This requires computing gradients of the loss with respect to all 33 parameters - a task handled by automatic differentiation (autodiff).
 
 ```{julia}
-# Combine all parameters into a single object for optimisation
-p_all = ComponentArray(
-    nn_params = p_nn,
-    γ = γ_guess,
-    tmax = maximum(times)
-)
+# The network weights are the only things being optimised. Lux initialises them
+# in Float32; the ODE state is Float64, so promote them to match and avoid a
+# mixed-precision solve.
+p_all = ComponentArray{Float64}(nn_params = p_nn)
 
 println("Starting UDE training...")
 println("="^60)
@@ -331,11 +346,11 @@ opt_prob = OptimizationProblem(opt_func, p_all, nothing)
 # Train using Adam optimiser — store loss history for convergence check
 loss_history = Float64[]
 
-println("\nTraining with Adam optimiser (500 iterations)...")
-@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=500,
+println("\nTraining with Adam optimiser (10,000 iterations)...")
+@time result = solve(opt_prob, Optimisers.Adam(0.01), maxiters=10_000,
                      callback = (state, l) -> begin
                          push!(loss_history, l)
-                         if state.iter % 100 == 0
+                         if state.iter % 1000 == 0
                              println("  Iter $(state.iter): loss = $(round(l, digits=2))")
                          end
                          return false
@@ -358,7 +373,12 @@ println("Final loss: ", round(result.objective, digits=2))
 p_trained = result.u
 ```
 
-Always check that the loss has converged — if it's still decreasing at the end, run more iterations:
+Always check the loss curve, and be honest with yourself about what it shows.
+
+Ours drops steeply over the first ten iterations, rebounds, then descends slowly and unevenly before flattening out. Running to 10,000 iterations gets the loss to within about three and a half units of where 40,000 leaves it, so this is close enough to converged to interpret.
+Stopping early here would have been actively misleading rather than merely imprecise: at 500 iterations the loss is around -340 and the fitted trajectory peaks at about 11 cases, which is a different qualitative answer from the one below.
+
+The middle of the curve is worth a second glance too. Progress slows enough around iterations 50 to 200 to look like a plateau, and stopping there would have given a much worse fit while appearing converged.
 
 ```{julia}
 plot(loss_history, xlabel="Iteration", ylabel="Loss",
@@ -372,7 +392,7 @@ Automatic differentiation computes exact gradients of the loss with respect to p
 
 **The Adam optimiser** is a gradient descent variant that adapts learning rates for each parameter and uses momentum to smooth updates. The learning rate (0.01) controls step size: too large and training becomes unstable; too small and convergence is slow. Adam is widely used for neural network training because it works well across many problems without much tuning.
 
-**What to expect**: The loss should decrease substantially (often by orders of magnitude). If it doesn't, something is wrong - perhaps the learning rate is too high (NaN errors) or too low (no progress), or the model structure can't fit the data.
+**What to expect**: the loss should fall steadily and substantially. Do not expect it to fall by orders of magnitude here, and do not use that as your check: a Poisson negative log-likelihood is not bounded below by zero, and ours goes from about +476 to about -460, so ratios of it mean nothing. Watch the shape instead. A loss that sits exactly flat means no gradient is reaching the parameters, which is a bug rather than a converged fit; `NaN` usually means the learning rate is too high; and a curve still falling steeply at the end means run for longer.
 
 ## Step 5: Compare results
 
@@ -381,17 +401,31 @@ Automatic differentiation computes exact gradients of the loss with respect to p
 pred_ude = predict_ude(p_trained)
 
 # Plot comparison
-plot(times, incidence_constant, label="Constant β", linewidth=2,
+plot(flu_tdc.time, incidence_constant, label="Constant β", linewidth=2,
      xlabel="Time (days)", ylabel="Cases",
      title="UDE vs Constant β")
-plot!(times, pred_ude, label="UDE (learned β)", linewidth=2)
+plot!(flu_tdc.time, pred_ude, label="UDE (learned β)", linewidth=2)
 scatter!(flu_tdc.time, flu_tdc.obs, label="Observed",
          markersize=4, color=:red)
 ```
 
-**Key question**: Does the UDE capture the second wave? Look at the fit around days 25-35.
+**Key question**: what did the UDE buy, and what did it pay?
 
-You should see the UDE trajectory (orange/green line) tracking the first-wave peak noticeably better than the constant-β baseline. Whether the second wave (days 25-35) is captured depends on the training run: the UDE may show a small uptick there, but with only 60 data points it is unlikely to reproduce the second wave precisely. If the two curves look almost identical, the network may not have learned anything useful — try increasing the number of iterations or using a different random seed.
+The constant-β baseline nearly matches the height of the first peak, about 40
+against an observed 47, and then collapses to nothing by day 15. It has one wave
+to give and it spends it on the first.
+
+The UDE reaches a similar peak, around 41, and then keeps generating cases through
+days 20 to 50, where the data really do have them and the baseline has none. Over
+that window it produces about 90 cases against the 104 observed. A time-varying β
+lets one model do both, which is the whole claim of the approach and the
+reason to prefer it here.
+
+The loss is doing the work that makes the tail matter. Predicting *nothing* on a
+day when cases occurred is close to unbounded under a log-likelihood, so the forty
+days the baseline abandons cost it more than anything it gains at the peak. Swap in
+sum of squared errors and the incentive reverses: an empty tail is cheap and a
+missed peak is not, so the fit stops bothering with the second wave.
 
 ## Step 6: Visualise learned β(t)
 
@@ -413,29 +447,95 @@ N_total = sum(u0)
     β_val[1]
 end for t in t_plot]
 
-# Plot with wave markers
-plot(t_plot, β_along_trajectory,
-     label="Learned β(t)", linewidth=2,
-     xlabel="Time (days)", ylabel="β",
-     title="Learned Transmission Rate (along trajectory)",
-     legend=:topright)
-hline!([β_guess], label="Constant β baseline", linestyle=:dash)
+# β on its own is hard to read, so convert to reproduction numbers: R_0(t) is
+# what the learned β implies about transmissibility, and R_eff(t) accounts for
+# the susceptibles actually left
+R0_along = β_along_trajectory ./ γ_guess
+Reff_along = [R0_along[i] * sol_trained(t_plot[i])[1] / N_total
+              for i in eachindex(t_plot)]
+
+plot(t_plot, R0_along,
+     label="R₀(t) implied by learned β", linewidth=2,
+     xlabel="Time (days)", ylabel="Reproduction number",
+     title="What the network learned, in reproduction numbers",
+     legend=:topleft)
+plot!(t_plot, Reff_along, label="R_eff(t)", linewidth=2)
+hline!([1.0], label="R_eff = 1", linestyle=:dash, color=:black)
 vspan!([25, 35], alpha=0.2, color=:blue, label="Second wave period")
 ```
 
-In a typical run you should see β(t) starting high (above the constant-β baseline), dropping during the trough around days 12-20, and then rising again around days 20-25 as the network tries to reignite transmission for the second wave. The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below).
+Read R_eff first, because it is the quantity with a threshold. It rises to
+about 3 as the first wave takes off, falls to about 0.3 by day 15, and is then
+held a little above 1 through days 20 to 30, which sustains the second wave.
+Both of those moves are the network's doing rather than the structure's: the fall
+is mostly the learned β collapsing, with depletion contributing about two fifths
+of it, and the recovery is β climbing again while the susceptible fraction barely
+changes. After that it settles a little below 1 and
+the tail decays.
 
-Before interpreting this curve, look back at Step 5. How well does the UDE actually fit the data? The fit may be imperfect. An imperfect fit tells us either that the network needs more capacity, or that the SIR structure itself can't capture the dynamics. We'll explore this in the next section.
+Now read R₀ against it, over the window where R_eff is actually near 1. Between
+days 20 and 30 the susceptible fraction falls from about 35% to 21%, and the
+implied R₀ climbs from about 3 to about 5 to hold R_eff up. The network is not
+describing a change in behaviour there; it is buying back, through
+transmissibility, what susceptible depletion takes away.
 
-Interpreting the learned β(t):
+Past day 31, where R_eff crosses back below 1, it stops keeping up. R₀ goes on climbing, but not fast enough, and
+R_eff drifts down to about 0.6 by day 59 as the tail decays.
 
-If β(t) shows a dip followed by recovery around days 15-25, this suggests the network learned that transmission must vary to explain both waves. This is consistent with behavioural relaxation - initial caution followed by return to normal contact patterns.
+The underlying β is not monotone either: it rises through the first wave, falls
+back as that wave dies, and only then climbs. Plotting it alone hides both the
+threshold and the implausibility, which is why the reproduction numbers are the
+better lens.
 
-If β(t) is roughly constant, the network didn't find time-varying transmission useful. This might mean:
+Be careful about what that shape can be attributed to. Susceptible depletion is
+already in the model: the `S` factor in `-β * S * I / N` accounts for it, and R_eff
+is R_0 multiplied by that same susceptible fraction. So a β that has to climb is not the network
+describing depletion. It is compensating for what the structure cannot do once the
+susceptibles are gone, which is the argument the next section takes up.
 
-- The network is too small (try more hidden units)
-- More training iterations are needed
-- Or genuinely: time-varying β isn't the right mechanism for this data
+Resist reading behaviour into the early shape as well. β climbs from 0.28 to
+about 1.7 over the first six days while prevalence is still rising, turns down
+before prevalence peaks on day 8, and is back to roughly its starting value by day
+14 once the wave has largely passed. Transmission rising as the epidemic grows and falling as
+it fades is not the signature of a population reacting to visible cases.
+
+In any case the training data cannot separate the two candidate explanations. They
+trace a single path through the network's two-dimensional input space, one
+prevalence for each day, so dependence on prevalence and dependence on time are
+indistinguishable from this fit. Ask the network what β would be at a prevalence
+the epidemic never reached on a given day and it will answer, but nothing in the
+data informed that answer.
+
+Treat the values at the far right with care. By then susceptibles are nearly
+exhausted, so β has very little effect on incidence and the data barely constrain
+it: training longer moves the final value substantially while leaving the fitted
+trajectory and the loss almost unchanged. A parameter the data cannot see is a
+parameter you should not interpret.
+
+The exact shape varies between runs (see [Uncertainty quantification](#uncertainty-quantification-in-the-main-analysis) below), so treat these numbers as this run's, not the model's.
+
+Before interpreting this curve, look back at Step 5. The fit is good, so the question is not whether the network found something but whether what it found is believable. The next section takes that up.
+
+Interpreting a learned β(t), in general:
+
+A dip followed by a recovery suggests the network found that transmission has to
+vary to explain the shape of the data, which is consistent with behavioural
+relaxation: initial caution, then a return to normal contact patterns. Note that
+our own curve has this shape, and that the section above gives reasons not to read
+it that way here. A shape alone cannot establish the reading: it takes data that
+separate prevalence from time, which a single outbreak does not.
+
+An implied R₀ that climbs without limit, as ours does after day 15, is a different
+signal. It says the network is compensating for something the *structure* cannot
+do, rather than describing a behaviour: here, a susceptible pool that only ever
+shrinks, which a single closed SIR compartment forces on it. Real reintroduction
+or waning immunity would show up this way too, and the shape alone cannot tell you
+which you have.
+
+A roughly constant β(t) would say the network did not find time-varying
+transmission useful, which might mean the network is too small, that more
+iterations are needed, or genuinely that time-varying β is not the right mechanism
+for these data.
 
 ## Uncertainty quantification in the main analysis {#uncertainty-quantification-in-the-main-analysis}
 
@@ -445,7 +545,7 @@ Everything above is a single optimisation run — the learned β(t) is a point e
 
 Training UDEs is difficult, especially with limited data. Understanding why helps set realistic expectations.
 
-The fundamental tension is between flexibility and data. Our network has 33 parameters and we have 60 data points - roughly 2 points per parameter. In classical statistics, you'd want at least 10-20 observations per parameter for reliable inference. With neural networks embedded in ODEs, the situation is even more constrained because the parameters interact nonlinearly through the differential equation.
+The fundamental tension is between flexibility and data. Our network has 33 parameters and we have 59 data points - roughly 2 points per parameter. In classical statistics, you'd want at least 10-20 observations per parameter for reliable inference. With neural networks embedded in ODEs, the situation is even more constrained because the parameters interact nonlinearly through the differential equation.
 
 Identifiability is another challenge. Many different β(t) curves could produce similar epidemic trajectories. The data doesn't uniquely determine β(t) — there's a family of solutions. The ODE structure constrains this family (not every β(t) produces a valid epidemic), but it doesn't eliminate the ambiguity entirely.
 
@@ -455,19 +555,19 @@ Numerical stability can be problematic. The combination of ODE solving and gradi
 
 ## The deeper issue: structural constraints
 
-If the fit is imperfect even with Poisson loss, this tells us something important: **maybe time-varying β isn't the full story**.
+The fit is decent, but look at what it cost: β has to climb to several times the constant-β baseline to keep the tail going. That price is itself a signal: **maybe time-varying β is not the full story**.
 
 Consider what happens during the trough (days 13-21):
 
 - Cases drop to near-zero (0-5 per day)
 - By this point, S has been substantially depleted by the first wave
 - Even with I > 0, the product β·S·I/N is small because S is small
-- A large β can compensate somewhat, but there is a limit
+- A large β can compensate, and nothing in the model stops it growing without bound
 
 The neural network can only learn β(t), but the **SIR structure itself** constrains what's possible:
 
 1. **S only decreases**: Once recovered, people are immune forever — the susceptible pool is depleted by the first wave
-2. **The trough problem**: With I near zero and S depleted, restarting growth requires implausibly large β
+2. **The trough problem**: With I near zero and S depleted, sustaining cases requires a β that climbs without limit, which is exactly what the learned curve does
 3. **No memory**: The model has no way to "store" infection for later release
 
 In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds an exposed class and Erlang-distributed temporary immunity — explains the two waves through structural changes, not time-varying transmission. That is the more parsimonious explanation for this data.
@@ -480,7 +580,10 @@ In the [pMCMC session](pmcmc.qmd), we saw that the SEIT4L model — which adds a
 
 **UDEs can only discover mechanisms within the constraints we impose**. If we say "it must be SIR with learned β(t)", we're already limiting what can be learned.
 
-An imperfect fit tells us something: time-varying transmission alone is insufficient to explain the data, and we may need different model structure.
+The fit itself is not the problem here, since time-varying transmission does reproduce both waves.
+The problem is the price it pays for that.
+By day 30, where the data still constrain the answer, the implied R_0 is already about 5, twice the literature value the constant-β baseline uses, and it is still rising.
+That is a strong hint that a different structure would explain the data more plausibly.
 
 ## Common failure modes
 
@@ -505,15 +608,12 @@ for seed in [1234, 5678, 9012]
     p_nn_test, _ = Lux.setup(rng_test, nn_architecture)
     p_nn_test = ComponentArray(p_nn_test)
 
-    p_test = ComponentArray(
-        nn_params = p_nn_test,
-        γ = γ_guess,
-        tmax = maximum(times)
-    )
+    # Only the network weights are optimised, as above
+    p_test = ComponentArray{Float64}(nn_params = p_nn_test)
 
     opt_func_test = OptimizationFunction(loss_ude, Optimization.AutoForwardDiff())
     opt_prob_test = OptimizationProblem(opt_func_test, p_test, nothing)
-    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=500,
+    result_test = solve(opt_prob_test, Optimisers.Adam(0.01), maxiters=10_000,
                         callback = (state, l) -> false)
 
     # Extract the learned β(t) along the trajectory for comparison
@@ -547,7 +647,7 @@ For each change, re-run from Step 1 through Step 6 and compare the β(t) plot to
 :::
 
 ::: {.callout-tip title="Exercise 2: Interpret the structural constraint"}
-In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) struggles to produce two waves. Can you explain, in your own words, why even a very large β during the trough is insufficient — considering both the depleted susceptible pool and near-zero prevalence? What structural change to the model would you propose, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
+In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) can only sustain the second wave by driving β ever higher. Can you explain, in your own words, why sustaining the second wave requires R_0 to climb the way it does — considering both the depleted susceptible pool and near-zero prevalence during the trough? What structural change to the model would let it produce a second wave without an implausible R_0, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
 :::
 
 # When to use UDEs
@@ -578,7 +678,7 @@ UDEs aren't always appropriate. Here's when they add value.
 | **GP for β(t)** | Medium | Medium (but with UQ) | Medium (50-200) | Medium |
 | **UDE** | High | Low | High (100-1000+) | High |
 
-**For TdC data (60 points)**: GPs or splines are likely more appropriate than UDEs.
+**For TdC data (59 points)**: GPs or splines are likely more appropriate than UDEs.
 
 # Where UDEs have been applied
 
