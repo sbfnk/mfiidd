@@ -140,9 +140,10 @@ You'll see `max(value, 1e-10)` throughout the course wherever we create a Poisso
 # Prior predictive sampling.
 times = 0.0:1.0:59.0
 
-## Of the five islanders landed on day 0, three had been ill during the eight day
-## voyage and are past their infectious period, so they start recovered; the two
-## who fell ill on landing start infectious. N = 284, the island population
+## The island as the ship lands, at the start of day 1. Of the five islanders it
+## brought back, three had been ill during the eight day voyage and are past their
+## infectious period, so they start recovered; the two who fell ill on landing
+## start infectious. N = 284, the island population
 init_state = Dict(:S => 279.0, :I => 2.0, :R => 3.0)
 
 # Sample from priors (no data conditioning — obs will be sampled from the model)
