@@ -587,7 +587,7 @@ per-observation contributions.
 
 That assumption does hold in the deterministic sessions, where the trajectory is
 fixed by $\theta$ and each day's count is an independent Poisson draw around it.
-The obstacle here is the latent state, not the passage of time.
+The obstacle here is the latent state.
 
 DIC is the one that fits what a particle filter gives you. It needs the deviance
 $D(\theta) = -2 \log p(y \mid \theta)$ at the posterior mean, plus its spread across
