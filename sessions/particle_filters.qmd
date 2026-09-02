@@ -435,7 +435,7 @@ Calibrating (this takes 1-2 minutes to run all particle counts):
 
 # Test different particle counts
 particle_counts = 2 .^ (2:9)  # 4, 8, 16, ..., 512
-n_reps = 30
+n_reps = 200  ## the spread is itself an estimate, and 30 draws is too few to pin it down
 
 calibration = DataFrame(n_particles=Int[], mean_ll=Float64[],
                         sd_ll=Float64[], time_per_run=Float64[])
@@ -483,18 +483,20 @@ p3 = plot(calibration.n_particles, calibration.time_per_run,
 plot(p1, p2, p3, layout=(1, 3), size=(900, 300))
 ```
 
-Look at the variance plot (middle). We want the SD to be in the range 1-3, and the curve drops through that window steeply rather than settling inside it, so read off the smallest count that brings the SD comfortably below 3.
+Look at the variance plot (middle). We want the SD to be in the range 1-3. Read off the smallest particle count that achieves this.
 
 ::: {.callout-note collapse="true"}
 ## Typical results (if you can't run the code)
 In our runs, we typically see:
 
 - **4-16 particles**: SD in the tens or worse, far too noisy for reliable inference
-- **32-64 particles**: SD falling steeply, and swinging a good deal from run to run
-- **128 particles**: SD comfortably below 1
-- **256-512 particles**: SD of around 0.5 or less, diminishing returns for the extra computation
+- **32 particles**: SD around 7, still outside the target range
+- **64 particles**: SD around 2, the first count inside it
+- **128-512 particles**: SD below 1, falling slowly while the cost keeps rising
 
-Your numbers will differ due to stochastic variability, and at the low counts they differ a lot: the spread is itself estimated from a handful of very noisy runs. Read the shape of the curve rather than any single value, and leave yourself headroom above the count that first looks acceptable. For the PMCMC session, we'll use around 128-256 particles based on this calibration.
+Your numbers will differ, and at the low counts they differ a lot: the spread is itself an estimate, which is why the cell above averages over 200 runs rather than a handful. With only 30 runs the value at 64 particles wanders between roughly 1 and 5 depending on which draws you happen to get.
+
+For the PMCMC session we use 128-256 particles even though 64 clears the target here. The exercise below asks why you would go above the minimum.
 :::
 
 ::: {.callout-tip title="Exercise: Choose the number of particles"}
