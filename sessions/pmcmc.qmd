@@ -535,9 +535,11 @@ Looking at the posterior densities above, we can see differences between the two
 There are three families of answer, and which of them applies is settled by how the model is built.
 
 **Information criteria** estimate out-of-sample predictive accuracy, penalising complexity as they go, and they differ in what they ask of the model.
-WAIC works from the pointwise predictive density, and leave-one-out cross-validation is asymptotically equivalent to it, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
-Both need the per-observation terms $p(y_i \mid \theta)$, and a stochastic latent trajectory takes those away.
-DIC asks only for the deviance of the whole series, which is the quantity a particle filter estimates, so it survives where the pointwise criteria do not.
+WAIC and leave-one-out cross-validation are the ones usually reached for.
+Both work from the pointwise predictive density and average over the whole posterior, and leave-one-out carries diagnostics that say when its approximation has failed, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
+Both also need the per-observation terms $p(y_i \mid \theta)$ to exist, and a stochastic latent trajectory takes those away.
+DIC evaluates the deviance at the posterior mean, so it offers neither the posterior averaging nor the diagnostics, and it is the weaker choice wherever the pointwise criteria apply.
+What it asks for is the deviance of the whole series, which is the quantity a particle filter estimates, so it can be used when the pointwise criteria cannot.
 
 **Bayes factors** compare marginal likelihoods directly:
 
