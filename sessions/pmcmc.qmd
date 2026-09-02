@@ -535,11 +535,11 @@ Looking at the posterior densities above, we can see differences between the two
 There are three families of answer, and which of them applies is settled by how the model is built.
 
 **Information criteria** estimate out-of-sample predictive accuracy, penalising complexity as they go, and they differ in what they ask of the model.
-WAIC and leave-one-out cross-validation are the ones usually reached for.
-Both work from the pointwise predictive density and average over the whole posterior, and leave-one-out carries diagnostics that say when its approximation has failed, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
+WAIC and leave-one-out cross-validation (LOO) are the ones usually recommended.
+Both work from the pointwise predictive density and average over the whole posterior, and LOO carries diagnostics that say when its approximation has failed, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
 Both also need the per-observation terms $p(y_i \mid \theta)$ to exist, and a stochastic latent trajectory takes those away.
-DIC evaluates the deviance at the posterior mean, so it offers neither the posterior averaging nor the diagnostics, and it is the weaker choice wherever the pointwise criteria apply.
-What it asks for is the deviance of the whole series, which is the quantity a particle filter estimates, so it can be used when the pointwise criteria cannot.
+The Deviance Information Criterion (DIC) evaluates the deviance at the posterior mean, so it offers neither the posterior averaging nor the diagnostics, and it is the weaker choice wherever the pointwise criteria apply.
+However, it only requires the deviance of the whole series, which a particle filter estimates, so it can be used with PMCMC.
 
 **Bayes factors** compare marginal likelihoods directly:
 
@@ -575,7 +575,7 @@ The criteria above are described but not computed, so nothing so far has actuall
 compared the two models. We can do it directly with the chains we already have.
 
 The pointwise criteria are the ones the model rules out, and it is worth seeing
-exactly where they fail. Both WAIC and leave-one-out need the terms
+exactly where they fail. Both WAIC and LOO need the terms
 $p(y_i \mid \theta)$, and both assume the observations are independent once you
 condition on the parameters. The stochastic model puts a latent trajectory between the parameters and the data, so
 every day's count depends on the same simulated path, and a particle filter
@@ -831,7 +831,7 @@ The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compa
 For particle MCMC model comparison:
 
 1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? This check applies whatever the model, and it is what the section above does.
-2. **Use WAIC or LOO-CV where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
+2. **Use WAIC or LOO where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
 3. **Fall back to DIC when the pointwise terms are out of reach** - it asks only for the deviance, which a particle filter can supply, and it is what the section above uses alongside the predictive check.
 4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
@@ -841,7 +841,7 @@ When criteria disagree, consider what question you're actually asking: best pred
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
 - **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://doi.org/10.1016/j.jeconom.2012.06.004). The required number scales with problem complexity.
 - **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
-- **The model's structure decides the criterion.** A stochastic latent trajectory leaves the observations dependent given the parameters, which rules out WAIC and leave-one-out, and leaves DIC and the predictive check
+- **The model's structure decides the criterion.** A stochastic latent trajectory leaves the observations dependent given the parameters, which rules out WAIC and LOO, and leaves DIC and the predictive check
 - **Posterior predictive checks apply whatever the model is**, and the latent path has to come from the model for the check to have anything to fail at
 :::
 
