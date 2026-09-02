@@ -1,5 +1,5 @@
 ---
-title: "Particle MCMC"
+title: "Particle MCMC and model comparison"
 format: html
 engine: julia
 order: 7
@@ -17,6 +17,8 @@ In the [previous session](particle_filters.qmd), we learned how particle filters
 
 Now we'll put this into practice. This session shows how to combine particle filters with Metropolis-Hastings to perform full Bayesian inference on stochastic models — the Particle Marginal Metropolis-Hastings (PMMH) algorithm.
 
+Fitting the stochastic model also puts us in a position to compare models for the first time. Two comparisons run through the second half of the session: the stochastic fit against the deterministic one, and SEITL against SEIT4L, which differ in how they distribute the duration of temporary immunity.
+
 ::: {.callout-note collapse="true"}
 ## Coming from R?
 In R, particle MCMC is available through [`pomp`](https://kingaa.github.io/pomp/) (the `pmcmc()` function) and the [`mcstate`](https://mrc-ide.github.io/mcstate/) package (part of the odin/dust/mcstate ecosystem). The concepts are identical; only the implementation differs.
@@ -30,6 +32,7 @@ In this session you will:
 2. Fit the stochastic SEIT4L model to the Tristan da Cunha outbreak
 3. Compare stochastic vs deterministic model fits
 4. Understand why PMMH requires long chains and adaptive proposals
+5. Compare two competing models with DIC and with posterior predictive checks
 
 ::: {.callout-important}
 ## Reminder: Stochastic variability
@@ -157,7 +160,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 All these components were loaded via `using MFIIDD` in the setup above (defined in [`src/seit4l_gillespie.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_gillespie.jl), [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl), and [`src/seit4l_runner.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_runner.jl)). Now we'll use them for full Bayesian inference.
 
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on the PMMH algorithm.
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them for now to focus on the PMMH algorithm.
 
 # Particle MCMC (PMMH) with Turing.jl
 
@@ -327,7 +330,7 @@ println("acceptance rate: ", round(100 * mean(chain_df.accepted), digits = 1), "
 That is the target RAM aims for, and it is the payoff from the warmup iterations described below.
 
 ::: {.callout-tip}
-## Why Robust Adaptive Metropolis?
+## The case for Robust Adaptive Metropolis
 
 With standard MH and independent proposals, mixing is poor when parameters are correlated. The sampler proposes moves that go "against" the correlation structure and gets rejected.
 
@@ -442,13 +445,16 @@ chain_det = sample(model_det, NUTS(), 2000, progress=false)
 ```{julia}
 #| code-fold: true
 #| code-summary: "Plotting code"
-# Compare posteriors
-p1 = density(chain_det, :R_0, title = "R_0 (Deterministic)", legend = false)
-p2 = density(chain_pmcmc, :R_0, title = "R_0 (Stochastic)", legend = false)
-p3 = density(chain_det, :α, title = "α (Deterministic)", legend = false)
-p4 = density(chain_pmcmc, :α, title = "α (Stochastic)", legend = false)
+## Compare posteriors, both models overlaid on one panel per parameter
+params = [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
+panels = map(enumerate(params)) do (i, par)
+    ## pull the draws out as plain vectors so the series labels are ours
+    pl = density(vec(chain_det[par]), title = string(par), label = "deterministic",
+                 colour = :steelblue, legend = i == 1 ? :topright : false)
+    density!(pl, vec(chain_pmcmc[par]), label = "stochastic", colour = :darkorange)
+end
 
-plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
+plot(panels..., layout = (2, 3), size = (900, 500))
 ```
 
 ::: {.callout-tip title="Exercise: Interpret the stochastic vs deterministic comparison"}
@@ -460,7 +466,14 @@ Look at the posterior density plots above and compare the two models:
 :::
 
 ::: {.callout-tip title="What to look for" collapse="true"}
-**The stochastic model gives wider posteriors**, and it should. The deterministic
+**The stochastic model gives wider posteriors, but by very different amounts
+across the six parameters.** The clearest case is $D_\mathrm{imm}$, whose posterior
+standard deviation roughly doubles, followed by $\alpha$ and $D_\mathrm{lat}$, which
+grow by about three fifths. $R_0$ grows by about a tenth, and the reporting rate
+$\rho$ barely moves at all, which makes sense: it is pinned by the total number of
+cases either way.
+
+The direction is the same everywhere, and it should be. The deterministic
 model attributes every discrepancy between prediction and data to observation
 noise, so the parameters have to explain everything and get pinned down tightly.
 The stochastic model has a second source of variation available — the epidemic
@@ -517,18 +530,18 @@ density!(p2, chain_pmcmc, :D_imm, label="SEIT4L")
 plot(p1, p2, layout=(1, 2), size=(800, 400))
 ```
 
-## Model comparison
+## Approaches to model comparison
 
 Looking at the posterior densities above, we can see differences between the two models. But which model better explains the data? This is the question of *model comparison* or *model selection*.
 
-### Approaches to model comparison
+There are three families of answer, and which of them applies is settled by how the model is built.
 
-**Information criteria** estimate out-of-sample predictive accuracy by penalising model complexity:
-
-- **WAIC (Widely Applicable Information Criterion)**: Based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
-- **LOO-CV (Leave-One-Out Cross-Validation)**: Gold standard for predictive accuracy. [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO approximation.
-
-For particle MCMC, these criteria require care because the likelihood estimates are noisy. The noise doesn't bias the posterior, but it *does* affect pointwise likelihood calculations needed for WAIC and LOO-CV. Solutions include using more particles when computing criteria, or averaging over multiple likelihood estimates per parameter sample.
+**Information criteria** estimate out-of-sample predictive accuracy, penalising complexity as they go, and they differ in what they ask of the model.
+WAIC and leave-one-out cross-validation (LOO) are the ones usually recommended.
+Both work from the pointwise predictive density and average over the whole posterior, and LOO carries diagnostics that say when its approximation has failed, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
+Both also need the per-observation terms $p(y_i \mid \theta)$ to exist, and a stochastic latent trajectory takes those away.
+The Deviance Information Criterion (DIC) evaluates the deviance at the posterior mean, so it offers neither the posterior averaging nor the diagnostics, and it is the weaker choice wherever the pointwise criteria apply.
+However, it only requires the deviance of the whole series, which a particle filter estimates, so it can be used with PMCMC.
 
 **Bayes factors** compare marginal likelihoods directly:
 
@@ -536,9 +549,11 @@ $$\text{BF}_{12} = \frac{P(\text{data}|M_1)}{P(\text{data}|M_2)}$$
 
 Values > 10 indicate strong evidence for $M_1$; values < 0.1 indicate strong evidence for $M_2$. The marginal likelihood can be estimated from particle filter output using techniques like [path sampling](https://academic.oup.com/biomet/article/95/2/401/223193) or [thermodynamic integration](https://doi.org/10.1198/016214508000000571), but these are computationally intensive.
 
-**Posterior predictive checks** provide a qualitative but intuitive comparison: which model generates data that looks more like the observations? This doesn't give a single number, but can reveal *how* models differ in their predictions. A full posterior predictive comparison would simulate many datasets from each fitted model and compare them to the observed data - we leave this as an exercise.
+**Posterior predictive checks** ask which model generates data that looks like the observations.
+They give no single number, and what they offer instead is a view of *how* the models differ.
+They also apply whatever the model's structure, which is the reason this session leans on them.
 
-### Comparing parameter estimates
+## Comparing parameter estimates
 
 We can compare how the two models estimate the same parameters:
 
@@ -556,68 +571,280 @@ println("  D_imm = $(round(mean(chain_pmcmc[:D_imm]), digits=2))")
 
 The key difference is in the D_imm (duration of temporary immunity) estimates. SEIT4L, with its Erlang-distributed immunity duration, typically estimates a shorter mean duration but with less variance in timing.
 
+## Comparing the two models
+
+The criteria above are described but not computed, so nothing so far has actually
+compared the two models. We can do it directly with the chains we already have.
+
+The pointwise criteria are the ones the model rules out, and it is worth seeing
+exactly where they fail. Both WAIC and LOO need the terms
+$p(y_i \mid \theta)$, and both assume the observations are independent once you
+condition on the parameters. The stochastic model puts a latent trajectory between the parameters and the data, so
+every day's count depends on the same simulated path, and a particle filter
+estimates the likelihood of the whole series rather than handing you the
+per-observation contributions.
+
+That assumption does hold in the deterministic sessions. There $\theta$ fixes the
+trajectory, each day's count is an independent Poisson draw around it, and the
+likelihood factorises:
+
+$$p(y \mid \theta) = \prod_{t} p(y_t \mid \theta)$$
+
+which is what gives you the pointwise terms. Here the trajectory $X$ is itself
+random, and the observations depend on the parameters only through it:
+
+$$p(y \mid \theta) = \int \prod_{t} p(y_t \mid X_t)\, p(X \mid \theta) \, \mathrm{d}X
+  \;\neq\; \prod_{t} p(y_t \mid \theta)$$
+
+The integral is over the whole path at once, so it does not separate into a term
+per observation. Within any one run the series shares the single path that run
+took, and a second run takes a different one. That shared dependence is the
+feature that makes the model stochastic, and the particle filter estimates the
+left-hand side without ever forming the factors on the right.
+
+DIC is the one that fits what a particle filter gives you. It needs the deviance
+$D(\theta) = -2 \log p(y \mid \theta)$ at the posterior mean, plus its spread across
+the posterior, and both come from the total likelihood alone. That is why
+[Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) used it on these
+models, and it is the reason to reach for it here despite the general advice
+above.
+
+First, the log-likelihood of every draw is already saved:
+
+```{julia}
+seitl_ll  = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame).loglikelihood
+seit4l_ll = CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame).loglikelihood
+println("mean log-likelihood, SEITL:  ", round(mean(seitl_ll), digits = 2))
+println("mean log-likelihood, SEIT4L: ", round(mean(seit4l_ll), digits = 2))
+```
+
+SEIT4L is ahead by about three and a half log-likelihood units, more than the
+spread of either chain, so this is not sampling noise.
+That agrees with [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300),
+who preferred SEIT4L.
+
+On its own that is not a comparison: a mean log-likelihood rewards fit and
+penalises nothing, so it will always favour the more flexible model. DIC adds the
+penalty, using the effective number of parameters $p_D$, taken as half the
+variance of the deviance across the posterior:
+
+```{julia}
+init_seit4l = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]
+
+function dic(chain_df)
+    p_D = var(-2 .* chain_df.loglikelihood) / 2
+    θ_bar = Dict(:R_0 => mean(chain_df.R_0), :D_lat => mean(chain_df.D_lat),
+                 :D_inf => mean(chain_df.D_inf), :α => mean(chain_df.α),
+                 :D_imm => mean(chain_df.D_imm), :ρ => mean(chain_df.ρ))
+    ## the filter estimate is noisy, so average a few runs at the posterior mean
+    D_bar = -2 * mean(run_particle_filter(θ_bar, flu_tdc.obs, 256;
+                                          init_state = init_seit4l) for _ in 1:5)
+    return D_bar + 2 * p_D
+end
+
+Random.seed!(1)
+println("DIC, SEITL:  ", round(dic(CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame)), digits = 1))
+println("DIC, SEIT4L: ", round(dic(CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame)), digits = 1))
+```
+
+Lower is better, and a gap of this size is large enough to take seriously.
+SEIT4L wins on both terms: it fits better *and* uses fewer effective parameters,
+which you would hope for from the model with the more realistic waiting time.
+
+Two caveats specific to this setting. $p_D$ is computed from log-likelihoods the
+particle filter only estimates, so it carries a little of the filter's noise as
+well as the posterior's spread. With 256 particles that contribution is small
+here, and it grows as you cut the particle count.
+
+The larger one is that DIC is not uniquely defined for a model with latent
+variables [@celeux2006]. The deviance can be built on the observed data with the
+latent path integrated out, or on the complete data with the path treated as a
+parameter, and the two give different answers. The version above is the first,
+because the particle filter estimates $p(y \mid \theta)$ with the path already
+integrated out, and it is the version that keeps DIC's usual justification. The conditional
+version treats the latent path as a parameter, and since the model carries one
+latent state per observation, its effective number of parameters grows with the
+data instead of measuring the model's complexity. DIC's justification assumes a
+fixed-dimensional parameter, so it lapses. Two better-suited options exist if you take this further. A one-step-ahead
+pseudo-DIC scores each observation against a prediction made from the state at
+the previous time point [@millar2014], which is the natural predictive question
+for a time series. Alternatively, PMMH gives unbiased estimates of the marginal
+likelihood itself, so it can be estimated directly and compared across models.
+That comparison needs no separate complexity penalty: integrating over the prior
+already supplies one, because a model with more parameters spreads its prior mass
+over more datasets and so assigns less probability to any particular one. The
+cost of relying on it is a sensitivity to the priors themselves, which is the
+reason for the caution about Bayes factors above.
+
+The marginal likelihood option needs the evidence integrated over the prior, and
+the filter gives $p(y \mid \theta)$ at a single parameter value, so that one is
+out of reach here.
+The one-step-ahead option is closer than it looks: the callback used for the
+filtered trajectories below also records the per-step log weights, whose
+increments are the one-step-ahead predictive densities the criterion asks for.
+
+No single number can say whether the winner fits the data at all, so the
+comparison this session leans on is the posterior predictive one. Simulate from
+each posterior and look:
+
+Each replicate draws parameters from the posterior and then runs the epidemic
+forward from the same starting state, so it gets a fresh latent trajectory.
+That costs wide envelopes, since every replicate re-rolls the whole outbreak
+along with the parameters.
+The alternative is to condition the trajectory on the observations, and we
+compare the two below.
+
+```{julia}
+#| output: false
+init_seitl = Dict(:S => 279.0, :E => 0.0, :I => 2.0, :T => 3.0, :L => 0.0)
+init_4l = [279.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]
+n_obs = length(flu_tdc.obs)
+
+## one stochastic replicate per posterior draw, observed through the same
+## Poisson reporting model the filter used
+function predict_seitl(row)
+    θ = Dict(:R_0 => row.R_0, :D_lat => row.D_lat, :D_inf => row.D_inf,
+             :α => row.α, :D_imm => row.D_imm)
+    traj = simulate_seitl_stochastic(θ, init_seitl, times_obs)
+    [rand(Poisson(max(row.ρ * traj.Inc[i + 1], 1e-10))) for i in 1:n_obs]
+end
+
+function predict_seit4l(row)
+    θ = Dict(:R_0 => row.R_0, :D_lat => row.D_lat, :D_inf => row.D_inf,
+             :α => row.α, :D_imm => row.D_imm)
+    state = copy(init_4l)
+    [rand(Poisson(max(row.ρ * gillespie_step_seit4l!(state, θ, 1.0), 1e-10)))
+     for _ in 1:n_obs]
+end
+
+Random.seed!(1)
+n_sims = 200
+seitl_df = CSV.read(datadir("pmcmc_seitl_chain.csv"), DataFrame)
+seit4l_df = CSV.read(datadir("pmcmc_seit4l_chain.csv"), DataFrame)
+sims_seitl = [predict_seitl(seitl_df[rand(1:nrow(seitl_df)), :]) for _ in 1:n_sims]
+sims_seit4l = [predict_seit4l(seit4l_df[rand(1:nrow(seit4l_df)), :]) for _ in 1:n_sims]
+```
+
+```{julia}
+function envelope!(p, sims, label, colour)
+    M = reduce(hcat, sims)
+    lo = [quantile(M[t, :], 0.025) for t in 1:size(M, 1)]
+    hi = [quantile(M[t, :], 0.975) for t in 1:size(M, 1)]
+    med = [median(M[t, :]) for t in 1:size(M, 1)]
+    plot!(p, flu_tdc.time, med, ribbon = (med .- lo, hi .- med),
+          label = label, colour = colour, fillalpha = 0.2, linewidth = 2)
+end
+
+p = plot(xlabel = "Day", ylabel = "Reported cases",
+         title = "Posterior predictive, 95% envelopes")
+envelope!(p, sims_seitl, "SEITL", :steelblue)
+envelope!(p, sims_seit4l, "SEIT4L", :darkorange)
+scatter!(p, flu_tdc.time, flu_tdc.obs, label = "observed",
+         colour = :black, markersize = 3)
+```
+
+Both envelopes contain almost every observation, so neither model is refuted by
+the data as a whole. The interesting question is the second wave, which the two
+models disagree about mechanically. Take its size as a test statistic and
+compute a Bayesian p-value, as in the [model checking session](model_checking.qmd):
+
+```{julia}
+second_wave = 25:45
+observed_second = sum(flu_tdc.obs[second_wave])
+for (name, sims) in (("SEITL", sims_seitl), ("SEIT4L", sims_seit4l))
+    totals = [sum(v[second_wave]) for v in sims]
+    println(rpad(name, 7), " second-wave cases: median ", median(totals),
+            ", p = ", round(mean(totals .>= observed_second), digits = 3))
+end
+println("observed: ", observed_second)
+```
+
 ::: {.callout-tip title="What to look for" collapse="true"}
-Compare the two envelopes against the data rather than against each other. The
-question is not which looks tidier but which contains the observations, and
-particularly whether either reproduces the second wave in the right place.
+SEIT4L generates the larger second wave, which is the direction its mechanism
+predicts: Erlang-distributed immunity returns people to susceptible in a
+reasonably synchronised group, where SEITL's exponential waiting time returns
+them steadily from the moment they recover and smears the wave out.
 
-SEIT4L should do better on the timing. Its Erlang-distributed immunity means
-individuals return to susceptible in a reasonably synchronised group, so the
-second wave arrives as a distinct peak. SEITL's exponential waiting time returns
-people steadily from the moment they recover, which smears the second wave out.
-
-That is a difference in shape rather than in fit quality, and it is a good
-illustration of why posterior predictive checks beat a single number. Two models
-can reach similar likelihoods while disagreeing about something you care about —
-here, when the second wave happens, which is exactly what you would want the model
-for.
+Notice what the p-values do not say, though. Both models undershoot the observed
+second wave, and neither is extreme enough to be rejected on this statistic. The
+better model here is the less-bad one. That is the limit of a comparison: it
+ranks the candidates you happened to write down, and says nothing about whether
+any of them is right.
 :::
 
-### What the original study found
+## Where the latent trajectory comes from
+
+The replicates above simulate the epidemic forward, so each one carries a latent
+path the filter never saw the data for.
+A particle filter can also hand back a path that *was* conditioned on the data.
+`DenseAncestorCallback` records the particles and their ancestor indices at every
+step, so drawing one particle at the end and following its ancestry back gives a
+whole trajectory:
+
+```{julia}
+#| output: false
+Random.seed!(2)
+n_filt = 200
+sims_filtered = map(1:n_filt) do _
+    row = seit4l_df[rand(1:nrow(seit4l_df)), :]
+    θ = Dict(:R_0 => row.R_0, :D_lat => row.D_lat, :D_inf => row.D_inf,
+             :α => row.α, :D_imm => row.D_imm, :ρ => row.ρ)
+    inc = filtered_incidence(θ, flu_tdc.obs, 256)
+    [rand(Poisson(max(row.ρ * x, 1e-10))) for x in inc]
+end
+```
+
+```{julia}
+p = plot(xlabel = "Day", ylabel = "Reported cases",
+         title = "SEIT4L: re-simulated and filtered, 95% envelopes")
+envelope!(p, sims_seit4l, "re-simulated", :darkorange)
+envelope!(p, sims_filtered, "filtered", :seagreen)
+scatter!(p, flu_tdc.time, flu_tdc.obs, label = "observed",
+         colour = :black, markersize = 3)
+```
+
+Both sets are draws of replicate data from the same fitted model, and they differ
+only in where the latent path comes from.
+The re-simulated replicates draw $\theta \sim p(\theta \mid y)$ and then a fresh
+path $X \sim p(X \mid \theta)$, with the latent path marginalised out of what the
+data informed.
+The filtered replicates draw the pair from the joint $p(\theta, X \mid y)$, so the
+path itself has been told the answer.
+
+::: {.callout-warning}
+The filtered envelope is narrower on 51 of the 59 days, and less than half the
+width of the re-simulated one across the first wave.
+That tightness is not evidence of a better model.
+It tracks the observations because it was conditioned on them, and it would do
+so for a model that generates nothing like this outbreak when left to run.
+Judge fit with the re-simulated envelope.
+Read the filtered one as a picture of what the epidemic plausibly did, which is
+the question it answers well.
+:::
+
+## Findings of the original study
 
 [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 
 The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compared to 1.0 for exponential), meaning individuals lose immunity at more consistent times. For the Tristan da Cunha data, this more realistic timing distribution better captures the second wave dynamics.
 
-### Practical recommendations
+## Practical recommendations
 
 For particle MCMC model comparison:
 
-1. **Start with posterior predictive checks** - do the models make qualitatively different predictions?
-2. **Use WAIC or LOO-CV** - with standard errors, and what current practice expects
-3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
+1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? This check applies whatever the model, and it is what the section above does.
+2. **Use WAIC or LOO where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
+3. **Fall back to DIC when the pointwise terms are out of reach** - it asks only for the deviance, which a particle filter can supply, and it is what the section above uses alongside the predictive check.
+4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
-
-::: {.callout-tip title="Exercise: Posterior predictive comparison"}
-Generate posterior predictive simulations from both SEITL and SEIT4L and compare them visually:
-
-```julia
-# For each model chain, sample parameters and simulate trajectories
-function posterior_predictive_sims(chain, simulate_fn, init_state, times, n_sims=50)
-    plots_data = []
-    for i in rand(1:length(chain), n_sims)
-        θ = Dict(:R_0 => chain[:R_0][i], :D_lat => chain[:D_lat][i],
-                 :D_inf => chain[:D_inf][i], :α => chain[:α][i],
-                 :D_imm => chain[:D_imm][i], :ρ => chain[:ρ][i])
-        traj = simulate_fn(θ, init_state, times)
-        obs_sim = rand.(Poisson.(max.(θ[:ρ] .* traj.Inc, 1e-10)))
-        push!(plots_data, obs_sim)
-    end
-    return plots_data
-end
-```
-
-1. Which model produces simulated epidemics that look more like the observed data?
-2. Does either model consistently miss the second wave timing?
-3. How does the *spread* of simulations differ between models?
-:::
 
 ::: {.callout-tip title="Learning points"}
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
 - **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://doi.org/10.1016/j.jeconom.2012.06.004). The required number scales with problem complexity.
 - **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
-- **Model comparison** using information criteria helps choose between competing mechanistic explanations, though applying them to particle MCMC requires care
+- **The model's structure decides the criterion.** A stochastic latent trajectory leaves the observations dependent given the parameters, which rules out WAIC and LOO, and leaves DIC and the predictive check
+- **Posterior predictive checks apply whatever the model is**, and the latent path has to come from the model for the check to have anything to fail at
 :::
 
 # Going further
@@ -675,7 +902,13 @@ PG can exhibit high autocorrelation in some settings - [Lindsten et al. (2014)](
 
 PMCMC methods can provide **filtered trajectories** - stochastic trajectories from the model conditioned on both the estimated parameters and the observed data. These are useful for visualising what the underlying epidemic dynamics might have looked like, given what we observed.
 
-To extract a trajectory from our particle filter, we'd sample one particle at the final time point (weighted by the particle weights) and reconstruct its path back through time. This gives one draw from the posterior distribution over trajectories. Repeating across MCMC iterations gives a collection of plausible epidemic histories.
+The model comparison above plots these against the re-simulated replicates, using `filtered_incidence` from the course package.
+It samples one particle at the final time point, weighted by the particle weights, and reconstructs its path back through time, which gives one draw from the posterior over trajectories.
+Repeating across MCMC iterations gives a collection of plausible epidemic histories.
+
+One caveat that plot does not show: within a single filter run the surviving particles share ever fewer distinct ancestors as you trace them back, so the early part of any one path is drawn from a handful of histories rather than from the full smoothing distribution.
+Drawing many paths from one run would therefore understate the uncertainty badly.
+The plot above avoids that by re-running the filter for every replicate, at a fresh posterior draw, so the paths are independent of each other.
 
 See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf) for details on trajectory sampling from particle filters.
 
