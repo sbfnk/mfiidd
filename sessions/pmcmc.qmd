@@ -289,7 +289,7 @@ makes the point better than any convergence statistic: a short PMMH chain does
 not look obviously broken, it just has not gone anywhere yet.
 :::
 
-## Why is PMMH mixing difficult?
+## The source of the mixing difficulty
 
 The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values. This noise means proposals that would be accepted with an exact likelihood may be rejected (and vice versa), slowing exploration.
 
@@ -330,7 +330,7 @@ println("acceptance rate: ", round(100 * mean(chain_df.accepted), digits = 1), "
 That is the target RAM aims for, and it is the payoff from the warmup iterations described below.
 
 ::: {.callout-tip}
-## Why Robust Adaptive Metropolis?
+## The case for Robust Adaptive Metropolis
 
 With standard MH and independent proposals, mixing is poor when parameters are correlated. The sampler proposes moves that go "against" the correlation structure and gets rejected.
 
@@ -427,7 +427,7 @@ end
 ```
 
 ::: {.callout-tip}
-## Why `|` conditioning here but `@addlogprob!` above?
+## Two ways of supplying a likelihood
 The deterministic model uses `obs ~ arraydist(Poisson.(lambdas))` — the likelihood is expressed as a `~` statement, so Turing can condition on the data directly with `|`.
 
 The stochastic `pmmh_seit4l` model uses an *external* likelihood estimator (the particle filter via `GeneralisedFilters.filter`), which returns a log-likelihood that we add manually with `@addlogprob!`. In that model, there is no `obs ~` statement in the model body — `obs` enters as a function argument passed to the filter — so `|` has nothing to condition on.
@@ -744,7 +744,7 @@ any of them is right.
 - **Model comparison** using information criteria helps choose between competing mechanistic explanations, though applying them to particle MCMC requires care
 :::
 
-### What the original study found
+### Findings of the original study
 
 [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 
