@@ -843,7 +843,11 @@ PG can exhibit high autocorrelation in some settings - [Lindsten et al. (2014)](
 
 PMCMC methods can provide **filtered trajectories** - stochastic trajectories from the model conditioned on both the estimated parameters and the observed data. These are useful for visualising what the underlying epidemic dynamics might have looked like, given what we observed.
 
-To extract a trajectory from our particle filter, we'd sample one particle at the final time point (weighted by the particle weights) and reconstruct its path back through time. This gives one draw from the posterior distribution over trajectories. Repeating across MCMC iterations gives a collection of plausible epidemic histories.
+These are a different object from the posterior predictive replicates in the model comparison above.
+There, each replicate draws its own latent path from the model, so the check has something to fail at.
+A filtered trajectory is pinned to the observations, which is what makes it a good picture of the epidemic and a weak test of the model.
+
+To extract a trajectory from our particle filter, we would sample one particle at the final time point (weighted by the particle weights) and reconstruct its path back through time. This gives one draw from the posterior distribution over trajectories. Repeating across MCMC iterations gives a collection of plausible epidemic histories.
 
 See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf) for details on trajectory sampling from particle filters.
 
