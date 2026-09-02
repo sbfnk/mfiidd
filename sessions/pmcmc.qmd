@@ -672,8 +672,12 @@ over more datasets and so assigns less probability to any particular one. The
 cost of relying on it is a sensitivity to the priors themselves, which is the
 reason for the caution about Bayes factors above.
 
-Both options need quantities our filter computes internally and does not return,
-so neither is a drop-in change here.
+The marginal likelihood option needs the evidence integrated over the prior, and
+the filter gives $p(y \mid \theta)$ at a single parameter value, so that one is
+out of reach here.
+The one-step-ahead option is closer than it looks: the callback used for the
+filtered trajectories below also records the per-step log weights, whose
+increments are the one-step-ahead predictive densities the criterion asks for.
 
 No single number can say whether the winner fits the data at all, so the
 comparison this session leans on is the posterior predictive one. Simulate from
