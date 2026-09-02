@@ -203,7 +203,7 @@ summarystats(chain_mcmc)
 Note the time printed above and compare it with the variational runs below.
 Each timing cell runs the method once before measuring it, so the figure is the cost of sampling and not the cost of Julia compiling the sampler for the first time, which on a model this small would otherwise dominate everything.
 
-# Approach 1: Mean-Field Variational Inference
+# Approach 1: mean-field variational inference
 
 ## What is variational inference?
 
@@ -366,7 +366,7 @@ What we see is that the mean-field approximation forces this correlation to zero
 - **Implausible joint samples**: Combinations that the true posterior considers unlikely
 - **Poor predictive performance**: Forward simulations may not match observed data well
 
-# Approach 2: Full-Rank Gaussian VI
+# Approach 2: full-rank Gaussian VI
 
 ## Capturing correlations
 
@@ -681,11 +681,13 @@ VI is not a replacement for MCMC - it's a complementary tool that enables applic
 
 # Going further
 
-The Gaussian VI methods covered in this session are the most commonly used in practice, but more flexible approaches exist. **Normalising flows** use sequences of invertible transformations to create non-Gaussian approximations, allowing them to handle multimodal and skewed posteriors — see [Bijectors.jl](https://turinglang.org/Bijectors.jl/stable/) for Julia implementations. **Amortised inference** trains a neural network to predict posterior parameters directly from data, eliminating per-dataset optimisation — useful when analysing many similar datasets. These are active research areas; the references below provide entry points.
+The Gaussian families used here are the most common in practice, but the variational family need not be Gaussian. **Normalising flows** use sequences of invertible transformations to build far more flexible approximations, handling multimodal and skewed posteriors that mean-field and full-rank Gaussians cannot — see [Bijectors.jl](https://turinglang.org/Bijectors.jl/stable/) and [NormalizingFlows.jl](https://github.com/TuringLang/NormalizingFlows.jl) for Julia implementations. Everything else about the workflow stays the same: you are still optimising one approximation, to one posterior, for one dataset.
+
+Relaxing *that* assumption — learning the posterior as a function of the data, so that a new dataset costs nothing — is a bigger step, and the subject of the next session.
 
 # Next session
 
-In [Universal Differential Equations](universal_differential_equations.qmd), we'll explore how to combine mechanistic models with neural networks to discover unknown transmission patterns directly from data.
+In [Neural posterior estimation](neural_posterior_estimation.qmd), we take the idea of replacing sampling with optimisation one step further: instead of optimising an approximation for a single dataset, we learn the posterior as a function of the data, so that every subsequent fit is essentially free.
 
 # References
 

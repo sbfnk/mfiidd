@@ -186,10 +186,11 @@ Thursday 10 September: 12.15-12.30
 
 # Further material
 
-Two sessions are provided for self-study rather than taught in the room. Both
+Four sessions are provided for self-study rather than taught in the room. They
 build on the taught sessions and can be worked through afterwards at your own
 pace.
 
 -   [Variational inference](../sessions/variational_inference.qmd): fast approximate inference for real-time applications
 -   [Universal differential equations](../sessions/universal_differential_equations.qmd): combining mechanistic models with neural networks
 -   [Beyond Turing](../sessions/julia_ecosystem.qmd): the wider Julia ecosystem — alternative samplers, automatic differentiation backends, and what sits underneath
+-   [Neural posterior estimation](../sessions/neural_posterior_estimation.qmd): amortised inference with normalising flows, for models that are simulated many times

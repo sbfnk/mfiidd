@@ -916,6 +916,12 @@ SMC² (SMC squared) uses Sequential Monte Carlo for both parameters and state tr
 This can be more efficient for complex models but requires more careful tuning.
 Turing.jl supports this through the `SMC` sampler.
 
+## Amortised inference
+
+Every chain in this session answered a question about a single dataset. Fit the same model to a second island, or to a different reporting schedule, and the whole cost is paid again.
+
+[Neural posterior estimation](neural_posterior_estimation.qmd) is an advanced session that trains a neural network on simulations from this same SEITL model, so that afterwards a posterior costs milliseconds for any dataset the model can produce. It is approximate where PMMH is exact, and it pays off when you fit the same model repeatedly.
+
 # Next session
 
 In [Observation Models and Distance Metrics](observation_models.qmd), we'll step back and examine a fundamental question: why do we choose Poisson likelihoods, and what are the alternatives?
