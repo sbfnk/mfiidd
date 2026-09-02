@@ -807,7 +807,9 @@ quantile(chain_nuts[:R_0], [0.025, 0.25, 0.5, 0.75, 0.975])
 
 These summaries give us point estimates and uncertainty, but should we trust these results? The next session (MCMC Diagnostics) teaches you how to check whether your chains converged and whether your model makes sense.
 
-::: {.callout-tip title = "Learning points"}
+# Learning points
+
+::: {.callout-tip title="Learning points"}
 
 - **MCMC is a universal sampler**: It works for any distribution where you can evaluate density
 - **Metropolis-Hastings** is simple and robust but requires tuning of proposal distributions

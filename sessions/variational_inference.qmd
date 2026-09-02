@@ -669,6 +669,8 @@ Look at where the three methods agree and disagree. Typical findings for this mo
 If you see substantial disagreement between full-rank VI and MCMC, it may indicate that 500 VI iterations was not enough, or that the posterior has features (e.g., skewness) that even full-rank Gaussian VI cannot capture.
 :::
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 - **Variational inference** turns Bayesian inference into optimisation: find a simple distribution $q(\theta)$ that approximates the true posterior
 - **Mean-field VI** assumes parameter independence - cheap per iteration, but misses correlations that are common in epidemic models

@@ -572,6 +572,8 @@ If you want to see it plainly, compute the likelihood at a single $R_0$ ten time
 over and look at the spread.
 :::
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - **Stochastic models require particle filters** because the likelihood marginalises over all possible trajectories

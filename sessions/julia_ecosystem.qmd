@@ -438,6 +438,8 @@ actually lies. If you want a sampler Turing does not implement, LogDensityProble
 is the way in. And if you are deploying something, a minimal stack of your model
 plus an AD backend plus a sampler is less to maintain than the whole framework.
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - Underneath any Bayesian framework is a log-density function and a way to

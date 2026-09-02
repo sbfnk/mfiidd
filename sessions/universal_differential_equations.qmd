@@ -731,6 +731,8 @@ For policy applications, the difference matters in principle. A hypothetical fin
 
 For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://doi.org/10.1038/s41540-025-00550-w) for a recent review of UDEs in systems biology.
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 - **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)
 - **The loss function matters**: Poisson likelihood forces the model to explain small counts; SSE is dominated by peak values

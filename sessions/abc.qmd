@@ -899,6 +899,8 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
 - If they don't → observation model choice doesn't matter much
 - If they do → you've learned something about what features of the data drive inference!
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - ABC replaces the likelihood with an explicit distance, but choosing L1 over L2
