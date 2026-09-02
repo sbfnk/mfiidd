@@ -56,6 +56,7 @@ using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
 using MCMCChains ## for MCMC diagnostics
+using FlexiChains: niters, nchains, @varname ## chain size and variable lookup
 using StatsBase ## for autocorrelation
 ```
 
@@ -315,7 +316,7 @@ chain_multi = sample(model, NUTS(), MCMCThreads(), 2000, n_chains)
 # Check what each individual chain found
 println("Individual chain summaries:")
 for i in 1:n_chains
-    chain_i = chain_multi[:, :, i]
+    chain_i = chain_multi[chain = i]
     r0_mean = mean(chain_i[:R_0])
     dinf_mean = mean(chain_i[:D_inf])
     println(
@@ -328,8 +329,8 @@ end
 println("\nR̂ values:")
 rhat_values = DataFrame(rhat(chain_multi))
 for row in eachrow(rhat_values)
-    param = row.parameters
-    value = row.rhat
+    param = row.param
+    value = row.stat
     status = value < 1.1 ? "good" : "bad"
     println("  $param: $(round(value, digits = 3)) $status")
 end
@@ -337,7 +338,7 @@ end
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- `chain_multi[:, :, i]` - extracts the i-th chain from a multi-chain object. The three dimensions are: samples × parameters × chains.
+- `chain_multi[chain = i]` - extracts the i-th chain from a multi-chain object. A chain is indexed by iteration and by chain, and `niters` and `nchains` give the two sizes.
 - [`rhat(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates the R̂ (Gelman-Rubin) diagnostic. Compares variance within chains to variance between chains. Values < 1.1 indicate convergence; < 1.01 is even better.
 :::
 
@@ -353,7 +354,7 @@ ESS tells you how many independent samples your correlated MCMC samples are equi
 ```{julia}
 ess_values = DataFrame(ess(chain_multi))
 # ESS pools every draw from every chain, so compare it against iterations times chains.
-n_samples = size(chain_multi, 1) * size(chain_multi, 3)
+n_samples = niters(chain_multi) * nchains(chain_multi)
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -364,8 +365,8 @@ n_samples = size(chain_multi, 1) * size(chain_multi, 3)
 ```{julia}
 println("Effective Sample Size:")
 for row in eachrow(ess_values)
-    param = row.parameters
-    value = row.ess
+    param = row.param
+    value = row.stat
     efficiency = value / n_samples * 100
     status = value > 100 ? "good" : "bad"  # Rule of thumb: ESS > 100
     println(
@@ -390,10 +391,10 @@ posterior_means = DataFrame(mean(chain_multi))
 
 println("Posterior means ± MCSE:")
 for row in eachrow(mcse_values)
-    param = row.parameters
-    mcse_val = row.mcse
+    param = row.param
+    mcse_val = row.stat
     # Get mean for this parameter
-    mean_val = posterior_means[posterior_means.parameters .== param, :mean][1]
+    mean_val = posterior_means[posterior_means.param .== param, :stat][1]
     rel_error = mcse_val / abs(mean_val) * 100
     println(
         "  $param: $(round(mean_val, digits = 3)) ± ",
@@ -423,7 +424,7 @@ A small number of divergences (say <1% of samples) may be acceptable, but many d
 # Check for divergent transitions. NUTS records one per iteration in the
 # `numerical_error` column of the chain.
 n_divergent = sum(skipmissing(vec(chain_good[:numerical_error])))
-println("Divergent transitions: $(Int(n_divergent)) / $(length(chain_good))")
+println("Divergent transitions: $(Int(n_divergent)) / $(niters(chain_good))")
 if n_divergent > 0
     println("Consider raising the target acceptance rate, e.g. NUTS(0.95),")
     println("or reparametrising the model")
@@ -534,7 +535,7 @@ p = plot(title = "Posterior Predictive Check", xlabel = "Time", ylabel = "Cases"
 # Plot multiple posterior predictive samples
 for i in 1:50
     # Extract predictions for each time point
-    pred_obs = [predictions[Symbol("obs[$j]")][i, 1] for j in 1:length(epi1.obs)]
+    pred_obs = predictions[@varname(obs)][i, 1]
     plot!(p, epi1.time, pred_obs, alpha = 0.3, color = :lightblue, label = "")
 end
 
@@ -551,9 +552,9 @@ plot!(p)
 2. **`predict(decondition(model), chain_multi)`** uses parameters from the posterior chain to simulate new data
    - For each MCMC sample: takes R₀ and D_inf from the chain → solves ODE → samples new obs from Poisson
 
-3. **The result** is stored with keys like `Symbol("obs[1]")`, `Symbol("obs[2]")`, etc.
-   - Because our model uses `obs ~ arraydist(Poisson.(lambdas))`, Turing names each element of the predicted vector `obs[1]`, `obs[2]`, etc. To access these in Julia, we convert the string to a `Symbol`: `Symbol("obs[$j]")` becomes `:obs[1]`, `:obs[2]`, etc.
-   - `predictions[Symbol("obs[$j]")][i, 1]` then extracts the `i`-th posterior sample for the `j`-th observation. The `1` is the chain index (we have one chain here).
+3. **The result** keeps `obs` as a single variable rather than splitting it into one entry per observation
+   - `@varname(obs)` refers to the variable as the model declares it, so `predictions[@varname(obs)][i, 1]` returns the whole predicted vector for the `i`-th posterior sample. The `1` is the chain index (we have one chain here).
+   - This is worth noticing if you have used MCMCChains before, where a vector-valued `obs` is flattened into separate `obs[1]`, `obs[2]`, ... columns that you then have to reassemble.
 
 :::
 
@@ -586,7 +587,7 @@ Modern R̂ splits each chain in half for more robust diagnostics:
 rhat_split = DataFrame(rhat(chain_multi))
 println("Split-R̂ values (recommended):")
 for row in eachrow(rhat_split)
-    println("  $(row.parameters): $(round(row.rhat, digits = 4))")
+    println("  $(row.param): $(round(row.stat, digits = 4))")
 end
 ```
 
@@ -601,12 +602,12 @@ ess_tail = DataFrame(ess(chain_multi, kind = :tail))    # Tails of distribution
 
 println("Bulk ESS (central posterior):")
 for row in eachrow(ess_bulk)
-    println("  $(row.parameters): $(round(row.ess, digits = 0))")
+    println("  $(row.param): $(round(row.stat, digits = 0))")
 end
 
 println("\nTail ESS (posterior tails):")
 for row in eachrow(ess_tail)
-    println("  $(row.parameters): $(round(row.ess, digits = 0))")
+    println("  $(row.param): $(round(row.stat, digits = 0))")
 end
 ```
 

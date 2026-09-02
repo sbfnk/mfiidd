@@ -342,15 +342,12 @@ be wrapped for use with a Turing model, which is how the
 
 ```julia
 using AdvancedMH
-sample(model, adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 5000;
+sample(model, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 5000;
        num_warmup = 5000, check_model = false)
 ```
 
-`adapting_externalsampler` is a thin wrapper this course defines in
-[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl).
-Turing's `externalsampler` forwards ordinary sampling steps to the wrapped
-sampler but not warmup steps, and an adaptive sampler that never sees a warmup
-step never adapts.
+`num_warmup` matters here: an adaptive sampler needs warmup iterations to adapt
+in, and `externalsampler` passes them through to the wrapped sampler.
 
 ::: {.callout-note collapse="true"}
 ## Pathfinder, and why initialisation matters
@@ -400,9 +397,14 @@ standardises the model, and it does not standardise the sampler.
 
 Whatever produced your samples, you still have to check and summarise them.
 
-- [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/) is what this course uses:
-  R̂, effective sample size, MCSE and trace plots, as in the
-  [diagnostics session](mcmc_diagnostics.qmd).
+- [FlexiChains.jl](https://github.com/penelopeysm/FlexiChains.jl) is what Turing
+  returns by default, and what this course uses: R̂, effective sample size, MCSE
+  and trace plots, as in the [diagnostics session](mcmc_diagnostics.qmd). It
+  keeps a vector-valued variable whole instead of flattening it into one column
+  per element.
+- [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/) is the older chain type
+  that most existing Julia examples use. Pass `chain_type=MCMCChains.Chains` to
+  `sample` if you need it.
 - [ArviZ.jl](https://julia.arviz.org/) is a Julia interface to the ArviZ
   ecosystem, and is worth knowing if you also work in Python or want its
   diagnostic plots.

@@ -230,13 +230,12 @@ Let's start with a short chain to see the challenges:
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
 # Run a short chain with RAM
-# adapting_externalsampler() (from MFIIDD) wraps an AdvancedMH.jl sampler for use
-# with Turing models, so that RAM adapts during warmup
+# externalsampler() wraps an AdvancedMH.jl sampler for use with Turing models
 # num_warmup=500 gives it 500 discarded iterations to adapt in
 # check_model=false is needed because our model uses @addlogprob! instead of standard ~ syntax
 chain_short = sample(
     model_pmmh,
-    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     500;
     num_warmup=500,
     check_model=false,
@@ -264,7 +263,7 @@ Two details of the figure are worth reading. The iteration axis starts at 500 be
 ::: {.callout-tip title="Exercise: Run your own short PMMH chain"}
 Try running a short PMMH chain yourself:
 
-1. Run `sample(model_pmmh, adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; num_warmup=200, check_model=false)` and look at the trace plots
+1. Run `sample(model_pmmh, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; num_warmup=200, check_model=false)` and look at the trace plots
 2. What acceptance rate does the sampler achieve? (Look at the proportion of samples that change between iterations)
 3. Try reducing the particle count to 64: `pmmh_seit4l(flu_tdc.obs, 64)`. How does this affect mixing? Is it faster but noisier?
 4. Compare to the pre-computed chain loaded below — how many more iterations were needed for convergence?
@@ -348,11 +347,6 @@ Because RAM only adapts during warmup, `num_warmup` is not a formality: with no
 warmup the proposal stays at the identity matrix it started from and acceptance
 sits near 0.5% instead of the 23% RAM aims for, whatever the chain length. The
 saved chains use 50,000 warmup iterations.
-
-We sample through `adapting_externalsampler` from `MFIIDD` rather than Turing's
-`externalsampler` for the same reason; the docstring in
-[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl)
-gives the details.
 :::
 :::
 
@@ -859,7 +853,7 @@ For production PMMH, you should run multiple chains and check convergence:
 # Run multiple chains in parallel
 chain_multi = sample(
     model_pmmh,
-    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     MCMCThreads(),
     10000,
     4;

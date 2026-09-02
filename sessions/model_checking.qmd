@@ -54,6 +54,7 @@ using Plots
 using StatsPlots
 using Turing
 using MCMCChains
+using FlexiChains: @varname ## refer to a model variable by name
 using CSV
 using DrWatson
 using StatsBase
@@ -249,10 +250,7 @@ predictions = predict(decondition(model), chain)
 # Extract into a list of trajectories for plotting and analysis
 n_sims = min(100, size(predictions, 1))
 n_obs = length(flu_tdc.obs)
-ppc_samples = [
-    [predictions[Symbol("obs[$j]")][i, 1] for j in 1:n_obs]
-    for i in 1:n_sims
-]
+ppc_samples = [predictions[@varname(obs)][i, 1] for i in 1:n_sims]
 ```
 
 ::: {.callout-tip collapse="true"}
@@ -262,7 +260,7 @@ This generates posterior predictive samples in two steps:
 1. **`decondition(model)`** — removes the conditioning on observed data. Our `model` was created with `sir_model(...) | (; obs = flu_tdc.obs)`, so `decondition()` reverses this, turning the `obs ~ arraydist(Poisson.(lambdas))` statement from a likelihood computation back into a generative sample.
 2. **`predict(..., chain)`** — for each parameter sample in the chain, runs the model forward and samples new observations from the Poisson distribution.
 
-The result is a chain-like object where `predictions[Symbol("obs[$j]")]` gives the predicted values for the `j`-th observation across all posterior samples.
+The result is a chain-like object, and `predictions[@varname(obs)]` gives the whole predicted vector for each posterior sample, so `[i, 1]` picks the `i`-th sample of the first chain and returns all `n_obs` values at once.
 :::
 
 ```{julia}
