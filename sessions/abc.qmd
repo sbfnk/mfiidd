@@ -954,6 +954,10 @@ end
 
 Using fewer, well-chosen summaries can make ABC more robust to noise and model misspecification. However, there is a trade-off: summaries that discard too much information will produce wider posteriors. The choice of which summaries to use is problem-specific and often requires experimentation.
 
+Try passing `distance_summaries` to `abc_rejection` in place of `distance_L1` and compare the posteriors you get.
+The four summaries throw away the day-to-day shape of the curve, so expect them to widen.
+How much each parameter widens tells you how much of what identified it was in the detail of the trajectory rather than in its peak, total and timing.
+
 ## Alternative observation models
 
 The choice of observation model affects inference more than many researchers realise. Consider exploring:

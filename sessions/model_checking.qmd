@@ -494,16 +494,7 @@ do. When a check fails on the shape of the dynamics, the dynamics are what has t
 change.
 :::
 
-::: {.callout-tip title="Learning points"}
-- **Prior predictive checks** validate that your priors generate plausible data before you see observations
-- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
-- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
-- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
-:::
-
-# Going further
-
-## Simulation-based calibration
+# Simulation-based calibration
 
 A more rigorous check asks: *does my inference procedure recover true parameters when I know them?*
 
@@ -570,6 +561,15 @@ A uniform histogram indicates well-calibrated inference. Peaks at the edges sugg
 Full SBC requires many simulations (100+) and is computationally expensive. It is particularly important when implementing new models, using complex inference algorithms, or when you need high confidence that your computational pipeline is correct. For established models with well-tested software, prior and posterior predictive checks catch most problems, but SBC provides the strongest guarantee that inference is working as intended.
 :::
 
+::: {.callout-tip title="Learning points"}
+- **Prior predictive checks** validate that your priors generate plausible data before you see observations
+- **Posterior predictive checks** test whether the fitted model can reproduce key features of the observed data
+- **Residual patterns** diagnose specific model deficiencies: trends, autocorrelation, heteroscedasticity
+- **Model failure is informative** - it guides model improvement and reveals missing mechanisms
+- **Simulation-based calibration** checks the inference procedure rather than the model, by asking whether parameters drawn from the prior are recovered from data simulated with them
+:::
+
+# Going further
 
 ## Prior sensitivity analysis
 
