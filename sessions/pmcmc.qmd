@@ -17,6 +17,8 @@ In the [previous session](particle_filters.qmd), we learned how particle filters
 
 Now we'll put this into practice. This session shows how to combine particle filters with Metropolis-Hastings to perform full Bayesian inference on stochastic models — the Particle Marginal Metropolis-Hastings (PMMH) algorithm.
 
+Fitting the stochastic model also puts us in a position to compare models for the first time. Two comparisons run through the second half of the session: the stochastic fit against the deterministic one, and SEITL against SEIT4L, which differ in how they distribute the duration of temporary immunity.
+
 ::: {.callout-note collapse="true"}
 ## Coming from R?
 In R, particle MCMC is available through [`pomp`](https://kingaa.github.io/pomp/) (the `pmcmc()` function) and the [`mcstate`](https://mrc-ide.github.io/mcstate/) package (part of the odin/dust/mcstate ecosystem). The concepts are identical; only the implementation differs.
@@ -30,6 +32,7 @@ In this session you will:
 2. Fit the stochastic SEIT4L model to the Tristan da Cunha outbreak
 3. Compare stochastic vs deterministic model fits
 4. Understand why PMMH requires long chains and adaptive proposals
+5. Compare two competing models with DIC and with posterior predictive checks, and see what each can and cannot tell you
 
 ::: {.callout-important}
 ## Reminder: Stochastic variability
@@ -556,23 +559,7 @@ println("  D_imm = $(round(mean(chain_pmcmc[:D_imm]), digits=2))")
 
 The key difference is in the D_imm (duration of temporary immunity) estimates. SEIT4L, with its Erlang-distributed immunity duration, typically estimates a shorter mean duration but with less variance in timing.
 
-### What the original study found
-
-[Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
-
-The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compared to 1.0 for exponential), meaning individuals lose immunity at more consistent times. For the Tristan da Cunha data, this more realistic timing distribution better captures the second wave dynamics.
-
-### Practical recommendations
-
-For particle MCMC model comparison:
-
-1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? For a time series fitted with a particle filter this is usually as far as you can get, and it is what the section above does.
-2. **Use WAIC or LOO-CV where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
-3. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
-
-When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
-
-## Comparing the two models
+### Comparing the two models
 
 The criteria above are described but not computed, so nothing so far has actually
 compared the two models. We can do it directly with the chains we already have.
@@ -741,6 +728,23 @@ any of them is right.
 - **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
 - **Model comparison** using information criteria helps choose between competing mechanistic explanations, though applying them to particle MCMC requires care
 :::
+
+### What the original study found
+
+[Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
+
+The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compared to 1.0 for exponential), meaning individuals lose immunity at more consistent times. For the Tristan da Cunha data, this more realistic timing distribution better captures the second wave dynamics.
+
+### Practical recommendations
+
+For particle MCMC model comparison:
+
+1. **Start with posterior predictive checks** - do the models make qualitatively different predictions? This check applies whatever the model, and it is what the section above does.
+2. **Use WAIC or LOO-CV where the observations are conditionally independent** - which covers the deterministic fits earlier in the course, but not a model with a stochastic latent trajectory. Check the assumption before reaching for the criterion.
+3. **Fall back to DIC when the pointwise terms are out of reach** - it asks only for the deviance, which a particle filter can supply, and it is what the section above uses alongside the predictive check.
+4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
+
+When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
 
 # Going further
 
