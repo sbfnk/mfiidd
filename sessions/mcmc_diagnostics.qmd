@@ -773,7 +773,9 @@ After three sessions, you now have a complete workflow for Bayesian inference wi
 
 But MCMC convergence doesn't mean your model is correct - that's next in [Model Checking](model_checking.qmd).
 
-::: {.callout-tip title = "Learning points"}
+# Learning points
+
+::: {.callout-tip title="Learning points"}
 
 - **Always check convergence** - never trust MCMC without diagnostics
 - **Multiple chains** are essential for robust inference

@@ -899,6 +899,8 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
 - If they don't → observation model choice doesn't matter much
 - If they do → you've learned something about what features of the data drive inference!
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - ABC replaces the likelihood with an explicit distance, but choosing L1 over L2
@@ -954,6 +956,10 @@ end
 
 Using fewer, well-chosen summaries can make ABC more robust to noise and model misspecification. However, there is a trade-off: summaries that discard too much information will produce wider posteriors. The choice of which summaries to use is problem-specific and often requires experimentation.
 
+Try passing `distance_summaries` to `abc_rejection` in place of `distance_L1` and compare the posteriors you get.
+The four summaries throw away the day-to-day shape of the curve, so expect them to widen.
+How much each parameter widens tells you how much of what identified it was in the detail of the trajectory rather than in its peak, total and timing.
+
 ## Alternative observation models
 
 The choice of observation model affects inference more than many researchers realise. Consider exploring:
@@ -971,6 +977,9 @@ For ABC with outliers or model misspecification, consider robust distances:
 - **Median absolute deviation** instead of mean squared error
 - **Quantile-based distances** that down-weight extreme values
 - **Feature-based distances** that focus on epidemiologically meaningful patterns
+
+Try replacing `distance_L1` in `abc_rejection` with a median-based version, `distance_median(sim, obs) = median(abs.(sim .- obs))`, and compare the posteriors.
+A robust distance stops a handful of large daily discrepancies dominating the fit, so how much the posterior moves tells you how much of it was being decided by a few days.
 
 # References
 

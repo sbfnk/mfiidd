@@ -469,6 +469,8 @@ This reveals that different likelihoods are just different ways of measuring dis
 - Negative Binomial: Similar but allows more flexibility (overdispersion)
 - Gaussian: Constant penalty regardless of scale
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - Parametric likelihoods are pragmatic choices rather than mechanistic truths: we

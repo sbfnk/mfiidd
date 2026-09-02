@@ -3,7 +3,7 @@ title: "Universal Differential Equations: Learning Unknown Mechanisms"
 subtitle: "Combining mechanistic models with machine learning"
 format: html
 engine: julia
-order: 11
+order: 12
 ---
 
 ::: {.callout-note appearance="simple"}
@@ -730,6 +730,8 @@ The workflow often combines both approaches: first use a neural network UDE to c
 For policy applications, the difference matters in principle. A hypothetical finding like "transmission increases when prevalence drops below 5%" would be actionable; "transmission follows neural network with weights [0.23, -0.41, ...]" is not. In practice, recovering clean symbolic expressions from noisy epidemic data is difficult, but symbolic UDEs offer a path from discovery towards interpretation.
 
 For more on this approach, see the [SciML tutorial on missing physics](https://docs.sciml.ai/Overview/stable/showcase/missing_physics/) and [Philipps et al. (2025)](https://doi.org/10.1038/s41540-025-00550-w) for a recent review of UDEs in systems biology.
+
+# Learning points
 
 ::: {.callout-tip title="Learning points"}
 - **UDEs combine mechanistic and machine learning**: Keep known structure (SIR compartments), learn unknown parts (how β varies)

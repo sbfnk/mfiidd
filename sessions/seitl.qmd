@@ -771,6 +771,8 @@ You write the model once and use it for all purposes.
 This is the power of probabilistic programming!
 :::
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - **Deterministic models** are fast but ignore individual-level randomness

@@ -1103,6 +1103,8 @@ Almost all of those 3721 refined evaluations landed on parameter values with neg
 Lastly, it is difficult to establish whether the grid is fine enough (or important parameter regions might be in the "gaps"), and whether the limits of the grid are wide enough.
 Note that we only knew where to refine because the coarse grid had already told us roughly where the mode was.
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 
 - **Priors** express beliefs before seeing data - explore them through simulation (prior predictive checking)

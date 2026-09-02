@@ -3,7 +3,7 @@ title: "Neural posterior estimation"
 subtitle: "Amortised Bayesian inference for mechanistic models"
 format: html
 engine: julia
-order: 10
+order: 11
 ---
 
 ::: {.callout-note appearance="simple"}

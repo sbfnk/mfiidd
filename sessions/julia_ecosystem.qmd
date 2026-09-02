@@ -2,7 +2,7 @@
 title: "Beyond Turing: the wider Julia ecosystem"
 format: html
 engine: julia
-order: 12
+order: 13
 ---
 
 ::: {.callout-note appearance="simple"}
@@ -437,6 +437,8 @@ away everything that might be causing it, which often tells you where the fault
 actually lies. If you want a sampler Turing does not implement, LogDensityProblems
 is the way in. And if you are deploying something, a minimal stack of your model
 plus an AD backend plus a sampler is less to maintain than the whole framework.
+
+# Learning points
 
 ::: {.callout-tip title="Learning points"}
 
