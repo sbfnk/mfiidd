@@ -746,7 +746,7 @@ Notice that:
 - NUTS had automatic warmup: no manual burn-in needed, see below.
 
 ::: {.callout-tip collapse="true"}
-## What is burn-in?
+## Burn-in
 MCMC chains start at an arbitrary point in parameter space, which may be far from the high-probability region. The initial samples as the chain "finds its way" to the posterior are called *burn-in* (or *warmup*). These samples don't represent the posterior and are typically discarded.
 
 With Metropolis-Hastings, you need to decide how many burn-in samples to discard by inspecting trace plots. NUTS handles this automatically: it uses the warmup period to adapt its step size and mass matrix, then discards those samples for you.
@@ -770,7 +770,7 @@ summarystats(chain_nuts)
 :::
 
 ::: {.callout-tip}
-## Which sampler should I use?
+## Choosing a sampler
 
 | Sampler | Best for | Limitations |
 |---------|----------|-------------|

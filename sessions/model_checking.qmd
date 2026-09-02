@@ -132,7 +132,7 @@ end
 ```
 
 ::: {.callout-tip collapse="true"}
-## Why `max(..., 1e-10)` everywhere?
+## The `max(..., 1e-10)` guard
 You'll see `max(value, 1e-10)` throughout the course wherever we create a Poisson distribution. `Poisson(λ)` requires `λ > 0` — passing exactly zero causes an error. In practice, the model can produce zero expected incidence (e.g. before the epidemic starts or after it ends), and numerical noise from the ODE solver can even produce tiny negative values. The `max(..., 1e-10)` guard ensures we always pass a valid (tiny but positive) rate. The value `1e-10` is small enough to be effectively zero for all practical purposes.
 :::
 
@@ -221,7 +221,7 @@ everyone in four days is.
 :::
 
 ::: {.callout-tip}
-## When priors are too vague
+## Priors that are too vague
 If your prior predictive check shows wildly varying trajectories - some with 0 cases, others with thousands - your priors may be too vague. Consider using domain knowledge to constrain them. E.g. for influenza, $R_0$ between 1 and 5 might be more realistic than 0.5 to 10.
 :::
 
@@ -437,7 +437,7 @@ p_acf = scatter(lag1_resid, lag0_resid,
 
 Strong correlation here suggests the model is missing important dynamics - exactly what we'd expect when fitting SIR to two-wave data.
 
-# When models fail checks
+# Models that fail their checks
 
 What should you do when model checks reveal problems?
 
@@ -450,7 +450,7 @@ Residual patterns point to specific fixes. Temporal trends in residuals suggest 
 Remember that model failure is information. A model that fails to capture the second wave in Tristan da Cunha tells us something important: simple SIR dynamics are insufficient, motivating the temporary immunity models we explore in later sessions.
 
 ::: {.callout-tip}
-## When is a model "good enough"?
+## Judging when a model is good enough
 There is no universal threshold. All models are wrong — the question is whether yours is useful for your specific purpose. A model is good enough when:
 
 - It captures the features you care about (e.g. peak timing for planning surge capacity)

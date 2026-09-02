@@ -426,7 +426,7 @@ have already been using without necessarily noticing:
 - [JumpProcesses.jl](https://docs.sciml.ai/JumpProcesses/stable/) for stochastic
   simulation of the kind we hand-coded in the [SEITL session](seitl.qmd)
 
-# When to reach outside Turing
+# Reaching outside Turing
 
 Most of the time, use Turing. The `@model` syntax is clearer and quicker to
 write, and the diagnostics tooling comes with it.

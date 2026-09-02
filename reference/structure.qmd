@@ -5,7 +5,7 @@ engine: julia
 order: 1
 ---
 
-# What is MFIIDD?
+# About the course
 
 **Model fitting and inference for infectious disease dynamics** (MFIIDD) is a hands-on course that teaches you to fit mathematical models of infectious disease to data using modern Bayesian methods.
 

@@ -94,7 +94,7 @@ Random.seed!(1234)
 
 In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on the particle filter mechanics.
 
-# Why deterministic likelihood fails for stochastic models
+# The failure of a deterministic likelihood
 
 First, consider the problem. With a deterministic model, the trajectory is fully determined by the parameters:
 
@@ -142,7 +142,7 @@ init_state = Dict(
 ## The Gillespie simulator
 
 ::: {.callout-note}
-## Why SEIT4L instead of SEITL?
+## The choice of SEIT4L
 From here on, we use the **SEIT4L** model (Erlang-4 temporary immunity) rather than the basic SEITL (exponential temporary immunity). As we saw in the [SEITL session](seitl.qmd), the Erlang distribution gives more realistic timing for immunity loss. The original [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) paper found that SEIT4L fits the Tristan da Cunha data better. Everything below works identically with SEITL — just with fewer T sub-compartments.
 :::
 
@@ -169,7 +169,7 @@ Key aspects:
 - **Event selection**: Exponential waiting time, event chosen proportional to rates
 - **Incidence tracking**: Counts E→I transitions as new cases
 
-# How particle filters work
+# The particle filter algorithm
 
 The particle filter approximates the likelihood integral by:
 
@@ -327,7 +327,7 @@ already recorded in the running likelihood estimate.
 :::
 
 ::: {.callout-tip}
-## Why resampling is essential: particle degeneracy
+## Particle degeneracy and resampling
 
 Without resampling, particle filters suffer from *degeneracy*: after several time steps, almost all weight concentrates on a single particle. This happens because multiplicative weights compound - a particle that's slightly better at time 1 gets a slightly higher weight, making it even more likely to dominate at time 2, and so on.
 

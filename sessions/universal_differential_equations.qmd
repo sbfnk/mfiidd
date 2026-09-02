@@ -650,7 +650,7 @@ For each change, re-run from Step 1 through Step 6 and compare the β(t) plot to
 In the section on [structural constraints](#the-deeper-issue-structural-constraints), we argue that an SIR model with learned β(t) can only sustain the second wave by driving β ever higher. Can you explain, in your own words, why sustaining the second wave requires R_0 to climb the way it does — considering both the depleted susceptible pool and near-zero prevalence during the trough? What structural change to the model would let it produce a second wave without an implausible R_0, and how does this relate to the SEIT4L model from the [pMCMC session](pmcmc.qmd)?
 :::
 
-# When to use UDEs
+# Where UDEs fit
 
 UDEs aren't always appropriate. Here's when they add value.
 

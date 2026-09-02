@@ -732,7 +732,7 @@ Now let's step back and compare all our approaches - parametric likelihoods and 
 | **ABC (L1)** | Distance metric | Why L1? | Slow (many simulations) |
 | **ABC (weighted)** | Distance + weights | Why these weights? | Slow (many simulations) |
 
-## Do they give similar results?
+## Agreement between the posteriors
 
 Comparing the posteriors:
 
@@ -762,7 +762,7 @@ plot(p1, p2, layout=(1, 2), size=(900, 400))
 
 **Discussion**: Are the posteriors similar or different? What does this tell us about the observation model choice?
 
-# When does it matter?
+# When the choice matters
 
 ## Sensitivity analysis
 
@@ -862,7 +862,7 @@ println("  Outlier data: ", round(distance_L1(predicted, data_outlier), digits=2
 
 # The philosophical question
 
-## Is there a "correct" observation model?
+## The absence of a correct observation model
 
 **No!** There are only:
 

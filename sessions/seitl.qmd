@@ -782,7 +782,7 @@ This is the power of probabilistic programming!
 :::
 
 ::: {.callout-important}
-## Why we need particle filters
+## The need for particle filters
 Fitting stochastic models is fundamentally harder than fitting deterministic ones. With a deterministic model, the same parameters always produce the same trajectory, so the likelihood is straightforward. With a stochastic model, the same parameters can produce wildly different trajectories — there is no single "expected" output to compare against.
 
 Particle filters solve this by running many stochastic simulations simultaneously and estimating the likelihood as an average. The [next session](particle_filters.qmd) introduces this technique.

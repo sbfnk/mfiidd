@@ -115,7 +115,7 @@ end
 ```
 
 ::: {.callout-tip collapse = "true"}
-## Why is there an exclamation mark in `sir_ode!()`?
+## The exclamation mark in `sir_ode!()`
 
 In Julia, the exclamation mark indicates that the function can modify its arguments.
 In this case, the function modifies `du` in the last 3 lines to indicate the current change in the system as given by the ODEs.
@@ -224,7 +224,7 @@ plot(sol, labels=["S" "I" "R"])
 
 # Part 1: Understanding priors
 
-## What is a prior?
+## Priors
 
 A *prior* represents what we believe about parameters *before* seeing any data.
 It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
@@ -331,7 +331,7 @@ plot!(p)
 ```
 
 ::: {.callout-note collapse = "true"}
-### How did we tell Julia to plot just the number of infected?
+### Plotting a single compartment
 The `plot()` commands now contain an argument `idxs`, which allows us to choose what to plot.
 This uses the [plot recipe for differential equations](https://docs.sciml.ai/DiffEqDocs/stable/basics/plot).
 Index 0 corresponds to the time variable, and any indices >0 to the variables of the differential equations.
@@ -568,7 +568,7 @@ The key difference is that in Julia you first create the distribution object, th
 
 # Part 2: Understanding the likelihood
 
-## What is a likelihood?
+## Likelihoods
 
 The *likelihood* quantifies how probable our observed data is, given specific parameter values.
 It asks: "If the parameters were X, how likely would we be to see the data we actually observed?"
@@ -585,7 +585,7 @@ first(epi1, 5)
 ```
 
 ::: {.callout-tip collapse="true"}
-## What is `datadir()`?
+## The `datadir()` helper
 `datadir()` comes from the [DrWatson.jl](https://juliadynamics.github.io/DrWatson.jl/stable/) package we loaded in the setup. It returns the path to the `data/` folder in the project root, so `datadir("epi1_synthetic.csv")` expands to something like `/path/to/mfiidd.julia/data/epi1_synthetic.csv`. This keeps file paths portable across different machines.
 :::
 
@@ -809,7 +809,7 @@ If you're working through this in one sitting, **stop here for 10-15 minutes**. 
 
 # Part 3: Understanding the posterior
 
-## What is a posterior?
+## Posteriors
 
 The *posterior* combines our prior beliefs with the data evidence using *Bayes' theorem*:
 
@@ -834,7 +834,7 @@ for (i, theta) in enumerate(test_params)
 end
 ```
 
-## How priors influence the posterior
+## The influence of priors on the posterior
 
 The following compares flat vs informed priors for all our test parameters:
 
@@ -1049,7 +1049,7 @@ Drawing from it and indexing into `fine_results` is how you sample from a poster
 :::
 
 ::: {.callout-tip collapse="true"}
-## What's the difference?
+## The difference between the two plots
 In the first plot we fixed the parameters at their best values and varied only the observation noise.
 In the second we draw the parameters from the posterior as well, so the spread accounts for our uncertainty about the parameters on top of the noise in the observations.
 The difference is small here, because 30 daily observations pin this two-parameter model down tightly.
@@ -1075,7 +1075,7 @@ tight. With a Poisson likelihood that is the usual finding, and it is the
 diagnostic that motivates the negative binomial later in the course.
 :::
 
-# Why we need algorithmic approaches
+# The need for algorithmic approaches
 
 We have seen how being able to simulate a model, in combination with prior densities and observation probabilities (expressed in the likelihood) enables us to fit this model to data and develop an understanding of parametric uncertainty.
 But we have done so using grid search, which has serious limitations:

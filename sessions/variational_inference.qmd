@@ -205,7 +205,7 @@ Each timing cell runs the method once before measuring it, so the figure is the 
 
 # Approach 1: Mean-Field Variational Inference
 
-## What is variational inference?
+## The idea behind variational inference
 
 MCMC works by drawing samples from the posterior distribution. This gives us exact results (in the limit), but requires many sequential steps as the sampler explores parameter space.
 
@@ -501,7 +501,7 @@ On this three-parameter model the timings above separate the three methods hardl
 at all. Read the table as the shape of the trade-off on problems large enough for
 it to appear, rather than as a promise about seconds here.
 
-# When to use each method
+# Choosing between the methods
 
 ## Use MCMC when:
 
@@ -546,7 +546,7 @@ When you suspect these issues, MCMC remains the more reliable choice. A useful d
    - If time allows → use MCMC for final analysis (more reliable)
 4. For real-time systems using VI: Periodic MCMC checks to validate
 
-## Why speed matters in practice
+## Speed in practice
 
 On a single small analysis the choice hardly matters, as the timings above show. The difference becomes critical in operational settings:
 

@@ -208,7 +208,7 @@ plot(chain_poisson[[:R_0, :D_inf, :ρ]], size=(900, 600))
 summarystats(chain_poisson)
 ```
 
-## What does Poisson assume?
+## The Poisson assumption
 
 The Poisson distribution has a key property: **variance = mean**
 

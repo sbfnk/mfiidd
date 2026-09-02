@@ -765,7 +765,7 @@ The general recipe:
 3. Extend the warmup period
 4. Check whether the model specification itself is doing something wrong
 
-# How the pieces fit together
+# The workflow so far
 
 After three sessions, you now have a complete workflow for Bayesian inference with deterministic models. In the [Introduction](introduction.qmd), you learned the core concepts: priors encode beliefs before seeing data, likelihoods measure how well parameters explain observations, and Bayes' theorem combines them into a posterior. In [MCMC](mcmc.qmd), you saw how to sample from posteriors that are too complex for grid search - from basic Metropolis-Hastings through adaptive methods (RAM) to gradient-based samplers (NUTS). This session covered diagnostics: trace plots for visual assessment, R̂ for convergence, and ESS for effective sample size.
 
