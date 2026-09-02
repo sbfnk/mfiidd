@@ -628,10 +628,20 @@ Lower is better, and a gap of this size is large enough to take seriously.
 SEIT4L wins on both terms: it fits better *and* uses fewer effective parameters,
 which you would hope for from the model with the more realistic waiting time.
 
-One caveat specific to this setting. $p_D$ is computed from log-likelihoods the
+Two caveats specific to this setting. $p_D$ is computed from log-likelihoods the
 particle filter only estimates, so it carries a little of the filter's noise as
 well as the posterior's spread. With 256 particles that contribution is small
-here, but it grows as you cut the particle count.
+here, and it grows as you cut the particle count.
+
+The larger one is that DIC is not uniquely defined for a model with latent
+variables [@celeux2006]. The deviance can be built on the observed data with the
+latent path integrated out, or on the complete data with the path treated as a
+parameter, and the two give different answers. The version above is the first,
+because the particle filter estimates $p(y \mid \theta)$ with the path already
+integrated out, and it is the version that keeps DIC's usual justification. The
+conditional version, which treats the latent states as parameters, is the one to
+avoid. Criteria built on one-step-ahead predictions are better suited to
+state-space models still, and are worth knowing about if you take this further.
 
 No single number can say whether the winner fits the data at all, so the
 comparison this session leans on is the posterior predictive one. Simulate from
