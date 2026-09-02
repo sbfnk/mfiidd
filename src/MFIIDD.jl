@@ -25,7 +25,7 @@ export seitl_ode!, simulate_seitl_deterministic, simulate_seitl_stochastic
 export seit4l_ode!, simulate_seit4l_deterministic
 export generate_observations
 export gillespie_step, gillespie_step_seitl!, gillespie_step_seit4l!
-export run_particle_filter, run_particle_filter_seitl
+export run_particle_filter, run_particle_filter_seitl, filtered_incidence
 export SEIT4LDynamics, SEIT4LInitial, PoissonObservation
 export SEITLDynamics, SEITLInitial
 export AdaptingExternalSampler, adapting_externalsampler

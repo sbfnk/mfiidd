@@ -681,10 +681,10 @@ each posterior and look:
 
 Each replicate draws parameters from the posterior and then runs the epidemic
 forward from the same starting state, so it gets a fresh latent trajectory.
-Filtering would condition that trajectory on the observations, which makes it
-track the data whatever the model and so checks nothing. Simulating forward
-instead costs wide envelopes, since every replicate re-rolls the whole outbreak
+That costs wide envelopes, since every replicate re-rolls the whole outbreak
 along with the parameters.
+The alternative is to condition the trajectory on the observations, and we
+compare the two below.
 
 ```{julia}
 #| output: false
@@ -762,6 +762,56 @@ second wave, and neither is extreme enough to be rejected on this statistic. The
 better model here is the less-bad one. That is the limit of a comparison: it
 ranks the candidates you happened to write down, and says nothing about whether
 any of them is right.
+:::
+
+### Where the latent trajectory comes from
+
+The replicates above simulate the epidemic forward, so each one carries a latent
+path the filter never saw the data for.
+A particle filter can also hand back a path that *was* conditioned on the data.
+`DenseAncestorCallback` records the particles and their ancestor indices at every
+step, so drawing one particle at the end and following its ancestry back gives a
+whole trajectory:
+
+```{julia}
+#| output: false
+Random.seed!(2)
+n_filt = 200
+sims_filtered = map(1:n_filt) do _
+    row = seit4l_df[rand(1:nrow(seit4l_df)), :]
+    θ = Dict(:R_0 => row.R_0, :D_lat => row.D_lat, :D_inf => row.D_inf,
+             :α => row.α, :D_imm => row.D_imm, :ρ => row.ρ)
+    inc = filtered_incidence(θ, flu_tdc.obs, 256)
+    [rand(Poisson(max(row.ρ * x, 1e-10))) for x in inc]
+end
+```
+
+```{julia}
+p = plot(xlabel = "Day", ylabel = "Reported cases",
+         title = "SEIT4L: re-simulated and filtered, 95% envelopes")
+envelope!(p, sims_seit4l, "re-simulated", :darkorange)
+envelope!(p, sims_filtered, "filtered", :seagreen)
+scatter!(p, flu_tdc.time, flu_tdc.obs, label = "observed",
+         colour = :black, markersize = 3)
+```
+
+Both sets are draws of replicate data from the same fitted model, and they differ
+only in where the latent path comes from.
+The re-simulated replicates draw $\theta \sim p(\theta \mid y)$ and then a fresh
+path $X \sim p(X \mid \theta)$, with the latent path marginalised out of what the
+data informed.
+The filtered replicates draw the pair from the joint $p(\theta, X \mid y)$, so the
+path itself has been told the answer.
+
+::: {.callout-warning}
+The filtered envelope is narrower on 51 of the 59 days, and less than half the
+width of the re-simulated one across the first wave.
+That tightness is not evidence of a better model.
+It tracks the observations because it was conditioned on them, and it would do
+so for a model that generates nothing like this outbreak when left to run.
+Judge fit with the re-simulated envelope.
+Read the filtered one as a picture of what the epidemic plausibly did, which is
+the question it answers well.
 :::
 
 ::: {.callout-tip title="Learning points"}
@@ -843,11 +893,13 @@ PG can exhibit high autocorrelation in some settings - [Lindsten et al. (2014)](
 
 PMCMC methods can provide **filtered trajectories** - stochastic trajectories from the model conditioned on both the estimated parameters and the observed data. These are useful for visualising what the underlying epidemic dynamics might have looked like, given what we observed.
 
-These are a different object from the posterior predictive replicates in the model comparison above.
-There, each replicate draws its own latent path from the model, so the check has something to fail at.
-A filtered trajectory is pinned to the observations, which is what makes it a good picture of the epidemic and a weak test of the model.
+The model comparison above plots these against the re-simulated replicates, using `filtered_incidence` from the course package.
+It samples one particle at the final time point, weighted by the particle weights, and reconstructs its path back through time, which gives one draw from the posterior over trajectories.
+Repeating across MCMC iterations gives a collection of plausible epidemic histories.
 
-To extract a trajectory from our particle filter, we would sample one particle at the final time point (weighted by the particle weights) and reconstruct its path back through time. This gives one draw from the posterior distribution over trajectories. Repeating across MCMC iterations gives a collection of plausible epidemic histories.
+One caveat that plot does not show: within a single filter run the surviving particles share ever fewer distinct ancestors as you trace them back, so the early part of any one path is drawn from a handful of histories rather than from the full smoothing distribution.
+Drawing many paths from one run would therefore understate the uncertainty badly.
+The plot above avoids that by re-running the filter for every replicate, at a fresh posterior draw, so the paths are independent of each other.
 
 See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf) for details on trajectory sampling from particle filters.
 
