@@ -157,7 +157,7 @@ scatter!(flu_tdc.time, flu_tdc.obs,
 Not a perfect fit, but good enough for illustration!
 
 In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on observation model choices.
-# Approach 1: Poisson Likelihood (Traditional)
+# The Poisson likelihood
 
 ## The standard approach
 
@@ -332,7 +332,7 @@ Then fit it below and check.
    [model checking](model_checking.qmd) session comes first.
 :::
 
-# Approach 2: Negative Binomial Likelihood (Pragmatic)
+# The negative binomial likelihood
 
 ## Adding overdispersion
 

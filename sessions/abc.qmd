@@ -184,7 +184,7 @@ chain_poisson = sample(model_poisson, NUTS(0.65), 500, progress=false)
 ```
 :::
 
-# Approach 3: Approximate Bayesian Computation
+# Approximate Bayesian Computation
 
 ## ABC: Making the distance explicit
 
