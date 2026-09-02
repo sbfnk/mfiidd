@@ -638,15 +638,23 @@ variables [@celeux2006]. The deviance can be built on the observed data with the
 latent path integrated out, or on the complete data with the path treated as a
 parameter, and the two give different answers. The version above is the first,
 because the particle filter estimates $p(y \mid \theta)$ with the path already
-integrated out, and it is the version that keeps DIC's usual justification. The
-conditional version, which treats the latent states as parameters, is the one to
-avoid. Two better-suited options exist if you take this further. A one-step-ahead
+integrated out, and it is the version that keeps DIC's usual justification. The conditional
+version treats the latent path as a parameter, and since the model carries one
+latent state per observation, its effective number of parameters grows with the
+data instead of measuring the model's complexity. DIC's justification assumes a
+fixed-dimensional parameter, so it lapses. Two better-suited options exist if you take this further. A one-step-ahead
 pseudo-DIC scores each observation against a prediction made from the state at
 the previous time point [@millar2014], which is the natural predictive question
 for a time series. Alternatively, PMMH gives unbiased estimates of the marginal
-likelihood itself, so the marginal likelihood can be estimated directly and
-compared across models. Both need quantities our filter computes internally and
-does not return, so neither is a drop-in change here.
+likelihood itself, so it can be estimated directly and compared across models.
+That comparison needs no separate complexity penalty: integrating over the prior
+already supplies one, because a model with more parameters spreads its prior mass
+over more datasets and so assigns less probability to any particular one. The
+cost of relying on it is a sensitivity to the priors themselves, which is the
+reason for the caution about Bayes factors above.
+
+Both options need quantities our filter computes internally and does not return,
+so neither is a drop-in change here.
 
 No single number can say whether the winner fits the data at all, so the
 comparison this session leans on is the posterior predictive one. Simulate from
