@@ -572,12 +572,23 @@ every day's count depends on the same simulated path, and a particle filter
 estimates the likelihood of the whole series rather than handing you the
 per-observation contributions.
 
-That assumption does hold in the deterministic sessions, where the trajectory is
-fixed by $\theta$ and each day's count is an independent Poisson draw around it.
-Here the trajectory is itself random. Within any one run the whole series depends
-on the single path that run happened to take, and a second run takes a different
-one. That shared dependence is the feature that makes the model stochastic, and
-it is why the observations are not independent given the parameters alone.
+That assumption does hold in the deterministic sessions. There $\theta$ fixes the
+trajectory, each day's count is an independent Poisson draw around it, and the
+likelihood factorises:
+
+$$p(y \mid \theta) = \prod_{t} p(y_t \mid \theta)$$
+
+which is what gives you the pointwise terms. Here the trajectory $X$ is itself
+random, and the observations depend on the parameters only through it:
+
+$$p(y \mid \theta) = \int \prod_{t} p(y_t \mid X_t)\, p(X \mid \theta) \, \mathrm{d}X
+  \;\neq\; \prod_{t} p(y_t \mid \theta)$$
+
+The integral is over the whole path at once, so it does not separate into a term
+per observation. Within any one run the series shares the single path that run
+took, and a second run takes a different one. That shared dependence is the
+feature that makes the model stochastic, and the particle filter estimates the
+left-hand side without ever forming the factors on the right.
 
 DIC is the one that fits what a particle filter gives you. It needs the deviance
 $D(\theta) = -2 \log p(y \mid \theta)$ at the posterior mean, plus its spread across
