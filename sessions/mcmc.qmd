@@ -766,7 +766,7 @@ summarystats(chain_nuts)
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`summarystats(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - returns a table with mean, std, MCSE (Monte Carlo Standard Error), ESS (Effective Sample Size), and R̂ (convergence diagnostic). We'll learn what these mean in the next session.
+- `summarystats(chain)` - returns a table with mean, std, MCSE (Monte Carlo Standard Error), ESS (Effective Sample Size), R̂ (convergence diagnostic) and the 5%, 50% and 95% quantiles. We'll learn what these mean in the next session.
 :::
 
 ::: {.callout-tip}

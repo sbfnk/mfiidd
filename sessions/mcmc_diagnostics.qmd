@@ -339,7 +339,7 @@ end
 ::: {.callout-tip collapse="true"}
 ## Code explainer
 - `chain_multi[chain = i]` - extracts the i-th chain from a multi-chain object. A chain is indexed by iteration and by chain, and `niters` and `nchains` give the two sizes.
-- [`rhat(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates the R̂ (Gelman-Rubin) diagnostic. Compares variance within chains to variance between chains. Values < 1.1 indicate convergence; < 1.01 is even better.
+- `rhat(chain)` - calculates the R̂ (Gelman-Rubin) diagnostic. Compares variance within chains to variance between chains. Values < 1.1 indicate convergence; < 1.01 is even better.
 :::
 
 ```{julia}
@@ -359,7 +359,7 @@ n_samples = niters(chain_multi) * nchains(chain_multi)
 
 ::: {.callout-tip collapse="true"}
 ## Code explainer
-- [`ess(chain)`](https://turinglang.org/MCMCChains.jl/stable/getting-started/#Summarize-results) - calculates Effective Sample Size. MCMC samples are correlated, so N samples don't give you N independent draws. ESS estimates how many independent samples your chain is equivalent to.
+- `ess(chain)` - calculates Effective Sample Size. MCMC samples are correlated, so N samples don't give you N independent draws. ESS estimates how many independent samples your chain is equivalent to.
 :::
 
 ```{julia}
@@ -394,7 +394,7 @@ for row in eachrow(mcse_values)
     param = row.param
     mcse_val = row.stat
     # Get mean for this parameter
-    mean_val = posterior_means[posterior_means.param .== param, :stat][1]
+    mean_val = posterior_means[posterior_means.param .== Ref(param), :stat][1]
     rel_error = mcse_val / abs(mean_val) * 100
     println(
         "  $param: $(round(mean_val, digits = 3)) ± ",

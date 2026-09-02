@@ -451,7 +451,7 @@ Let's compare posterior means and standard deviations:
 # Extract summaries
 mcmc_summary = summarystats(chain_mcmc)
 println("MCMC Summary:")
-println(mcmc_summary)
+display(mcmc_summary)
 
 println("\n" * "="^60)
 println("Mean-Field VI Summary:")
