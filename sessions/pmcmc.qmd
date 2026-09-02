@@ -534,9 +534,10 @@ Looking at the posterior densities above, we can see differences between the two
 
 There are three families of answer, and which of them applies is settled by how the model is built.
 
-**Pointwise information criteria** estimate out-of-sample predictive accuracy from the per-observation likelihood terms $p(y_i \mid \theta)$, penalising complexity as they go.
+**Information criteria** estimate out-of-sample predictive accuracy, penalising complexity as they go, and they differ in what they ask of the model.
 WAIC works from the pointwise predictive density, and leave-one-out cross-validation is asymptotically equivalent to it, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
-Both need those per-observation terms to exist, and a stochastic latent trajectory takes them away.
+Both need the per-observation terms $p(y_i \mid \theta)$, and a stochastic latent trajectory takes those away.
+DIC asks only for the deviance of the whole series, which is the quantity a particle filter estimates, so it survives where the pointwise criteria do not.
 
 **Bayes factors** compare marginal likelihoods directly:
 
