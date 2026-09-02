@@ -159,7 +159,7 @@ Not a perfect fit, but good enough for illustration!
 In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them here to focus on observation model choices.
 # The Poisson likelihood
 
-## The standard approach
+## What we have used so far
 
 This is what we've been doing throughout the course:
 
@@ -334,9 +334,11 @@ Then fit it below and check.
 
 # The negative binomial likelihood
 
-## Adding overdispersion
+## Allowing for overdispersion
 
-When Poisson doesn't fit well (variance > mean), we often use Negative Binomial:
+The negative binomial adds a second parameter, so the variance is free to exceed
+the mean. For epidemic case counts that is the common situation rather than the
+exception, which makes this the more usual starting point in practice:
 
 $$\text{obs}_t \sim \text{NegativeBinomial}(\mu_t, \phi)$$
 
