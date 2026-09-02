@@ -978,6 +978,9 @@ For ABC with outliers or model misspecification, consider robust distances:
 - **Quantile-based distances** that down-weight extreme values
 - **Feature-based distances** that focus on epidemiologically meaningful patterns
 
+Try replacing `distance_L1` in `abc_rejection` with a median-based version, `distance_median(sim, obs) = median(abs.(sim .- obs))`, and compare the posteriors.
+A robust distance stops a handful of large daily discrepancies dominating the fit, so how much the posterior moves tells you how much of it was being decided by a few days.
+
 # References
 
 - Toni, T. et al. (2009). [Approximate Bayesian computation scheme for parameter inference and model selection in dynamical systems](https://doi.org/10.1098/rsif.2008.0172). *J. R. Soc. Interface* 6(31), 187-202. (The ABC-SMC paper - highly readable introduction)
