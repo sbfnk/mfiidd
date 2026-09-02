@@ -640,8 +640,13 @@ parameter, and the two give different answers. The version above is the first,
 because the particle filter estimates $p(y \mid \theta)$ with the path already
 integrated out, and it is the version that keeps DIC's usual justification. The
 conditional version, which treats the latent states as parameters, is the one to
-avoid. Criteria built on one-step-ahead predictions are better suited to
-state-space models still, and are worth knowing about if you take this further.
+avoid. Two better-suited options exist if you take this further. A one-step-ahead
+pseudo-DIC scores each observation against a prediction made from the state at
+the previous time point [@millar2014], which is the natural predictive question
+for a time series. Alternatively, PMMH gives unbiased estimates of the marginal
+likelihood itself, so the marginal likelihood can be estimated directly and
+compared across models. Both need quantities our filter computes internally and
+does not return, so neither is a drop-in change here.
 
 No single number can say whether the winner fits the data at all, so the
 comparison this session leans on is the posterior predictive one. Simulate from
