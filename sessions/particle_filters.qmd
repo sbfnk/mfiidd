@@ -521,8 +521,10 @@ to aim for a standard deviation somewhere between 1 and 3 on the log scale, whic
 is where the total cost tends to be lowest.
 
 **Why go above the minimum.** The noise depends on where in parameter space you
-are. A count calibrated at the posterior mode will be too few out in the tails,
-which is precisely where a chain gets stuck and stays stuck. Calibrating at a
+are. A count calibrated at one parameter set will be too few elsewhere, and
+elsewhere is precisely where a chain gets stuck and stays stuck. The [particle
+MCMC session](pmcmc.qmd) measures this against the fitted posterior and finds the
+minimum from this plot failing on a large share of it. Calibrating at a
 reasonable parameter set and then taking some headroom is cheaper than diagnosing
 a chain that will not move.
 :::

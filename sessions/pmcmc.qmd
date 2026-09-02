@@ -156,7 +156,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 1. Implemented the SEIT4L Gillespie simulator (`gillespie_step`)
 2. Defined the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface (`SEIT4LDynamics`, `PoissonObservation`, `SEIT4LInitial`)
-3. Calibrated particle count: 128-256 particles gave SD of log-likelihood between 1 and 3
+3. Calibrated the particle count against the SD of the log-likelihood estimate, which put the minimum acceptable count at 64
 
 All these components were loaded via `using MFIIDD` in the setup above (defined in [`src/seit4l_gillespie.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_gillespie.jl), [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl), and [`src/seit4l_runner.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_runner.jl)). Now we'll use them for full Bayesian inference.
 
@@ -218,7 +218,7 @@ end
 - **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl).
 - **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood. `Random.default_rng()` provides the global random number generator — this is Julia's way of passing randomness explicitly rather than relying on a hidden global state.
 - [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds the particle filter's log-likelihood estimate to the model. The priors specified with `~` still contribute automatically. This is the [recommended pattern](https://github.com/TuringLang/Turing.jl/issues/2428) for integrating external likelihood estimators with Turing.
-- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation.
+- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation. The calibration in the previous session put the minimum at 64, and we check below why the chain wants more than the minimum.
 :::
 
 Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable.
@@ -310,6 +310,35 @@ chain_pmcmc = Chains(Matrix(chain_df[:, [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
 # Display chain summary
 display(chain_pmcmc)
 ```
+
+## Why more particles than the calibration asked for
+
+The calibration in the previous session was run at a single parameter set and put
+the smallest acceptable count at 64. A chain does not stay at one parameter set,
+so the question is what the filter does across the region the posterior actually
+occupies. We have the posterior now, so we can look:
+
+```{julia}
+Random.seed!(20)
+draws = chain_df[rand(1:nrow(chain_df), 25), :]
+
+for n in (64, 256)
+    sds = map(eachrow(draws)) do row
+        θ = Dict(:R_0 => row.R_0, :D_lat => row.D_lat, :D_inf => row.D_inf,
+                 :α => row.α, :D_imm => row.D_imm, :ρ => row.ρ)
+        std([run_particle_filter(θ, flu_tdc.obs, n) for _ in 1:30])
+    end
+    println(rpad(n, 4), " particles: median SD ", round(median(sds), digits = 2),
+            ", worst ", round(maximum(sds), digits = 2),
+            ", above 3 for ", round(100 * mean(sds .> 3), digits = 0), "% of draws")
+end
+```
+
+At 64 particles the median is respectable and the tail is not: a large share of
+the posterior gives a log-likelihood estimate far noisier than the target, and it
+is those draws that stall a chain. The count that looks sufficient at one
+parameter set is not sufficient over the set the sampler visits, which is the
+reason to calibrate with headroom rather than to the minimum.
 
 ```{julia}
 # Plot trace plots - much better mixing!
