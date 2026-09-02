@@ -231,7 +231,7 @@ After fitting the model, posterior predictive checks ask: *can the fitted model 
 
 ::: {.callout-note}
 ## What to expect
-The SIR model we're about to fit will not capture the Tristan da Cunha data well - specifically, it will miss the second wave around day 25-35. SIR assumes permanent immunity after recovery, so it cannot produce two waves from a single introduction. Posterior predictive checks reveal when our model structure is inadequate, motivating the SEITL/SEIT4L models in later sessions.
+The SIR model we're about to fit will not capture the Tristan da Cunha data well - specifically, it will miss the second wave around day 25-35. SIR assumes permanent immunity after recovery, so it cannot produce two waves from a single introduction. Posterior predictive checks reveal when our model structure is inadequate, motivating the SEITL and SEIT4L models in later sessions, which add a stage of temporary immunity so that people can be infected twice.
 :::
 
 ```{julia}

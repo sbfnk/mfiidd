@@ -537,8 +537,8 @@ Looking at the posterior densities above, we can see differences between the two
 There are three families of answer, and which of them applies is settled by how the model is built.
 
 **Information criteria** estimate out-of-sample predictive accuracy, penalising complexity as they go, and they differ in what they ask of the model.
-WAIC and leave-one-out cross-validation (LOO) are the ones usually recommended.
-Both work from the pointwise predictive density and average over the whole posterior, and LOO carries diagnostics that say when its approximation has failed, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
+The widely applicable information criterion (WAIC) and leave-one-out cross-validation (LOO) are the ones usually recommended.
+Both work from the pointwise predictive density and average over the whole posterior, and LOO carries diagnostics that say when its approximation has failed, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient approximation by Pareto-smoothed importance sampling (PSIS).
 Both also need the per-observation terms $p(y_i \mid \theta)$ to exist, and a stochastic latent trajectory takes those away.
 The Deviance Information Criterion (DIC) evaluates the deviance at the posterior mean, so it offers neither the posterior averaging nor the diagnostics, and it is the weaker choice wherever the pointwise criteria apply.
 However, it only requires the deviance of the whole series, which a particle filter estimates, so it can be used with PMCMC.

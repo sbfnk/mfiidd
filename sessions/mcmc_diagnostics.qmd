@@ -617,7 +617,7 @@ Energy plots help diagnose geometric problems:
 
 What to look for: the two histograms below should have similar widths and overlap well.
 A marginal energy distribution much *wider* than the spread of energy changes between iterations means the sampler is not travelling far enough through the distribution in each trajectory, which is the geometry problem funnels produce.
-The formal version of this comparison is the E-BFMI statistic, and the overlay is its eyeball equivalent.
+The formal version of this comparison is the energy Bayesian fraction of missing information (E-BFMI) statistic, and the overlay is its eyeball equivalent.
 
 ```{julia}
 # Energy diagnostic plot. Like the divergence flag, the Hamiltonian energy is

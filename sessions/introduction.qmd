@@ -14,7 +14,7 @@ order: 1
 # Introduction
 
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
-We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR epidemic model, before turning to algorithms that explore the posterior in the next session.
+We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR (susceptible-infectious-recovered) epidemic model, before turning to algorithms that explore the posterior in the next session.
 
 By the end of the course you will have met several different ways of doing this,
 and the closing session puts them side by side so you can work out which one your
@@ -123,7 +123,7 @@ In this case, the function modifies `du` in the last 3 lines to indicate the cur
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-In R's `deSolve`, ODE functions return `list(c(dS, dI, dR))` and take arguments in the order `(t, state, parameters)`. In Julia's `DifferentialEquations.jl`, the function modifies `du` in place (note the `!` convention) and the argument order is `(du, u, p, t)`.
+In R's `deSolve`, ordinary differential equation (ODE) functions return `list(c(dS, dI, dR))` and take arguments in the order `(t, state, parameters)`. In Julia's `DifferentialEquations.jl`, the function modifies `du` in place (note the `!` convention) and the argument order is `(du, u, p, t)`.
 
 ```r
 # R (deSolve)
@@ -271,7 +271,7 @@ println(
 
 ::: {.callout-note collapse="true"}
 ## Coming from R?
-R uses function families for each distribution: `runif`/`dunif`/`punif`/`qunif` for random draws, density, CDF, and quantiles respectively. In Distributions.jl, you create a single distribution object and use generic functions:
+R uses function families for each distribution: `runif`/`dunif`/`punif`/`qunif` for random draws, density, cumulative distribution function and quantiles respectively. In Distributions.jl, you create a single distribution object and use generic functions:
 
 | Operation | R | Julia |
 |-----------|---|-------|
