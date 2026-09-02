@@ -32,7 +32,7 @@ In this session you will:
 2. Fit the stochastic SEIT4L model to the Tristan da Cunha outbreak
 3. Compare stochastic vs deterministic model fits
 4. Understand why PMMH requires long chains and adaptive proposals
-5. Compare two competing models with DIC and with posterior predictive checks, and see what each can and cannot tell you
+5. Compare two competing models with DIC and with posterior predictive checks
 
 ::: {.callout-important}
 ## Reminder: Stochastic variability
@@ -160,7 +160,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 All these components were loaded via `using MFIIDD` in the setup above (defined in [`src/seit4l_gillespie.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_gillespie.jl), [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl), and [`src/seit4l_runner.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_runner.jl)). Now we'll use them for full Bayesian inference.
 
-In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We leave them until the model comparison below, so that this part stays on the PMMH algorithm.
+In your own work, you should run [prior and posterior predictive checks](model_checking.qmd) when fitting models. We skip them for now to focus on the PMMH algorithm.
 
 # Particle MCMC (PMMH) with Turing.jl
 
@@ -289,7 +289,7 @@ makes the point better than any convergence statistic: a short PMMH chain does
 not look obviously broken, it just has not gone anywhere yet.
 :::
 
-## The source of the mixing difficulty
+## Why is PMMH mixing difficult?
 
 The particle filter gives a *noisy estimate* of the likelihood. Even at the same parameters, different runs give different values. This noise means proposals that would be accepted with an exact likelihood may be rejected (and vice versa), slowing exploration.
 
@@ -427,7 +427,7 @@ end
 ```
 
 ::: {.callout-tip}
-## Two ways of supplying a likelihood
+## Why `|` conditioning here but `@addlogprob!` above?
 The deterministic model uses `obs ~ arraydist(Poisson.(lambdas))` — the likelihood is expressed as a `~` statement, so Turing can condition on the data directly with `|`.
 
 The stochastic `pmmh_seit4l` model uses an *external* likelihood estimator (the particle filter via `GeneralisedFilters.filter`), which returns a log-likelihood that we add manually with `@addlogprob!`. In that model, there is no `obs ~` statement in the model body — `obs` enters as a function argument passed to the filter — so `|` has nothing to condition on.
@@ -445,13 +445,16 @@ chain_det = sample(model_det, NUTS(), 2000, progress=false)
 ```{julia}
 #| code-fold: true
 #| code-summary: "Plotting code"
-# Compare posteriors
-p1 = density(chain_det, :R_0, title = "R_0 (Deterministic)", legend = false)
-p2 = density(chain_pmcmc, :R_0, title = "R_0 (Stochastic)", legend = false)
-p3 = density(chain_det, :α, title = "α (Deterministic)", legend = false)
-p4 = density(chain_pmcmc, :α, title = "α (Stochastic)", legend = false)
+## Compare posteriors, both models overlaid on one panel per parameter
+params = [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
+panels = map(enumerate(params)) do (i, par)
+    ## pull the draws out as plain vectors so the series labels are ours
+    pl = density(vec(chain_det[par]), title = string(par), label = "deterministic",
+                 colour = :steelblue, legend = i == 1 ? :topright : false)
+    density!(pl, vec(chain_pmcmc[par]), label = "stochastic", colour = :darkorange)
+end
 
-plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
+plot(panels..., layout = (2, 3), size = (900, 500))
 ```
 
 ::: {.callout-tip title="Exercise: Interpret the stochastic vs deterministic comparison"}
@@ -463,13 +466,12 @@ Look at the posterior density plots above and compare the two models:
 :::
 
 ::: {.callout-tip title="What to look for" collapse="true"}
-**The stochastic model gives wider posteriors, but you have to look at the right
-parameter to see it.** On the two plotted above the difference is slight: the
-posterior standard deviation for $R_0$ grows by about a tenth, and for $\alpha$ by
-about three fifths. It is much clearer on the parameters governing the immune
-period, where $D_\mathrm{imm}$ roughly doubles and $D_\mathrm{lat}$ grows by half.
-The reporting rate $\rho$ barely moves at all, which makes sense: it is pinned by
-the total number of cases either way.
+**The stochastic model gives wider posteriors, but by very different amounts
+across the six parameters.** The clearest case is $D_\mathrm{imm}$, whose posterior
+standard deviation roughly doubles, followed by $\alpha$ and $D_\mathrm{lat}$, which
+grow by about three fifths. $R_0$ grows by about a tenth, and the reporting rate
+$\rho$ barely moves at all, which makes sense: it is pinned by the total number of
+cases either way.
 
 The direction is the same everywhere, and it should be. The deterministic
 model attributes every discrepancy between prediction and data to observation
