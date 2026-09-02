@@ -528,18 +528,15 @@ density!(p2, chain_pmcmc, :D_imm, label="SEIT4L")
 plot(p1, p2, layout=(1, 2), size=(800, 400))
 ```
 
-## Model comparison
+## Approaches to model comparison
 
 Looking at the posterior densities above, we can see differences between the two models. But which model better explains the data? This is the question of *model comparison* or *model selection*.
 
-### Approaches to model comparison
+There are three families of answer, and which of them applies is settled by how the model is built.
 
-**Information criteria** estimate out-of-sample predictive accuracy by penalising model complexity:
-
-- **WAIC (Widely Applicable Information Criterion)**: Based on pointwise predictive density. Asymptotically equivalent to leave-one-out cross-validation.
-- **LOO-CV (Leave-One-Out Cross-Validation)**: Gold standard for predictive accuracy. [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) provides efficient PSIS-LOO approximation.
-
-For particle MCMC, these criteria require care because the likelihood estimates are noisy. The noise doesn't bias the posterior, but it *does* affect pointwise likelihood calculations needed for WAIC and LOO-CV. Solutions include using more particles when computing criteria, or averaging over multiple likelihood estimates per parameter sample.
+**Pointwise information criteria** estimate out-of-sample predictive accuracy from the per-observation likelihood terms $p(y_i \mid \theta)$, penalising complexity as they go.
+WAIC works from the pointwise predictive density, and leave-one-out cross-validation is asymptotically equivalent to it, with [ParetoSmooth.jl](https://github.com/TuringLang/ParetoSmooth.jl) providing an efficient PSIS-LOO approximation.
+Both need those per-observation terms to exist, and a stochastic latent trajectory takes them away.
 
 **Bayes factors** compare marginal likelihoods directly:
 
@@ -547,9 +544,11 @@ $$\text{BF}_{12} = \frac{P(\text{data}|M_1)}{P(\text{data}|M_2)}$$
 
 Values > 10 indicate strong evidence for $M_1$; values < 0.1 indicate strong evidence for $M_2$. The marginal likelihood can be estimated from particle filter output using techniques like [path sampling](https://academic.oup.com/biomet/article/95/2/401/223193) or [thermodynamic integration](https://doi.org/10.1198/016214508000000571), but these are computationally intensive.
 
-**Posterior predictive checks** provide a qualitative but intuitive comparison: which model generates data that looks more like the observations? This doesn't give a single number, but can reveal *how* models differ in their predictions. The section below simulates many datasets from each fitted model and compares them against the data.
+**Posterior predictive checks** ask which model generates data that looks like the observations.
+They give no single number, and what they offer instead is a view of *how* the models differ.
+They also apply whatever the model's structure, which is the reason this session leans on them.
 
-### Comparing parameter estimates
+## Comparing parameter estimates
 
 We can compare how the two models estimate the same parameters:
 
@@ -567,15 +566,15 @@ println("  D_imm = $(round(mean(chain_pmcmc[:D_imm]), digits=2))")
 
 The key difference is in the D_imm (duration of temporary immunity) estimates. SEIT4L, with its Erlang-distributed immunity duration, typically estimates a shorter mean duration but with less variance in timing.
 
-### Comparing the two models
+## Comparing the two models
 
 The criteria above are described but not computed, so nothing so far has actually
 compared the two models. We can do it directly with the chains we already have.
 
-Which criterion can we actually use? Not WAIC or leave-one-out. Both need the
-pointwise terms $p(y_i \mid \theta)$, and both assume the observations are
-independent once you condition on the parameters. Neither holds here. The
-stochastic model puts a latent trajectory between the parameters and the data, so
+The pointwise criteria are the ones the model rules out, and it is worth seeing
+exactly where they fail. Both WAIC and leave-one-out need the terms
+$p(y_i \mid \theta)$, and both assume the observations are independent once you
+condition on the parameters. The stochastic model puts a latent trajectory between the parameters and the data, so
 every day's count depends on the same simulated path, and a particle filter
 estimates the likelihood of the whole series rather than handing you the
 per-observation contributions.
@@ -768,7 +767,7 @@ ranks the candidates you happened to write down, and says nothing about whether
 any of them is right.
 :::
 
-### Where the latent trajectory comes from
+## Where the latent trajectory comes from
 
 The replicates above simulate the epidemic forward, so each one carries a latent
 path the filter never saw the data for.
@@ -818,20 +817,13 @@ Read the filtered one as a picture of what the epidemic plausibly did, which is
 the question it answers well.
 :::
 
-::: {.callout-tip title="Learning points"}
-- **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
-- **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://doi.org/10.1016/j.jeconom.2012.06.004). The required number scales with problem complexity.
-- **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
-- **Model comparison** using information criteria helps choose between competing mechanistic explanations, though applying them to particle MCMC requires care
-:::
-
-### Findings of the original study
+## Findings of the original study
 
 [Camacho et al. (2011)](https://doi.org/10.1098/rspb.2011.0300) compared SEITL and SEIT4L using DIC and found that SEIT4L provided a better fit (lower DIC). This suggests that the *timing* of immunity loss matters - it's not memoryless, as the exponential distribution in SEITL would imply.
 
 The Erlang-4 distribution in SEIT4L has a coefficient of variation of 0.5 (compared to 1.0 for exponential), meaning individuals lose immunity at more consistent times. For the Tristan da Cunha data, this more realistic timing distribution better captures the second wave dynamics.
 
-### Practical recommendations
+## Practical recommendations
 
 For particle MCMC model comparison:
 
@@ -841,6 +833,14 @@ For particle MCMC model comparison:
 4. **Be cautious with Bayes factors** - they're sensitive to prior choices and computationally expensive
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
+
+::: {.callout-tip title="Learning points"}
+- **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
+- **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://doi.org/10.1016/j.jeconom.2012.06.004). The required number scales with problem complexity.
+- **Stochastic vs deterministic**: stochastic models capture demographic stochasticity (important for small populations) but are much slower to fit
+- **The model's structure decides the criterion.** A stochastic latent trajectory leaves the observations dependent given the parameters, which rules out WAIC and leave-one-out, and leaves DIC and the predictive check
+- **Posterior predictive checks apply whatever the model is**, and the latent path has to come from the model for the check to have anything to fail at
+:::
 
 # Going further
 
