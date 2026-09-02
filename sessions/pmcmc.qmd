@@ -839,6 +839,8 @@ For particle MCMC model comparison:
 
 When criteria disagree, consider what question you're actually asking: best predictions (information criteria) or most probable model (Bayes factors)?
 
+# Learning points
+
 ::: {.callout-tip title="Learning points"}
 - **Particle filters** estimate likelihoods for stochastic models by simulating many trajectories (particles) and weighting them by how well they match the data
 - **Number of particles** should be calibrated so the standard deviation of the log-likelihood estimate is [between 1 and 3](https://doi.org/10.1016/j.jeconom.2012.06.004). The required number scales with problem complexity.
@@ -870,6 +872,8 @@ summarystats(chain_multi)
 ```
 
 Use the same diagnostics (R̂ < 1.1, ESS > 100) as for standard MCMC.
+Run it with four chains and compare their R̂ against the single chain fitted above.
+One chain can look perfectly healthy on its own trace and still have missed a region of the posterior, which is the failure only several chains started apart can show you.
 
 ## Alternative: Manual proposal tuning
 
@@ -889,6 +893,9 @@ chain = sample(model_pmmh, MH(Σ), 5000)
 ```
 
 This requires choosing proposal variances for each parameter - too large gives low acceptance, too small gives slow exploration. In practice, RAM is easier because it learns the covariance structure automatically.
+
+Try it and compare the acceptance rate against the 23.6% RAM reached above.
+Matching that by hand takes several attempts, and the six variances above are only a starting point rather than a tuned answer.
 
 ## Particle Gibbs {#particle-gibbs}
 
@@ -917,6 +924,7 @@ See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johanse
 SMC² (SMC squared) uses Sequential Monte Carlo for both parameters and state trajectories, avoiding MCMC entirely.
 This can be more efficient for complex models but requires more careful tuning.
 Turing.jl supports this through the `SMC` sampler.
+See [Chopin, Jacob & Papaspiliopoulos (2013)](https://doi.org/10.1111/j.1467-9868.2012.01046.x), which introduced the algorithm, for how the two layers of particles fit together.
 
 ## Amortised inference
 
