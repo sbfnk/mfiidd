@@ -203,7 +203,7 @@ summarystats(chain_mcmc)
 Note the time printed above and compare it with the variational runs below.
 Each timing cell runs the method once before measuring it, so the figure is the cost of sampling and not the cost of Julia compiling the sampler for the first time, which on a model this small would otherwise dominate everything.
 
-# Mean-field variational inference
+# Approach 1: mean-field variational inference
 
 ## What is variational inference?
 
@@ -366,7 +366,7 @@ What we see is that the mean-field approximation forces this correlation to zero
 - **Implausible joint samples**: Combinations that the true posterior considers unlikely
 - **Poor predictive performance**: Forward simulations may not match observed data well
 
-# Full-rank Gaussian VI
+# Approach 2: full-rank Gaussian VI
 
 ## Capturing correlations
 
