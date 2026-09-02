@@ -8,7 +8,6 @@ projects = ["docs"]
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 AdvancedMH = "5b7e9947-ddc0-4b3f-9b55-0d8042f74170"
-AdvancedPS = "576499cb-2369-40b2-a588-c64705576edc"
 AdvancedVI = "b5ca4192-6429-45e5-a2d9-87aec30a685c"
 BoundaryValueDiffEqCore = "56b672f2-a5fe-4263-ab2d-da677488eb3a"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -51,8 +50,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 ADTypes = "1"
 AdvancedMH = "0.8"
-AdvancedPS = "0.7, 0.8"
-AdvancedVI = "0.6, 0.7"
+AdvancedVI = "0.7"
 BoundaryValueDiffEqCore = "1, 2"
 CSV = "0.10"
 CodeTracking = "3"

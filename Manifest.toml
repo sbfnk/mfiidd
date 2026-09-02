@@ -2,7 +2,7 @@
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "b2c3fb8f62058fc05d695caa66a1d1bdff0e3270"
+project_hash = "50921be7ee62d5606b3376354f139b839116a40d"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -156,16 +156,6 @@ weakdeps = ["DiffResults", "ForwardDiff", "MCMCChains", "StructArrays"]
     AdvancedMHForwardDiffExt = ["DiffResults", "ForwardDiff"]
     AdvancedMHMCMCChainsExt = "MCMCChains"
     AdvancedMHStructArraysExt = "StructArrays"
-
-[[deps.AdvancedPS]]
-deps = ["AbstractMCMC", "Distributions", "Random", "Random123", "SSMProblems", "StatsFuns"]
-git-tree-sha1 = "a78eb5e526071e4e31e485b492d8f91a330cd30c"
-uuid = "576499cb-2369-40b2-a588-c64705576edc"
-version = "0.8.0"
-weakdeps = ["Libtask"]
-
-    [deps.AdvancedPS.extensions]
-    AdvancedPSLibtaskExt = "Libtask"
 
 [[deps.AdvancedVI]]
 deps = ["ADTypes", "AbstractPPL", "Accessors", "ChainRulesCore", "DiffResults", "Distributions", "DocStringExtensions", "FillArrays", "Functors", "LinearAlgebra", "LogDensityProblems", "Optimisers", "ProgressMeter", "Random", "StatsBase"]
@@ -2282,7 +2272,7 @@ uuid = "be115224-59cd-429b-ad48-344e309966f0"
 version = "0.3.19"
 
 [[deps.MFIIDD]]
-deps = ["ADTypes", "AdvancedMH", "AdvancedPS", "AdvancedVI", "BoundaryValueDiffEqCore", "CSV", "CodeTracking", "ComponentArrays", "DataFrames", "DiffEqFlux", "DifferentialEquations", "Distributions", "DrWatson", "DynamicHMC", "ForwardDiff", "GeneralisedFilters", "IJulia", "JLD2", "JumpProcesses", "LanguageServer", "LogDensityProblems", "LogDensityProblemsAD", "Lux", "MCMCChains", "Optimisers", "Optimization", "OptimizationOptimJL", "OptimizationOptimisers", "Plots", "PrecompileTools", "Random", "Revise", "SSMProblems", "StatsBase", "StatsPlots", "SymbolServer", "TransformVariables", "TransformedLogDensities", "Turing", "Zygote"]
+deps = ["ADTypes", "AdvancedMH", "AdvancedVI", "BoundaryValueDiffEqCore", "CSV", "CodeTracking", "ComponentArrays", "DataFrames", "DiffEqFlux", "DifferentialEquations", "Distributions", "DrWatson", "DynamicHMC", "FlexiChains", "ForwardDiff", "GeneralisedFilters", "IJulia", "JLD2", "JumpProcesses", "LanguageServer", "LogDensityProblems", "LogDensityProblemsAD", "Lux", "MCMCChains", "Optimisers", "Optimization", "OptimizationOptimJL", "OptimizationOptimisers", "Plots", "PrecompileTools", "Random", "Revise", "SSMProblems", "StatsBase", "StatsPlots", "SymbolServer", "TransformVariables", "TransformedLogDensities", "Turing", "Zygote"]
 path = "."
 uuid = "8bea04d1-6360-4bc3-9119-b4a8429b6d36"
 version = "0.1.0"
