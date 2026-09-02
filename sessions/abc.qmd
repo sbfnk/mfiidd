@@ -28,9 +28,9 @@ all, and a simulator is all you have.
 
 In this session you will:
 
-1. Implement approximate Bayesian computation (ABC) rejection sampling from scratch
+1. Implement ABC rejection sampling from scratch
 2. Find a workable acceptance threshold, and see why that is the hard part
-3. Implement sequential Monte Carlo ABC (ABC-SMC) and compare it against rejection sampling
+3. Implement ABC-SMC and compare it against rejection sampling
 4. Compare likelihood-based and distance-based posteriors on the same data
 5. Test how each approach responds to a single outlying observation
 

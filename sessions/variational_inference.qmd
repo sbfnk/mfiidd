@@ -29,7 +29,7 @@ This is where variational inference (VI) comes in. VI trades some accuracy for s
 
 By the end of this session, you will be able to:
 
-1. Understand the variational inference framework and optimisation of the evidence lower bound (ELBO)
+1. Understand the variational inference framework and ELBO optimisation
 2. Implement mean-field and full-rank Gaussian approximations
 3. Compare VI and MCMC trade-offs (speed vs accuracy)
 4. Choose appropriate inference methods for different scenarios
