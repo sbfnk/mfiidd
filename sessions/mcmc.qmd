@@ -827,3 +827,5 @@ These summaries give us point estimates and uncertainty, but should we trust the
 - [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/stable/) - Chain analysis and diagnostics
 
 **Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd), how to tell if your chains have converged and your results are trustworthy.
+
+**Going further** (optional): MCMC is exact but slow. [Variational inference](variational_inference.qmd) is an advanced session that replaces sampling with optimisation when that matters — real-time forecasting, or many datasets. It needs only this session as background, so you can take it at any point.
