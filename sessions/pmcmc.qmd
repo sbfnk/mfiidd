@@ -463,7 +463,15 @@ Look at the posterior density plots above and compare the two models:
 :::
 
 ::: {.callout-tip title="What to look for" collapse="true"}
-**The stochastic model gives wider posteriors**, and it should. The deterministic
+**The stochastic model gives wider posteriors, but you have to look at the right
+parameter to see it.** On the two plotted above the difference is slight: the
+posterior standard deviation for $R_0$ grows by about a tenth, and for $\alpha$ by
+about three fifths. It is much clearer on the parameters governing the immune
+period, where $D_\mathrm{imm}$ roughly doubles and $D_\mathrm{lat}$ grows by half.
+The reporting rate $\rho$ barely moves at all, which makes sense: it is pinned by
+the total number of cases either way.
+
+The direction is the same everywhere, and it should be. The deterministic
 model attributes every discrepancy between prediction and data to observation
 noise, so the parameters have to explain everything and get pinned down tightly.
 The stochastic model has a second source of variation available — the epidemic
