@@ -115,8 +115,7 @@ the kept draws, then thin. Returns the thinned chain.
 `num_warmup` is what makes RAM adaptive: the sampler only updates its proposal
 covariance in the warmup phase, and those draws are discarded rather than kept.
 Without it the proposal stays at the identity matrix and acceptance sits near
-0.5% instead of the 23% RAM aims for. `adapting_externalsampler` is what carries
-the warmup phase through to the sampler; see `src/adapting_sampler.jl`.
+0.5% instead of the 23% RAM aims for.
 """
 function run_pmmh(
     model,
@@ -137,7 +136,7 @@ function run_pmmh(
     t_start = time()
     chain_full = sample(
         model,
-        adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+        externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
         n_samples;
         num_warmup = n_warmup,
         check_model = false,

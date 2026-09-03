@@ -76,7 +76,7 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
+using MCMCChains ## to rebuild a chain object from the saved CSVs
 using AdvancedMH ## for custom MH proposals
 using CSV ## for CSV file reading
 using StatsBase ## for statistical functions
@@ -156,7 +156,7 @@ In the [Particle Filters session](particle_filters.qmd), we:
 
 1. Implemented the SEIT4L Gillespie simulator (`gillespie_step`)
 2. Defined the [SSMProblems.jl](https://turinglang.org/SSMProblems.jl/SSMProblems/dev/) interface (`SEIT4LDynamics`, `PoissonObservation`, `SEIT4LInitial`)
-3. Calibrated particle count: 128-256 particles gave SD of log-likelihood between 1 and 3
+3. Calibrated the particle count against the SD of the log-likelihood estimate, which put the minimum acceptable count at 64
 
 All these components were loaded via `using MFIIDD` in the setup above (defined in [`src/seit4l_gillespie.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_gillespie.jl), [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl), and [`src/seit4l_runner.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_runner.jl)). Now we'll use them for full Bayesian inference.
 
@@ -218,7 +218,7 @@ end
 - **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl).
 - **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood. `Random.default_rng()` provides the global random number generator — this is Julia's way of passing randomness explicitly rather than relying on a hidden global state.
 - [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds the particle filter's log-likelihood estimate to the model. The priors specified with `~` still contribute automatically. This is the [recommended pattern](https://github.com/TuringLang/Turing.jl/issues/2428) for integrating external likelihood estimators with Turing.
-- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation.
+- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation. The calibration in the [previous session](particle_filters.qmd) put the minimum at 64, measured at a single parameter set; how noisy the estimate is depends on where in the posterior you are, so it is safer to go somewhat higher, and worth checking the count again once you have a posterior to check it against.
 :::
 
 Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable.
@@ -230,13 +230,12 @@ Let's start with a short chain to see the challenges:
 model_pmmh = pmmh_seit4l(flu_tdc.obs, 256)
 
 # Run a short chain with RAM
-# adapting_externalsampler() (from MFIIDD) wraps an AdvancedMH.jl sampler for use
-# with Turing models, so that RAM adapts during warmup
+# externalsampler() wraps an AdvancedMH.jl sampler for use with Turing models
 # num_warmup=500 gives it 500 discarded iterations to adapt in
 # check_model=false is needed because our model uses @addlogprob! instead of standard ~ syntax
 chain_short = sample(
     model_pmmh,
-    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     500;
     num_warmup=500,
     check_model=false,
@@ -264,7 +263,7 @@ Two details of the figure are worth reading. The iteration axis starts at 500 be
 ::: {.callout-tip title="Exercise: Run your own short PMMH chain"}
 Try running a short PMMH chain yourself:
 
-1. Run `sample(model_pmmh, adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; num_warmup=200, check_model=false)` and look at the trace plots
+1. Run `sample(model_pmmh, externalsampler(AdvancedMH.RobustAdaptiveMetropolis()), 200; num_warmup=200, check_model=false)` and look at the trace plots
 2. What acceptance rate does the sampler achieve? (Look at the proportion of samples that change between iterations)
 3. Try reducing the particle count to 64: `pmmh_seit4l(flu_tdc.obs, 64)`. How does this affect mixing? Is it faster but noisier?
 4. Compare to the pre-computed chain loaded below — how many more iterations were needed for convergence?
@@ -348,11 +347,6 @@ Because RAM only adapts during warmup, `num_warmup` is not a formality: with no
 warmup the proposal stays at the identity matrix it started from and acceptance
 sits near 0.5% instead of the 23% RAM aims for, whatever the chain length. The
 saved chains use 50,000 warmup iterations.
-
-We sample through `adapting_externalsampler` from `MFIIDD` rather than Turing's
-`externalsampler` for the same reason; the docstring in
-[`src/adapting_sampler.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/adapting_sampler.jl)
-gives the details.
 :::
 :::
 
@@ -859,7 +853,7 @@ For production PMMH, you should run multiple chains and check convergence:
 # Run multiple chains in parallel
 chain_multi = sample(
     model_pmmh,
-    adapting_externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
+    externalsampler(AdvancedMH.RobustAdaptiveMetropolis()),
     MCMCThreads(),
     10000,
     4;
@@ -918,6 +912,28 @@ Drawing many paths from one run would therefore understate the uncertainty badly
 The plot above avoids that by re-running the filter for every replicate, at a fresh posterior draw, so the paths are independent of each other.
 
 See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf) for details on trajectory sampling from particle filters.
+
+## Calibrating the particle count and the proposal together
+
+This session calibrated the particle count in one place and let RAM adapt the
+proposal in another, as though the two were separate problems. They are not.
+[Sherlock, Thiery, Roberts & Rosenthal (2015)](https://doi.org/10.1214/14-AOS1278)
+solve them jointly for pseudo-marginal random walk Metropolis and find the
+efficient combination to be a log-likelihood noise variance of about 3.283, so a
+standard deviation near 1.8, together with an acceptance rate near 7%.
+
+Read that acceptance rate the way the [MCMC session](mcmc.qmd) reads 23.4%: as a
+limit for a large number of parameters, under assumptions about the noise, rather
+than a number to dial in for six. What it does say is that the two calibrations
+belong to one problem. A proposal tuned to the acceptance rate that is optimal
+for an exact likelihood is being tuned against the wrong target once the
+likelihood is estimated, because a rejection now costs a particle filter run too.
+
+That still leaves you to hit the targets by hand with a pilot run. Adapting the
+particle count *while* the sampler runs is a separate problem, and one that stayed
+open for a while: [Botha, Kohn, South & Drovandi (2023)](https://doi.org/10.1007/s11222-023-10250-2)
+give a scheme that adapts the number of state particles automatically inside
+SMC², using the expected squared jumping distance to decide when to change it.
 
 ## SMC²
 
