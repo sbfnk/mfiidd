@@ -929,17 +929,25 @@ belong to one problem. A proposal tuned to the acceptance rate that is optimal
 for an exact likelihood is being tuned against the wrong target once the
 likelihood is estimated, because a rejection now costs a particle filter run too.
 
-That still leaves you to hit the targets by hand with a pilot run. Adapting the
-particle count *while* the sampler runs is a separate problem, and one that stayed
-open for a while: [Botha, Kohn, South & Drovandi (2023)](https://doi.org/10.1007/s11222-023-10250-2)
-give a scheme that adapts the number of state particles automatically inside
-SMC², using the expected squared jumping distance to decide when to change it.
+The criterion itself has moved on as well.
+[Sherlock (2024)](https://arxiv.org/abs/2411.10785) shows that choosing the
+particle count from the variance of the *log* likelihood estimate, which is the
+rule the previous session applies, can hide a badly behaved sampler, and argues
+for the relative variance of the estimate instead.
+That matters here for the reason the count was raised above the calibrated
+minimum: a spread measured at one parameter set says little about the draws where
+the estimate goes wrong.
+
+Both of these give you targets to aim at with a pilot run rather than a procedure
+that reaches them on its own. Adapting the particle count while a PMMH chain runs,
+alongside the proposal, does not appear to be settled.
 
 ## SMC²
 
 SMC² (SMC squared) uses Sequential Monte Carlo for both parameters and state trajectories, avoiding MCMC entirely.
 This can be more efficient for complex models but requires more careful tuning.
 Turing.jl supports this through the `SMC` sampler.
+Adapting the number of state particles is further along here than it is for PMMH: [Botha, Kohn, South & Drovandi (2023)](https://doi.org/10.1007/s11222-023-10250-2) change it automatically as the algorithm runs, using the expected squared jumping distance of the rejuvenation moves to decide when.
 See [Chopin, Jacob & Papaspiliopoulos (2013)](https://doi.org/10.1111/j.1467-9868.2012.01046.x), which introduced the algorithm, for how the two layers of particles fit together.
 
 ## Amortised inference
