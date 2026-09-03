@@ -917,15 +917,13 @@ See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johanse
 
 This session calibrated the particle count in one place and let RAM adapt the proposal in another, as though the two were separate problems.
 They are not.
-[Sherlock, Thiery, Roberts & Rosenthal (2015)](https://doi.org/10.1214/14-AOS1278) solve them jointly for pseudo-marginal random walk Metropolis, and find the efficient combination to be a log-likelihood standard deviation near 1.8 together with an acceptance rate near 7%.
-
-Read that acceptance rate the way the [MCMC session](mcmc.qmd) reads 23.4%: a limit for a large number of parameters, under assumptions about the noise.
-It is not a number to dial in for six.
-The useful part is that the two calibrations belong to one problem.
-A proposal tuned to the acceptance rate that suits an exact likelihood is aiming at the wrong number once the likelihood is estimated, because a rejection now costs a particle filter run as well.
+A rejection costs a particle filter run once the likelihood is estimated, so the count and the proposal are one calibration.
+[Sherlock, Thiery, Roberts & Rosenthal (2015)](https://doi.org/10.1214/14-AOS1278) work out the efficient combination for pseudo-marginal random walk Metropolis: a log-likelihood standard deviation near 1.8, with an acceptance rate near 7%.
+Both figures are limits for a large number of parameters and assume a particular form for the noise, as the 23.4% in the [MCMC session](mcmc.qmd) does, so they are a guide rather than a setting to copy.
 
 Hitting either target still takes a pilot run.
-A recent preprint by [Abaoubida, Bédard & Maire (2025)](https://arxiv.org/abs/2509.24820) instead adapts the particle count as the chain runs, adjusting it with a probability that falls away as the chain lengthens so that the sampler stays valid.
+[Abaoubida, Bédard & Maire (2025)](https://arxiv.org/abs/2509.24820) instead adapt the particle count as the chain runs, and prove that the sampler stays ergodic as long as the adaptation fades out.
+That is a September 2025 preprint.
 
 ## SMC²
 
