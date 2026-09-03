@@ -58,7 +58,7 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
+using FlexiChains ## chain objects and diagnostics
 using AdvancedMH ## for adaptive MCMC samplers
 ```
 

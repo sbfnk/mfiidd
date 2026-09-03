@@ -55,8 +55,8 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
-using FlexiChains: niters, nchains, @varname ## chain size and variable lookup
+using FlexiChains ## chain objects and diagnostics
+using FlexiChains: niters, nchains ## public, but not exported, so name them
 using StatsBase ## for autocorrelation
 ```
 
@@ -498,7 +498,7 @@ plot!(p)
 
 ```{julia}
 # Combine the separate chains into one object so R̂ can compare them
-combined = chainscat(chains_multi...)
+combined = hcat(chains_multi...)
 DataFrame(rhat(combined))
 ```
 

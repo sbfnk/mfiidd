@@ -397,14 +397,11 @@ standardises the model, and it does not standardise the sampler.
 
 Whatever produced your samples, you still have to check and summarise them.
 
-- [FlexiChains.jl](https://github.com/penelopeysm/FlexiChains.jl) is what Turing
+- [FlexiChains.jl](https://juliabayes.org/FlexiChains.jl/stable/) is what Turing
   returns by default, and what this course uses: R̂, effective sample size, MCSE
   and trace plots, as in the [diagnostics session](mcmc_diagnostics.qmd). It
   keeps a vector-valued variable whole instead of flattening it into one column
   per element.
-- [MCMCChains.jl](https://turinglang.org/MCMCChains.jl/) is the older chain type
-  that most existing Julia examples use. Pass `chain_type=MCMCChains.Chains` to
-  `sample` if you need it.
 - [ArviZ.jl](https://julia.arviz.org/) is a Julia interface to the ArviZ
   ecosystem, and is worth knowing if you also work in Python or want its
   diagnostic plots.

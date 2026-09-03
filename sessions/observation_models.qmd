@@ -55,7 +55,7 @@ using CSV
 using Plots
 using StatsPlots
 using Turing
-using MCMCChains
+using FlexiChains ## chain objects and diagnostics
 using Random
 using LinearAlgebra
 using DrWatson

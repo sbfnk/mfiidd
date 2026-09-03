@@ -76,7 +76,7 @@ using DataFrames ## for data frames
 using Plots ## for plots
 using StatsPlots ## for statistical plots
 using Turing ## for probabilistic programming and MCMC
-using MCMCChains ## for MCMC diagnostics
+using MCMCChains ## to rebuild a chain object from the saved CSVs
 using AdvancedMH ## for custom MH proposals
 using CSV ## for CSV file reading
 using StatsBase ## for statistical functions
@@ -218,7 +218,7 @@ end
 - **`StateSpaceModel(...)`** - assembles the state-space model from initial distribution, dynamics, and observation components defined in [`src/seit4l_ssm_interface.jl`](https://github.com/mfiidd/mfiidd/blob/main/src/seit4l_ssm_interface.jl).
 - **`GeneralisedFilters.filter(...)`** - runs the bootstrap particle filter (`BF`) and returns the estimated log-likelihood. `Random.default_rng()` provides the global random number generator — this is Julia's way of passing randomness explicitly rather than relying on a hidden global state.
 - [`@addlogprob!`](https://turinglang.org/DynamicPPL.jl/stable/api/#DynamicPPL.@addlogprob!) - manually adds the particle filter's log-likelihood estimate to the model. The priors specified with `~` still contribute automatically. This is the [recommended pattern](https://github.com/TuringLang/Turing.jl/issues/2428) for integrating external likelihood estimators with Turing.
-- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation. The calibration in the previous session put the minimum at 64, and we check below why the chain wants more than the minimum.
+- **Why 256 particles?** PMMH acceptance depends on the variance of the log-likelihood estimate. Using more particles reduces variance but increases computation. The calibration in the [previous session](particle_filters.qmd) put the minimum at 64, measured at a single parameter set; how noisy the estimate is depends on where in the posterior you are, so it is safer to go somewhat higher, and worth checking the count again once you have a posterior to check it against.
 :::
 
 Now let's run PMMH. Unlike standard MCMC where NUTS auto-tunes proposals, PMMH requires Metropolis-Hastings because the particle filter likelihood is not differentiable.
@@ -310,35 +310,6 @@ chain_pmcmc = Chains(Matrix(chain_df[:, [:R_0, :D_lat, :D_inf, :α, :D_imm, :ρ]
 # Display chain summary
 display(chain_pmcmc)
 ```
-
-## Why more particles than the calibration asked for
-
-The calibration in the previous session was run at a single parameter set and put
-the smallest acceptable count at 64. A chain does not stay at one parameter set,
-so the question is what the filter does across the region the posterior actually
-occupies. We have the posterior now, so we can look:
-
-```{julia}
-Random.seed!(20)
-draws = chain_df[rand(1:nrow(chain_df), 25), :]
-
-for n in (64, 256)
-    sds = map(eachrow(draws)) do row
-        θ = Dict(:R_0 => row.R_0, :D_lat => row.D_lat, :D_inf => row.D_inf,
-                 :α => row.α, :D_imm => row.D_imm, :ρ => row.ρ)
-        std([run_particle_filter(θ, flu_tdc.obs, n) for _ in 1:30])
-    end
-    println(rpad(n, 4), " particles: median SD ", round(median(sds), digits = 2),
-            ", worst ", round(maximum(sds), digits = 2),
-            ", above 3 for ", round(100 * mean(sds .> 3), digits = 0), "% of draws")
-end
-```
-
-At 64 particles the median is respectable and the tail is not: a large share of
-the posterior gives a log-likelihood estimate far noisier than the target, and it
-is those draws that stall a chain. The count that looks sufficient at one
-parameter set is not sufficient over the set the sampler visits, which is the
-reason to calibrate with headroom rather than to the minimum.
 
 ```{julia}
 # Plot trace plots - much better mixing!
@@ -941,6 +912,28 @@ Drawing many paths from one run would therefore understate the uncertainty badly
 The plot above avoids that by re-running the filter for every replicate, at a fresh posterior draw, so the paths are independent of each other.
 
 See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johansen_tutorialPF2011.pdf) for details on trajectory sampling from particle filters.
+
+## Calibrating the particle count and the proposal together
+
+This session calibrated the particle count in one place and let RAM adapt the
+proposal in another, as though the two were separate problems. They are not.
+[Sherlock, Thiery, Roberts & Rosenthal (2015)](https://doi.org/10.1214/14-AOS1278)
+solve them jointly for pseudo-marginal random walk Metropolis and find the
+efficient combination to be a log-likelihood noise variance of about 3.283, so a
+standard deviation near 1.8, together with an acceptance rate near 7%.
+
+Read that acceptance rate the way the [MCMC session](mcmc.qmd) reads 23.4%: as a
+limit for a large number of parameters, under assumptions about the noise, rather
+than a number to dial in for six. What it does say is that the two calibrations
+belong to one problem. A proposal tuned to the acceptance rate that is optimal
+for an exact likelihood is being tuned against the wrong target once the
+likelihood is estimated, because a rejection now costs a particle filter run too.
+
+That still leaves you to hit the targets by hand with a pilot run. Adapting the
+particle count *while* the sampler runs is a separate problem, and one that stayed
+open for a while: [Botha, Kohn, South & Drovandi (2023)](https://doi.org/10.1007/s11222-023-10250-2)
+give a scheme that adapts the number of state particles automatically inside
+SMC², using the expected squared jumping distance to decide when to change it.
 
 ## SMC²
 

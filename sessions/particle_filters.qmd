@@ -486,7 +486,7 @@ plot(p1, p2, p3, layout=(1, 3), size=(900, 300))
 Look at the variance plot (middle). We want the SD to be in the range 1-3. Read off the smallest particle count that achieves this.
 
 ::: {.callout-note collapse="true"}
-## Typical results (if you can't run the code)
+## Typical results
 In our runs, we typically see:
 
 - **4-16 particles**: SD in the tens or worse, far too noisy for reliable inference
@@ -494,9 +494,7 @@ In our runs, we typically see:
 - **64 particles**: SD around 2, the first count inside it
 - **128-512 particles**: SD below 1, falling slowly while the cost keeps rising
 
-Your numbers will differ, and at the low counts they differ a lot: the spread is itself an estimate, which is why the cell above averages over 200 runs rather than a handful. With only 30 runs the value at 64 particles wanders between roughly 1 and 5 depending on which draws you happen to get.
-
-For the PMCMC session we use 128-256 particles even though 64 clears the target here. The exercise below asks why you would go above the minimum.
+Your numbers will differ, and at the low counts they differ a lot, which is why the cell above averages over 200 runs rather than a handful.
 :::
 
 ::: {.callout-tip title="Exercise: Choose the number of particles"}
@@ -521,12 +519,9 @@ to aim for a standard deviation somewhere between 1 and 3 on the log scale, whic
 is where the total cost tends to be lowest.
 
 **Why go above the minimum.** The noise depends on where in parameter space you
-are. A count calibrated at one parameter set will be too few elsewhere, and
-elsewhere is precisely where a chain gets stuck and stays stuck. The [particle
-MCMC session](pmcmc.qmd) measures this against the fitted posterior and finds the
-minimum from this plot failing on a large share of it. Calibrating at a
-reasonable parameter set and then taking some headroom is cheaper than diagnosing
-a chain that will not move.
+are, and a count calibrated at one parameter set will be too few elsewhere.
+Elsewhere is precisely where a chain gets stuck and stays stuck, so taking some
+headroom is cheaper than diagnosing a chain that will not move.
 :::
 
 ::: {.callout-tip title="Exercise: Sensitivity to parameters"}

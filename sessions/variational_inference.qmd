@@ -54,7 +54,7 @@ using StatsPlots
 using Turing
 using Turing.Variational: vi, q_meanfield_gaussian, q_fullrank_gaussian
 using ADTypes: AutoForwardDiff
-using MCMCChains
+using FlexiChains ## chain objects and diagnostics
 using Random
 using LinearAlgebra
 using DrWatson

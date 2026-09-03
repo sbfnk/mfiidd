@@ -53,7 +53,6 @@ using DataFrames
 using Plots
 using StatsPlots
 using Turing
-using MCMCChains
 using FlexiChains: @varname ## refer to a model variable by name
 using CSV
 using DrWatson
