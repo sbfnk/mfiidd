@@ -915,32 +915,17 @@ See [Doucet & Johansen (2009)](https://www.stats.ox.ac.uk/~doucet/doucet_johanse
 
 ## Calibrating the particle count and the proposal together
 
-This session calibrated the particle count in one place and let RAM adapt the
-proposal in another, as though the two were separate problems. They are not.
-[Sherlock, Thiery, Roberts & Rosenthal (2015)](https://doi.org/10.1214/14-AOS1278)
-solve them jointly for pseudo-marginal random walk Metropolis and find the
-efficient combination to be a log-likelihood noise variance of about 3.283, so a
-standard deviation near 1.8, together with an acceptance rate near 7%.
+This session calibrated the particle count in one place and let RAM adapt the proposal in another, as though the two were separate problems.
+They are not.
+[Sherlock, Thiery, Roberts & Rosenthal (2015)](https://doi.org/10.1214/14-AOS1278) solve them jointly for pseudo-marginal random walk Metropolis, and find the efficient combination to be a log-likelihood standard deviation near 1.8 together with an acceptance rate near 7%.
 
-Read that acceptance rate the way the [MCMC session](mcmc.qmd) reads 23.4%: as a
-limit for a large number of parameters, under assumptions about the noise, rather
-than a number to dial in for six. What it does say is that the two calibrations
-belong to one problem. A proposal tuned to the acceptance rate that is optimal
-for an exact likelihood is being tuned against the wrong target once the
-likelihood is estimated, because a rejection now costs a particle filter run too.
+Read that acceptance rate the way the [MCMC session](mcmc.qmd) reads 23.4%: a limit for a large number of parameters, under assumptions about the noise.
+It is not a number to dial in for six.
+The useful part is that the two calibrations belong to one problem.
+A proposal tuned to the acceptance rate that suits an exact likelihood is aiming at the wrong number once the likelihood is estimated, because a rejection now costs a particle filter run as well.
 
-The criterion itself has moved on as well.
-[Sherlock (2024)](https://arxiv.org/abs/2411.10785) shows that choosing the
-particle count from the variance of the *log* likelihood estimate, which is the
-rule the previous session applies, can hide a badly behaved sampler, and argues
-for the relative variance of the estimate instead.
-That matters here for the reason the count was raised above the calibrated
-minimum: a spread measured at one parameter set says little about the draws where
-the estimate goes wrong.
-
-Both of these give you targets to aim at with a pilot run rather than a procedure
-that reaches them on its own. Adapting the particle count while a PMMH chain runs,
-alongside the proposal, does not appear to be settled.
+Hitting either target still takes a pilot run.
+A recent preprint by [Abaoubida, Bédard & Maire (2025)](https://arxiv.org/abs/2509.24820) instead adapts the particle count as the chain runs, adjusting it with a probability that falls away as the chain lengthens so that the sampler stays valid.
 
 ## SMC²
 
