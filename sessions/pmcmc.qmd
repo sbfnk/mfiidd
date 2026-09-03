@@ -923,7 +923,6 @@ Both figures are limits for a large number of parameters and assume a particular
 
 Hitting either target still takes a pilot run.
 [Abaoubida, Bédard & Maire (2025)](https://arxiv.org/abs/2509.24820) instead adapt the particle count as the chain runs, and prove that the sampler stays ergodic as long as the adaptation fades out.
-That is a September 2025 preprint.
 
 ## SMC²
 
