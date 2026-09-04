@@ -38,7 +38,8 @@ Three ways to engage with the course:
 2. **Local installation**: Install Julia and run everything on your own machine.
    Recommended for the full experience.
 3. **Cloud option**: Open the course in [GitHub Codespaces](https://codespaces.new/mfiidd/mfiidd), which gives you a browser-based VS Code with Julia and the course packages already installed.
-   Nothing to download, and useful if a local install will not cooperate.
+   Nothing to download onto your own machine, and it is there if a local installation will not cooperate.
+   Create it the day before rather than on the morning: the first time you open one it spends about half an hour installing and precompiling the packages, and the window looks as though it has frozen while it does.
 
 # Local installation
 
