@@ -32,10 +32,10 @@ Monday 7 September: 09.45-10.30
 -   [Getting set up for the course](../getting-started.qmd): installing Julia and the `MFIIDD` package, and checking everyone's environment runs (45 mins)
 
 ::: {.callout-warning}
-Please install everything **before** you arrive. Package installation downloads
-around 1 GB and precompiles it, which takes 15–30 minutes on a good connection
-and considerably longer on a room full of laptops at once. This slot is for
-fixing what has gone wrong, not for starting from scratch.
+If you can, install everything **before** you arrive. The packages come to
+around 1 GB and Julia precompiles them on first use, which takes 15–30 minutes on
+a good connection. If you have not managed it, come anyway and we will get you
+running in this slot.
 :::
 
 ## Session 1: Model fitting in Julia
