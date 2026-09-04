@@ -944,7 +944,39 @@ heatmap(
 )
 ```
 
-What do you observe about the posterior surface?
+::: {.callout-tip title="Exercise: Read the posterior surface"}
+Look at the heatmap.
+
+- Whereabouts on the grid is the posterior mass, and what shape is it?
+- Most of the grid is a single colour. What does that tell you?
+- The grid is 143 combinations for two parameters. What happens to that number for a model with four?
+:::
+
+::: {.callout-tip title="What to look for" collapse="true"}
+The peak sits at $R_0 = 2.3$, $D_\mathrm{inf} = 2.0$, with a log-posterior of
+$-98.5$. The rest of the grid runs down to $-10530$, so the surface spans over ten
+thousand log units. Only seven of the 143 combinations come within 100 of the
+peak and only one comes within 10, which is why almost the whole heatmap is one
+flat colour: the colour scale is being spent on a range in which the data have
+already ruled everything out.
+
+The high region is a diagonal band rather than a blob. The best $D_\mathrm{inf}$
+rises with $R_0$, from 1.0 days at $R_0 = 1.5$ to 3.0 days at $R_0 = 3.9$, because
+the data constrain how fast the epidemic grows and a larger $R_0$ can be partly
+offset by a longer infectious period. The two parameters are correlated, and the
+grid shows that correlation directly.
+
+Note also that the best grid point is not the $R_0 \approx 2.5$ the data were
+simulated from. The grid steps in 0.2, and one realisation of Poisson noise is
+enough to move the peak by a step; the best-fitting parameters are not the true
+ones, which is the whole reason for wanting a posterior rather than a point.
+
+Four parameters on the same grid would be roughly $143^2 \approx 20{,}000$
+combinations, each an ODE solve, and most of them spent on the flat region that
+the colour scale already shows is worthless. That is the argument for the sampling
+methods in the rest of the course: they spend their effort where the posterior
+mass is.
+:::
 
 ## Posterior predictive checking
 
