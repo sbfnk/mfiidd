@@ -6,23 +6,61 @@ subtitle: "Introduction to the course and the instructors"
 
 ## Why this course?
 
-Fitting a mechanistic model to outbreak data is a common task in an outbreak response, and a common one in research.
+Fitting a mechanistic model to data is a common task in an research on infectious disease dynamics.
 
 ::: {.fragment}
-The methods that do it well are scattered across literatures, and it is easy to reach for the wrong one, or the right one badly tuned.
+The methods are often buried in the statistical literature, with little guidance on which particularapproach one should use.
 :::
 
 ::: {.fragment}
-There was no single place that taught them together, with the code to run them.
+There was no single place that taught them together.
 :::
 
-## Who are we?
+## The history
 
 The course has been taught at LSHTM for over a decade, by the Centre for the Mathematical Modelling of Infectious Diseases.
 
 ::: {.fragment}
-It was written by [several people](../../authors.qmd) over that time, and this is the first year it is taught in Julia.
+It was initally written by Anton Camacho and Sebastian Funk and further developed by [several people](../../authors.qmd) over that time.
 :::
+
+::: {.fragment}
+The course was written in R using a bespoke package, which we told people not to use. We didn't teach what to use in production.
+:::
+
+::: {.fragment}
+This year, for the first time, we are using **Julia** (bear with us), as this can express all the methods that we teach (and more).
+:::
+
+## Who are we?
+
+:::: {.columns}
+::: {.column width="20%"}
+![](https://github.com/sbfnk.png){width="85%"}
+
+[Sebastian Funk](https://github.com/sbfnk)
+:::
+::: {.column width="20%"}
+![](https://github.com/ntncmch.png){width="85%"}
+
+[Anton Camacho](https://github.com/ntncmch)
+:::
+::: {.column width="20%"}
+![](https://github.com/hcb101.png){width="85%"}
+
+[Helen Johnson](https://github.com/hcb101)
+:::
+::: {.column width="20%"}
+![](https://github.com/nicholasdavies.png){width="85%"}
+
+[Nicholas Davies](https://github.com/nicholasdavies)
+:::
+::: {.column width="20%"}
+![](https://github.com/kath-o-reilly.png){width="85%"}
+
+[Kath O'Reilly](https://github.com/kath-o-reilly)
+:::
+::::
 
 ## Who are you?
 

@@ -37,7 +37,7 @@ Three ways to engage with the course:
    Fine for an overview, but you'll learn more by doing.
 2. **Local installation**: Install Julia and run everything on your own machine.
    Recommended for the full experience.
-3. **Cloud option**: Use a pre-configured cloud environment (if provided by your instructor).
+3. **Cloud option**: Open the course in [GitHub Codespaces](https://github.com/codespaces), which gives you a browser-based VS Code with Julia and every package already installed. Nothing to download, and useful if a local install will not cooperate.
 
 # Local installation
 
