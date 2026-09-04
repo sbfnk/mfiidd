@@ -33,6 +33,7 @@ website:
       title: "Sessions"
       style: "docked"
       contents:
+        - sessions/introduction-and-course-overview.qmd
         - sessions/introduction.qmd
         - sessions/mcmc.qmd
         - sessions/mcmc_diagnostics.qmd

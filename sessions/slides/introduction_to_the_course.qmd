@@ -1,0 +1,49 @@
+---
+footer: "Introduction to the course"
+title: "Model fitting and inference for infectious disease dynamics"
+subtitle: "Introduction to the course and the instructors"
+---
+
+## Why this course?
+
+Fitting a mechanistic model to outbreak data is a common task in an outbreak response, and a common one in research.
+
+::: {.fragment}
+The methods that do it well are scattered across literatures, and it is easy to reach for the wrong one, or the right one badly tuned.
+:::
+
+::: {.fragment}
+There was no single place that taught them together, with the code to run them.
+:::
+
+## Who are we?
+
+The course has been taught at LSHTM for over a decade, by the Centre for the Mathematical Modelling of Infectious Diseases.
+
+::: {.fragment}
+It was written by [several people](../../authors.qmd) over that time, and this is the first year it is taught in Julia.
+:::
+
+## Who are you?
+
+Around the room:
+
+- your name
+- where you have come from
+- what you are hoping to fit
+
+## How the course works
+
+Each session opens with a short set of slides and then becomes a practical you work through.
+
+::: {.fragment}
+The practicals are the course. Sit with someone and compare answers, and ask us as soon as you are stuck.
+:::
+
+::: {.fragment}
+Every line of Julia is given complete. The exercises ask you to predict, interpret and choose, never to debug.
+:::
+
+#
+
+[Return to the session](../introduction-and-course-overview.qmd)
