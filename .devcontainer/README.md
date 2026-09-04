@@ -22,10 +22,11 @@ organisation to be on GitHub Team or Enterprise Cloud, and `mfiidd` is on the
 free plan, which is why the repository has no **Settings → Codespaces** page at
 all.
 
-So creating a codespace blocks on `onCreateCommand` for that 28 minutes, showing
-a window that looks like it has hung. **Tell whoever uses this to create their
-codespace the day before**, which turns the wait into something that happens
-while they are not watching. That is the whole mitigation available to us.
+So creating a codespace blocks on `onCreateCommand`, showing a window that looks
+like it has hung. Assume this happens during the setup slot on the morning
+rather than in advance: people arrive and start then, whatever the instructions
+say. That is why the machine size below is chosen around the setup time and not
+around the running cost.
 
 ## Machine size
 
