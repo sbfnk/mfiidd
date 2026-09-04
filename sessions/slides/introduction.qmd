@@ -60,7 +60,6 @@ Given a model, what are the parameter combinations that best **fit** the data?
     Bangladesh are asymptomatic?
   - sometimes in real time
 - **Validate** the model, especially for prediction
-:::
 
 ## What do we mean by "best fit the data"?
 
@@ -114,8 +113,8 @@ Given what we observe, what is the **state** of the system?
 How many soldiers die of horse kicks, at 0.61 deaths per corps per year?
 Counts of rare, independent events follow a [Poisson]{.alert} distribution.
 
-:::: {.columns}
-::: {.column width="55%"}
+::::: {.columns}
+:::: {.column width="55%"}
 ```{julia}
 #| echo: false
 scatter(
@@ -125,8 +124,9 @@ scatter(
 ```
 
 [Bortkiewicz (1898) counted 122 deaths across 10 Prussian corps in 20 years.]{.cite}
-:::
-::: {.column width="45%"}
+::::
+
+:::: {.column width="45%"}
 ::: {.fragment}
 [**Evaluate**]{.alert} the probability of a value
 
@@ -144,16 +144,16 @@ pdf(Poisson(0.61), 2)
 rand(Poisson(0.61))
 ```
 :::
-:::
 ::::
+:::::
 
 ## Probability distributions: continuous {.smaller}
 
 What will the temperature be in London tomorrow?
 A continuous quantity, here a [normal]{.alert} distribution.
 
-:::: {.columns}
-::: {.column width="55%"}
+::::: {.columns}
+:::: {.column width="55%"}
 ```{julia}
 #| echo: false
 plot(
@@ -161,8 +161,10 @@ plot(
     xlabel = "Temperature (°C)", ylabel = "Density",
 )
 ```
-:::
-::: {.column width="45%"}
+
+::::
+
+:::: {.column width="45%"}
 ::: {.fragment}
 [**Evaluate**]{.alert} the density at a value
 
@@ -180,8 +182,8 @@ pdf(Normal(23, 2), 30)
 rand(Normal(23, 2))
 ```
 :::
-:::
 ::::
+:::::
 
 ## Example: observation uncertainty {.smaller}
 
