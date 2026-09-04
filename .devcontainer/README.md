@@ -6,8 +6,8 @@ cooperate, or who would rather not download a gigabyte in a teaching room.
 
 ## Why the commands sit where they do
 
-Instantiating the project downloads around 1 GB and precompiles 491 packages,
-which takes the best part of an hour. That work happens in `onCreateCommand`,
+Instantiating the project downloads around 1 GB and precompiles 774
+dependencies, measured at 28 minutes on the two-core machine declared below. That work happens in `onCreateCommand`,
 which a **prebuild** runs and captures in the image, so opening a codespace
 takes seconds instead. Moving it to `postCreateCommand` would lose the saving
 entirely, because that runs when a participant opens their codespace rather
@@ -17,21 +17,67 @@ than when the image is built.
 prebuild loudly if the image is broken, rather than leaving someone to discover
 it on the morning.
 
-Prebuilds are not configured in this file, and cannot be: they are a repository
-setting. Enable them per branch under **Settings → Codespaces → Set up prebuild**,
-and rebuild after any change to `Project.toml`, `Manifest.toml` or this directory.
+A prebuild is configured on `main`, so that work is already done and a codespace
+opens without it. Prebuilds require the owning organisation to be on GitHub Team,
+which `mfiidd` reached through a GitHub Education faculty coupon, and they need
+the organisation's Codespaces spending limit set above zero, because the prebuilt
+image is stored and storage is billed.
 
-**Do that before pointing anyone at a codespace.** Without a prebuild, creating one
-blocks on `onCreateCommand` while it downloads the packages and precompiles them,
-which was measured at 26 minutes on the 2-core machine declared here, on top of
-around 2.5 GB of downloads. The participant sees a window that appears to hang,
-with no indication why, which is worse than the local installation this option
-exists to rescue.
+Enable or change it under **Settings → Codespaces → Set up prebuild**, on `main`,
+triggered by configuration change. The first build took 72 minutes.
+
+Verified inside a codespace: `~/.julia/compiled/v1.12` held 777 entries, and
+`using MFIIDD, Turing` in a fresh process took 14.7 seconds with no
+precompilation, against 28 minutes without a prebuild.
+
+Two cases still pay the full 28 minutes, so it is worth knowing they exist: a
+codespace opened on a branch rather than `main`, and one opened after
+`Project.toml`, `Manifest.toml` or this directory changed but before the rebuild
+finishes. Neither fails; they are just slow.
+
+## Which Julia the extension uses
+
+`julia.executablePath` points at the juliaup launcher, which follows the default
+channel the Dockerfile pinned to 1.12. Without it the extension asks juliaup for
+the `release` channel and runs `juliaup add release` on first start. That is
+harmless while `release` resolves to the same 1.12.7, and stops being harmless
+the day 1.13 ships: the extension would use a Julia the prebuilt depot was not
+compiled for, and which `Project.toml` does not accept.
+
+## What opens first
+
+`customizations.codespaces.openFiles` opens the course overview and the first
+session instead of leaving the participant on `README.md`, which is written for
+people working on the course rather than taking it. It applies when the codespace
+is created, not on every reconnect.
 
 ## Machine size
 
-Two cores and 8 GB is enough for the practicals. The usual reason to want more
-cores is precompilation, and the prebuild has already done that.
+Four cores and 16 GB, which is `standardLinux32gb`. This is about memory, not
+speed. On the 8 GB machine the Julia extension's first REPL start was killed with
+`signal 15` part-way through precompiling `Pkg`, three times, at different points
+in LLVM codegen and GC. VS Code server, the Julia language server and a `Pkg`
+precompile do not fit together in what that machine actually gives you, and the
+failure is unrecoverable from inside the codespace.
+
+The measurement that shows it: `/sys/fs/cgroup/memory.peak` reached 6648057856
+bytes, 6.19 GiB, before the kill. There is no cgroup limit to hit,
+`memory.max` reads `max`, so that is real usage on an 8 GB VM which also has to
+run the VS Code server and the language server. The signal was 15 rather than 9,
+so the kill came from a supervisor reacting to memory pressure and not from the
+kernel's own OOM killer.
+
+The cost is that a codespace on a public repository is billed against the user's
+**personal** free allowance of 120 core-hours a month, and four days of teaching
+at six and a half hours a day costs about 104 core-hours on four cores against
+about 52 on two. That is inside the allowance, and a working environment is worth
+more than the margin.
+
+Note that none of this is billed to the organisation. Org billing for
+codespaces requires Team or Enterprise Cloud, so on the free plan every
+codespace is charged to the personal allowance of whoever created it. There is
+also no way to create one on someone else's behalf: a codespace belongs to the
+account that made it.
 
 ## Comments
 

@@ -9,6 +9,12 @@
   "updateContentCommand": "julia --project=. -e 'using MFIIDD; println(\"MFIIDD loads\")'",
   "postCreateCommand": "pip install --user pre-commit && pre-commit install",
   "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "sessions/introduction-and-course-overview.qmd",
+        "sessions/introduction.qmd"
+      ]
+    },
     "vscode": {
       "extensions": [
         "julialang.language-julia",
@@ -16,13 +22,14 @@
       ],
       "settings": {
         "julia.environmentPath": "${containerWorkspaceFolder}",
+        "julia.executablePath": "/usr/local/juliaup/bin/julia",
         "files.trimTrailingWhitespace": true
       }
     }
   },
   "hostRequirements": {
-    "cpus": 2,
-    "memory": "8gb",
+    "cpus": 4,
+    "memory": "16gb",
     "storage": "32gb"
   },
   "remoteUser": "vscode"
