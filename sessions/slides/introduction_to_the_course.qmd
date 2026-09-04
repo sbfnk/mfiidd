@@ -36,11 +36,6 @@ This year, for the first time, we are using **Julia** (bear with us), as this ca
 
 :::: {.columns}
 ::: {.column width="25%"}
-![](https://github.com/sbfnk.png){width="85%"}
-
-[Sebastian Funk](https://github.com/sbfnk)
-:::
-::: {.column width="25%"}
 ![](https://github.com/seabbs.png){width="85%"}
 
 [Sam Abbott](https://github.com/seabbs)
@@ -49,6 +44,11 @@ This year, for the first time, we are using **Julia** (bear with us), as this ca
 ![](https://github.com/nicholasdavies.png){width="85%"}
 
 [Nicholas Davies](https://github.com/nicholasdavies)
+:::
+::: {.column width="25%"}
+![](https://github.com/sbfnk.png){width="85%"}
+
+[Sebastian Funk](https://github.com/sbfnk)
 :::
 ::: {.column width="25%"}
 ![](https://github.com/slmontes.png){width="85%"}
