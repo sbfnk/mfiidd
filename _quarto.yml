@@ -55,8 +55,8 @@ website:
 format:
   html:
     theme:
-      light: brite
-      dark: vapor
+      light: [brite, mfiidd-fonts.scss]
+      dark: [vapor, mfiidd-fonts.scss]
     css: styles.css
     link-external-icon: true
     link-external-newwindow: true
