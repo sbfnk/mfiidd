@@ -46,7 +46,7 @@ Three ways to engage with the course:
 Install Julia using [juliaup](https://github.com/JuliaLang/juliaup), the official version manager.
 Open a terminal (on Windows: search for "PowerShell"; on macOS: open Terminal from Applications/Utilities) and run:
 
-- **Windows**: `winget install julia -s msstore`
+- **Windows**: `winget install --name Julia --id 9NJNWW8PVKMN -e -s msstore`
 - **macOS/Linux**: `curl -fsSL https://install.julialang.org | sh`
 
 juliaup handles downloading the right version and makes future upgrades easy (`juliaup update`).
@@ -74,16 +74,16 @@ Back in your **terminal** (not the Julia REPL), download the course materials:
 
 ```bash
 git clone https://github.com/mfiidd/mfiidd.git
-cd mfiidd.julia
+cd mfiidd
 ```
 
-If you don't have git, you can download the repository as a ZIP file from the [GitHub page](https://github.com/mfiidd/mfiidd).
+If you do not have git, [download the repository as a ZIP](https://github.com/mfiidd/mfiidd/archive/refs/heads/main.zip) and unpack it. Windows does not ship with git, and on macOS typing `git` prompts you to install Apple's command line tools, which is a large download in itself. The ZIP unpacks to a folder called `mfiidd-main` rather than `mfiidd`, so use that name in the commands below.
 
-Then open the course folder in VS Code: either run `code mfiidd.julia` from the terminal, or use **File → Open Folder** in VS Code and navigate to the `mfiidd.julia` directory.
+Then open the course folder in VS Code: either run `code mfiidd` from the terminal, or use **File → Open Folder** in VS Code and navigate to the `mfiidd` directory.
 
 ## Step 4: Install Julia packages
 
-With the `mfiidd.julia` folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
+With the `mfiidd` folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
 The REPL should open in the bottom panel showing a `julia>` prompt.
 
 Now activate the project environment and install packages:
@@ -191,16 +191,36 @@ For faster startup during development, consider [PackageCompiler.jl](https://jul
 Julia runs natively on Apple Silicon (M1/M2/M3).
 Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
 
-# Updating before the course
+# Keeping up to date
 
-If you installed the packages days or weeks before the course, update them:
+If you installed everything days or weeks ago, refresh it before you start.
+First update the materials, from the folder you cloned or unpacked:
+
+```bash
+git pull
+```
+
+If you downloaded the ZIP rather than cloning, download it again and replace the folder.
+
+Then match the package versions the course was tested with:
 
 ```julia
 using Pkg
 Pkg.activate(".")
-Pkg.update()
+Pkg.instantiate()
 Pkg.precompile()
 ```
+
+`Pkg.instantiate()` installs exactly the versions recorded in `Manifest.toml`, which is what you want.
+`Pkg.update()` would resolve fresh versions instead and can pull in a release the course has not been run against, so reach for it only if something is broken.
+
+## During the course
+
+We fix things as we find them, so the materials may change under you while the course runs.
+To pick up a change, run `git pull` and restart the Julia REPL.
+
+If `Project.toml` or `Manifest.toml` changed, run `Pkg.instantiate()` again as well.
+Nothing else needs reinstalling, and Julia will not need to precompile from scratch a second time.
 
 # Working with the materials
 
