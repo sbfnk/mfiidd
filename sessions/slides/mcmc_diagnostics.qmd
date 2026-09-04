@@ -77,7 +77,7 @@ proposal distribution.
 
 :::: {.columns}
 ::: {.column width="55%"}
-![](images/caterpillar.png)
+![](images/hairy_caterpillar.jpg)
 :::
 ::: {.column width="45%"}
 Key characteristics:
