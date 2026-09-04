@@ -38,7 +38,9 @@ Three ways to engage with the course:
 2. **Local installation**: Install Julia and run everything on your own machine.
    Recommended for the full experience.
 3. **Cloud option**: Open the course in [GitHub Codespaces](https://codespaces.new/mfiidd/mfiidd), which gives you a browser-based VS Code with Julia and the course packages already installed.
-   Nothing to download, and useful if a local install will not cooperate.
+   Nothing to download onto your own machine, and it is there if a local installation will not cooperate.
+   You need a GitHub account, and the codespace runs on your own free GitHub allowance, which is many times what this course uses.
+   Everything is installed already, so skip the rest of this page and go to [Running code](#running-code).
 
 # Local installation
 
@@ -92,7 +94,8 @@ Then open the course folder in VS Code: run **File → Open Folder** and navigat
 
 ## Step 4: Install Julia packages
 
-With the course folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
+With the course folder open in VS Code, start the Julia REPL from the menu: **View → Command Palette**, then type "Julia: Start REPL" and press Enter.
+The keyboard shortcut for the palette is `Ctrl+Shift+P`, or `Cmd+Shift+P` on macOS, but some systems claim that combination for themselves, so the menu is the route that always works.
 The REPL should open in the bottom panel showing a `julia>` prompt.
 
 Now activate the project environment and install packages:
@@ -245,16 +248,26 @@ Or render the entire site:
 quarto preview
 ```
 
-## Running code interactively
+## Running code {#running-code}
 
-In VS Code with the Julia extension:
+Open a session, for example `sessions/introduction.qmd`, and look just above any
+block that starts ```` ```{julia} ````.
+There is a small **Run Cell** link there.
+Click it, and the block runs in the Julia REPL, which starts by itself the first time.
+Work down the session that way, reading the prose between the blocks.
 
-1. Open a `.qmd` file
-2. Place cursor in a code block
-3. Press `Shift+Enter` to execute and move to next block
-4. Or `Ctrl+Enter` to execute without moving
+Clicking is the route that always works, so it is the one to learn first.
 
-Alternatively, copy code into the Julia REPL.
+::: {.callout-warning}
+## Keyboard shortcuts are not reliable everywhere
+In desktop VS Code you can press `Shift+Enter` to run a block and move to the next one, which is quicker once you are going.
+In a browser, which is what a codespace gives you, the browser and the operating system take some key combinations before VS Code sees them, and `Shift+Enter` may do nothing at all.
+Nothing is broken when that happens.
+Use the **Run Cell** link instead, or open the codespace in desktop VS Code through the `☰` menu.
+:::
+
+You can also copy code into the Julia REPL, which is what to do if you are
+reading the sessions on the website rather than running them from a local copy.
 
 ::: {.callout-tip collapse="true"}
 ## Using a different editor?
