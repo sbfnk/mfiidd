@@ -26,6 +26,10 @@ image is stored and storage is billed.
 Enable or change it under **Settings → Codespaces → Set up prebuild**, on `main`,
 triggered by configuration change. The first build took 72 minutes.
 
+Verified inside a codespace: `~/.julia/compiled/v1.12` held 777 entries, and
+`using MFIIDD, Turing` in a fresh process took 14.7 seconds with no
+precompilation, against 28 minutes without a prebuild.
+
 Two cases still pay the full 28 minutes, so it is worth knowing they exist: a
 codespace opened on a branch rather than `main`, and one opened after
 `Project.toml`, `Manifest.toml` or this directory changed but before the rebuild
