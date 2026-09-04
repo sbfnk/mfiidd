@@ -57,7 +57,11 @@ In order of preference:
   Run code by clicking the **Run Cell** link above each block; see the warning under [Running code](#running-code) about why the keyboard shortcuts may not respond there.
 
 Either way you are working with the real course materials and can edit and re-run them.
-The one thing you give up is that a codespace is not permanent, so copy out anything you want to keep.
+
+Two things to know about a codespace.
+Closing the browser tab does not stop it: it keeps running, and keeps using your allowance, until it times out after thirty minutes idle.
+Stop it yourself from [github.com/codespaces](https://github.com/codespaces) using the menu next to it, which is also where you go to reopen it later.
+Your files survive stopping and restarting, including anything you have edited, but a codespace is deleted after thirty days unused, so push or copy out anything you want to keep.
 :::
 
 # Local installation
