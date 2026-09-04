@@ -9,7 +9,7 @@ ENV JULIAUP_DEPOT_PATH=/usr/local/juliaup \
 
 RUN curl -fsSL https://install.julialang.org \
       | sh -s -- --yes --default-channel 1.12 --path /usr/local/juliaup \
- && chmod -R a+rx /usr/local/juliaup \
+ && chown -R vscode:vscode /usr/local/juliaup \
  && julia --version
 
 # Quarto, so a participant can render a session locally if they want to see
