@@ -55,8 +55,8 @@ website:
 format:
   html:
     theme:
-      light: [brite, mfiidd-fonts.scss]
-      dark: [vapor, mfiidd-fonts.scss]
+      light: cosmo
+      dark: solar
     css: styles.css
     link-external-icon: true
     link-external-newwindow: true
