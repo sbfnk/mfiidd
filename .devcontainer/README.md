@@ -44,8 +44,12 @@ Four cores and 16 GB, which is `standardLinux32gb`. This is about memory, not
 speed. On the 8 GB machine the Julia extension's first REPL start was killed with
 `signal 15` part-way through precompiling `Pkg`, three times, at different points
 in LLVM codegen and GC. VS Code server, the Julia language server and a `Pkg`
-precompile do not fit in 8 GB together, and the failure is unrecoverable from
-inside the codespace.
+precompile do not fit together in what that machine actually gives you, and the
+failure is unrecoverable from inside the codespace.
+
+Note that the advertised 8 GB is not what the container gets. Reading
+`/sys/fs/cgroup/memory.max` inside one returned 6648057856 bytes, or 6.19 GiB;
+the rest goes to the VM and to processes outside the cgroup.
 
 The cost is that a codespace on a public repository is billed against the user's
 **personal** free allowance of 120 core-hours a month, and four days of teaching
