@@ -603,11 +603,22 @@ If we didn't know this, could we figure it out by exploring the likelihood?
 
 ## Exploring likelihood through simulation
 
-The likelihood asks: "How probable is our observed data, given specific parameter values?"
-Before we compute it, we need to decide how observations relate to the model's output.
+Before we compute the likelihood, we need to decide how observations relate to the model's output.
 Here we assume each observation is drawn from a Poisson distribution whose mean is the number of infectious individuals predicted by the model at that time point — a common choice for count data.
 Assuming the observations are conditionally independent given the model, the total log-likelihood is then the sum of log-likelihoods at each time point.
 We revisit both assumptions in the observation-model section below.
+
+::: {.callout-tip title="Exercise: Predict the best fit"}
+Before running the code below, consider the parameter combinations we are about to test.
+Based on your understanding of SIR dynamics and the data plot:
+
+- Which value of $R_0$ do you expect to give the best fit? Why?
+- How would changing $D_\mathrm{inf}$ affect the epidemic curve?
+
+Then run it and check the log-likelihood values.
+Did the results match your intuition?
+Is the visual best fit also the one with the highest log-likelihood?
+:::
 
 With that in mind, we explore the likelihood by trying the parameter combinations from before:
 
@@ -682,15 +693,6 @@ logpdf.(Poisson.(expected), obs)
 Forgetting the `.` on a vector operation is a common gotcha for R users.
 :::
 
-::: {.callout-tip title="Exercise: Predict the best fit"}
-Before looking at the output above, consider the parameter combinations being tested. Based on your understanding of SIR dynamics and the data plot:
-
-- Which value of $R_0$ do you expect to give the best fit? Why?
-- How would changing $D_\mathrm{inf}$ affect the epidemic curve?
-
-Now check the log-likelihood values. Did the results match your intuition? Is the visual best fit also the one with the highest log-likelihood?
-:::
-
 ::: {.callout-tip title="Solution" collapse="true"}
 $R_0 = 2.5$ with $D_\mathrm{inf} = 2.0$ fits best, which is unsurprising once you
 know these data were simulated from parameters close to that.
@@ -707,7 +709,7 @@ longer one gives a slower, broader epidemic reaching a similar total.
 On the last question: here the visual and numerical best fits agree, but they do
 not have to. The Poisson log-likelihood weights each day by how improbable the
 observation is under the prediction, so missing by 20 cases on a day expecting 15
-costs far more than missing by 20 on a day expecting 300. A curve that looks
+loses far more log-likelihood than missing by 20 on a day expecting 300. A curve that looks
 worse to the eye can score better if it fits the high-count days closely.
 :::
 
@@ -725,9 +727,9 @@ The total log-likelihood is the sum across all time points: if the model predict
 ::: {.callout-tip title="Exercise: When do these assumptions break down?"}
 Think about when these assumptions might be violated:
 
-- When might variance *not* equal the mean? (Hint: consider overdispersion, or very small/large counts)
-- When might observations *not* be independent? (Hint: consider reporting delays, weekend effects, or outbreak investigations)
-- What other aspects of the observation process might you want to model? (Hint: under-reporting, delays between infection and observation)
+- When might the variance *not* equal the mean?
+- When might observations *not* be independent?
+- What other aspects of the observation process might you want to model?
 :::
 
 ::: {.callout-tip title="Solution" collapse="true"}
