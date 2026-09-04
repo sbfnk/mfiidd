@@ -2,7 +2,39 @@
 footer: "MCMC diagnostics"
 title: "MCMC diagnostics"
 subtitle: "Model fitting and inference for infectious disease dynamics"
+engine: julia
 ---
+
+```{julia}
+#| echo: false
+#| include: false
+
+ENV["GKSwstype"] = "100"
+using StatsPlots
+using Random
+Random.seed!(20260908)
+
+default(
+    size = (560, 330), legend = false, guidefontsize = 12, tickfontsize = 10,
+    titlefontsize = 14, linewidth = 2, grid = true,
+)
+
+## A correlated chain standing in for MCMC output: an AR(1) walk started
+## away from the target, so both the drift and the autocorrelation show.
+n = 4000
+chain = zeros(n)
+chain[1] = 6.0
+for i in 2:n
+    chain[i] = 0.98 * chain[i - 1] + 0.02 * 2.5 + 0.08 * randn()
+end
+running_mean = cumsum(chain) ./ (1:n)
+
+function acf(x, lags)
+    xc = x .- sum(x) / length(x)
+    d = sum(abs2, xc)
+    [sum(xc[1:(end - k)] .* xc[(1 + k):end]) / d for k in lags]
+end
+```
 
 # Recap
 
@@ -101,23 +133,36 @@ shape of the target distribution.
 Try several proposal distributions ([pilot runs]{.alert}), aiming for an
 acceptance rate between 24% and 40%.
 
-## Two more plots worth making {.smaller}
+## Two more plots worth making
 
-**Running mean** — the posterior mean recomputed as the chain grows.
+::::: {.columns}
+:::: {.column width="50%"}
+**Running mean**
 
-. . .
+```{julia}
+#| echo: false
+plot(running_mean, xlabel = "Iteration", ylabel = "Posterior mean so far")
+```
 
-It should settle and stay settled. Still drifting after thousands of iterations
-means the chain has not forgotten where it started, or has not finished
-exploring.
+It should settle and stay settled.
+::::
+:::: {.column width="50%"}
+**Autocorrelation**
 
-. . .
+```{julia}
+#| echo: false
+lags = 0:100
+bar(lags, acf(chain, lags), xlabel = "Lag", ylabel = "Correlation")
+```
 
-**Autocorrelation** — how correlated a sample is with the one $k$ steps back.
+It should decay to zero within a few tens of lags.
+::::
+:::::
 
-It should decay towards zero within a few tens of lags. Still high at lag 100
-means successive samples carry almost no new information, and your effective
-sample size is a small fraction of the iterations you ran.
+::: {.fragment}
+Still drifting, or still correlated at lag 100, and your effective sample size is
+a small fraction of the iterations you ran.
+:::
 
 ## Burn-in
 
