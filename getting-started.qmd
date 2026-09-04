@@ -235,7 +235,8 @@ Alternatively, copy code into the Julia REPL.
 ::: {.callout-tip collapse="true"}
 ## Using a different editor?
 
-The Julia extension for VS Code activates the course's project environment automatically when you start a REPL from the workspace.
+The Julia extension for VS Code activates the course's project environment automatically when you start a REPL from the workspace, which `.vscode/settings.json` in the repository pins for you.
+If you ever see `ERROR: ArgumentError: Package X not found in current path`, the REPL is in Julia's default environment instead: run `using Pkg; Pkg.activate(".")` and check with `Base.active_project()`, which should end in `mfiidd/Project.toml`.
 If you use another editor, start Julia from the repository root with `julia --project=.` (or `julia --project=@.` from any subdirectory) so it picks up the course packages.
 :::
 
