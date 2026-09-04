@@ -1,5 +1,5 @@
 ---
-title: "Introduction to model fitting in Julia"
+title: "Model fitting in Julia"
 format: html
 engine: julia
 order: 1

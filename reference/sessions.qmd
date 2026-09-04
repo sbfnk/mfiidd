@@ -38,7 +38,7 @@ and considerably longer on a room full of laptops at once. This slot is for
 fixing what has gone wrong, not for starting from scratch.
 :::
 
-## Session 1: Introduction to model fitting
+## Session 1: Model fitting in Julia
 
 Monday 7 September: 10.30-11.00, 11.30-12.30 and 13.30-14.00
 

@@ -61,7 +61,7 @@ using DrWatson ## for datadir()
 
 Turing's `@model` macro and `~` syntax make Bayesian models concise and readable.
 Underneath, though, all Turing does is evaluate a log-density function: the same
-log-posterior you built by hand in the [Introduction](introduction.qmd).
+log-posterior you built by hand in [model fitting in Julia](introduction.qmd).
 
 The Julia ecosystem has a standard interface for such functions,
 [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl). Any

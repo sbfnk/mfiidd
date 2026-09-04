@@ -44,4 +44,4 @@ The [session timetable](../reference/sessions.qmd) gives the timings, and the [c
 # Next session
 
 Before anything else, make sure your laptop is ready: [getting set up](../getting-started.qmd) walks through installing Julia and the `MFIIDD` package.
-Then we begin with the [introduction to model fitting](introduction.qmd).
+Then we begin with [model fitting in Julia](introduction.qmd).
