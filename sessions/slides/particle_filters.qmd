@@ -119,17 +119,36 @@ The likelihood estimate is **unbiased** but **stochastic**: run it twice with
 the same $\theta$ and you get two different numbers. That has consequences we
 deal with in the next session.
 
-## The whole thing, in code {.smaller .scrollable}
+## The whole thing, in code {.smaller}
 
-This is the actual implementation you will use in the practical — propagate,
-weight, resample, accumulate:
+```julia
+function bootstrap_filter(rng, θ, obs, n_particles; init_state)
+    particles = [copy(init_state) for _ in 1:n_particles]
+    loglik = 0.0
 
-```{.julia include="../../src/seit4l_bootstrap_filter.jl" start-line="19" end-line="52"}
+    for y in obs
+        ## propagate: run every particle forward one day
+        incidence = map(1:n_particles) do i
+            particles[i], daily = gillespie_step(rng, particles[i], θ)
+            daily
+        end
+
+        ## weight: how plausible is today's observation under each particle?
+        log_w = logpdf.(Poisson.(θ[:ρ] .* incidence), y)
+
+        ## accumulate: the mean weight estimates today's likelihood
+        loglik += logsumexp(log_w) - log(n_particles)
+
+        ## resample: keep the particles that explained the data
+        w = exp.(log_w .- maximum(log_w))
+        particles = particles[rand(rng, Categorical(w ./ sum(w)), n_particles)]
+    end
+
+    return loglik
+end
 ```
 
-::: {.cite}
-`src/seit4l_bootstrap_filter.jl`
-:::
+Four steps, one loop. The practical builds it a step at a time.
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
