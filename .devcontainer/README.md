@@ -17,9 +17,16 @@ than when the image is built.
 prebuild loudly if the image is broken, rather than leaving someone to discover
 it on the morning.
 
-Prebuilds are not configured in this file. Enable them per branch under
-**Settings → Codespaces → Set up prebuild** on the repository, and rebuild after
-any change to `Project.toml`, `Manifest.toml` or this directory.
+Prebuilds are not configured in this file, and cannot be: they are a repository
+setting. Enable them per branch under **Settings → Codespaces → Set up prebuild**,
+and rebuild after any change to `Project.toml`, `Manifest.toml` or this directory.
+
+**Do that before pointing anyone at a codespace.** Without a prebuild, creating one
+blocks on `onCreateCommand` while it downloads the packages and precompiles them,
+which was measured at 26 minutes on the 2-core machine declared here, on top of
+around 2.5 GB of downloads. The participant sees a window that appears to hang,
+with no indication why, which is worse than the local installation this option
+exists to rescue.
 
 ## Machine size
 
@@ -32,7 +39,13 @@ cores is precompilation, and the prebuild has already done that.
 pre-commit hook parses it as strict JSON and rejects them, which is why the
 reasoning lives here instead of inline.
 
-## Julia version
+## Versions
 
 The Dockerfile pins the juliaup channel to 1.12, matching the `julia = "1.12"`
 compat bound in `Project.toml`. If that bound moves, change it here too.
+
+Quarto is deliberately **not** pinned. `build-and-deploy.yml` uses
+`quarto-actions/setup` with no version, so the published site is built with
+whatever is current, and pinning here would only guarantee that a session
+rendered in a codespace differs from the site it is being compared against.
+Both now track the latest release.
