@@ -832,6 +832,5 @@ These summaries give us point estimates and uncertainty, but should we trust the
 **Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd), how to tell if your chains have converged and your results are trustworthy.
 
 **Going further** (optional): MCMC is exact but slow.
-[Variational inference](variational_inference.qmd) is an advanced session that replaces the sampling with an optimisation, which is what you reach for when you need an answer quickly.
-The speed is not free, and much of the session is about what it costs you.
+[Variational inference](variational_inference.qmd) is an advanced session that replaces the sampling with an optimisation.
 It needs only this session as background, so you can take it at any point.
