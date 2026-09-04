@@ -2,7 +2,7 @@
 title: "Beyond Turing: the wider Julia ecosystem"
 format: html
 engine: julia
-order: 13
+order: 14
 ---
 
 ::: {.callout-note appearance="simple"}
