@@ -16,15 +16,14 @@ order: 1
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
 We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR (susceptible-infectious-recovered) epidemic model, before turning to algorithms that explore the posterior in the next session.
 
-By the end of the course you will have met several different ways of doing this,
-and the closing session puts them side by side so you can work out which one your
-own problem needs. It is worth keeping that question in mind as you go: each
-method here exists because the one before it ran out of road.
+By the end of the course you will have met several different ways of doing this, and the closing session puts them side by side so you can work out which one your own problem needs.
+Ask that of each method as you meet it rather than saving it for the end.
+Each one can do something the others cannot, and gives something up to do it.
 
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
-We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for statistical operations and build understanding through hands-on simulation and manual calculations, before moving on to automated inference.
 
 In this session, you will
 
@@ -229,7 +228,7 @@ plot(sol, labels=["S" "I" "R"])
 A *prior* represents what we believe about parameters *before* seeing any data.
 It encodes our background knowledge, expertise, or assumptions about plausible parameter values.
 
-In our SIR model:
+For our SIR model, let us set the priors to:
 
 - $R_0 \sim \text{Uniform}(1, 20)$: We believe $R_0$ could be anywhere from 1 to 20, with all values equally likely
 - $D_\mathrm{inf} \sim \text{Uniform}(1, 14)$: We believe infectious periods from 1 to 14 days are equally plausible
@@ -586,7 +585,7 @@ first(epi1, 5)
 
 ::: {.callout-tip collapse="true"}
 ## What is `datadir()`?
-`datadir()` comes from the [DrWatson.jl](https://juliadynamics.github.io/DrWatson.jl/stable/) package we loaded in the setup. It returns the path to the `data/` folder in the project root, so `datadir("epi1_synthetic.csv")` expands to something like `/path/to/mfiidd.julia/data/epi1_synthetic.csv`. This keeps file paths portable across different machines.
+`datadir()` comes from the [DrWatson.jl](https://juliadynamics.github.io/DrWatson.jl/stable/) package we loaded in the setup. It returns the path to the `data/` folder in the project root, so `datadir("epi1_synthetic.csv")` expands to something like `/path/to/mfiidd/data/epi1_synthetic.csv`. This keeps file paths portable across different machines.
 :::
 
 We first visualise this data set.
@@ -604,11 +603,22 @@ If we didn't know this, could we figure it out by exploring the likelihood?
 
 ## Exploring likelihood through simulation
 
-The likelihood asks: "How probable is our observed data, given specific parameter values?"
-Before we compute it, we need to decide how observations relate to the model's output.
+Before we compute the likelihood, we need to decide how observations relate to the model's output.
 Here we assume each observation is drawn from a Poisson distribution whose mean is the number of infectious individuals predicted by the model at that time point — a common choice for count data.
 Assuming the observations are conditionally independent given the model, the total log-likelihood is then the sum of log-likelihoods at each time point.
 We revisit both assumptions in the observation-model section below.
+
+::: {.callout-tip title="Exercise: Predict the best fit"}
+Before running the code below, consider the parameter combinations we are about to test.
+Based on your understanding of SIR dynamics and the data plot:
+
+- Which value of $R_0$ do you expect to give the best fit? Why?
+- How would changing $D_\mathrm{inf}$ affect the epidemic curve?
+
+Then run it and check the log-likelihood values.
+Did the results match your intuition?
+Is the visual best fit also the one with the highest log-likelihood?
+:::
 
 With that in mind, we explore the likelihood by trying the parameter combinations from before:
 
@@ -683,15 +693,6 @@ logpdf.(Poisson.(expected), obs)
 Forgetting the `.` on a vector operation is a common gotcha for R users.
 :::
 
-::: {.callout-tip title="Exercise: Predict the best fit"}
-Before looking at the output above, consider the parameter combinations being tested. Based on your understanding of SIR dynamics and the data plot:
-
-- Which value of $R_0$ do you expect to give the best fit? Why?
-- How would changing $D_\mathrm{inf}$ affect the epidemic curve?
-
-Now check the log-likelihood values. Did the results match your intuition? Is the visual best fit also the one with the highest log-likelihood?
-:::
-
 ::: {.callout-tip title="Solution" collapse="true"}
 $R_0 = 2.5$ with $D_\mathrm{inf} = 2.0$ fits best, which is unsurprising once you
 know these data were simulated from parameters close to that.
@@ -708,7 +709,7 @@ longer one gives a slower, broader epidemic reaching a similar total.
 On the last question: here the visual and numerical best fits agree, but they do
 not have to. The Poisson log-likelihood weights each day by how improbable the
 observation is under the prediction, so missing by 20 cases on a day expecting 15
-costs far more than missing by 20 on a day expecting 300. A curve that looks
+loses far more log-likelihood than missing by 20 on a day expecting 300. A curve that looks
 worse to the eye can score better if it fits the high-count days closely.
 :::
 
@@ -726,9 +727,9 @@ The total log-likelihood is the sum across all time points: if the model predict
 ::: {.callout-tip title="Exercise: When do these assumptions break down?"}
 Think about when these assumptions might be violated:
 
-- When might variance *not* equal the mean? (Hint: consider overdispersion, or very small/large counts)
-- When might observations *not* be independent? (Hint: consider reporting delays, weekend effects, or outbreak investigations)
-- What other aspects of the observation process might you want to model? (Hint: under-reporting, delays between infection and observation)
+- When might the variance *not* equal the mean?
+- When might observations *not* be independent?
+- What other aspects of the observation process might you want to model?
 :::
 
 ::: {.callout-tip title="Solution" collapse="true"}
@@ -943,7 +944,39 @@ heatmap(
 )
 ```
 
-What do you observe about the posterior surface?
+::: {.callout-tip title="Exercise: Read the posterior surface"}
+Look at the heatmap.
+
+- Whereabouts on the grid is the posterior mass, and what shape is it?
+- Most of the grid is a single colour. What does that tell you?
+- The grid is 143 combinations for two parameters. What happens to that number for a model with four?
+:::
+
+::: {.callout-tip title="What to look for" collapse="true"}
+The peak sits at $R_0 = 2.3$, $D_\mathrm{inf} = 2.0$, with a log-posterior of
+$-98.5$. The rest of the grid runs down to $-10530$, so the surface spans over ten
+thousand log units. Only seven of the 143 combinations come within 100 of the
+peak and only one comes within 10, which is why almost the whole heatmap is one
+flat colour: the colour scale is being spent on a range in which the data have
+already ruled everything out.
+
+The high region is a diagonal band rather than a blob. The best $D_\mathrm{inf}$
+rises with $R_0$, from 1.0 days at $R_0 = 1.5$ to 3.0 days at $R_0 = 3.9$, because
+the data constrain how fast the epidemic grows and a larger $R_0$ can be partly
+offset by a longer infectious period. The two parameters are correlated, and the
+grid shows that correlation directly.
+
+Note also that the best grid point is not the $R_0 \approx 2.5$ the data were
+simulated from. The grid steps in 0.2, and one realisation of Poisson noise is
+enough to move the peak by a step; the best-fitting parameters are not the true
+ones, which is the whole reason for wanting a posterior rather than a point.
+
+Four parameters on the same grid would be roughly $143^2 \approx 20{,}000$
+combinations, each an ODE solve, and most of them spent on the flat region that
+the colour scale already shows is worthless. That is the argument for the sampling
+methods in the rest of the course: they spend their effort where the posterior
+mass is.
+:::
 
 ## Posterior predictive checking
 
