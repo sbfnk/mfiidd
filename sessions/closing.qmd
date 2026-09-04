@@ -14,16 +14,16 @@ order: 10
 
 # Introduction
 
-You have now met every family of method this course covers, from a likelihood evaluated on a grid to a particle filter inside a Metropolis-Hastings sampler.
-Each one exists because of something the previous one could not do, and each buys that capability at a price.
+You have now met every family of method this course covers, starting with a likelihood evaluated on a grid and ending with a particle filter inside a Metropolis-Hastings sampler.
+Each one was introduced because of something the one before it could not do, and each is slower, or more approximate, or harder to tune in return.
 
-This closing session puts them side by side and asks the only question that matters when you go home: which of them does *your* problem need?
+This session puts them side by side and asks which of them your own problem needs.
 
 # Objectives
 
 By the end of this session you will be able to
 
-1. say what each method in the course costs and what it buys
+1. say what each method in the course can do, and what it costs to use
 2. decide, for a model of your own, whether a deterministic likelihood is enough
 3. recognise the two questions that settle the choice: is the likelihood tractable, and is the model differentiable
 4. name the failure mode you should expect from the method you have chosen
@@ -40,8 +40,6 @@ That is where particle filters and ABC come in, from opposite directions: the fi
 **Can you differentiate it?**
 If you can, NUTS will usually just work and you should reach for it first.
 A discrete-event simulator, a resampling step, or a hard threshold breaks differentiation, and you fall back to random-walk methods with an adaptive proposal.
-
-Everything else is detail.
 
 # Working through your own problem
 
@@ -62,8 +60,8 @@ The last one is the one people skip, and it is the one the [model checking](mode
 Take the model you brought and work through the five questions above.
 Then say out loud which method you would use and what you expect to go wrong with it.
 
-Compare with your neighbour.
-Disagreement is the useful part: if two people reach different methods for the same problem, one of you has made an assumption the other has not.
+Then compare with the person next to you.
+Disagreement is the useful part: if two of you reach different methods for the same problem, one has made an assumption the other has not.
 :::
 
 ::: {.callout-tip title="What to look for" collapse="true"}
@@ -72,7 +70,7 @@ Most real problems stop at question 2 or 3.
 If you can write the likelihood and differentiate the model, you are in the world of the first four sessions and should use NUTS.
 That covers more epidemiological models than people expect, including most deterministic compartmental models fitted to case counts.
 
-If the process is genuinely stochastic and the population is small enough that chance changes the answer — Tristan da Cunha, a care home, an early outbreak — you need [particle MCMC](pmcmc.qmd), and you should expect it to be slow and to need its particle count calibrated.
+If the process is genuinely stochastic and the population is small enough that chance changes the answer, as on Tristan da Cunha or in a care home or an early outbreak, you need [particle MCMC](pmcmc.qmd), and you should expect it to be slow and to need its particle count calibrated.
 
 If you cannot even write the observation model down, [ABC](abc.qmd) is the fallback, and the thing to expect is that your answer depends on the distance and the tolerance you chose.
 
