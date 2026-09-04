@@ -47,9 +47,12 @@ in LLVM codegen and GC. VS Code server, the Julia language server and a `Pkg`
 precompile do not fit together in what that machine actually gives you, and the
 failure is unrecoverable from inside the codespace.
 
-Note that the advertised 8 GB is not what the container gets. Reading
-`/sys/fs/cgroup/memory.max` inside one returned 6648057856 bytes, or 6.19 GiB;
-the rest goes to the VM and to processes outside the cgroup.
+The measurement that shows it: `/sys/fs/cgroup/memory.peak` reached 6648057856
+bytes, 6.19 GiB, before the kill. There is no cgroup limit to hit,
+`memory.max` reads `max`, so that is real usage on an 8 GB VM which also has to
+run the VS Code server and the language server. The signal was 15 rather than 9,
+so the kill came from a supervisor reacting to memory pressure and not from the
+kernel's own OOM killer.
 
 The cost is that a codespace on a public repository is billed against the user's
 **personal** free allowance of 120 core-hours a month, and four days of teaching
