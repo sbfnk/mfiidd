@@ -19,6 +19,7 @@ website:
   description: "Model fitting and inference for infectious disease dynamics"
   body-footer: '<script data-goatcounter="https://mfidd.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>'
   open-graph: true
+  favicon: mfiidd-favicon.png
   navbar:
     left:
       - getting-started.qmd
