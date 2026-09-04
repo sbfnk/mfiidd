@@ -585,7 +585,7 @@ first(epi1, 5)
 
 ::: {.callout-tip collapse="true"}
 ## What is `datadir()`?
-`datadir()` comes from the [DrWatson.jl](https://juliadynamics.github.io/DrWatson.jl/stable/) package we loaded in the setup. It returns the path to the `data/` folder in the project root, so `datadir("epi1_synthetic.csv")` expands to something like `/path/to/mfiidd.julia/data/epi1_synthetic.csv`. This keeps file paths portable across different machines.
+`datadir()` comes from the [DrWatson.jl](https://juliadynamics.github.io/DrWatson.jl/stable/) package we loaded in the setup. It returns the path to the `data/` folder in the project root, so `datadir("epi1_synthetic.csv")` expands to something like `/path/to/mfiidd/data/epi1_synthetic.csv`. This keeps file paths portable across different machines.
 :::
 
 We first visualise this data set.
