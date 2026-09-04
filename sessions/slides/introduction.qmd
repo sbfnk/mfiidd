@@ -313,3 +313,7 @@ posterior, never a way of fitting one — which is what the next session is abou
 - Combine them into a posterior, and explore it by grid search
 
 [mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
+
+#
+
+[Return to the session](../introduction.qmd)
