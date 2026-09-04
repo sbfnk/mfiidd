@@ -1,0 +1,29 @@
+{
+  "name": "MFIIDD",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:1": { "version": "latest" }
+  },
+  "onCreateCommand": "julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'",
+  "updateContentCommand": "julia --project=. -e 'using MFIIDD; println(\"MFIIDD loads\")'",
+  "postCreateCommand": "pip install --user pre-commit && pre-commit install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "julialang.language-julia",
+        "quarto.quarto"
+      ],
+      "settings": {
+        "julia.environmentPath": "${containerWorkspaceFolder}",
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "remoteUser": "vscode"
+}

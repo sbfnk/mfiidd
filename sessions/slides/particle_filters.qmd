@@ -12,14 +12,14 @@ We know how to get a posterior when the model is **deterministic**:
 
 $$p(\theta \mid y) \propto p(y \mid \theta)\, p(\theta)$$
 
-::: {.fragment}
+. . .
+
 One $\theta$ gives one trajectory, so the likelihood is a single calculation:
 solve the ODE, evaluate the observation model, done.
-:::
 
-::: {.fragment}
+. . .
+
 Stochastic models break this.
-:::
 
 ## The marginal likelihood
 
@@ -36,20 +36,20 @@ For a deterministic model, $\theta$ determines the trajectory exactly:
 $$p(y \mid \theta) = \sum_{x} p(y \mid x, \theta) \times \mathbb{1}_{x = f(\theta)}
 = p\big(y \mid x = f(\theta), \theta\big)$$
 
-::: {.fragment}
+. . .
+
 The sum collapses to a single term. That is why everything has worked so far.
-:::
 
 ## The stochastic case is not
 
 $$p(y \mid \theta) = \sum_{x} p(y \mid x, \theta)\, p(x \mid \theta)$$
 
-::: {.fragment}
+. . .
+
 Now $x$ is no longer known, and the number of possible trajectories is
 astronomical — every combination of every event at every time.
 
 We cannot enumerate them.
-:::
 
 ## Monte Carlo to the rescue
 
@@ -58,9 +58,9 @@ trajectory:
 
 $$p(y \mid \theta) \approx \frac{1}{J}\sum_{j=1}^{J} p(y \mid x_j, \theta)$$
 
-::: {.fragment}
+. . .
+
 This is **sequential Monte Carlo**, better known as **particle filtering**.
-:::
 
 # The particle filter
 
@@ -68,44 +68,44 @@ This is **sequential Monte Carlo**, better known as **particle filtering**.
 
 Run the particles forward through time, one observation at a time:
 
-::: {.fragment}
+. . .
+
 **Initialise** — draw $J$ particles from the initial state distribution, each
 with weight $1/J$
-:::
 
-::: {.fragment}
+. . .
+
 **Propagate** — simulate each particle forward to the next observation time
-:::
 
-::: {.fragment}
+. . .
+
 **Weight** — score each particle by how well it explains the observation,
 $w_j = p(y_t \mid x_j, \theta)$
-:::
 
-::: {.fragment}
+. . .
+
 **Resample** — draw a new set of particles in proportion to their weights, so
 good ones are copied and bad ones die
-:::
 
-::: {.fragment}
+. . .
+
 **Repeat** to the end of the data. The average weight along the way gives an
 estimate of $p(y \mid \theta)$.
-:::
 
 ## Why resample?
 
 Without resampling, after a few time steps almost all the weight sits on one or
 two particles and the rest contribute nothing.
 
-::: {.fragment}
+. . .
+
 This is **particle degeneracy**, and it is the central practical problem.
 Resampling concentrates effort where the data say the trajectory actually went.
-:::
 
-::: {.fragment}
+. . .
+
 The cost is **depletion**: repeatedly copying survivors means the particles
 share ancestry, so diversity falls over time.
-:::
 
 ## How many particles?
 
@@ -113,11 +113,11 @@ share ancestry, so diversity falls over time.
   that uses it.
 - Too many and every likelihood evaluation becomes expensive.
 
-::: {.fragment}
+. . .
+
 The likelihood estimate is **unbiased** but **stochastic**: run it twice with
 the same $\theta$ and you get two different numbers. That has consequences we
 deal with in the next session.
-:::
 
 ## The whole thing, in code {.smaller .scrollable}
 

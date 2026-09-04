@@ -6,10 +6,10 @@ order: 2
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2.5-3 hours
+**Estimated time**: 115 minutes
 :::
 
-[Lecture slides](slides/mcmc.qmd)
+[Slides](slides/mcmc.qmd)
 
 # Introduction
 
@@ -783,7 +783,7 @@ summarystats(chain_nuts)
 
 ::: {.callout-tip collapse="true"}
 ## Going further: sampling without Turing
-Turing's `@model` macro is convenient syntax, but it isn't the only way to do MCMC in Julia. In the [Introduction](introduction.qmd) you built a log-posterior function by hand; that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface, giving you access to samplers beyond what Turing offers, with fewer dependencies. See the optional session [Beyond Turing](julia_ecosystem.qmd) for a worked example.
+Turing's `@model` macro is convenient syntax, but it isn't the only way to do MCMC in Julia. In [the first session](introduction.qmd) you built a log-posterior function by hand; that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface, giving you access to samplers beyond what Turing offers, with fewer dependencies. See the optional session [Beyond Turing](julia_ecosystem.qmd) for a worked example.
 :::
 
 # Posterior analysis with Turing.jl
@@ -831,4 +831,6 @@ These summaries give us point estimates and uncertainty, but should we trust the
 
 **Next session**: [MCMC diagnostics](mcmc_diagnostics.qmd), how to tell if your chains have converged and your results are trustworthy.
 
-**Going further** (optional): MCMC is exact but slow. [Variational inference](variational_inference.qmd) is an advanced session that replaces sampling with optimisation when that matters — real-time forecasting, or many datasets. It needs only this session as background, so you can take it at any point.
+**Going further** (optional): MCMC is exact but slow.
+[Variational inference](variational_inference.qmd) is an advanced session that replaces the sampling with an optimisation.
+It needs only this session as background, so you can take it at any point.
