@@ -42,6 +42,24 @@ Three ways to engage with the course:
    You need a GitHub account, and the codespace runs on your own free GitHub allowance, which is many times what this course uses.
    Everything is installed already, so skip the rest of this page and go to [Running code](#running-code).
 
+::: {.callout-tip}
+## If the local installation will not work
+
+You do not have to fix it, and you do not have to fall back all the way to reading the website.
+In order of preference:
+
+- **Julia will not install, or the packages will not build.**
+  Open a [codespace](https://codespaces.new/mfiidd/mfiidd) and connect to it from the VS Code already on your machine: the `☰` menu in the browser, then **Open in VS Code Desktop**.
+  Julia runs in the cloud and your editor is the one you are used to, with the keyboard shortcuts you expect.
+
+- **You do not have VS Code either, or would rather not install it.**
+  Use the same codespace in the browser and nothing else is needed.
+  Run code by clicking the **Run Cell** link above each block; see the warning under [Running code](#running-code) about why the keyboard shortcuts may not respond there.
+
+Either way you are working with the real course materials and can edit and re-run them.
+The one thing you give up is that a codespace is not permanent, so copy out anything you want to keep.
+:::
+
 # Local installation
 
 ## Step 1: Install Julia
