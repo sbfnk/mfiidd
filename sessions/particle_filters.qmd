@@ -9,7 +9,7 @@ order: 6
 **Estimated time**: 105 minutes (includes computation time for calibration)
 :::
 
-[Lecture slides](slides/particle_filters.qmd)
+[Slides](slides/particle_filters.qmd)
 
 # Introduction
 
