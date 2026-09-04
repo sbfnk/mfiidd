@@ -1,0 +1,47 @@
+---
+title: "Introduction and course overview"
+format: html
+order: 0
+---
+
+::: {.callout-note appearance="simple"}
+**Estimated time**: 15 minutes
+:::
+
+[Slides](slides/introduction_to_the_course.qmd)
+
+# Aim of the course
+
+This course teaches you how to fit mechanistic models of infectious disease transmission to data. The course builds from deterministic models fitted with Metropolis-Hastings, through the diagnostics and checks that say whether a fit converged and whether the model describes the data, to stochastic models.
+
+# Why this course?
+
+- Fitting mechanistic models to data comes up constantly, both in outbreak response and in research
+- The methods that do it are spread across several literatures, and it is easy to pick one that does not suit the problem, or the right one badly tuned, and hard to tell afterwards which happened
+- When we conceived the course, no single resource taught the range of methods available
+
+# Approach
+
+We use [Julia](https://julialang.org) together with the Probabilistic Programming Language (PPL) [Turing.jl](https://turinglang.org), which gives one interface to the whole range of methods the course covers.
+Each session opens with a short set of slides and then becomes a practical you work through yourself.
+No prior Julia experience is assumed and the syntax is introduced as it is needed, including guidelines for those coming with R.
+Optional and advanced sessions are marked as such.
+
+We work with one dataset for most of the week: a two-wave influenza outbreak on [Tristan da Cunha](seitl.qmd) in 1971, in a population of 284.
+It is small enough that chance matters, which is what makes the later methods necessary.
+
+# Timeline for the course
+
+The four-day in-person course has the following structure:
+
+- Day 1: fitting a deterministic model, from the likelihood through to [MCMC](mcmc.qmd)
+- Day 2: [convergence diagnostics](mcmc_diagnostics.qmd), [model checking](model_checking.qmd), and the [stochastic model](seitl.qmd) used for the rest of the week
+- Day 3: [particle filters](particle_filters.qmd), [particle MCMC](pmcmc.qmd) and [observation models](observation_models.qmd)
+- Day 4: [approximate Bayesian computation](abc.qmd), and choosing between everything covered
+
+The [session timetable](../reference/sessions.qmd) gives the timings, and the [course structure](../reference/structure.qmd) shows how the sessions depend on each other, including the optional ones on variational inference, neural posterior estimation and universal differential equations.
+
+# Next session
+
+Before anything else, make sure your laptop is ready: [getting set up](../getting-started.qmd) walks through installing Julia and the `MFIIDD` package.
+Then we begin with [Bayesian inference with mathematical models](introduction.qmd).

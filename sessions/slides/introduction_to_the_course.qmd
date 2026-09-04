@@ -1,0 +1,82 @@
+---
+footer: "Introduction to the course"
+title: "Model fitting and inference for infectious disease dynamics"
+subtitle: "Introduction to the course and the instructors"
+---
+
+## Why this course?
+
+Fitting a mechanistic model to data is a common task in an research on infectious disease dynamics.
+
+::: {.fragment}
+The methods are often buried in the statistical literature, with little guidance on which particularapproach one should use.
+:::
+
+::: {.fragment}
+There was no single place that taught them together.
+:::
+
+## The history
+
+The course has been taught at LSHTM for over a decade, by the Centre for the Mathematical Modelling of Infectious Diseases.
+
+::: {.fragment}
+It was initally written by Anton Camacho and Sebastian Funk and further developed by [several people](../../authors.qmd) over that time.
+:::
+
+::: {.fragment}
+The course was written in R using a bespoke package, which we told people not to use. We didn't teach what to use in production.
+:::
+
+::: {.fragment}
+This year, for the first time, we are using **Julia** (bear with us), as this can express all the methods that we teach (and more).
+:::
+
+## Who are we?
+
+:::: {.columns}
+::: {.column width="25%"}
+![](https://github.com/seabbs.png){width="85%"}
+
+[Sam Abbott](https://github.com/seabbs)
+:::
+::: {.column width="25%"}
+![](https://github.com/nicholasdavies.png){width="85%"}
+
+[Nicholas Davies](https://github.com/nicholasdavies)
+:::
+::: {.column width="25%"}
+![](https://github.com/sbfnk.png){width="85%"}
+
+[Sebastian Funk](https://github.com/sbfnk)
+:::
+::: {.column width="25%"}
+![](https://github.com/slmontes.png){width="85%"}
+
+[Sandra Montes](https://github.com/slmontes)
+:::
+::::
+
+## Who are you?
+
+Around the room:
+
+- your name
+- where you have come from
+- what you would like to fit a model to
+
+## How the course works
+
+Each session opens with a short set of slides and then becomes a practical you work through.
+
+::: {.fragment}
+The practicals are the course. Sit with someone and compare answers, and ask us as soon as you are stuck.
+:::
+
+::: {.fragment}
+Every line of Julia is given complete. The exercises ask you to predict, interpret and choose, never to debug.
+:::
+
+#
+
+[Return to the session](../introduction-and-course-overview.qmd)

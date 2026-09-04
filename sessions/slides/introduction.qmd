@@ -1,7 +1,7 @@
 ---
-footer: "Introduction"
+footer: "Bayesian inference"
 title: "Model fitting and inference for infectious disease dynamics"
-subtitle: "Introduction"
+subtitle: "Bayesian inference with mathematical models"
 engine: julia
 ---
 

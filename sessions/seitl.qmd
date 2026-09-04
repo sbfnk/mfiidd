@@ -9,7 +9,7 @@ order: 5
 **Estimated time**: 90 minutes
 :::
 
-[Lecture slides](slides/seitl.qmd)
+[Slides](slides/seitl.qmd)
 
 # Introduction
 

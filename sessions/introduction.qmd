@@ -1,5 +1,5 @@
 ---
-title: "Introduction to model fitting in Julia"
+title: "Bayesian inference with mathematical models"
 format: html
 engine: julia
 order: 1
@@ -9,7 +9,7 @@ order: 1
 **Estimated time**: 85 minutes
 :::
 
-[Lecture slides](slides/introduction.qmd)
+[Slides](slides/introduction.qmd)
 
 # Introduction
 
