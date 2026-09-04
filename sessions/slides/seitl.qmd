@@ -65,8 +65,6 @@ Baguelin et al. (2013)
 :::
 ::::
 
-. . .
-
 ## The joint probability
 
 Applying the chain rule to those three pieces gives
