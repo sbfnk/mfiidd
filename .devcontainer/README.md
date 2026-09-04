@@ -39,6 +39,12 @@ setting up beforehand or for the rest of the month.
 Creating the codespace the day before buys back the same 28 minutes and costs
 nothing, so the cores are not worth spending.
 
+Note that none of this is billed to the organisation. Org billing for
+codespaces requires Team or Enterprise Cloud, so on the free plan every
+codespace is charged to the personal allowance of whoever created it. There is
+also no way to create one on someone else's behalf: a codespace belongs to the
+account that made it.
+
 ## Comments
 
 `devcontainer.json` permits comments, but this repository's `check-json`
