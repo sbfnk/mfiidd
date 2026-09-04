@@ -1,5 +1,6 @@
 using Random: default_rng
-using GeneralisedFilters: BF, filter
+using GeneralisedFilters: BF
+import GeneralisedFilters
 using ForwardDiff: value
 using SSMProblems: StateSpaceModel
 
@@ -42,7 +43,7 @@ function run_particle_filter_seitl(
         PoissonObservation(θ_f64[:ρ]),
     )
 
-    _, log_lik = filter(default_rng(), model, BF(n_particles), obs)
+    _, log_lik = GeneralisedFilters.filter(default_rng(), model, BF(n_particles), obs)
 
     return log_lik
 end

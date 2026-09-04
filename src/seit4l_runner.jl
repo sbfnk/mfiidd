@@ -1,5 +1,6 @@
 using Random: default_rng
-using GeneralisedFilters: BF, filter, DenseAncestorCallback, get_ancestry
+using GeneralisedFilters: BF, DenseAncestorCallback, get_ancestry
+import GeneralisedFilters
 using ForwardDiff: value
 using SSMProblems: StateSpaceModel
 
@@ -47,7 +48,7 @@ function run_particle_filter(
     # Run bootstrap particle filter
     rng = default_rng()
     algo = BF(n_particles)  # Bootstrap Filter
-    _, log_lik = filter(rng, model, algo, obs)
+    _, log_lik = GeneralisedFilters.filter(rng, model, algo, obs)
 
     return log_lik
 end
@@ -80,7 +81,8 @@ function filtered_incidence(
     )
 
     callback = DenseAncestorCallback(nothing)
-    final, _ = filter(default_rng(), model, BF(n_particles), obs; callback)
+    final, _ =
+        GeneralisedFilters.filter(default_rng(), model, BF(n_particles), obs; callback)
 
     ## draw one particle in proportion to its final weight, then follow its
     ## ancestry back to the start
