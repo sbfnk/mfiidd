@@ -18,18 +18,18 @@ There was no single place that taught them together.
 
 ## The history
 
-The course has been taught at LSHTM for over a decade, by the Centre for the Mathematical Modelling of Infectious Diseases.
+Taught at LSHTM for over a decade, by the Centre for the Mathematical Modelling of Infectious Diseases.
 
 ::: {.fragment}
-It was initally written by Anton Camacho and Sebastian Funk and further developed by [several people](../../authors.qmd) over that time.
+Written by Anton Camacho and Sebastian Funk, and developed since by [several people](../../authors.qmd).
 :::
 
 ::: {.fragment}
-The course was written in R using a bespoke package, which we told people not to use. We didn't teach what to use in production.
+It used R and a course-only package, which we told people never to use for real work.
 :::
 
 ::: {.fragment}
-This year, for the first time, we are using **Julia** (bear with us), as this can express all the methods that we teach (and more).
+This year it is **Julia** (bear with us), which can express every method we teach.
 :::
 
 ## Who are we?

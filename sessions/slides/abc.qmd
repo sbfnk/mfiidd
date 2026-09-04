@@ -34,7 +34,7 @@ And what do you do when you cannot write a likelihood down at all?
 - The idea of **sufficient** summary statistics: to be exact, we would need
   summary statistics that give the *same* result as the likelihood.
 
-## The approximation
+## The approximation {.smaller}
 
 $$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\theta)}) < \epsilon\big)$$
 
@@ -82,12 +82,10 @@ cannot tell from inside the algorithm whether you have chosen well.
 
 ## ABC-SMC {.smaller}
 
-Rejection ABC wastes its effort: every draw comes from the prior, however
-hopeless.
+Rejection ABC draws every parameter from the prior, however hopeless.
+ABC-SMC walks the threshold down in stages instead.
 
 . . .
-
-ABC-SMC walks the threshold down in stages instead.
 
 1. Run rejection ABC at a loose $\epsilon_1$
 2. Perturb the accepted particles to propose for the next round
@@ -95,8 +93,8 @@ ABC-SMC walks the threshold down in stages instead.
 
 . . .
 
-Each generation starts from parameters already known to be reasonable, so far
-fewer simulations are wasted. Reaching a tight threshold becomes feasible.
+Each generation starts from parameters already known to be reasonable, so a tight
+threshold becomes reachable.
 
 . . .
 
@@ -111,10 +109,10 @@ No. There is only a choice, and the choice is part of the model.
 
 . . .
 
-- A likelihood is a distance function you have committed to in advance, with the
-  benefit that it comes with a probabilistic interpretation.
-- An ABC distance is a distance function you have chosen explicitly, with the
-  benefit that it works when the likelihood is intractable.
+- A **likelihood** is a distance you committed to in advance, and it comes with a
+  probabilistic interpretation.
+- An **ABC distance** is a distance you chose openly, and it works when the
+  likelihood is intractable.
 
 . . .
 

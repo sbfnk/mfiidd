@@ -11,6 +11,15 @@ engine: julia
 
 ENV["GKSwstype"] = "100"
 using Distributions
+using StatsPlots
+using Random
+Random.seed!(20260907)
+
+## The decks are projected, so draw larger than the plotting default.
+default(
+    size = (620, 380), legend = false, guidefontsize = 13, tickfontsize = 11,
+    titlefontsize = 15, linewidth = 2, markersize = 6, grid = true,
+)
 ```
 
 # Introduction
@@ -51,7 +60,6 @@ Given a model, what are the parameter combinations that best **fit** the data?
     Bangladesh are asymptomatic?
   - sometimes in real time
 - **Validate** the model, especially for prediction
-:::
 
 ## What do we mean by "best fit the data"?
 
@@ -100,32 +108,73 @@ Given what we observe, what is the **state** of the system?
 
   $$p(\text{data} \mid \text{model output})$$
 
-## Two things you can do with a distribution {.smaller}
+## Probability distributions: discrete {.smaller}
 
-:::: {.columns}
-::: {.column width="50%"}
-![](images/poisson_likelihood.svg){.mini}
+How many soldiers die of horse kicks, at 0.61 deaths per corps per year?
+Counts of rare, independent events follow a [Poisson]{.alert} distribution.
 
-Discrete, e.g. **Poisson**: how many die of horse kicks at 0.61 kicks per year?
-:::
-::: {.column width="50%"}
-![](images/weather.svg){.mini}
+::::: {.columns}
+:::: {.column width="55%"}
+```{julia}
+#| echo: false
+scatter(
+    0:5, pdf.(Poisson(0.61), 0:5),
+    xlabel = "Deaths per corps-year", ylabel = "Probability",
+)
+```
 
-Continuous, e.g. **normal**: the temperature in London tomorrow.
-:::
+[Bortkiewicz (1898) counted 122 deaths across 10 Prussian corps in 20 years.]{.cite}
 ::::
 
+:::: {.column width="45%"}
 ::: {.fragment}
-:::: {.columns}
-::: {.column width="50%"}
-[**Evaluate**]{.alert} the density of a value
+[**Evaluate**]{.alert} the probability of a value
 
 ```{julia}
 #| echo: true
 pdf(Poisson(0.61), 2)
 ```
 :::
-::: {.column width="50%"}
+
+::: {.fragment}
+[**Sample**]{.alert} a value at random
+
+```{julia}
+#| echo: true
+rand(Poisson(0.61))
+```
+:::
+::::
+:::::
+
+## Probability distributions: continuous {.smaller}
+
+What will the temperature be in London tomorrow?
+A continuous quantity, here a [normal]{.alert} distribution.
+
+::::: {.columns}
+:::: {.column width="55%"}
+```{julia}
+#| echo: false
+plot(
+    15:0.05:31, pdf.(Normal(23, 2), 15:0.05:31),
+    xlabel = "Temperature (°C)", ylabel = "Density",
+)
+```
+
+::::
+
+:::: {.column width="45%"}
+::: {.fragment}
+[**Evaluate**]{.alert} the density at a value
+
+```{julia}
+#| echo: true
+pdf(Normal(23, 2), 30)
+```
+:::
+
+::: {.fragment}
 [**Sample**]{.alert} a value at random
 
 ```{julia}
@@ -134,12 +183,13 @@ rand(Normal(23, 2))
 ```
 :::
 ::::
-:::
+:::::
 
 ## Example: observation uncertainty {.smaller}
 
-SIR model, assuming cases are detected with independent reporting probability
-$\rho = 0.5$.
+SIR model, assuming cases are detected with reporting probability $\rho = 0.5$,
+and that observations are [conditionally independent]{.alert} given the
+trajectory: knowing the model, one day's error tells us nothing about the next.
 
 :::: {.columns}
 ::: {.column width="50%"}
@@ -228,13 +278,12 @@ $$\text{(posterior)} \propto \text{(normalised likelihood)} \times \text{(prior)
 
 ## Prior probabilities
 
-$p(\theta)$ quantifies our degree of **belief** via a probability distribution,
-before confronting the model with data — from previous measurements, the
-literature, experts and so on.
-
-Example: $R_0$ of measles
+$p(\theta)$ is our **belief** about the parameters before we see the data, taken
+from previous measurements, the literature, or experts.
 
 ![](images/R0plot.svg){.step}
+
+[A prior for the $R_0$ of measles]{.cite}
 
 ## Example: estimating $R_0$ of measles
 
@@ -297,8 +346,9 @@ model runs, which is nothing.
 
 . . .
 
-Real models have six parameters, or sixty. Grid search is a way of *seeing* a
-posterior, never a way of fitting one — which is what the next session is about.
+So a grid is a good way to *look at* a posterior in two dimensions, and no way at
+all to fit a model with six parameters. The next session is about what to do
+instead.
 
 # Practical session
 

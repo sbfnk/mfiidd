@@ -66,31 +66,39 @@ This is **sequential Monte Carlo**, better known as **particle filtering**.
 
 ## The algorithm {.smaller}
 
-Run the particles forward through time, one observation at a time:
+::::: {.columns}
+:::: {.column width="60%"}
+::: {.r-stack}
+![](images/pf_1_initialise.png){.step .fragment .fade-out fragment-index=1}
+![](images/pf_2_propagate.png){.step .fragment .current-visible fragment-index=1}
+![](images/pf_3_weight.png){.step .fragment .current-visible fragment-index=2}
+![](images/pf_4_resample.png){.step .fragment fragment-index=3}
+:::
+::::
+:::: {.column width="40%"}
+**Initialise** — $J$ particles, each of weight $1/J$
 
-. . .
+::: {.fragment fragment-index=1}
+**Propagate** — simulate each to the next observation
+:::
 
-**Initialise** — draw $J$ particles from the initial state distribution, each
-with weight $1/J$
+::: {.fragment fragment-index=2}
+**Weight** — by $w_j = p(y_t \mid x_j, \theta)$, drawn as size
+:::
 
-. . .
+::: {.fragment fragment-index=3}
+**Resample** — in proportion to weight: good ones copied, bad ones die
+:::
+::::
+:::::
 
-**Propagate** — simulate each particle forward to the next observation time
+::: {.fragment fragment-index=4}
+Repeat to the end of the data; the average weight estimates $p(y \mid \theta)$.
+:::
 
-. . .
-
-**Weight** — score each particle by how well it explains the observation,
-$w_j = p(y_t \mid x_j, \theta)$
-
-. . .
-
-**Resample** — draw a new set of particles in proportion to their weights, so
-good ones are copied and bad ones die
-
-. . .
-
-**Repeat** to the end of the data. The average weight along the way gives an
-estimate of $p(y \mid \theta)$.
+::: {.cite}
+Red diamonds are the data, yellow circles the particles.
+:::
 
 ## Why resample?
 
@@ -121,15 +129,34 @@ deal with in the next session.
 
 ## The whole thing, in code {.smaller .scrollable}
 
-This is the actual implementation you will use in the practical — propagate,
-weight, resample, accumulate:
+```julia
+function bootstrap_filter(rng, θ, obs, n_particles; init_state)
+    particles = [copy(init_state) for _ in 1:n_particles]
+    loglik = 0.0
 
-```{.julia include="../../src/seit4l_bootstrap_filter.jl" start-line="19" end-line="52"}
+    for y in obs
+        ## propagate: run every particle forward one day
+        incidence = map(1:n_particles) do i
+            particles[i], daily = gillespie_step(rng, particles[i], θ)
+            daily
+        end
+
+        ## weight: how plausible is today's observation under each particle?
+        log_w = logpdf.(Poisson.(θ[:ρ] .* incidence), y)
+
+        ## accumulate: the mean weight estimates today's likelihood
+        loglik += logsumexp(log_w) - log(n_particles)
+
+        ## resample: keep the particles that explained the data
+        w = exp.(log_w .- maximum(log_w))
+        particles = particles[rand(rng, Categorical(w ./ sum(w)), n_particles)]
+    end
+
+    return loglik
+end
 ```
 
-::: {.cite}
-`src/seit4l_bootstrap_filter.jl`
-:::
+Four steps, one loop. The practical builds it a step at a time.
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
@@ -140,10 +167,6 @@ In the practical you will
 - read that filter line by line and work out what each step does
 - explore how the number of particles affects the likelihood estimate
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 

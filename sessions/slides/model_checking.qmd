@@ -2,7 +2,36 @@
 footer: "Model checking and validation"
 title: "Model checking and validation"
 subtitle: "Model fitting and inference for infectious disease dynamics"
+engine: julia
 ---
+
+```{julia}
+#| echo: false
+#| include: false
+
+ENV["GKSwstype"] = "100"
+using StatsPlots
+using Random
+Random.seed!(20260909)
+
+default(
+    size = (400, 300), legend = false, guidefontsize = 11, tickfontsize = 9,
+    titlefontsize = 13, markersize = 4, grid = true,
+)
+
+## Three residual patterns. t is the day.
+t = 1:60
+fitted = @. 120 * exp(-((t - 28)^2) / 140)
+
+## Nothing wrong: scatter about zero, constant spread.
+res_ok = 4 .* randn(60)
+
+## Missing mechanism: a systematic run above then below the data.
+res_structure = @. 14 * sin((t - 5) * pi / 30) + 3 * randn()
+
+## Overdispersion: spread that grows with the fitted value.
+res_over = @. 0.35 * sqrt(fitted + 1) * randn() * 3
+```
 
 # Recap
 
@@ -151,16 +180,42 @@ $$p_B = \Pr\big(T(y^\text{rep}) \geq T(y) \mid y\big)$$
 These are **not** frequentist p-values and should not be thresholded at 0.05.
 They are a diagnostic for "which feature is my model missing", not a test.
 
-## Residuals
+## Residuals: observed minus predicted, over time {.smaller}
 
-Plot observed minus predicted over time.
+::::: {.columns}
+:::: {.column width="33%"}
+```{julia}
+#| echo: false
+scatter(t, res_ok, title = "Nothing wrong", xlabel = "Day", ylabel = "Residual")
+hline!([0], color = :black, linestyle = :dash)
+```
 
-- **Structure in the residuals** — runs of positive then negative — means the
-  model is missing a mechanism, not just noisy.
-- **Autocorrelation** in the residuals means the conditional-independence
-  assumption in the likelihood is violated.
-- **Variance growing with the mean** beyond what Poisson allows points to
-  overdispersion, and a negative binomial observation model.
+Scattered about zero, spread the same throughout.
+::::
+:::: {.column width="33%"}
+```{julia}
+#| echo: false
+scatter(t, res_structure, title = "Missing mechanism", xlabel = "Day", ylabel = "")
+hline!([0], color = :black, linestyle = :dash)
+```
+
+Runs above then below zero: the model is wrong, not just noisy.
+::::
+:::: {.column width="33%"}
+```{julia}
+#| echo: false
+scatter(t, res_over, title = "Overdispersion", xlabel = "Day", ylabel = "")
+hline!([0], color = :black, linestyle = :dash)
+```
+
+Spread grows with the prediction: try a negative binomial.
+::::
+:::::
+
+::: {.fragment}
+Autocorrelation in the residuals breaks the conditional-independence assumption
+in the likelihood.
+:::
 
 # Simulation-based calibration
 
@@ -230,13 +285,8 @@ In the practical you will
 - compute posterior predictive p-values for several summary statistics
 - inspect residuals for structure and autocorrelation
 
-Simulation-based calibration is written up at the end of the session for you to
-work through afterwards.
+Simulation-based calibration is written up at the end, to work through afterwards.
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 
