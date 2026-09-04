@@ -18,7 +18,7 @@ We will build intuition by manually calculating priors, likelihoods, and posteri
 
 By the end of the course you will have met several different ways of doing this, and the closing session puts them side by side so you can work out which one your own problem needs.
 Ask that of each method as you meet it rather than saving it for the end.
-Every one of them buys you something the others cannot, and charges for it somewhere else.
+Each one can do something the others cannot, and gives something up to do it.
 
 # Objectives
 
