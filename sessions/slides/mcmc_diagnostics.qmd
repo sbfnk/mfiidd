@@ -243,38 +243,28 @@ Rule of thumb: $\hat{R} < 1.01$. Anything above 1.1 is a red flag.
 Modern rank-normalised R̂ and ESS: @vehtari2021.
 :::
 
-## Effective sample size
+## Effective sample size, and what it costs you {.smaller}
 
 MCMC samples are correlated, so $N$ samples are worth fewer than $N$ independent
-draws.
+draws. [ESS]{.alert} estimates how many independent draws you actually have.
 
 . . .
 
-[ESS]{.alert} estimates how many independent draws your chain is equivalent to.
-
-- ESS close to $N$: efficient sampling, little autocorrelation
-- ESS far below $N$: highly correlated, run longer
-- ESS below 100: not enough for reliable inference
-
-. . .
-
-Bulk ESS describes the centre of the distribution; tail ESS describes the
-extremes, and matters if you care about credible interval endpoints.
-
-## Monte Carlo standard error
-
-ESS tells you how much information you have. [MCSE]{.alert} turns that into the
-uncertainty on your estimate:
+[MCSE]{.alert} turns that into the uncertainty on your estimate:
 
 $$\text{MCSE} \approx \frac{\text{posterior SD}}{\sqrt{\text{ESS}}}$$
 
 . . .
 
-MCSE is the noise the sampler itself puts on the number you quote.
-If you report $R_0 = 2.31$ and the MCSE is $0.05$, that second decimal is sampler
-noise: run again with a different seed and it changes.
-Sample until the MCSE is small next to the precision you want to claim, whatever
-the trace plot looks like.
+Report $R_0 = 2.31$ with an MCSE of $0.05$ and the second decimal is sampler
+noise: run again with a different seed and it changes. Sample until the MCSE is
+small next to the precision you want to claim, whatever the trace plot looks
+like.
+
+::: {.fragment}
+Bulk ESS describes the centre of the distribution; tail ESS the extremes, which
+is what matters for credible interval endpoints.
+:::
 
 # Common failure modes
 
@@ -308,15 +298,6 @@ they land in different modes, R̂ will be large.
 
 Fixes are harder than detection. Reparameterisation sometimes helps; otherwise
 you need samplers designed to cross between modes.
-
-## A checklist
-
-1. Run at least four chains
-2. Look at the trace plots
-3. Check R̂ and ESS
-4. Check for divergences, if using NUTS
-5. Run a posterior predictive check — next session
-6. Rerun with more samples or a revised model if any of these fail
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 

@@ -108,13 +108,23 @@ likelihood estimate** is roughly 1 to 3 at a representative $\theta$.
 
 ## Why RAM rather than NUTS
 
-We cannot use gradients: the particle filter involves resampling and discrete
-event simulation, so the likelihood is not differentiable.
+Two things stand in the way, and the second is the deeper one.
+
+- The filter resamples and simulates discrete events, so the likelihood is not
+  **differentiable** and there is no gradient to follow.
+- The filter returns a different number every run, so the likelihood is not even
+  **deterministic**. HMC integrates a trajectory across a fixed surface, and
+  there is no fixed surface here.
 
 . . .
 
-That rules out NUTS and leaves us with random-walk methods, which is exactly the
-fallback flagged in the MCMC session.
+Metropolis-Hastings survives the second because the estimate is *unbiased*: that
+is the pseudo-marginal result this whole session rests on. HMC does not.
+
+. . .
+
+So we are left with random-walk methods, which is exactly the fallback flagged in
+the MCMC session.
 
 We use **robust adaptive Metropolis**, so at least the proposal covariance is
 learned rather than hand-tuned [@vihola2012].

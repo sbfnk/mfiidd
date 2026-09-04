@@ -202,29 +202,6 @@ $$r = \min\left(1, \frac{f(\theta^*)\,q(\theta \mid \theta^*)}{f(\theta)\,q(\the
 :::
 ::::
 
-## Handing it to a library {.smaller}
-
-Having seen what Metropolis-Hastings does, you would not write it again. Use a
-[probabilistic programming language]{.alert} instead.
-
-. . .
-
-In Julia that is **Turing.jl**. You declare the model and it works out the rest:
-
-```julia
-@model function sir_model(obs)
-    R_0 ~ Uniform(1, 20)          # ~ declares a prior
-    D_inf ~ Uniform(1, 14)
-    traj = simulate(R_0, D_inf)
-    obs ~ arraydist(Poisson.(traj))   # ...and a likelihood
-end
-```
-
-. . .
-
-`|` conditions the model on data; `sample()` then runs whichever algorithm you
-name. The same model definition works with MH, RAM or NUTS.
-
 # Finding a good proposal distribution
 
 ## How do we choose $q(\theta^* \mid \theta)$?
@@ -270,61 +247,39 @@ use in the practical: @vihola2012.
 
 # Using gradients
 
-## Random walks waste information
+## Using the gradient
 
 Metropolis-Hastings proposes a direction at random and hopes for the best.
 
 . . .
 
-But for a model built from operations we can **differentiate** — including an
-ODE model, since the solver propagates derivatives — we can compute the
-**gradient** of the log-posterior.
-
-The gradient tells us which way is uphill.
-
-## Hamiltonian Monte Carlo
-
-Instead of a random step, simulate a puck rolling on the negative log-posterior
-surface.
-
-- gradients pull it towards high-density regions
-- momentum carries it a long way before it stops
+For a model we can **differentiate** — including an ODE model, since the solver
+propagates derivatives — the **gradient** of the log-posterior tells us which way
+is uphill.
 
 . . .
 
-Both the **direction** and the **length** of each move now come from the
-posterior itself, rather than from a proposal we had to guess.
+[Hamiltonian Monte Carlo]{.alert} uses it: instead of a random step, simulate a
+puck rolling on the surface. Gradients pull it towards high density, momentum
+carries it a long way. Both the direction and the length of each move now come
+from the posterior rather than from a proposal we guessed.
 
-## NUTS
+## NUTS {.smaller}
 
-[NUTS]{.alert}, the No U-Turn Sampler, is HMC with two things automated:
+[NUTS]{.alert}, the No U-Turn Sampler, is HMC with the **step size** adapted
+during warmup and the **trajectory length** stopped when the path turns back on
+itself.
 
-- the **step size**, adapted during warmup
-- the **trajectory length**, stopped when the path starts turning back on
-  itself — hence the name
+. . .
 
-::: {.fragment}
-The result usually just works, with no proposal tuning at all. It is the default
-you should reach for.
-:::
+It usually just works, with no proposal tuning at all, and it is the default to
+reach for. Fall back to RAM or MH when the model has discrete parameters, or a
+stochastic simulator that breaks differentiation — as the particle filter will
+later in the course.
 
 ::: {.cite}
 @hoffman2014; see @betancourt2017 for the intuition.
 :::
-
-## Which sampler? {.smaller}
-
-| Sampler | Best for | Limitations |
-|---|---|---|
-| **MH** | Simple models, discrete parameters, learning MCMC | Needs manual tuning; slow in many dimensions |
-| **RAM** | Low-dimensional models where gradients are unavailable | Still a random walk |
-| **NUTS** | Continuous parameters, differentiable models | No discrete parameters; needs gradients |
-
-. . .
-
-Rule of thumb: start with NUTS. Fall back to RAM or MH when your model has
-discrete parameters or a stochastic simulator that breaks differentiation — as
-the particle filter will later in the course.
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
