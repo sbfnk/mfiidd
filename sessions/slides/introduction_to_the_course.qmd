@@ -63,7 +63,7 @@ Around the room:
 
 - your name
 - where you have come from
-- what you are hoping to fit
+- what you would like to fit a model to
 
 ## How the course works
 
