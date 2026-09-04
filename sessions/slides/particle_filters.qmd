@@ -76,28 +76,25 @@ This is **sequential Monte Carlo**, better known as **particle filtering**.
 :::
 ::::
 :::: {.column width="40%"}
-**Initialise** — draw $J$ particles from the initial state, each with weight $1/J$
+**Initialise** — $J$ particles, each of weight $1/J$
 
 ::: {.fragment fragment-index=1}
-**Propagate** — simulate each one forward to the next observation
+**Propagate** — simulate each to the next observation
 :::
 
 ::: {.fragment fragment-index=2}
-**Weight** — score it by how well it explains the observation,
-$w_j = p(y_t \mid x_j, \theta)$, drawn here as size
+**Weight** — by $w_j = p(y_t \mid x_j, \theta)$, drawn as size
 :::
 
 ::: {.fragment fragment-index=3}
-**Resample** — draw a new set in proportion to weight, so good particles are
-copied and bad ones die
-:::
-
-::: {.fragment fragment-index=4}
-**Repeat** to the end of the data. The average weight along the way estimates
-$p(y \mid \theta)$.
+**Resample** — in proportion to weight: good ones copied, bad ones die
 :::
 ::::
 :::::
+
+::: {.fragment fragment-index=4}
+Repeat to the end of the data; the average weight estimates $p(y \mid \theta)$.
+:::
 
 ::: {.cite}
 Red diamonds are the data, yellow circles the particles.
@@ -130,7 +127,7 @@ The likelihood estimate is **unbiased** but **stochastic**: run it twice with
 the same $\theta$ and you get two different numbers. That has consequences we
 deal with in the next session.
 
-## The whole thing, in code {.smaller}
+## The whole thing, in code {.smaller .scrollable}
 
 ```julia
 function bootstrap_filter(rng, θ, obs, n_particles; init_state)
