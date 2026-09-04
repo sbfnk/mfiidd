@@ -139,7 +139,12 @@ description:
    and the rendered page is codeless. `subtitle` is optional and four sessions
    use it.
 2. The estimated-time banner, a `callout-note appearance="simple"`. Every session
-   gives an estimated time. Add a level marker where one applies, as
+   gives an estimated time. For a taught session that time is the practical
+   minutes its slot allows in `reference/sessions.qmd`: the sum of the
+   `[Practice]` sub-timings, which excludes the slides and the wrap-up. Change
+   one and change the other, or the banner and the timetable start contradicting
+   each other. Self-study sessions have no slot and give a range instead. Add a
+   level marker where one applies, as
    `**Advanced session**` or `**Optional session**`, and `**Requires**:` where
    the session genuinely depends on earlier ones, which is five of the twelve
    today. Linking the prerequisites is welcome but not the norm yet.

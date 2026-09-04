@@ -6,7 +6,7 @@ order: 3
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours
+**Estimated time**: 75 minutes
 :::
 
 [Slides](slides/mcmc_diagnostics.qmd)

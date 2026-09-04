@@ -5,7 +5,7 @@ engine: julia
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours on your own machine, most of it spent downloading packages and waiting for Julia's first-run compilation. Doing it in advance is worth it, and the taught slot is 45 minutes.
+**Estimated time**: 1-1.5 hours (includes package installation and Julia's first-run compilation)
 :::
 
 # Introduction
@@ -37,7 +37,8 @@ Three ways to engage with the course:
    Fine for an overview, but you'll learn more by doing.
 2. **Local installation**: Install Julia and run everything on your own machine.
    Recommended for the full experience.
-3. **Cloud option**: Open the course in [GitHub Codespaces](https://github.com/codespaces), which gives you a browser-based VS Code with Julia and every package already installed. Nothing to download, and useful if a local install will not cooperate.
+3. **Cloud option**: Open the course in [GitHub Codespaces](https://codespaces.new/mfiidd/mfiidd), which gives you a browser-based VS Code with Julia and the course packages already installed.
+   Nothing to download, and useful if a local install will not cooperate.
 
 # Local installation
 
