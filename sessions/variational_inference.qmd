@@ -3,7 +3,7 @@ title: "Variational Inference: Speed vs Accuracy"
 subtitle: "Fast approximate Bayesian inference for real-time applications"
 format: html
 engine: julia
-order: 10
+order: 11
 ---
 
 ::: {.callout-note appearance="simple"}

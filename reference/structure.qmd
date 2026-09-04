@@ -27,7 +27,7 @@ No prior Julia experience is required; the course introduces Julia syntax as you
 
 # Course map
 
-The course has 14 sessions organised into three tiers.
+The course has 15 sessions organised into three tiers, and closes with a session that puts the methods side by side.
 Work through them in order, or use this map to plan your time.
 
 **Core sessions** (10-12 hours) - complete in order:
@@ -46,6 +46,10 @@ Work through them in order, or use this map to plan your time.
 > - **Universal Differential Equations** — requires Introduction only (independent track)
 > - **Beyond Turing: the wider Julia ecosystem** — requires MCMC only (independent track)
 > - **Neural Posterior Estimation** — requires Particle MCMC and Variational Inference
+
+**Closing session** (20 minutes):
+
+> **Choosing an inference approach** — requires everything in the core and stochastic tiers, and works best if you bring a model of your own
 
 **If you only have limited time:**
 

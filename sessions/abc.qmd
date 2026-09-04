@@ -12,6 +12,9 @@ order: 9
 
 [Slides](slides/abc.qmd)
 
+The day opens with a [review of day 3](slides/day3_review.qmd), covering where the
+week has got to, from deterministic fitting through to particle MCMC.
+
 # Introduction
 
 Yesterday ended on a question. If a negative log-likelihood is a distance
@@ -989,12 +992,6 @@ A robust distance stops a handful of large daily discrepancies dominating the fi
 
 # Next session
 
-You have now met every family of method the course covers. The closing session,
-[choosing an inference approach](slides/choosing_an_approach.qmd), puts them side
-by side and asks which one your own problem needs.
-
-These optional sessions go further:
-
-- [Variational inference](variational_inference.qmd): fast approximate posteriors for real-time applications
-- [Universal differential equations](universal_differential_equations.qmd): learning unknown mechanisms with neural networks
-- [Beyond Turing](julia_ecosystem.qmd): the wider Julia ecosystem
+You have now met every family of method the course covers.
+[Choosing an inference approach](closing.qmd) puts them side by side, asks which
+one your own problem needs, and points at the optional sessions that go further.

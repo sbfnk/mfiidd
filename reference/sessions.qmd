@@ -172,8 +172,8 @@ kind of object.
 
 Thursday 10 September: 11.30-12.15
 
--   [Choosing an inference approach](../sessions/slides/choosing_an_approach.qmd): the methods side by side, the two questions that decide between them, and what actually goes wrong (25 mins)
--   Discussion: work through the five worked problems, then place your own on the map, in pairs and then as a group (20 mins)
+-   [Slides](../sessions/slides/choosing_an_approach.qmd): the methods side by side, the two questions that decide between them, and what actually goes wrong (25 mins)
+-   [Discussion](../sessions/closing.qmd): work through the two questions, then place your own problem, in pairs and then as a group (20 mins)
 
 Bring a model you actually want to fit. The discussion works best when people
 argue about real problems rather than the worked examples.

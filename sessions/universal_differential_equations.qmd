@@ -3,7 +3,7 @@ title: "Universal Differential Equations: Learning Unknown Mechanisms"
 subtitle: "Combining mechanistic models with machine learning"
 format: html
 engine: julia
-order: 12
+order: 13
 ---
 
 ::: {.callout-note appearance="simple"}
