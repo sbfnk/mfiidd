@@ -5,7 +5,7 @@ engine: julia
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours (includes package installation and Julia's first-run compilation)
+**Estimated time**: 1-1.5 hours on your own machine, most of it spent downloading packages and waiting for Julia's first-run compilation. Doing it in advance is worth it, and the taught slot is 45 minutes.
 :::
 
 # Introduction
