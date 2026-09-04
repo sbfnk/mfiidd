@@ -1,5 +1,5 @@
 ---
-title: "Model fitting in Julia"
+title: "Bayesian inference with mathematical models"
 format: html
 engine: julia
 order: 1

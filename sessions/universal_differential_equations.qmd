@@ -7,7 +7,7 @@ order: 12
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 2-3 hours | **Advanced session** | **Requires**: Comfort with ODE-based models (e.g. [model fitting in Julia](introduction.qmd)) and basic familiarity with neural networks (what layers and activation functions are)
+**Estimated time**: 2-3 hours | **Advanced session** | **Requires**: Comfort with ODE-based models (e.g. [the first session](introduction.qmd)) and basic familiarity with neural networks (what layers and activation functions are)
 :::
 
 # Introduction

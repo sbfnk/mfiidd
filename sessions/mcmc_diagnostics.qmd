@@ -768,7 +768,7 @@ The general recipe:
 
 # How the pieces fit together
 
-After three sessions, you now have a complete workflow for Bayesian inference with deterministic models. In [model fitting in Julia](introduction.qmd), you learned the core concepts: priors encode beliefs before seeing data, likelihoods measure how well parameters explain observations, and Bayes' theorem combines them into a posterior. In [MCMC](mcmc.qmd), you saw how to sample from posteriors that are too complex for grid search - from basic Metropolis-Hastings through adaptive methods (RAM) to gradient-based samplers (NUTS). This session covered diagnostics: trace plots for visual assessment, R̂ for convergence, and ESS for effective sample size.
+After three sessions, you now have a complete workflow for Bayesian inference with deterministic models. In [Bayesian inference with mathematical models](introduction.qmd), you learned the core concepts: priors encode beliefs before seeing data, likelihoods measure how well parameters explain observations, and Bayes' theorem combines them into a posterior. In [MCMC](mcmc.qmd), you saw how to sample from posteriors that are too complex for grid search - from basic Metropolis-Hastings through adaptive methods (RAM) to gradient-based samplers (NUTS). This session covered diagnostics: trace plots for visual assessment, R̂ for convergence, and ESS for effective sample size.
 
 **The workflow**: Define model → Run MCMC → Check convergence → Check model fit → Iterate
 

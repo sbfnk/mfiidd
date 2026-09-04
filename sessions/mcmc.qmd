@@ -783,7 +783,7 @@ summarystats(chain_nuts)
 
 ::: {.callout-tip collapse="true"}
 ## Going further: sampling without Turing
-Turing's `@model` macro is convenient syntax, but it isn't the only way to do MCMC in Julia. In [model fitting in Julia](introduction.qmd) you built a log-posterior function by hand; that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface, giving you access to samplers beyond what Turing offers, with fewer dependencies. See the optional session [Beyond Turing](julia_ecosystem.qmd) for a worked example.
+Turing's `@model` macro is convenient syntax, but it isn't the only way to do MCMC in Julia. In [the first session](introduction.qmd) you built a log-posterior function by hand; that same function can be plugged into standalone samplers like [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl) via the [LogDensityProblems.jl](https://github.com/tpapp/LogDensityProblems.jl) interface, giving you access to samplers beyond what Turing offers, with fewer dependencies. See the optional session [Beyond Turing](julia_ecosystem.qmd) for a worked example.
 :::
 
 # Posterior analysis with Turing.jl
