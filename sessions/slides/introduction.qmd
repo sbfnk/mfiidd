@@ -82,9 +82,9 @@ Given what we observe, what is the **state** of the system?
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_simplest.svg){.step .fragment .fade-out fragment-index=1}
-![](images/Big_picture_empty.svg){.step .fragment .current-visible fragment-index=1}
-![](images/Big_picture_empty_question.svg){.step .fragment fragment-index=2}
+![](images/Big_picture_simplest.svg){.bigpic .step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_empty.svg){.bigpic .step .fragment .current-visible fragment-index=1}
+![](images/Big_picture_empty_question.svg){.bigpic .step .fragment fragment-index=2}
 :::
 
 ## Assessing the "closeness" of model output and data
@@ -238,8 +238,8 @@ $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \t
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Big_picture_deterministic_models_with_observations_simple.svg){.step .fragment .fade-out fragment-index=1}
-![](images/Big_picture_deterministic_models_with_observations.svg){.step .fragment fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations_simple.svg){.bigpic .step .fragment .fade-out fragment-index=1}
+![](images/Big_picture_deterministic_models_with_observations.svg){.bigpic .step .fragment fragment-index=1}
 :::
 
 ## The likelihood {.smaller}
@@ -321,13 +321,13 @@ We want to generate **samples** of $\theta$ from this distribution.
 
 ##  {.center}
 
-![](images/Big_picture_deterministic_models_no_init.svg)
+![](images/Big_picture_deterministic_models_no_init.svg){.bigpic}
 
 ##  {.center}
 
 ::: {.r-stack}
-![](images/Course_outline_day_12.svg){.step .fragment .fade-out fragment-index=1}
-![](images/Course_outline.svg){.step .fragment fragment-index=1}
+![](images/Course_outline_day_12.svg){.bigpic .step .fragment .fade-out fragment-index=1}
+![](images/Course_outline.svg){.bigpic .step .fragment fragment-index=1}
 :::
 
 ## Why we cannot just try sensible parameter combinations {.smaller}
@@ -354,7 +354,7 @@ instead.
 
 ## The arrows as Julia functions
 
-![](images/big_picture_functions_base.svg)
+![](images/big_picture_functions_base.svg){.bigpic}
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
