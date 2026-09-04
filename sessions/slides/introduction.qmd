@@ -283,7 +283,7 @@ from previous measurements, the literature, or experts.
 
 ![](images/R0plot.svg){.step}
 
-[$R_0$ of measles]{.cite}
+[A prior for the $R_0$ of measles]{.cite}
 
 ## Example: estimating $R_0$ of measles
 
