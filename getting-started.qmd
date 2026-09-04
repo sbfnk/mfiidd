@@ -57,7 +57,7 @@ After installation, open a terminal and verify Julia is working:
 julia --version
 ```
 
-You should see something like `julia version 1.11.2`.
+You should see something like `julia version 1.12.7`.
 
 ## Step 2: Install VS Code (recommended IDE)
 
@@ -68,22 +68,30 @@ While you can use any text editor, VS Code with the Julia extension provides the
 
 Alternative IDEs: Emacs with julia-mode, Vim with julia-vim, or Jupyter notebooks.
 
-## Step 3: Clone the course repository
+## Step 3: Get the course materials
 
-Back in your **terminal** (not the Julia REPL), download the course materials:
+::: {.callout-tip}
+[**Download the course materials**](https://github.com/mfiidd/mfiidd/archive/refs/heads/main.zip)
+:::
+
+Unpack the ZIP wherever you keep your work.
+It creates a folder called `mfiidd-main`, and that folder is what the rest of this page calls the course folder.
+
+If you already use git you can clone the [repository](https://github.com/mfiidd/mfiidd) instead, which makes it easier to pick up corrections while the course runs:
 
 ```bash
 git clone https://github.com/mfiidd/mfiidd.git
 cd mfiidd
 ```
 
-If you do not have git, [download the repository as a ZIP](https://github.com/mfiidd/mfiidd/archive/refs/heads/main.zip) and unpack it. Windows does not ship with git, and on macOS typing `git` prompts you to install Apple's command line tools, which is a large download in itself. The ZIP unpacks to a folder called `mfiidd-main` rather than `mfiidd`, so use that name in the commands below.
+That gives a folder called `mfiidd`.
+Neither Windows nor macOS comes with git, and on macOS typing `git` prompts you to install Apple's command line tools, which is a large download in itself, so take the download above unless you have git already.
 
-Then open the course folder in VS Code: either run `code mfiidd` from the terminal, or use **File → Open Folder** in VS Code and navigate to the `mfiidd` directory.
+Then open the course folder in VS Code: run **File → Open Folder** and navigate to it, or run `code` followed by the folder name from the terminal.
 
 ## Step 4: Install Julia packages
 
-With the `mfiidd` folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
+With the course folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
 The REPL should open in the bottom panel showing a `julia>` prompt.
 
 Now activate the project environment and install packages:
@@ -213,7 +221,7 @@ Pkg.precompile()
 ## During the course
 
 We fix things as we find them, so the materials may change under you while the course runs.
-To pick up a change, run `git pull` and restart the Julia REPL.
+To pick up a change, download the materials again and replace your folder, or run `git pull` if you cloned, then restart the Julia REPL.
 
 If `Project.toml` or `Manifest.toml` changed, run `Pkg.instantiate()` again as well.
 Nothing else needs reinstalling, and Julia will not need to precompile from scratch a second time.
