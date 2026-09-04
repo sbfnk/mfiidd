@@ -66,31 +66,42 @@ This is **sequential Monte Carlo**, better known as **particle filtering**.
 
 ## The algorithm {.smaller}
 
-Run the particles forward through time, one observation at a time:
+::::: {.columns}
+:::: {.column width="60%"}
+::: {.r-stack}
+![](images/pf_1_initialise.png){.step .fragment .fade-out fragment-index=1}
+![](images/pf_2_propagate.png){.step .fragment .current-visible fragment-index=1}
+![](images/pf_3_weight.png){.step .fragment .current-visible fragment-index=2}
+![](images/pf_4_resample.png){.step .fragment fragment-index=3}
+:::
+::::
+:::: {.column width="40%"}
+**Initialise** — draw $J$ particles from the initial state, each with weight $1/J$
 
-. . .
+::: {.fragment fragment-index=1}
+**Propagate** — simulate each one forward to the next observation
+:::
 
-**Initialise** — draw $J$ particles from the initial state distribution, each
-with weight $1/J$
+::: {.fragment fragment-index=2}
+**Weight** — score it by how well it explains the observation,
+$w_j = p(y_t \mid x_j, \theta)$, drawn here as size
+:::
 
-. . .
+::: {.fragment fragment-index=3}
+**Resample** — draw a new set in proportion to weight, so good particles are
+copied and bad ones die
+:::
 
-**Propagate** — simulate each particle forward to the next observation time
+::: {.fragment fragment-index=4}
+**Repeat** to the end of the data. The average weight along the way estimates
+$p(y \mid \theta)$.
+:::
+::::
+:::::
 
-. . .
-
-**Weight** — score each particle by how well it explains the observation,
-$w_j = p(y_t \mid x_j, \theta)$
-
-. . .
-
-**Resample** — draw a new set of particles in proportion to their weights, so
-good ones are copied and bad ones die
-
-. . .
-
-**Repeat** to the end of the data. The average weight along the way gives an
-estimate of $p(y \mid \theta)$.
+::: {.cite}
+Red diamonds are the data, yellow circles the particles.
+:::
 
 ## Why resample?
 
