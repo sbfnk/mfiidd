@@ -5,7 +5,7 @@ engine: julia
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours (includes package installation and Julia's first-run compilation)
+**Estimated time**: 1-1.5 hours on your own machine, most of it spent downloading packages and waiting for Julia's first-run compilation. Doing it in advance is worth it, and the taught slot is 45 minutes.
 :::
 
 # Introduction
@@ -47,7 +47,7 @@ Three ways to engage with the course:
 Install Julia using [juliaup](https://github.com/JuliaLang/juliaup), the official version manager.
 Open a terminal (on Windows: search for "PowerShell"; on macOS: open Terminal from Applications/Utilities) and run:
 
-- **Windows**: `winget install julia -s msstore`
+- **Windows**: `winget install --name Julia --id 9NJNWW8PVKMN -e -s msstore`
 - **macOS/Linux**: `curl -fsSL https://install.julialang.org | sh`
 
 juliaup handles downloading the right version and makes future upgrades easy (`juliaup update`).
@@ -69,22 +69,30 @@ While you can use any text editor, VS Code with the Julia extension provides the
 
 Alternative IDEs: Emacs with julia-mode, Vim with julia-vim, or Jupyter notebooks.
 
-## Step 3: Clone the course repository
+## Step 3: Get the course materials
 
-Back in your **terminal** (not the Julia REPL), download the course materials:
+::: {.callout-tip}
+[**Download the course materials**](https://github.com/mfiidd/mfiidd/archive/refs/heads/main.zip)
+:::
+
+Unpack the ZIP wherever you keep your work.
+It creates a folder called `mfiidd-main`, and that folder is what the rest of this page calls the course folder.
+
+If you already use git you can clone the [repository](https://github.com/mfiidd/mfiidd) instead, which makes it easier to pick up corrections while the course runs:
 
 ```bash
 git clone https://github.com/mfiidd/mfiidd.git
-cd mfiidd.julia
+cd mfiidd
 ```
 
-If you don't have git, you can download the repository as a ZIP file from the [GitHub page](https://github.com/mfiidd/mfiidd).
+That gives a folder called `mfiidd`.
+Neither Windows nor macOS comes with git, and on macOS typing `git` prompts you to install Apple's command line tools, which is a large download in itself, so take the download above unless you have git already.
 
-Then open the course folder in VS Code: either run `code mfiidd.julia` from the terminal, or use **File → Open Folder** in VS Code and navigate to the `mfiidd.julia` directory.
+Then open the course folder in VS Code: run **File → Open Folder** and navigate to it, or run `code` followed by the folder name from the terminal.
 
 ## Step 4: Install Julia packages
 
-With the `mfiidd.julia` folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
+With the course folder open in VS Code, start the Julia REPL: press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS), type "Julia: Start REPL", and press Enter.
 The REPL should open in the bottom panel showing a `julia>` prompt.
 
 Now activate the project environment and install packages:
@@ -154,11 +162,6 @@ chain = sample(coin_flip(10) | (; k = 7), NUTS(), 100)
 println("Installation successful!")
 ```
 
-::: {.callout-tip collapse="true"}
-## What does `|` mean?
-The `|` operator *conditions* the model on observed data. Here, `coin_flip(10) | (; k = 7)` means "run the coin flip model with 10 trials, given that we observed 7 heads". Turing then infers the posterior distribution of `p` (the coin's bias). You'll see this pattern throughout the course — we'll explain it in detail in the [MCMC session](sessions/mcmc.qmd).
-:::
-
 The first time you run this, expect it to take a minute or two as Julia compiles the packages (see the note about compilation above).
 If it completes without errors and prints "Installation successful!", you're ready for the course.
 If you see errors, check the Troubleshooting section below.
@@ -189,19 +192,40 @@ For faster startup during development, consider [PackageCompiler.jl](https://jul
 
 ## macOS Apple Silicon
 
-Julia runs natively on Apple Silicon (M1/M2/M3).
-Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
+Julia runs natively on Apple Silicon, and juliaup installs the right build for your machine, so there is nothing to choose.
+If you installed Julia some time ago by downloading it by hand, you may be running an Intel build under Rosetta, which is noticeably slower.
+Check with `Sys.ARCH` at the Julia prompt: it should print `aarch64`, and if it prints `x86_64` then reinstalling through juliaup will fix it.
 
-# Updating before the course
+# Keeping up to date
 
-If you installed the packages days or weeks before the course, update them:
+If you installed everything days or weeks ago, refresh it before you start.
+First update the materials, from the folder you cloned or unpacked:
+
+```bash
+git pull
+```
+
+If you downloaded the ZIP rather than cloning, download it again and replace the folder.
+
+Then match the package versions the course was tested with:
 
 ```julia
 using Pkg
 Pkg.activate(".")
-Pkg.update()
+Pkg.instantiate()
 Pkg.precompile()
 ```
+
+`Pkg.instantiate()` installs exactly the versions recorded in `Manifest.toml`, which is what you want.
+`Pkg.update()` would resolve fresh versions instead and can pull in a release the course has not been run against, so reach for it only if something is broken.
+
+## During the course
+
+We fix things as we find them, so the materials may change under you while the course runs.
+To pick up a change, download the materials again and replace your folder, or run `git pull` if you cloned, then restart the Julia REPL.
+
+If `Project.toml` or `Manifest.toml` changed, run `Pkg.instantiate()` again as well.
+Nothing else needs reinstalling, and Julia will not need to precompile from scratch a second time.
 
 # Working with the materials
 
