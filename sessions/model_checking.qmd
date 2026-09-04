@@ -6,7 +6,7 @@ order: 4
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours
+**Estimated time**: 55 minutes
 :::
 
 [Lecture slides](slides/model_checking.qmd)

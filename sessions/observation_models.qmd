@@ -7,7 +7,7 @@ order: 8
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours | **Requires**: MCMC
+**Estimated time**: 55 minutes | **Requires**: MCMC
 :::
 
 [Lecture slides](slides/observation_models.qmd)

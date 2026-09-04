@@ -7,7 +7,7 @@ order: 9
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1-1.5 hours | **Requires**: Observation models
+**Estimated time**: 50 minutes | **Requires**: Observation models
 :::
 
 [Lecture slides](slides/abc.qmd)
