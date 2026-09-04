@@ -31,6 +31,13 @@ codespace opened on a branch rather than `main`, and one opened after
 `Project.toml`, `Manifest.toml` or this directory changed but before the rebuild
 finishes. Neither fails; they are just slow.
 
+## What opens first
+
+`customizations.codespaces.openFiles` opens the course overview and the first
+session instead of leaving the participant on `README.md`, which is written for
+people working on the course rather than taking it. It applies when the codespace
+is created, not on every reconnect.
+
 ## Machine size
 
 Two cores and 8 GB, which is `basicLinux32gb`. With the prebuild in place there is
