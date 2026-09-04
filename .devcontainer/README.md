@@ -30,15 +30,15 @@ around the running cost.
 
 ## Machine size
 
-Two cores and 8 GB, which is `basicLinux32gb`. Four cores would roughly halve the
-28-minute setup, and it is tempting for exactly that reason, but a codespace on a
-public repository is billed against the user's **personal** free allowance of 120
-core-hours a month. Four days of teaching at six and a half hours a day costs
-about 52 core-hours on two cores and about 104 on four, which leaves nothing for
-setting up beforehand or for the rest of the month.
+Two cores and 8 GB, which is `basicLinux32gb`. The 28-minute setup fits inside
+the 45-minute slot the timetable gives to getting people running, so the reason
+to want four cores is gone.
 
-Creating the codespace the day before buys back the same 28 minutes and costs
-nothing, so the cores are not worth spending.
+Four cores would roughly halve that setup, but a codespace on a public repository
+is billed against the user's **personal** free allowance of 120 core-hours a
+month. Four days of teaching at six and a half hours a day costs about 52
+core-hours on two cores and about 104 on four. Paying double the ongoing rate to
+shorten a one-off wait that already fits is the wrong trade.
 
 Note that none of this is billed to the organisation. Org billing for
 codespaces requires Team or Enterprise Cloud, so on the free plan every
