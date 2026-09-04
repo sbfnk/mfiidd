@@ -140,10 +140,6 @@ In the practical you will
 - read that filter line by line and work out what each step does
 - explore how the number of particles affects the likelihood estimate
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 

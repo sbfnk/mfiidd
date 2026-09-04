@@ -9,6 +9,9 @@ $link-color: #2a6fb5;
 $presentation-heading-color: #1a3a5c;
 $presentation-heading-font-weight: 600;
 $presentation-font-size-root: 34px;
+// Quarto's default drops `.smaller` slides to 0.7 of this, a 30% step that
+// reads as a jump between slides and is hard to see from the back. Soften it.
+$presentation-font-smaller: 0.85;
 
 /*-- scss:rules --*/
 

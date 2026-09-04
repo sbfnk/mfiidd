@@ -8,7 +8,7 @@ subtitle: "Model fitting and inference for infectious disease dynamics"
 
 ## Review
 
-In the practical you used [Metropolis-Hastings]{.alert} with a [Gaussian]{.alert}
+In the previous session you used [Metropolis-Hastings]{.alert} with a [Gaussian]{.alert}
 proposal distribution to infer a single parameter, $R_0$.
 
 In this session we will
@@ -177,10 +177,15 @@ Four chains is a reasonable default.
 
 Compare the variance **within** each chain to the variance **between** chains.
 
-$$\hat{R} \approx \sqrt{\frac{\text{between-chain} + \text{within-chain}}{\text{within-chain}}}$$
+$$\hat{R} = \sqrt{\frac{\hat{V}}{W}},
+\qquad \hat{V} = \frac{n-1}{n}\,W + \frac{1}{n}\,B$$
+
+$W$ is the average variance within a chain, and $B$ is $n$ times the variance of
+the chain means, for chains of length $n$.
 
 ::: {.fragment}
-- If the chains have converged to the same distribution, $\hat{R} \to 1$.
+- Once the chains agree, each chain mean varies by about $W/n$, so $B \approx W$,
+  $\hat{V} \approx W$ and $\hat{R} \to 1$.
 - Chains sitting in different places inflate the between-chain variance and push
   $\hat{R}$ up.
 :::
@@ -220,9 +225,11 @@ $$\text{MCSE} \approx \frac{\text{posterior SD}}{\sqrt{\text{ESS}}}$$
 
 . . .
 
-If the MCSE on your posterior mean is large relative to the effect you are
-reporting, you have not sampled enough — regardless of what the trace plot looks
-like.
+MCSE is the noise the sampler itself puts on the number you quote.
+If you report $R_0 = 2.31$ and the MCSE is $0.05$, that second decimal is sampler
+noise: run again with a different seed and it changes.
+Sample until the MCSE is small next to the precision you want to claim, whatever
+the trace plot looks like.
 
 # Common failure modes
 
@@ -274,10 +281,6 @@ In the practical you will
 - compute R̂, ESS and MCSE with `MCMCChains`
 - diagnose a deliberately badly specified model and try to fix it
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 

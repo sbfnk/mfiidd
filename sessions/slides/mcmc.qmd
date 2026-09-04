@@ -13,7 +13,9 @@ data, is
 
 $$p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta)\, p(\theta)$$
 
-Our aim is to draw samples from this distribution.
+## {.center}
+
+Our aim is to draw [samples]{.alert} from this distribution.
 
 # Why sample?
 
@@ -133,7 +135,7 @@ Accepted points build up a sample from $f(\theta)$.
 :::
 ::::
 
-# What is Markov chain Monte Carlo?
+# Walking towards the target
 
 ## Markov chain Monte Carlo
 
@@ -202,8 +204,8 @@ $$r = \min\left(1, \frac{f(\theta^*)\,q(\theta \mid \theta^*)}{f(\theta)\,q(\the
 
 ## Handing it to a library {.smaller}
 
-You will write Metropolis-Hastings once, to know what it does. After that, use a
-[probabilistic programming language]{.alert}.
+Having seen what Metropolis-Hastings does, you would not write it again. Use a
+[probabilistic programming language]{.alert} instead.
 
 . . .
 
@@ -223,21 +225,20 @@ end
 `|` conditions the model on data; `sample()` then runs whichever algorithm you
 name. The same model definition works with MH, RAM or NUTS.
 
-# Better proposals
+# Finding a good proposal distribution
 
-## Tuning by hand does not scale
+## How do we choose $q(\theta^* \mid \theta)$?
 
-The proposal covariance has to match the shape of the posterior.
-
-. . .
-
-With 2 parameters that is 3 numbers to tune: two variances and a covariance.
-
-With 10 parameters it is 55.
+Too narrow and the chain crawls; too wide and almost nothing is accepted.
+The proposal has to match the shape of the posterior.
 
 . . .
 
-And you generally do not know the posterior scale before you have sampled it.
+With 2 parameters that is 3 numbers to pick, and with 10 it is 55.
+
+. . .
+
+Worse, the shape you need is the shape of the thing you have not sampled yet.
 
 ## Adaptive MCMC
 
@@ -334,10 +335,6 @@ In the practical you will
 - experience how hard tuning a proposal by hand is
 - hand the same job to Turing.jl, then compare MH, RAM and NUTS
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 

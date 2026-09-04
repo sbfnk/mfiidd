@@ -1,6 +1,10 @@
 # Shared configuration for all session slide decks.
 # Anything set here applies to every .qmd in this directory.
 
+# The sessions carry the full reference lists; a deck ending on a bibliography
+# is a slide nobody reads off a projector. Citations still render inline.
+suppress-bibliography: true
+
 format:
   revealjs:
     theme: [default, mfiidd.scss]

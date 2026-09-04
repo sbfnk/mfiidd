@@ -178,10 +178,6 @@ In the practical you will
 - vary the particle count and watch the trade-off appear
 - work with a pre-computed long chain, and compare against the deterministic fit
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 

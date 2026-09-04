@@ -233,10 +233,6 @@ In the practical you will
 Simulation-based calibration is written up at the end of the session for you to
 work through afterwards.
 
-## References {.smaller}
-
-::: {#refs}
-:::
 
 #
 
