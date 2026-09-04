@@ -14,7 +14,7 @@ The MFIIDD course was developed by the **MFIIDD course contributors**:
 
 If you use materials from this course in your work, please cite:
 
-> MFIIDD course contributors (2025).
+> MFIIDD course contributors (2026).
 > MFIIDD: Model Fitting and Inference for Infectious Disease Dynamics.
 > URL: <https://mfiidd.github.io/mfiidd/>
 

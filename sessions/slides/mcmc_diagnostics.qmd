@@ -105,19 +105,19 @@ acceptance rate between 24% and 40%.
 
 **Running mean** — the posterior mean recomputed as the chain grows.
 
-::: {.fragment}
+. . .
+
 It should settle and stay settled. Still drifting after thousands of iterations
 means the chain has not forgotten where it started, or has not finished
 exploring.
-:::
 
-::: {.fragment}
+. . .
+
 **Autocorrelation** — how correlated a sample is with the one $k$ steps back.
 
 It should decay towards zero within a few tens of lags. Still high at lag 100
 means successive samples carry almost no new information, and your effective
 sample size is a small fraction of the iterations you ran.
-:::
 
 ## Burn-in
 
@@ -163,15 +163,15 @@ How does each of these influence accuracy and efficiency?
 
 A single chain can look perfectly healthy and still be stuck in the wrong place.
 
-::: {.fragment}
+. . .
+
 Run several chains from **different starting points**. If they agree, that is
 evidence they have found the same distribution. If they disagree, at least one
 of them is wrong.
-:::
 
-::: {.fragment}
+. . .
+
 Four chains is a reasonable default.
-:::
 
 ## R̂: the Gelman-Rubin diagnostic
 
@@ -198,18 +198,18 @@ Modern rank-normalised R̂ and ESS: @vehtari2021.
 MCMC samples are correlated, so $N$ samples are worth fewer than $N$ independent
 draws.
 
-::: {.fragment}
+. . .
+
 [ESS]{.alert} estimates how many independent draws your chain is equivalent to.
 
 - ESS close to $N$: efficient sampling, little autocorrelation
 - ESS far below $N$: highly correlated, run longer
 - ESS below 100: not enough for reliable inference
-:::
 
-::: {.fragment}
+. . .
+
 Bulk ESS describes the centre of the distribution; tail ESS describes the
 extremes, and matters if you care about credible interval endpoints.
-:::
 
 ## Monte Carlo standard error
 
@@ -218,11 +218,11 @@ uncertainty on your estimate:
 
 $$\text{MCSE} \approx \frac{\text{posterior SD}}{\sqrt{\text{ESS}}}$$
 
-::: {.fragment}
+. . .
+
 If the MCSE on your posterior mean is large relative to the effect you are
 reporting, you have not sampled enough — regardless of what the trace plot looks
 like.
-:::
 
 # Common failure modes
 
@@ -231,31 +231,31 @@ like.
 Specific to HMC and NUTS. The sampler simulates a trajectory; a **divergence**
 means that simulation became numerically unstable and flew off.
 
-::: {.fragment}
+. . .
+
 This usually means the posterior has a region of sharp curvature — a funnel or a
 narrow ridge — where the step size that works elsewhere is far too large.
-:::
 
-::: {.fragment}
+. . .
+
 A handful of divergences may be tolerable. Many means the sampler is
 systematically avoiding part of the posterior, so your samples are **biased**,
 not merely noisy.
-:::
 
 ## Multimodality
 
 If the posterior has several separated modes, a chain can settle in one and
 never see the others.
 
-::: {.fragment}
+. . .
+
 Multiple chains from different starting points are the standard detection: if
 they land in different modes, R̂ will be large.
-:::
 
-::: {.fragment}
+. . .
+
 Fixes are harder than detection. Reparameterisation sometimes helps; otherwise
 you need samplers designed to cross between modes.
-:::
 
 ## A checklist
 

@@ -8,18 +8,18 @@ subtitle: "Inference when you cannot write down a likelihood"
 
 ## A likelihood is a distance function
 
-::: {.fragment}
+. . .
+
 Poisson, negative binomial, Gaussian: each one scores how far the data sit from
 the prediction. Choosing a likelihood is choosing a [distance]{.alert}.
-:::
 
-::: {.fragment}
+. . .
+
 So why not choose the distance **directly**?
-:::
 
-::: {.fragment}
+. . .
+
 And what do you do when you cannot write a likelihood down at all?
-:::
 
 # Approximate Bayesian Computation
 
@@ -42,9 +42,9 @@ $$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\the
 - $d$: distance, e.g. absolute distance
 - $\epsilon$: acceptance window
 
-::: {.fragment}
+. . .
+
 ![](images/abc_method.png){.step .tall}
-:::
 
 ## Rejection ABC {.smaller}
 
@@ -55,71 +55,71 @@ The simplest version, and the one you will write:
 3. Compute the distance $d$ between simulation and data
 4. Keep $\theta^*$ if $d < \epsilon$, otherwise discard it
 
-::: {.fragment}
-Repeat until you have enough. The kept parameters approximate the posterior.
-:::
+. . .
 
-::: {.fragment}
+Repeat until you have enough. The kept parameters approximate the posterior.
+
+. . .
+
 No likelihood anywhere. Just a simulator, a distance, and a threshold.
-:::
 
 ## Everything hangs on $\epsilon$
 
-::: {.fragment}
+. . .
+
 **Too tight** and you reject almost everything. The acceptance rate collapses and
 you wait forever for a handful of samples.
-:::
 
-::: {.fragment}
+. . .
+
 **Too loose** and you accept almost everything, including parameters that fit
 badly. In the limit you are sampling the [prior]{.alert}.
-:::
 
-::: {.fragment}
+. . .
+
 There is no free lunch here: $\epsilon$ trades accuracy against compute, and you
 cannot tell from inside the algorithm whether you have chosen well.
-:::
 
 ## ABC-SMC {.smaller}
 
 Rejection ABC wastes its effort: every draw comes from the prior, however
 hopeless.
 
-::: {.fragment}
+. . .
+
 ABC-SMC walks the threshold down in stages instead.
 
 1. Run rejection ABC at a loose $\epsilon_1$
 2. Perturb the accepted particles to propose for the next round
 3. Tighten to $\epsilon_2 < \epsilon_1$ and repeat
-:::
 
-::: {.fragment}
+. . .
+
 Each generation starts from parameters already known to be reasonable, so far
 fewer simulations are wasted. Reaching a tight threshold becomes feasible.
-:::
 
-::: {.fragment}
+. . .
+
 The catch: particles need weighting to stay unbiased, which is the same
 propagate-weight-resample structure as the particle filter.
-:::
 
 ## Is there a correct observation model?
 
-::: {.fragment}
-No. There is only a choice, and the choice is part of the model.
-:::
+. . .
 
-::: {.fragment}
+No. There is only a choice, and the choice is part of the model.
+
+. . .
+
 - A likelihood is a distance function you have committed to in advance, with the
   benefit that it comes with a probabilistic interpretation.
 - An ABC distance is a distance function you have chosen explicitly, with the
   benefit that it works when the likelihood is intractable.
-:::
 
-::: {.fragment}
+. . .
+
 Either way, be explicit about the choice and check whether your conclusions
 survive a different one.
-:::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 

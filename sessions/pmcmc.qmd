@@ -6,7 +6,7 @@ order: 7
 ---
 
 ::: {.callout-note appearance="simple"}
-**Estimated time**: 1.5-2 hours
+**Estimated time**: 75 minutes
 :::
 
 [Lecture slides](slides/pmcmc.qmd)

@@ -24,9 +24,9 @@ Our aim is to draw samples from this distribution.
 
 $$m = \frac{1}{N_\text{Lon}} \sum_{i \in \text{Lon}} h_i \;\approx\; \frac{1}{N_S} \sum_{i \in S} h_i$$
 
-::: {.fragment}
+. . .
+
 We can do exactly the same thing to study a posterior distribution.
-:::
 
 ## Monte Carlo sampling
 
@@ -45,11 +45,11 @@ Explore a distribution by drawing from it. More samples, better picture:
 
 ![](images/sim_fits.png){.step}
 
-::: {.fragment}
+. . .
+
 Sampling blindly from the prior spends almost all its effort on parameter values
 that fit the data badly. We need something that concentrates where the posterior
 is.
-:::
 
 # Rejection sampling
 
@@ -205,7 +205,8 @@ $$r = \min\left(1, \frac{f(\theta^*)\,q(\theta \mid \theta^*)}{f(\theta)\,q(\the
 You will write Metropolis-Hastings once, to know what it does. After that, use a
 [probabilistic programming language]{.alert}.
 
-::: {.fragment}
+. . .
+
 In Julia that is **Turing.jl**. You declare the model and it works out the rest:
 
 ```julia
@@ -216,12 +217,11 @@ In Julia that is **Turing.jl**. You declare the model and it works out the rest:
     obs ~ arraydist(Poisson.(traj))   # ...and a likelihood
 end
 ```
-:::
 
-::: {.fragment}
+. . .
+
 `|` conditions the model on data; `sample()` then runs whichever algorithm you
 name. The same model definition works with MH, RAM or NUTS.
-:::
 
 # Better proposals
 
@@ -229,15 +229,15 @@ name. The same model definition works with MH, RAM or NUTS.
 
 The proposal covariance has to match the shape of the posterior.
 
-::: {.fragment}
+. . .
+
 With 2 parameters that is 3 numbers to tune: two variances and a covariance.
 
 With 10 parameters it is 55.
-:::
 
-::: {.fragment}
+. . .
+
 And you generally do not know the posterior scale before you have sampled it.
-:::
 
 ## Adaptive MCMC
 
@@ -273,13 +273,13 @@ use in the practical: @vihola2012.
 
 Metropolis-Hastings proposes a direction at random and hopes for the best.
 
-::: {.fragment}
+. . .
+
 But for a model built from operations we can **differentiate** — including an
 ODE model, since the solver propagates derivatives — we can compute the
 **gradient** of the log-posterior.
 
 The gradient tells us which way is uphill.
-:::
 
 ## Hamiltonian Monte Carlo
 
@@ -289,10 +289,10 @@ surface.
 - gradients pull it towards high-density regions
 - momentum carries it a long way before it stops
 
-::: {.fragment}
+. . .
+
 Both the **direction** and the **length** of each move now come from the
 posterior itself, rather than from a proposal we had to guess.
-:::
 
 ## NUTS
 
@@ -319,11 +319,11 @@ you should reach for.
 | **RAM** | Low-dimensional models where gradients are unavailable | Still a random walk |
 | **NUTS** | Continuous parameters, differentiable models | No discrete parameters; needs gradients |
 
-::: {.fragment}
+. . .
+
 Rule of thumb: start with NUTS. Fall back to RAM or MH when your model has
 discrete parameters or a stochastic simulator that breaks differentiation — as
 the particle filter will later in the course.
-:::
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
