@@ -183,8 +183,9 @@ For faster startup during development, consider [PackageCompiler.jl](https://jul
 
 ## macOS Apple Silicon
 
-Julia runs natively on Apple Silicon (M1/M2/M3).
-Ensure you download the `macOS (Apple Silicon)` version, not the Intel version.
+Julia runs natively on Apple Silicon, and juliaup installs the right build for your machine, so there is nothing to choose.
+If you installed Julia some time ago by downloading it by hand, you may be running an Intel build under Rosetta, which is noticeably slower.
+Check with `Sys.ARCH` at the Julia prompt: it should print `aarch64`, and if it prints `x86_64` then reinstalling through juliaup will fix it.
 
 # Keeping up to date
 
