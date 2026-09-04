@@ -22,6 +22,7 @@
       ],
       "settings": {
         "julia.environmentPath": "${containerWorkspaceFolder}",
+        "julia.executablePath": "/usr/local/juliaup/bin/julia",
         "files.trimTrailingWhitespace": true
       }
     }

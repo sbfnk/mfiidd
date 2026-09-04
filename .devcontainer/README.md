@@ -31,6 +31,15 @@ codespace opened on a branch rather than `main`, and one opened after
 `Project.toml`, `Manifest.toml` or this directory changed but before the rebuild
 finishes. Neither fails; they are just slow.
 
+## Which Julia the extension uses
+
+`julia.executablePath` points at the juliaup launcher, which follows the default
+channel the Dockerfile pinned to 1.12. Without it the extension asks juliaup for
+the `release` channel and runs `juliaup add release` on first start. That is
+harmless while `release` resolves to the same 1.12.7, and stops being harmless
+the day 1.13 ships: the extension would use a Julia the prebuilt depot was not
+compiled for, and which `Project.toml` does not accept.
+
 ## What opens first
 
 `customizations.codespaces.openFiles` opens the course overview and the first
