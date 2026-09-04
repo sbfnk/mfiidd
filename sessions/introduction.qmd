@@ -16,15 +16,14 @@ order: 1
 This session introduces the fundamental concepts of Bayesian inference through simulation with a simple epidemiological model.
 We will build intuition by manually calculating priors, likelihoods, and posteriors using an SIR (susceptible-infectious-recovered) epidemic model, before turning to algorithms that explore the posterior in the next session.
 
-By the end of the course you will have met several different ways of doing this,
-and the closing session puts them side by side so you can work out which one your
-own problem needs. It is worth keeping that question in mind as you go: each
-method here exists because the one before it ran out of road.
+By the end of the course you will have met several different ways of doing this, and the closing session puts them side by side so you can work out which one your own problem needs.
+Ask that of each method as you meet it rather than saving it for the end.
+Every one of them buys you something the others cannot, and charges for it somewhere else.
 
 # Objectives
 
 The aim of this first session is to set you up with a framework for model fitting using simulation-based intuition.
-We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for statistical operations and build understanding through hands-on simulation and manual calculations rather than jumping straight into automated inference.
+We will use [Distributions.jl](https://juliastats.org/Distributions.jl/stable/) for statistical operations and build understanding through hands-on simulation and manual calculations, before moving on to automated inference.
 
 In this session, you will
 
