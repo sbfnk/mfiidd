@@ -15,15 +15,35 @@ We want to find out **two** things:
 
 We want to do this on the basis of **observations** (data), $y$.
 
+## Why the state needs its own layer
+
+In a [deterministic]{.alert} model the state is a *function* of the parameters:
+one $\theta$, one trajectory, and $x$ is not something to be inferred.
+
+. . .
+
+In a [stochastic]{.alert} model the same $\theta$ gives a different trajectory
+every time, so the state has a *distribution*, $p(x \mid \theta)$.
+
+. . .
+
+That extra layer, between the parameters and the data, is what the rest of this
+session is about.
+
 ## Hierarchical model
 
 ![](images/bhm.png){.step .tall}
 
-This kind of model is sometimes called a **Bayesian hierarchical model**.
+Parameters, then states, then observations: each layer depends on the one above.
+Such a model is called a **Bayesian hierarchical model**, or, when the states
+form a time series, a **state-space model**.
 
-## Example: influenza in the UK
+## The same three layers, on a real problem {.smaller}
 
 ![](images/DAG.png){.step .tall}
+
+Influenza transmission in the UK: parameters at the top, a stochastic epidemic in
+the middle, several data streams at the bottom. Larger than ours, same structure.
 
 ::: {.cite}
 Baguelin et al. (2013)
@@ -47,7 +67,9 @@ Baguelin et al. (2013)
 
 . . .
 
-Applying the chain rule gives the **joint probability**
+## The joint probability
+
+Applying the chain rule to those three pieces gives
 
 $$p(y, x, \theta) = p(y \mid x, \theta)\, p(x \mid \theta)\, p(\theta)$$
 
