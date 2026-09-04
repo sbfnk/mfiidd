@@ -12,29 +12,19 @@ order: 0
 
 # Aim of the course
 
-This course teaches you how to fit mechanistic models of infectious disease transmission to data, and how to tell whether the fit is worth believing.
-
-You start with two things that do not meet: a model of how an infection spreads through a population, written as a set of rules or equations, and data from an outbreak that actually happened.
-Neither one tells you the parameters.
-Getting from one to the other means writing down how the data would have arisen given the model, exploring which parameter values are consistent with what was seen, and quantifying how much remains uncertain.
-
-The course builds from deterministic models fitted with Metropolis-Hastings, through the diagnostics and checks that say whether a fit converged and whether the model describes the data, to stochastic models where the likelihood is no longer available, and finally to methods that need no likelihood at all.
+This course teaches you how to fit mechanistic models of infectious disease transmission to data. The course builds from deterministic models fitted with Metropolis-Hastings, through the diagnostics and checks that say whether a fit converged and whether the model describes the data, to stochastic models.
 
 # Why this course?
 
 - Fitting mechanistic models to data comes up constantly, both in outbreak response and in research
 - The methods that do it are spread across several literatures, and it is easy to pick one that does not suit the problem, or the right one badly tuned, and hard to tell afterwards which happened
-- No single resource teaches the range of methods together, with runnable code and the diagnostics that say whether they worked
+- When we conceived the course, no single resource taught the range of methods available
 
 # Approach
 
-1. Simulating epidemics in [Julia](https://julialang.org), so that you know what the answer should be before you try to recover it
-2. Fitting those models with [Turing.jl](https://turinglang.org), which gives one interface to the whole range of methods the course covers, from Metropolis-Hastings to particle filters to variational inference
-
+We use [Julia](https://julialang.org) together with the Probabilistic Programming Language (PPL) [Turing.jl](https://turinglang.org), which gives one interface to the whole range of methods the course covers.
 Each session opens with a short set of slides and then becomes a practical you work through yourself.
-No prior Julia experience is assumed and the syntax is introduced as it is needed.
-Every line of Julia is given complete, and the exercises ask you to predict what a cell will print, read a diagnostic, work out why a fit failed, or choose between two approaches and say why.
-Each one has a worked answer to open once you have had a go.
+No prior Julia experience is assumed and the syntax is introduced as it is needed, including guidelines for those coming with R.
 Optional and advanced sessions are marked as such.
 
 We work with one dataset for most of the week: a two-wave influenza outbreak on [Tristan da Cunha](seitl.qmd) in 1971, in a population of 284.
@@ -42,7 +32,7 @@ It is small enough that chance matters, which is what makes the later methods ne
 
 # Timeline for the course
 
-The four-day in-person course, which also works at your own pace, follows this structure:
+The four-day in-person course has the following structure:
 
 - Day 1: fitting a deterministic model, from the likelihood through to [MCMC](mcmc.qmd)
 - Day 2: [convergence diagnostics](mcmc_diagnostics.qmd), [model checking](model_checking.qmd), and the [stochastic model](seitl.qmd) used for the rest of the week
