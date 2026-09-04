@@ -281,7 +281,7 @@ We want to generate **samples** of $\theta$ from this distribution.
 ![](images/Course_outline.svg){.step .fragment fragment-index=1}
 :::
 
-## Why we cannot just try everything {.smaller}
+## Why we cannot just try sensible parameter combinations {.smaller}
 
 You can explore a two-parameter posterior on a grid. Fifteen values each is 225
 model runs, which is nothing.
@@ -302,7 +302,7 @@ posterior, never a way of fitting one — which is what the next session is abou
 
 # Practical session
 
-## The same arrows, in Julia
+## The arrows as Julia functions
 
 ![](images/big_picture_functions_base.svg)
 
@@ -313,91 +313,6 @@ posterior, never a way of fitting one — which is what the next session is abou
 - Combine them into a posterior, and explore it by grid search
 
 [mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
-
-# Appendix: held in reserve {visibility="uncounted"}
-
-::: {.callout-note}
-The slides that follow are held in reserve. Skip them if the room is
-comfortable with probability notation, or come back to them if questions come up
-during the practical.
-:::
-
-## Frequentist vs Bayesian inference {.smaller visibility="uncounted"}
-
-### Frequentist inference
-
-- There are *true* parameters in the world; the uncertainty comes from the data
-- Encoded in the **likelihood**: $L(\theta) = p(\text{data} \mid \theta)$
-- Inference tries to estimate these parameters
-- Probabilities express outcomes of repeated experiments
-
-. . .
-
-### Bayesian inference
-
-- There are no true parameters; the *data* are true, and uncertainty is in the
-  parameters and hypotheses
-- Encoded in the **posterior**: $p(\theta \mid \text{data})$
-- Probabilities express belief in a given parameter value
-- The posterior is the *probability distribution* of a *random variable* $\theta$
-:::
-
-## Model *inference*: model selection {visibility="uncounted"}
-
-Given a set of potential models, how do we decide which is the right one?
-
-::: {.r-stack}
-![](images/model_comparison_1.svg){.step .fragment .fade-out fragment-index=1}
-![](images/model_comparison_2.svg){.step .fragment .current-visible fragment-index=1}
-![](images/model_comparison_3.svg){.step .fragment .current-visible fragment-index=2}
-![](images/model_comparison_4.svg){.step .fragment .current-visible fragment-index=3}
-![](images/model_comparison_5.svg){.step .fragment fragment-index=4}
-:::
-
-## Probabilities {.smaller visibility="uncounted"}
-
-- If $A$ is a random variable, we write $p(A = a)$ for the **probability** that
-  $A$ takes value $a$. We often shorten this to $p(a)$.
-
-- Example: the probability that Novak Djokovic wins Wimbledon,
-  $p(\mathrm{W} = \mathrm{Djokovic}) = p(\mathrm{Djokovic})$
-
-- Normalisation: $\sum_{a} p(a) = 1$
-
-## Joint and marginal probabilities {.smaller visibility="uncounted"}
-
-- For two random variables we write $p(A = a, B = b) = p(a, b)$ for the
-  **joint probability** that $A$ takes value $a$ and $B$ takes value $b$.
-
-- Example: the probability that Djokovic wins Wimbledon *and* it is sunny on the
-  final day.
-
-- We obtain a **marginal probability** from joint probabilities by summing:
-
-  $$p(a) = \sum_{b} p(a, b)$$
-
-## Conditional probabilities {.smaller visibility="uncounted"}
-
-- The **conditional probability** of outcome $a$ given that $B$ took value $b$
-  is written $p(a \mid b)$.
-
-- Conditional probabilities relate to joint probabilities as
-
-  $$p(a \mid b) = \frac{p(a, b)}{p(b)}$$
-
-- These combine in the **chain rule**:
-
-  $$p(a, b, c) = p(a \mid b, c)\, p(b \mid c)\, p(c)$$
-
-## Continuous distributions {.smaller visibility="uncounted"}
-
-For continuous variables, sums become integrals:
-
-- Normalisation: $\int p(a)\, da = 1$
-- Marginals: $p(a) = \int p(a, b)\, db$
-
-The two directions are unchanged: `pdf(Normal(23, 2), 30)` evaluates a density,
-`rand(Normal(23, 2))` draws a sample.
 
 #
 
