@@ -6,8 +6,8 @@ cooperate, or who would rather not download a gigabyte in a teaching room.
 
 ## Why the commands sit where they do
 
-Instantiating the project downloads around 1 GB and precompiles 491 packages,
-which takes the best part of an hour. That work happens in `onCreateCommand`,
+Instantiating the project downloads around 1 GB and precompiles 774
+dependencies, measured at 28 minutes on the two-core machine declared below. That work happens in `onCreateCommand`,
 which a **prebuild** runs and captures in the image, so opening a codespace
 takes seconds instead. Moving it to `postCreateCommand` would lose the saving
 entirely, because that runs when a participant opens their codespace rather
@@ -17,21 +17,27 @@ than when the image is built.
 prebuild loudly if the image is broken, rather than leaving someone to discover
 it on the morning.
 
-Prebuilds are not configured in this file, and cannot be: they are a repository
-setting. Enable them per branch under **Settings → Codespaces → Set up prebuild**,
-and rebuild after any change to `Project.toml`, `Manifest.toml` or this directory.
+There is no prebuild, and there cannot be one. Prebuilds require the owning
+organisation to be on GitHub Team or Enterprise Cloud, and `mfiidd` is on the
+free plan, which is why the repository has no **Settings → Codespaces** page at
+all.
 
-**Do that before pointing anyone at a codespace.** Without a prebuild, creating one
-blocks on `onCreateCommand` while it downloads the packages and precompiles them,
-which was measured at 26 minutes on the 2-core machine declared here, on top of
-around 2.5 GB of downloads. The participant sees a window that appears to hang,
-with no indication why, which is worse than the local installation this option
-exists to rescue.
+So creating a codespace blocks on `onCreateCommand` for that 28 minutes, showing
+a window that looks like it has hung. **Tell whoever uses this to create their
+codespace the day before**, which turns the wait into something that happens
+while they are not watching. That is the whole mitigation available to us.
 
 ## Machine size
 
-Two cores and 8 GB is enough for the practicals. The usual reason to want more
-cores is precompilation, and the prebuild has already done that.
+Two cores and 8 GB, which is `basicLinux32gb`. Four cores would roughly halve the
+28-minute setup, and it is tempting for exactly that reason, but a codespace on a
+public repository is billed against the user's **personal** free allowance of 120
+core-hours a month. Four days of teaching at six and a half hours a day costs
+about 52 core-hours on two cores and about 104 on four, which leaves nothing for
+setting up beforehand or for the rest of the month.
+
+Creating the codespace the day before buys back the same 28 minutes and costs
+nothing, so the cores are not worth spending.
 
 ## Comments
 
