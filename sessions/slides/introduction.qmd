@@ -278,13 +278,12 @@ $$\text{(posterior)} \propto \text{(normalised likelihood)} \times \text{(prior)
 
 ## Prior probabilities
 
-$p(\theta)$ quantifies our degree of **belief** via a probability distribution,
-before confronting the model with data — from previous measurements, the
-literature, experts and so on.
-
-Example: $R_0$ of measles
+$p(\theta)$ is our **belief** about the parameters before we see the data, taken
+from previous measurements, the literature, or experts.
 
 ![](images/R0plot.svg){.step}
+
+[$R_0$ of measles]{.cite}
 
 ## Example: estimating $R_0$ of measles
 

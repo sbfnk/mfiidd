@@ -64,22 +64,19 @@ two-wave outbreak.
 
 ## Likelihood as a distance
 
-Look at the negative log-likelihood of one observation as a function of how far
-it sits from the prediction.
+The negative log-likelihood of one observation, as a function of how far it sits
+from the prediction, is a **distance function**.
 
 . . .
 
-That is a **distance function**: it scores how far the data are from the model,
-and different observation models are different distance functions.
-
-- Poisson penalises large relative deviations very sharply
+- Poisson penalises large relative deviations sharply
 - Negative binomial is more forgiving in the tails
 - Gaussian penalises absolute deviations symmetrically
 
 . . .
 
-Once you see the likelihood as a distance, an obvious question follows: what if
-we chose the distance **directly**?
+So a different observation model is a different distance. Which invites the
+question: what if we chose the distance **directly**?
 
 ## Tonight's question
 

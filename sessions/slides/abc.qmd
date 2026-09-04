@@ -34,7 +34,7 @@ And what do you do when you cannot write a likelihood down at all?
 - The idea of **sufficient** summary statistics: to be exact, we would need
   summary statistics that give the *same* result as the likelihood.
 
-## The approximation
+## The approximation {.smaller}
 
 $$p(\text{data} \mid \theta) \approx p\big(d(S_\text{data},\, S_{\text{sim}(\theta)}) < \epsilon\big)$$
 

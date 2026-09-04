@@ -106,28 +106,24 @@ likelihood estimate** is roughly 1 to 3 at a representative $\theta$.
 :::
 :::
 
-## Why RAM rather than NUTS
+## Why RAM rather than NUTS {.smaller}
 
 Two things stand in the way, and the second is the deeper one.
 
-- The filter resamples and simulates discrete events, so the likelihood is not
-  **differentiable** and there is no gradient to follow.
+- Resampling and discrete events make the likelihood **non-differentiable**, so
+  there is no gradient to follow.
 - The filter returns a different number every run, so the likelihood is not even
-  **deterministic**. HMC integrates a trajectory across a fixed surface, and
-  there is no fixed surface here.
+  **deterministic**. HMC integrates along a fixed surface, and there is none here.
 
 . . .
 
-Metropolis-Hastings survives the second because the estimate is *unbiased*: that
-is the pseudo-marginal result this whole session rests on. HMC does not.
+Metropolis-Hastings survives the second because the estimate is *unbiased*: the
+pseudo-marginal result this session rests on. HMC does not.
 
 . . .
 
-So we are left with random-walk methods, which is exactly the fallback flagged in
-the MCMC session.
-
-We use **robust adaptive Metropolis**, so at least the proposal covariance is
-learned rather than hand-tuned [@vihola2012].
+So we use **robust adaptive Metropolis**, which at least learns the proposal
+covariance for us [@vihola2012].
 
 ## What to expect when you run it
 
@@ -156,28 +152,24 @@ And we get the latent trajectories for free: each accepted $\theta$ comes with a
 sampled state path, which is **state estimation** alongside parameter
 estimation.
 
-## Comparing models, not just fitting one {.smaller}
+## Comparing models {.smaller}
 
 Is temporary immunity better described by one compartment or four?
+No amount of sampling SEITL answers that: you have to fit both.
 
 . . .
 
-That is not a question about parameters. No amount of sampling SEITL tells you
-whether SEIT4L would have done better — you have to fit both.
+Three ways to compare them:
 
-. . .
-
-Ways to compare:
-
-- **Posterior predictive checks** — which reproduces the features you care about?
+- **Posterior predictive checks**: which reproduces the features you care about?
 - **Predictive performance** on held-out data
-- **The marginal likelihood**, if you can estimate it — expensive, and the
-  particle filter already gives you an estimate of it
+- **The marginal likelihood**, which the particle filter already estimates, though
+  not cheaply
 
 . . .
 
-In the practical you fit both and compare. Expect them to agree on the first wave
-and differ on the timing of the second.
+In the practical you fit both. Expect them to agree on the first wave and differ
+on the timing of the second.
 
 ## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 

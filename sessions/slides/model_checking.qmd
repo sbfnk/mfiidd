@@ -19,7 +19,7 @@ default(
     titlefontsize = 13, markersize = 4, grid = true,
 )
 
-## Three residual patterns, drawn rather than described. t is the day.
+## Three residual patterns. t is the day.
 t = 1:60
 fitted = @. 120 * exp(-((t - 28)^2) / 140)
 
@@ -285,8 +285,7 @@ In the practical you will
 - compute posterior predictive p-values for several summary statistics
 - inspect residuals for structure and autocorrelation
 
-Simulation-based calibration is written up at the end of the session for you to
-work through afterwards.
+Simulation-based calibration is written up at the end, to work through afterwards.
 
 
 #

@@ -75,27 +75,19 @@ $$p(y, x, \theta) = p(y \mid x, \theta)\, p(x \mid \theta)\, p(\theta)$$
 
 ## Doing inference {.smaller}
 
-The joint probability
-
-$$p(y, x, \theta) = p(y \mid x, \theta)\, p(x \mid \theta)\, p(\theta)$$
-
-encodes everything about our **model**.
-
-. . .
-
-To do model fitting and inference, set $y$ to the data we observe and calculate
-the *posterior*
+Set $y$ to the data we observe, and the joint probability gives the *posterior*
 
 $$p(x, \theta \mid y) = \frac{p(y, x, \theta)}{p(y)}$$
 
 . . .
 
-We can rewrite this as
+which factorises as
 
 $$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
 
-- the first factor is what we need for **parameter fitting**
-- the second factor is what we need for **state estimation**
+. . .
+
+The first factor gives us **parameter fitting**, the second **state estimation**.
 
 ## Parameter estimation
 

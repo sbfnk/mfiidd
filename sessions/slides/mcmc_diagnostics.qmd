@@ -218,25 +218,23 @@ of them is wrong.
 
 Four chains is a reasonable default.
 
-## R̂: the Gelman-Rubin diagnostic
+## R̂: the Gelman-Rubin diagnostic {.smaller}
 
 Compare the variance **within** each chain to the variance **between** chains.
 
 $$\hat{R} = \sqrt{\frac{\hat{V}}{W}},
 \qquad \hat{V} = \frac{n-1}{n}\,W + \frac{1}{n}\,B$$
 
-$W$ is the average variance within a chain, and $B$ is $n$ times the variance of
-the chain means, for chains of length $n$.
+$W$ averages the variance within a chain; $B$ is $n$ times the variance of the
+chain means, for chains of length $n$.
 
 ::: {.fragment}
-- Once the chains agree, each chain mean varies by about $W/n$, so $B \approx W$,
-  $\hat{V} \approx W$ and $\hat{R} \to 1$.
-- Chains sitting in different places inflate the between-chain variance and push
-  $\hat{R}$ up.
+Once the chains agree, each chain mean varies by about $W/n$, so $B \approx W$
+and $\hat{R} \to 1$. Chains sitting in different places inflate $B$ and push it up.
 :::
 
 ::: {.fragment}
-Rule of thumb: $\hat{R} < 1.01$. Anything above 1.1 is a red flag.
+Rule of thumb: $\hat{R} < 1.01$. Above 1.1 is a red flag.
 :::
 
 ::: {.cite}
@@ -245,8 +243,8 @@ Modern rank-normalised R̂ and ESS: @vehtari2021.
 
 ## Effective sample size, and what it costs you {.smaller}
 
-MCMC samples are correlated, so $N$ samples are worth fewer than $N$ independent
-draws. [ESS]{.alert} estimates how many independent draws you actually have.
+MCMC samples are correlated, so $N$ of them are worth fewer than $N$ independent
+draws. [ESS]{.alert} estimates how many you actually have.
 
 . . .
 
@@ -257,13 +255,12 @@ $$\text{MCSE} \approx \frac{\text{posterior SD}}{\sqrt{\text{ESS}}}$$
 . . .
 
 Report $R_0 = 2.31$ with an MCSE of $0.05$ and the second decimal is sampler
-noise: run again with a different seed and it changes. Sample until the MCSE is
-small next to the precision you want to claim, whatever the trace plot looks
-like.
+noise: a different seed changes it. Sample until the MCSE is small next to the
+precision you want to claim.
 
 ::: {.fragment}
-Bulk ESS describes the centre of the distribution; tail ESS the extremes, which
-is what matters for credible interval endpoints.
+Bulk ESS describes the centre of the distribution, tail ESS the extremes, which
+is what credible interval endpoints depend on.
 :::
 
 # Common failure modes

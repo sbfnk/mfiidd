@@ -111,14 +111,14 @@ inference.
 
 ## Two things this map leaves out {.smaller}
 
-**States, not just parameters.** The posterior factorises as
+**States as well as parameters.** The posterior factorises as
 $$p(x, \theta \mid y) = p(\theta \mid y)\, p(x \mid \theta, y)$$
 Parameter fitting is the first factor. A particle filter also gives you the
 second: what the epidemic was actually doing.
 
 . . .
 
-**Comparing models, not just fitting one.** SEITL against SEIT4L was a question no
+**Comparing models.** SEITL against SEIT4L was a question no
 amount of sampling one model answers. Fit both, then compare — predictive
 performance, or the marginal likelihood if you can get at it.
 
@@ -145,21 +145,14 @@ That is why model checking is a separate job from diagnostics.
 sample(model, NUTS(), MCMCThreads(), 1000, 4)
 ```
 
-That is the whole change needed to run four chains in parallel.
+The whole change needed to run four chains in parallel.
 
 . . .
 
 **Structure** — real data arrives late, incomplete, and from several streams at
-once. Reporting delays, nowcasting, evidence synthesis.
+once: reporting delays, nowcasting, evidence synthesis.
 
 The model gets more elaborate. The inference machinery stays the same.
-
-. . .
-
-Three optional sessions go further: [variational
-inference](../variational_inference.qmd), [universal differential
-equations](../universal_differential_equations.qmd), and [the wider Julia
-ecosystem](../julia_ecosystem.qmd).
 
 ## Five problems {.smaller}
 
