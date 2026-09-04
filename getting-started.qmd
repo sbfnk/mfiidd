@@ -57,7 +57,7 @@ After installation, open a terminal and verify Julia is working:
 julia --version
 ```
 
-You should see something like `julia version 1.11.2`.
+You should see `julia version 1.12.x`. The course requires 1.12, and the packages will not install on 1.11.
 
 ## Step 2: Install VS Code (recommended IDE)
 
