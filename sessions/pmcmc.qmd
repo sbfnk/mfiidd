@@ -9,7 +9,7 @@ order: 7
 **Estimated time**: 1.5-2 hours
 :::
 
-[Lecture slides](slides/pmcmc.qmd)
+[Slides](slides/pmcmc.qmd)
 
 # Introduction
 

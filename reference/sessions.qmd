@@ -23,7 +23,7 @@ Monday 7 September: 09.00-09.30
 
 Monday 7 September: 09.30-09.45
 
--   Welcome and introduction to the course and the instructors (15 mins)
+-   [Welcome and introduction to the course and the instructors](../sessions/slides/welcome.qmd) (15 mins)
 
 ## Getting set up
 

@@ -9,7 +9,7 @@ order: 4
 **Estimated time**: 1.5-2 hours
 :::
 
-[Lecture slides](slides/model_checking.qmd)
+[Slides](slides/model_checking.qmd)
 
 # Introduction
 

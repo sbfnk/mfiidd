@@ -1,0 +1,153 @@
+---
+footer: "Welcome"
+title: "Model fitting and inference for infectious disease dynamics"
+subtitle: "Welcome"
+---
+
+# Welcome
+
+## Who we are
+
+Centre for the Mathematical Modelling of Infectious Diseases
+
+London School of Hygiene & Tropical Medicine
+
+::: {.fragment}
+The course was built by [several people](../../authors.qmd) over more than a decade, and this year it is taught in Julia for the first time.
+:::
+
+## Who you are
+
+A quick round of the room:
+
+- your name
+- where you work, and on what
+- one thing you would like to be able to do by Thursday afternoon
+
+::: {.fragment}
+We will come back to that last one on Thursday.
+:::
+
+## What this course is about
+
+Fitting *mechanistic* models to infectious disease data.
+
+::: {.fragment}
+You have a model of how an epidemic works.
+You have data from one that happened.
+:::
+
+::: {.fragment}
+Neither tells you the parameters. Getting from one to the other is the subject.
+:::
+
+## What you need
+
+You need to have programmed before, in R, Python or something similar.
+
+::: {.fragment}
+You do not need to have written any Julia. The course teaches what it uses, and every line of code is given complete.
+:::
+
+::: {.fragment}
+You do not need to remember any statistics you have forgotten. We build the inference up from likelihoods and Bayes' rule.
+:::
+
+# The four days
+
+## Where we are going
+
+| Day | Question |
+|---|---|
+| Monday | How do you fit a deterministic model, and why is it hard? |
+| Tuesday | Did it work, and does the model make sense? |
+| Wednesday | What if the epidemic itself is random? |
+| Thursday | What if you cannot write the likelihood at all? |
+
+: {tbl-colwidths="[22,78]"}
+
+## Monday: fitting
+
+The likelihood, priors, and Metropolis-Hastings by hand before we let a sampler do it.
+
+::: {.fragment}
+By this evening you will have fitted an epidemic model to data with code you wrote yourself.
+:::
+
+## Tuesday: trusting the fit
+
+A chain that has run is not a chain that has converged, and a model that fits is not a model that is right.
+
+::: {.fragment}
+Diagnostics, posterior predictive checks, and the Tristan da Cunha outbreak, which we use for the rest of the week.
+:::
+
+## Wednesday: stochastic models
+
+Real epidemics in small populations are not smooth curves.
+
+::: {.fragment}
+Once the model is stochastic the likelihood stops being available, and particle filters are how we get it back.
+:::
+
+## Thursday: giving up on the likelihood
+
+Approximate Bayesian computation asks only that you can simulate.
+
+::: {.fragment}
+Then we put every method side by side and ask which one *your* problem needs.
+:::
+
+# How it runs
+
+## The shape of a session
+
+Each session is a short set of slides, then a practical you work through.
+
+::: {.fragment}
+The practicals are the course. The slides exist to get you into them.
+:::
+
+## The exercises
+
+Every exercise is about the *inference*, never about getting the code to run.
+
+::: {.fragment}
+You will be asked to predict what a cell prints before running it, to read a diagnostic, to work out why a fit failed, and to choose between two options and defend it.
+:::
+
+::: {.fragment}
+Every one has a worked answer. Open it once you have had a go.
+:::
+
+## Working together
+
+Sit with someone. Compare answers, especially where you disagree.
+
+::: {.fragment}
+Ask us anything at any point. If you are stuck for five minutes, that is already too long.
+:::
+
+## Practicalities
+
+- 09:30–12:30 and 13:30–17:00, with a break in each block
+- Thursday is a half day
+- The afternoon break is a good moment to go outside
+
+::: {.fragment}
+Everything is online and stays online, including after the course.
+:::
+
+# Before we start
+
+## Is your laptop ready?
+
+Next session is for fixing installations, not starting them.
+
+::: {.fragment}
+If Julia and `MFIIDD` are not installed yet, say so now rather than at 09:44.
+:::
+
+#
+
+[Get set up](../../getting-started.qmd)

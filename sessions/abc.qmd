@@ -10,7 +10,7 @@ order: 9
 **Estimated time**: 1-1.5 hours | **Requires**: Observation models
 :::
 
-[Lecture slides](slides/abc.qmd)
+[Slides](slides/abc.qmd)
 
 # Introduction
 
