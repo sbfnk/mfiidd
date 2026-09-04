@@ -40,13 +40,18 @@ is created, not on every reconnect.
 
 ## Machine size
 
-Two cores and 8 GB, which is `basicLinux32gb`. With the prebuild in place there is
-no setup wait to shorten, so the only thing more cores would change is the rate at
-which a participant spends their allowance.
+Four cores and 16 GB, which is `standardLinux32gb`. This is about memory, not
+speed. On the 8 GB machine the Julia extension's first REPL start was killed with
+`signal 15` part-way through precompiling `Pkg`, three times, at different points
+in LLVM codegen and GC. VS Code server, the Julia language server and a `Pkg`
+precompile do not fit in 8 GB together, and the failure is unrecoverable from
+inside the codespace.
 
-A codespace on a public repository is billed against the user's **personal** free
-allowance of 120 core-hours a month. Four days of teaching at six and a half hours
-a day costs about 52 core-hours on two cores and about 104 on four.
+The cost is that a codespace on a public repository is billed against the user's
+**personal** free allowance of 120 core-hours a month, and four days of teaching
+at six and a half hours a day costs about 104 core-hours on four cores against
+about 52 on two. That is inside the allowance, and a working environment is worth
+more than the margin.
 
 Note that none of this is billed to the organisation. Org billing for
 codespaces requires Team or Enterprise Cloud, so on the free plan every
