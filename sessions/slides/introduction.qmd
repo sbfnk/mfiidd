@@ -32,15 +32,16 @@ $$
 :::
 ::::
 
-::: {.fragment}
+. . .
+
 Mechanistic models: **description** vs **mechanism**.
-:::
 
 ## Model *fitting*: parameter estimation
 
 Given a model, what are the parameter combinations that best **fit** the data?
 
-::: {.fragment}
+. . .
+
 ### Why are we doing this?
 
 - **Learn** something about the system
@@ -172,17 +173,17 @@ $p(\text{data point } 10 \mid \theta) = 0.078$
 
 ## From one point to the whole trajectory
 
-::: {.fragment}
+. . .
+
 Multiply across the data to get the probability of the whole trajectory:
 
 $$p(\text{data} \mid \theta) = \prod_{i} p(\text{data point } i \mid \theta)$$
-:::
 
-::: {.fragment}
+. . .
+
 Or sum on the log scale, which is numerically better behaved:
 
 $$\log p(\text{data} \mid \theta) = \sum_{i} \log p(\text{data point } i \mid \theta)$$
-:::
 
 ##  {.center}
 
@@ -247,16 +248,16 @@ Example: $R_0$ of measles
 
 A prior on $R_0$ is hard to have intuition about. An epidemic curve is not.
 
-::: {.fragment}
+. . .
+
 So draw parameters from the prior, run the model, and look at what you get. This
 is a **prior predictive simulation**, and it turns an abstract claim into a
 picture you can judge.
-:::
 
-::: {.fragment}
+. . .
+
 If your prior produces epidemics that infect the whole population in four days,
 you have learned something you could not have seen from the parameter range.
-:::
 
 ## Sampling from the posterior
 
@@ -265,9 +266,9 @@ according to the posterior:
 
 $$p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta)\, p(\theta)$$
 
-::: {.fragment}
+. . .
+
 We want to generate **samples** of $\theta$ from this distribution.
-:::
 
 ##  {.center}
 
@@ -285,19 +286,19 @@ We want to generate **samples** of $\theta$ from this distribution.
 You can explore a two-parameter posterior on a grid. Fifteen values each is 225
 model runs, which is nothing.
 
-::: {.fragment}
+. . .
+
 | Parameters | Grid points at 15 each |
 |---|---|
 | 2 | 225 |
 | 4 | 50,625 |
 | 6 | 11,390,625 |
 | 10 | 576,650,390,625 |
-:::
 
-::: {.fragment}
+. . .
+
 Real models have six parameters, or sixty. Grid search is a way of *seeing* a
 posterior, never a way of fitting one — which is what the next session is about.
-:::
 
 # Practical session
 
@@ -330,7 +331,8 @@ during the practical.
 - Inference tries to estimate these parameters
 - Probabilities express outcomes of repeated experiments
 
-::: {.fragment}
+. . .
+
 ### Bayesian inference
 
 - There are no true parameters; the *data* are true, and uncertainty is in the
