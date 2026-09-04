@@ -1,6 +1,5 @@
 using Random: default_rng
-using GeneralisedFilters: BF, DenseAncestorCallback, get_ancestry
-import GeneralisedFilters
+using GeneralisedFilters: GeneralisedFilters, BF, DenseAncestorCallback, get_ancestry
 using ForwardDiff: value
 using SSMProblems: StateSpaceModel
 

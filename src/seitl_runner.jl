@@ -1,6 +1,5 @@
 using Random: default_rng
-using GeneralisedFilters: BF
-import GeneralisedFilters
+using GeneralisedFilters: GeneralisedFilters, BF
 using ForwardDiff: value
 using SSMProblems: StateSpaceModel
 
