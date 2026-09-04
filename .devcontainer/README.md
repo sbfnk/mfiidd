@@ -39,13 +39,13 @@ cores is precompilation, and the prebuild has already done that.
 pre-commit hook parses it as strict JSON and rejects them, which is why the
 reasoning lives here instead of inline.
 
-## Pinned versions
+## Versions
 
 The Dockerfile pins the juliaup channel to 1.12, matching the `julia = "1.12"`
 compat bound in `Project.toml`. If that bound moves, change it here too.
 
-It also pins Quarto through the `QUARTO_VERSION` build argument, which
-`build-and-deploy.yml` does not: `quarto-actions/setup` takes no version and so
-tracks the latest release. The two therefore drift apart, and a session rendered
-in a codespace can differ from the published site. Bump the argument when the
-gap starts to matter.
+Quarto is deliberately **not** pinned. `build-and-deploy.yml` uses
+`quarto-actions/setup` with no version, so the published site is built with
+whatever is current, and pinning here would only guarantee that a session
+rendered in a codespace differs from the site it is being compared against.
+Both now track the latest release.
