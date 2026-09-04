@@ -35,30 +35,25 @@ This year, for the first time, we are using **Julia** (bear with us), as this ca
 ## Who are we?
 
 :::: {.columns}
-::: {.column width="20%"}
+::: {.column width="25%"}
 ![](https://github.com/sbfnk.png){width="85%"}
 
 [Sebastian Funk](https://github.com/sbfnk)
 :::
-::: {.column width="20%"}
-![](https://github.com/ntncmch.png){width="85%"}
+::: {.column width="25%"}
+![](https://github.com/seabbs.png){width="85%"}
 
-[Anton Camacho](https://github.com/ntncmch)
+[Sam Abbott](https://github.com/seabbs)
 :::
-::: {.column width="20%"}
-![](https://github.com/hcb101.png){width="85%"}
-
-[Helen Johnson](https://github.com/hcb101)
-:::
-::: {.column width="20%"}
+::: {.column width="25%"}
 ![](https://github.com/nicholasdavies.png){width="85%"}
 
 [Nicholas Davies](https://github.com/nicholasdavies)
 :::
-::: {.column width="20%"}
-![](https://github.com/kath-o-reilly.png){width="85%"}
+::: {.column width="25%"}
+![](https://github.com/slmontes.png){width="85%"}
 
-[Kath O'Reilly](https://github.com/kath-o-reilly)
+[Sandra Montes](https://github.com/slmontes)
 :::
 ::::
 
