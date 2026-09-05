@@ -112,6 +112,16 @@ $presentation-font-smaller: 0.85;
 
 // Portrait figures are squeezed narrow by the default height cap, because
 // their width is limited by their height. Give them the fuller slide.
+// The workflow diagrams are one family and should be one size wherever they
+// appear. Without this they inherit whichever rule the slide happens to match:
+// 72vh on a `.center` slide, 52vh with `.step`, 58vh on a titled slide, so the
+// same diagram changes size as the deck goes on. Declared after those rules so
+// it wins at equal specificity.
+.reveal .slides section img.bigpic,
+.reveal .slides section.center img.bigpic {
+  max-height: 68vh;
+}
+
 .reveal .slides section img.tall {
   max-height: 76vh;
 }
