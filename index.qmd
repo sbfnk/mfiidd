@@ -7,7 +7,9 @@ about:
   links:
     - icon: book
       text: Get started
-      href: ./getting-started.html
+      # Quarto rewrites about-card links to the site root, ignoring the path in
+      # `site-url`, so a bare or relative href lands on mfiidd.github.io and 404s.
+      href: /mfiidd/getting-started.html
     - icon: github
       text: Source on GitHub
       href: https://github.com/mfiidd/mfiidd
