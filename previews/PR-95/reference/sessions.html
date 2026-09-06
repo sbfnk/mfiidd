@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Session timetable – MFIIDD</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-2fd729341d7b238b10199e8519284195.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d6e0cfc76748c9633356fe1c925e2520.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-2fd729341d7b238b10199e8519284195.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Session timetable – MFIIDD">
+<meta property="og:description" content="Model fitting and inference for infectious disease dynamics">
+<meta property="og:site_name" content="MFIIDD">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">MFIIDD</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../getting-started.html"> 
+<span class="menu-text">Getting Started</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-sessions" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Sessions</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-sessions">    
+        <li>
+    <a class="dropdown-item" href="../sessions/introduction.html">
+ <span class="dropdown-text">Introduction to model fitting in Julia</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/mcmc.html">
+ <span class="dropdown-text">Markov Chain Monte Carlo (MCMC) sampling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/mcmc_diagnostics.html">
+ <span class="dropdown-text">MCMC Diagnostics</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/model_checking.html">
+ <span class="dropdown-text">Model Checking and Validation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/seitl.html">
+ <span class="dropdown-text">Modelling interlude: Tristan da Cunha outbreak &amp; the SEITL model</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/particle_filters.html">
+ <span class="dropdown-text">Particle Filters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/pmcmc.html">
+ <span class="dropdown-text">Particle MCMC and model comparison</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/observation_models.html">
+ <span class="dropdown-text">Observation models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/abc.html">
+ <span class="dropdown-text">Approximate Bayesian Computation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/variational_inference.html">
+ <span class="dropdown-text">Variational Inference: Speed vs Accuracy</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/neural_posterior_estimation.html">
+ <span class="dropdown-text">Neural posterior estimation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/universal_differential_equations.html">
+ <span class="dropdown-text">Universal Differential Equations: Learning Unknown Mechanisms</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../sessions/julia_ecosystem.html">
+ <span class="dropdown-text">Beyond Turing: the wider Julia ecosystem</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../reference/sessions.html">
+ <span class="dropdown-text">Session timetable</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/structure.html">
+ <span class="dropdown-text">Course Structure</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/further_reading.html">
+ <span class="dropdown-text">Further Reading</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/help.html">
+ <span class="dropdown-text">Getting Help</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../authors.html"> 
+<span class="menu-text">Authors</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mfiidd/mfiidd"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/sessions.html">Session timetable</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/sessions.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Session timetable</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/structure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Course Structure</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/further_reading.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Further Reading</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/help.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Getting Help</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#day-1-inference-and-fitting-deterministic-models" id="toc-day-1-inference-and-fitting-deterministic-models" class="nav-link active" data-scroll-target="#day-1-inference-and-fitting-deterministic-models">Day 1: Inference and fitting deterministic models</a>
+  <ul class="collapse">
+  <li><a href="#getting-set-up" id="toc-getting-set-up" class="nav-link" data-scroll-target="#getting-set-up">Getting set up</a></li>
+  <li><a href="#session-1-introduction-to-model-fitting" id="toc-session-1-introduction-to-model-fitting" class="nav-link" data-scroll-target="#session-1-introduction-to-model-fitting">Session 1: Introduction to model fitting</a></li>
+  <li><a href="#session-2-markov-chain-monte-carlo" id="toc-session-2-markov-chain-monte-carlo" class="nav-link" data-scroll-target="#session-2-markov-chain-monte-carlo">Session 2: Markov chain Monte Carlo</a></li>
+  </ul></li>
+  <li><a href="#day-2-diagnostics-model-checking-and-stochastic-models" id="toc-day-2-diagnostics-model-checking-and-stochastic-models" class="nav-link" data-scroll-target="#day-2-diagnostics-model-checking-and-stochastic-models">Day 2: Diagnostics, model checking and stochastic models</a>
+  <ul class="collapse">
+  <li><a href="#session-3-mcmc-diagnostics" id="toc-session-3-mcmc-diagnostics" class="nav-link" data-scroll-target="#session-3-mcmc-diagnostics">Session 3: MCMC diagnostics</a></li>
+  <li><a href="#session-4-model-checking-and-validation" id="toc-session-4-model-checking-and-validation" class="nav-link" data-scroll-target="#session-4-model-checking-and-validation">Session 4: Model checking and validation</a></li>
+  <li><a href="#session-5-modelling-interlude-tristan-da-cunha-and-the-seitl-model" id="toc-session-5-modelling-interlude-tristan-da-cunha-and-the-seitl-model" class="nav-link" data-scroll-target="#session-5-modelling-interlude-tristan-da-cunha-and-the-seitl-model">Session 5: Modelling interlude — Tristan da Cunha and the SEITL model</a></li>
+  </ul></li>
+  <li><a href="#day-3-particle-based-methods-and-observation-models" id="toc-day-3-particle-based-methods-and-observation-models" class="nav-link" data-scroll-target="#day-3-particle-based-methods-and-observation-models">Day 3: Particle-based methods and observation models</a>
+  <ul class="collapse">
+  <li><a href="#session-6-particle-filters" id="toc-session-6-particle-filters" class="nav-link" data-scroll-target="#session-6-particle-filters">Session 6: Particle filters</a></li>
+  <li><a href="#session-7-particle-mcmc-and-model-comparison" id="toc-session-7-particle-mcmc-and-model-comparison" class="nav-link" data-scroll-target="#session-7-particle-mcmc-and-model-comparison">Session 7: Particle MCMC and model comparison</a></li>
+  <li><a href="#session-8-observation-models" id="toc-session-8-observation-models" class="nav-link" data-scroll-target="#session-8-observation-models">Session 8: Observation models</a></li>
+  </ul></li>
+  <li><a href="#day-4-likelihood-free-inference-and-closing" id="toc-day-4-likelihood-free-inference-and-closing" class="nav-link" data-scroll-target="#day-4-likelihood-free-inference-and-closing">Day 4: Likelihood-free inference and closing</a>
+  <ul class="collapse">
+  <li><a href="#session-9-approximate-bayesian-computation" id="toc-session-9-approximate-bayesian-computation" class="nav-link" data-scroll-target="#session-9-approximate-bayesian-computation">Session 9: Approximate Bayesian Computation</a></li>
+  <li><a href="#session-10-choosing-an-inference-approach" id="toc-session-10-choosing-an-inference-approach" class="nav-link" data-scroll-target="#session-10-choosing-an-inference-approach">Session 10: Choosing an inference approach</a></li>
+  <li><a href="#close" id="toc-close" class="nav-link" data-scroll-target="#close">Close</a></li>
+  </ul></li>
+  <li><a href="#further-material" id="toc-further-material" class="nav-link" data-scroll-target="#further-material">Further material</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/mfiidd/mfiidd/blob/main/reference/sessions.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/mfiidd/mfiidd/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Session timetable</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The course runs from Monday 7 to Thursday 10 September 2026 at the London School of Hygiene &amp; Tropical Medicine. Each day runs 09:30–12:30 and 13:30–17:00, with a half-hour break in each block. Thursday is a half day.</p>
+<p>The afternoon break is a chance to get outside — Russell Square and the surrounding gardens are a few minutes’ walk away, and there is no shortage of coffee on the way. Sitting in front of a screen debugging a sampler for seven hours is not good for anyone.</p>
+<section id="day-1-inference-and-fitting-deterministic-models" class="level1">
+<h1>Day 1: Inference and fitting deterministic models</h1>
+<p><strong>Monday 7 September</strong></p>
+<p>Monday 7 September: 09.00-09.30</p>
+<ul>
+<li>Registration</li>
+</ul>
+<p>Monday 7 September: 09.30-09.45</p>
+<ul>
+<li>Welcome and introduction to the course and the instructors (15 mins)</li>
+</ul>
+<section id="getting-set-up" class="level2">
+<h2 class="anchored" data-anchor-id="getting-set-up">Getting set up</h2>
+<p>Monday 7 September: 09.45-10.30</p>
+<ul>
+<li><a href="../getting-started.html">Getting set up for the course</a>: installing Julia and the <code>MFIIDD</code> package, and checking everyone’s environment runs (45 mins)</li>
+</ul>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Please install everything <strong>before</strong> you arrive. Package installation downloads around 1 GB and precompiles it, which takes 15–30 minutes on a good connection and considerably longer on a room full of laptops at once. This slot is for fixing what has gone wrong, not for starting from scratch.</p>
+</div>
+</div>
+</section>
+<section id="session-1-introduction-to-model-fitting" class="level2">
+<h2 class="anchored" data-anchor-id="session-1-introduction-to-model-fitting">Session 1: Introduction to model fitting</h2>
+<p>Monday 7 September: 10.30-11.00, 11.30-12.30 and 13.30-14.00</p>
+<ul>
+<li><a href="../sessions/slides/introduction.html">Introduction</a>: what model fitting and inference mean, likelihoods, and Bayes’ rule (25 mins)</li>
+<li><a href="../sessions/introduction.html">Practice</a>:
+<ul>
+<li>simulating an SIR model and exploring what the priors imply (35 mins)</li>
+<li>evaluating a Poisson likelihood against observed data (30 mins)</li>
+<li>combining them into a posterior and exploring it by grid search (20 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+<section id="session-2-markov-chain-monte-carlo" class="level2">
+<h2 class="anchored" data-anchor-id="session-2-markov-chain-monte-carlo">Session 2: Markov chain Monte Carlo</h2>
+<p>Monday 7 September: 14.00-15.15 and 15.45-17.00</p>
+<ul>
+<li><a href="../sessions/slides/mcmc.html">Introduction</a>: why we sample, rejection sampling, Metropolis-Hastings and gradient-based methods (25 mins)</li>
+<li><a href="../sessions/mcmc.html">Practice</a>:
+<ul>
+<li>implementing Metropolis-Hastings for a one-dimensional target (40 mins)</li>
+<li>tuning a proposal distribution by hand, and finding out how hard that is (35 mins)</li>
+<li>handing the same job to Turing.jl, and comparing MH, RAM and NUTS (40 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+</section>
+<section id="day-2-diagnostics-model-checking-and-stochastic-models" class="level1">
+<h1>Day 2: Diagnostics, model checking and stochastic models</h1>
+<p><strong>Tuesday 8 September</strong></p>
+<p>Tuesday 8 September: 09.30-09.45</p>
+<ul>
+<li>Day 1 review (15 mins)</li>
+</ul>
+<section id="session-3-mcmc-diagnostics" class="level2">
+<h2 class="anchored" data-anchor-id="session-3-mcmc-diagnostics">Session 3: MCMC diagnostics</h2>
+<p>Tuesday 8 September: 09.45-11.00 and 11.30-12.00</p>
+<ul>
+<li><a href="../sessions/slides/mcmc_diagnostics.html">Introduction</a>: trace plots, R̂, effective sample size and common failure modes (20 mins)</li>
+<li><a href="../sessions/mcmc_diagnostics.html">Practice</a>:
+<ul>
+<li>generating good and bad chains and comparing their trace plots (40 mins)</li>
+<li>computing R̂, ESS and MCSE, and diagnosing a badly specified model (35 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+<section id="session-4-model-checking-and-validation" class="level2">
+<h2 class="anchored" data-anchor-id="session-4-model-checking-and-validation">Session 4: Model checking and validation</h2>
+<p>Tuesday 8 September: 12.00-12.30 and 13.30-14.30</p>
+<ul>
+<li><a href="../sessions/slides/model_checking.html">Introduction</a>: the Bayesian workflow, prior and posterior predictive checks (25 mins)</li>
+<li><a href="../sessions/model_checking.html">Practice</a>:
+<ul>
+<li>prior predictive checks, and what vague priors actually imply (30 mins)</li>
+<li>posterior predictive distributions, predictive p-values and residuals (25 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+<section id="session-5-modelling-interlude-tristan-da-cunha-and-the-seitl-model" class="level2">
+<h2 class="anchored" data-anchor-id="session-5-modelling-interlude-tristan-da-cunha-and-the-seitl-model">Session 5: Modelling interlude — Tristan da Cunha and the SEITL model</h2>
+<p>Tuesday 8 September: 14.30-15.15 and 15.45-17.00</p>
+<ul>
+<li><a href="../sessions/slides/seitl.html">Introduction</a>: the state-space view, and why stochastic models need different machinery (20 mins)</li>
+<li><a href="../sessions/seitl.html">Practice</a>:
+<ul>
+<li>meeting the Tristan da Cunha outbreak and building the SEITL model (45 mins)</li>
+<li>simulating it deterministically and stochastically, and comparing (45 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+</section>
+<section id="day-3-particle-based-methods-and-observation-models" class="level1">
+<h1>Day 3: Particle-based methods and observation models</h1>
+<p><strong>Wednesday 9 September</strong></p>
+<p>Wednesday 9 September: 09.30-09.45</p>
+<ul>
+<li>Day 2 review (15 mins)</li>
+</ul>
+<section id="session-6-particle-filters" class="level2">
+<h2 class="anchored" data-anchor-id="session-6-particle-filters">Session 6: Particle filters</h2>
+<p>Wednesday 9 September: 09.45-11.00 and 11.30-12.30</p>
+<ul>
+<li><a href="../sessions/slides/particle_filters.html">Introduction</a>: the marginal likelihood, and sequential Monte Carlo (20 mins)</li>
+<li><a href="../sessions/particle_filters.html">Practice</a>:
+<ul>
+<li>seeing why a deterministic likelihood fails for a stochastic model (30 mins)</li>
+<li>watching particles propagate, get weighted and be resampled (40 mins)</li>
+<li>calibrating the number of particles (35 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+<section id="session-7-particle-mcmc-and-model-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="session-7-particle-mcmc-and-model-comparison">Session 7: Particle MCMC and model comparison</h2>
+<p>Wednesday 9 September: 13.30-15.15</p>
+<ul>
+<li><a href="../sessions/slides/pmcmc.html">Introduction</a>: why a noisy likelihood estimate still targets the right posterior (20 mins)</li>
+<li><a href="../sessions/pmcmc.html">Practice</a>:
+<ul>
+<li>assembling the particle filter and Metropolis-Hastings into PMMH (35 mins)</li>
+<li>running a short chain and seeing the mixing problem first hand (25 mins)</li>
+<li>working with a pre-computed long chain, and comparing against the deterministic fit (15 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+</section>
+<section id="session-8-observation-models" class="level2">
+<h2 class="anchored" data-anchor-id="session-8-observation-models">Session 8: Observation models</h2>
+<p>Wednesday 9 September: 15.45-17.00</p>
+<ul>
+<li><a href="../sessions/slides/observation_models.html">Introduction</a>: what a Poisson likelihood assumes, overdispersion, and likelihood as a distance (15 mins)</li>
+<li><a href="../sessions/observation_models.html">Practice</a>:
+<ul>
+<li>fitting with Poisson, and checking whether its variance assumption holds for the data (30 mins)</li>
+<li>the negative binomial, and seeing a likelihood as a distance function (25 mins)</li>
+</ul></li>
+<li>Wrap up (5 mins)</li>
+</ul>
+<p>The session ends on a question rather than an answer: if a likelihood is a distance function, why not choose the distance directly? That is the first thing Thursday morning takes up.</p>
+<p>Wednesday 9 September: 19.00</p>
+<ul>
+<li>Course dinner</li>
+</ul>
+</section>
+</section>
+<section id="day-4-likelihood-free-inference-and-closing" class="level1">
+<h1>Day 4: Likelihood-free inference and closing</h1>
+<p><strong>Thursday 10 September</strong></p>
+<p>Thursday 10 September: 09.30-09.45</p>
+<ul>
+<li><a href="../sessions/slides/day3_review.html">Day 3 review</a>: where the week has got to, from deterministic fitting to particle MCMC (15 mins)</li>
+</ul>
+<section id="session-9-approximate-bayesian-computation" class="level2">
+<h2 class="anchored" data-anchor-id="session-9-approximate-bayesian-computation">Session 9: Approximate Bayesian Computation</h2>
+<p>Thursday 10 September: 09.45-11.00</p>
+<ul>
+<li><a href="../sessions/slides/abc.html">Introduction</a>: likelihood-free inference, and choosing a distance instead (15 mins)</li>
+<li><a href="../sessions/abc.html">Practice</a>:
+<ul>
+<li>ABC rejection sampling, and finding a workable acceptance threshold (30 mins)</li>
+<li>ABC-SMC, and comparing it against rejection ABC (20 mins)</li>
+</ul></li>
+<li>Wrap up (10 mins)</li>
+</ul>
+<p>The closing part asks how much a single outlying observation moves each approach, which is the sharpest illustration that a likelihood and a distance are the same kind of object.</p>
+</section>
+<section id="session-10-choosing-an-inference-approach" class="level2">
+<h2 class="anchored" data-anchor-id="session-10-choosing-an-inference-approach">Session 10: Choosing an inference approach</h2>
+<p>Thursday 10 September: 11.30-12.15</p>
+<ul>
+<li><a href="../sessions/slides/choosing_an_approach.html">Choosing an inference approach</a>: the methods side by side, the two questions that decide between them, and what actually goes wrong (25 mins)</li>
+<li>Discussion: work through the five worked problems, then place your own on the map, in pairs and then as a group (20 mins)</li>
+</ul>
+<p>Bring a model you actually want to fit. The discussion works best when people argue about real problems rather than the worked examples.</p>
+</section>
+<section id="close" class="level2">
+<h2 class="anchored" data-anchor-id="close">Close</h2>
+<p>Thursday 10 September: 12.15-12.30</p>
+<ul>
+<li>Summary, further reading and closing discussion (15 mins)</li>
+</ul>
+</section>
+</section>
+<section id="further-material" class="level1">
+<h1>Further material</h1>
+<p>Four sessions are provided for self-study rather than taught in the room. They build on the taught sessions and can be worked through afterwards at your own pace.</p>
+<ul>
+<li><a href="../sessions/variational_inference.html">Variational inference</a>: fast approximate inference for real-time applications</li>
+<li><a href="../sessions/universal_differential_equations.html">Universal differential equations</a>: combining mechanistic models with neural networks</li>
+<li><a href="../sessions/julia_ecosystem.html">Beyond Turing</a>: the wider Julia ecosystem — alternative samplers, automatic differentiation backends, and what sits underneath</li>
+<li><a href="../sessions/neural_posterior_estimation.html">Neural posterior estimation</a>: amortised inference with normalising flows, for models that are simulated many times</li>
+</ul>
+
+
+</section>
+
+<script data-goatcounter="https://mfidd.goatcounter.com/count" async="" src="//gc.zgo.at/count.js"></script></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mfiidd\.github\.io\/mfiidd\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            // default icon
+            link.classList.add("external");
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/mfiidd/mfiidd/blob/main/reference/sessions.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/mfiidd/mfiidd/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

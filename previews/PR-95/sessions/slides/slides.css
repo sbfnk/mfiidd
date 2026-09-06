@@ -1,0 +1,13 @@
+/* Small tweaks that are easier to express as plain CSS than in the theme. */
+
+/* Keep enumerated algorithm steps tight so a five-step list fits one slide. */
+.reveal .slides section ol li,
+.reveal .slides section ul li {
+  margin-bottom: 0.35em;
+}
+
+/* Display maths in a two-column layout should not overflow its column. */
+.reveal .columns .katex-display,
+.reveal .columns mjx-container {
+  font-size: 0.9em;
+}

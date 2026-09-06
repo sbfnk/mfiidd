@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-contrib/fontawesome6-6.7.2/all.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/fontawesome6-6.7.2/latex-fontsize.css" rel="stylesheet"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.10.18">
+
+  <title>MFIIDD – Fitting stochastic models</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="../../site_libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="../../site_libs/revealjs/dist/reveal.css">
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; font-weight: bold; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
+  <link rel="stylesheet" href="../../site_libs/revealjs/dist/theme/quarto-d5aacb0c88d7f9e13f04607def3c0558.css">
+  <link rel="stylesheet" href="slides.css">
+  <link href="../../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="../../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="../../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="../../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+<meta property="og:title" content="Fitting stochastic models – MFIIDD">
+<meta property="og:description" content="Sequential Monte Carlo and particle filters">
+<meta property="og:site_name" content="MFIIDD">
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">Fitting stochastic models</h1>
+  <p class="subtitle">Sequential Monte Carlo and particle filters</p>
+
+<div class="quarto-title-authors">
+</div>
+
+</section>
+<section>
+<section id="the-likelihood-for-stochastic-models" class="title-slide slide level1 center">
+<h1>The likelihood for stochastic models</h1>
+
+</section>
+<section id="where-we-are" class="slide level2">
+<h2>Where we are</h2>
+<p>We know how to get a posterior when the model is <strong>deterministic</strong>:</p>
+<p><span class="math display">\[p(\theta \mid y) \propto p(y \mid \theta)\, p(\theta)\]</span></p>
+<div class="fragment">
+<p>One <span class="math inline">\(\theta\)</span> gives one trajectory, so the likelihood is a single calculation: solve the ODE, evaluate the observation model, done.</p>
+</div>
+<div class="fragment">
+<p>Stochastic models break this.</p>
+</div>
+</section>
+<section id="the-marginal-likelihood" class="slide level2">
+<h2>The marginal likelihood</h2>
+<p>The model has a latent state <span class="math inline">\(x\)</span> — the trajectory it actually took — which we do not observe. To get the likelihood of <span class="math inline">\(\theta\)</span> we must <strong>marginalise</strong> over every trajectory it could have taken:</p>
+<p><span class="math display">\[p(y \mid \theta) = \sum_{x} p(y \mid x, \theta)\, p(x \mid \theta)\]</span></p>
+</section>
+<section id="the-deterministic-case-is-easy" class="slide level2">
+<h2>The deterministic case is easy</h2>
+<p>For a deterministic model, <span class="math inline">\(\theta\)</span> determines the trajectory exactly:</p>
+<p><span class="math display">\[p(y \mid \theta) = \sum_{x} p(y \mid x, \theta) \times \mathbb{1}_{x = f(\theta)}
+= p\big(y \mid x = f(\theta), \theta\big)\]</span></p>
+<div class="fragment">
+<p>The sum collapses to a single term. That is why everything has worked so far.</p>
+</div>
+</section>
+<section id="the-stochastic-case-is-not" class="slide level2">
+<h2>The stochastic case is not</h2>
+<p><span class="math display">\[p(y \mid \theta) = \sum_{x} p(y \mid x, \theta)\, p(x \mid \theta)\]</span></p>
+<div class="fragment">
+<p>Now <span class="math inline">\(x\)</span> is no longer known, and the number of possible trajectories is astronomical — every combination of every event at every time.</p>
+<p>We cannot enumerate them.</p>
+</div>
+</section>
+<section id="monte-carlo-to-the-rescue" class="slide level2">
+<h2>Monte Carlo to the rescue</h2>
+<p>Approximate the sum by a sample of <span class="math inline">\(J\)</span> <strong>particles</strong>, each one a simulated trajectory:</p>
+<p><span class="math display">\[p(y \mid \theta) \approx \frac{1}{J}\sum_{j=1}^{J} p(y \mid x_j, \theta)\]</span></p>
+<div class="fragment">
+<p>This is <strong>sequential Monte Carlo</strong>, better known as <strong>particle filtering</strong>.</p>
+</div>
+</section></section>
+<section>
+<section id="the-particle-filter" class="title-slide slide level1 center">
+<h1>The particle filter</h1>
+
+</section>
+<section id="the-algorithm" class="slide level2 smaller">
+<h2>The algorithm</h2>
+<p>Run the particles forward through time, one observation at a time:</p>
+<div class="fragment">
+<p><strong>Initialise</strong> — draw <span class="math inline">\(J\)</span> particles from the initial state distribution, each with weight <span class="math inline">\(1/J\)</span></p>
+</div>
+<div class="fragment">
+<p><strong>Propagate</strong> — simulate each particle forward to the next observation time</p>
+</div>
+<div class="fragment">
+<p><strong>Weight</strong> — score each particle by how well it explains the observation, <span class="math inline">\(w_j = p(y_t \mid x_j, \theta)\)</span></p>
+</div>
+<div class="fragment">
+<p><strong>Resample</strong> — draw a new set of particles in proportion to their weights, so good ones are copied and bad ones die</p>
+</div>
+<div class="fragment">
+<p><strong>Repeat</strong> to the end of the data. The average weight along the way gives an estimate of <span class="math inline">\(p(y \mid \theta)\)</span>.</p>
+</div>
+</section>
+<section id="why-resample" class="slide level2">
+<h2>Why resample?</h2>
+<p>Without resampling, after a few time steps almost all the weight sits on one or two particles and the rest contribute nothing.</p>
+<div class="fragment">
+<p>This is <strong>particle degeneracy</strong>, and it is the central practical problem. Resampling concentrates effort where the data say the trajectory actually went.</p>
+</div>
+<div class="fragment">
+<p>The cost is <strong>depletion</strong>: repeatedly copying survivors means the particles share ancestry, so diversity falls over time.</p>
+</div>
+</section>
+<section id="how-many-particles" class="slide level2">
+<h2>How many particles?</h2>
+<ul>
+<li>Too few and the likelihood estimate is noisy, which will wreck the sampler that uses it.</li>
+<li>Too many and every likelihood evaluation becomes expensive.</li>
+</ul>
+<div class="fragment">
+<p>The likelihood estimate is <strong>unbiased</strong> but <strong>stochastic</strong>: run it twice with the same <span class="math inline">\(\theta\)</span> and you get two different numbers. That has consequences we deal with in the next session.</p>
+</div>
+</section>
+<section id="the-whole-thing-in-code" class="slide level2 smaller scrollable">
+<h2>The whole thing, in code</h2>
+<p>This is the actual implementation you will use in the practical — propagate, weight, resample, accumulate:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-startfrom="19"><pre class="sourceCode numberSource julia number-lines code-with-copy"><code class="sourceCode julia" style="counter-reset: source-line 18;"><span id="cb1-19"><a aria-label="19"></a><span class="kw">function</span> <span class="fu">particle_filter_seit4l</span>(θ, obs, n_particles<span class="op">::</span><span class="dt">Integer</span>;</span>
+<span id="cb1-20"><a aria-label="20"></a>                                init_state<span class="op">=</span>[<span class="fl">279.0</span>, <span class="fl">0.0</span>, <span class="fl">2.0</span>, <span class="fl">3.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>])</span>
+<span id="cb1-21"><a aria-label="21"></a>    n_particles <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">||</span> <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"n_particles must be &gt; 0"</span>))</span>
+<span id="cb1-22"><a aria-label="22"></a>    n_obs <span class="op">=</span> <span class="fu">length</span>(obs)</span>
+<span id="cb1-23"><a aria-label="23"></a>    ρ <span class="op">=</span> θ[<span class="op">:</span>ρ]</span>
+<span id="cb1-24"><a aria-label="24"></a></span>
+<span id="cb1-25"><a aria-label="25"></a>    particles <span class="op">=</span> [<span class="fu">copy</span>(init_state) for _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_particles]</span>
+<span id="cb1-26"><a aria-label="26"></a>    log_lik <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb1-27"><a aria-label="27"></a></span>
+<span id="cb1-28"><a aria-label="28"></a>    <span class="cf">for</span> t <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_obs</span>
+<span id="cb1-29"><a aria-label="29"></a>        <span class="co"># Propagate particles</span></span>
+<span id="cb1-30"><a aria-label="30"></a>        inc <span class="op">=</span> [<span class="fu">gillespie_step_seit4l!</span>(particles[i], θ) for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_particles]</span>
+<span id="cb1-31"><a aria-label="31"></a></span>
+<span id="cb1-32"><a aria-label="32"></a>        <span class="co"># Weight by observation likelihood</span></span>
+<span id="cb1-33"><a aria-label="33"></a>        log_w <span class="op">=</span> [<span class="fu">logpdf</span>(<span class="fu">Poisson</span>(<span class="fu">max</span>(ρ <span class="op">*</span> inc[i], <span class="fl">1e-10</span>)), obs[t]) for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_particles]</span>
+<span id="cb1-34"><a aria-label="34"></a></span>
+<span id="cb1-35"><a aria-label="35"></a>        <span class="co"># Log-sum-exp trick for numerical stability</span></span>
+<span id="cb1-36"><a aria-label="36"></a>        max_lw <span class="op">=</span> <span class="fu">maximum</span>(log_w)</span>
+<span id="cb1-37"><a aria-label="37"></a>        w <span class="op">=</span> <span class="fu">exp</span>.(log_w <span class="op">.-</span> max_lw)</span>
+<span id="cb1-38"><a aria-label="38"></a>        log_lik <span class="op">+=</span> max_lw <span class="op">+</span> <span class="fu">log</span>(<span class="fu">mean</span>(w))</span>
+<span id="cb1-39"><a aria-label="39"></a></span>
+<span id="cb1-40"><a aria-label="40"></a>        <span class="co"># Normalize weights</span></span>
+<span id="cb1-41"><a aria-label="41"></a>        w <span class="op">./=</span> <span class="fu">sum</span>(w)</span>
+<span id="cb1-42"><a aria-label="42"></a></span>
+<span id="cb1-43"><a aria-label="43"></a>        <span class="co"># Resample if ESS too low</span></span>
+<span id="cb1-44"><a aria-label="44"></a>        ess <span class="op">=</span> <span class="fl">1.0</span> <span class="op">/</span> <span class="fu">sum</span>(w<span class="op">.^</span><span class="fl">2</span>)</span>
+<span id="cb1-45"><a aria-label="45"></a>        <span class="cf">if</span> ess <span class="op">&lt;</span> n_particles <span class="op">/</span> <span class="fl">2</span></span>
+<span id="cb1-46"><a aria-label="46"></a>            idx <span class="op">=</span> <span class="fu">wsample</span>(<span class="fl">1</span><span class="op">:</span>n_particles, <span class="fu">Weights</span>(w), n_particles)</span>
+<span id="cb1-47"><a aria-label="47"></a>            particles <span class="op">=</span> [<span class="fu">copy</span>(particles[i]) for i <span class="kw">in</span> idx]</span>
+<span id="cb1-48"><a aria-label="48"></a>        <span class="cf">end</span></span>
+<span id="cb1-49"><a aria-label="49"></a>    <span class="cf">end</span></span>
+<span id="cb1-50"><a aria-label="50"></a></span>
+<span id="cb1-51"><a aria-label="51"></a>    <span class="cf">return</span> log_lik</span>
+<span id="cb1-52"><a aria-label="52"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cite">
+<p><code>src/seit4l_bootstrap_filter.jl</code></p>
+</div>
+</section>
+<section id="b58fc729-690b-4000-b19f-365a4093b2ff7b7b3c206661206c6170746f702d636f6465203e7d7d-your-turn" class="slide level2" data-background-color="#447099" data-transition="fade-in">
+<h2><i class="fa-solid fa-laptop-code" aria-label="laptop-code"></i> Your Turn</h2>
+<p>In the practical you will</p>
+<ul>
+<li>see why a deterministic likelihood fails for a stochastic model</li>
+<li>watch particles propagate, get weighted, and be resampled</li>
+<li>read that filter line by line and work out what each step does</li>
+<li>explore how the number of particles affects the likelihood estimate</li>
+</ul>
+</section>
+<section id="references" class="slide level2 smaller scrollable">
+<h2>References</h2>
+<div id="refs" role="list">
+
+</div>
+</section></section>
+<section id="section" class="title-slide slide level1 center">
+<h1></h1>
+<p><a href="../../sessions/particle_filters.html">Return to the session</a></p>
+
+
+</section>
+    </div>
+  <div class="quarto-auto-generated-content" style="display: none;">
+<div class="footer footer-default">
+<p>Fitting stochastic models</p>
+</div>
+</div></div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="../../site_libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="../../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="../../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="../../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="../../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="../../site_libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="../../site_libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="../../site_libs/revealjs/plugin/search/search.js"></script>
+  <script src="../../site_libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="../../site_libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'jumpToSlide': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: false,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    <script id="quarto-html-after-body" type="application/javascript">
+      window.document.addEventListener("DOMContentLoaded", function (event) {
+        const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+        tabsets.forEach(function(tabset) {
+          const tabby = new Tabby('#' + tabset.id);
+        });
+        const isCodeAnnotation = (el) => {
+          for (const clz of el.classList) {
+            if (clz.startsWith('code-annotation-')) {                     
+              return true;
+            }
+          }
+          return false;
+        }
+        const onCopySuccess = function(e) {
+          // button target
+          const button = e.trigger;
+          // don't keep focus
+          button.blur();
+          // flash "checked"
+          button.classList.add('code-copy-button-checked');
+          var currentTitle = button.getAttribute("title");
+          button.setAttribute("title", "Copied!");
+          let tooltip;
+          if (window.bootstrap) {
+            button.setAttribute("data-bs-toggle", "tooltip");
+            button.setAttribute("data-bs-placement", "left");
+            button.setAttribute("data-bs-title", "Copied!");
+            tooltip = new bootstrap.Tooltip(button, 
+              { trigger: "manual", 
+                customClass: "code-copy-button-tooltip",
+                offset: [0, -8]});
+            tooltip.show();    
+          }
+          setTimeout(function() {
+            if (tooltip) {
+              tooltip.hide();
+              button.removeAttribute("data-bs-title");
+              button.removeAttribute("data-bs-toggle");
+              button.removeAttribute("data-bs-placement");
+            }
+            button.setAttribute("title", currentTitle);
+            button.classList.remove('code-copy-button-checked');
+          }, 1000);
+          // clear code selection
+          e.clearSelection();
+        }
+        const getTextToCopy = function(trigger) {
+          const outerScaffold = trigger.parentElement.cloneNode(true);
+          const codeEl = outerScaffold.querySelector('code');
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+        }
+        const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+          text: getTextToCopy
+        });
+        clipboard.on('success', onCopySuccess);
+        if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+          const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+            text: getTextToCopy,
+            container: window.document.getElementById('quarto-embedded-source-code-modal')
+          });
+          clipboardModal.on('success', onCopySuccess);
+        }
+          var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+          var mailtoRegex = new RegExp(/^mailto:/);
+            var filterRegex = new RegExp("https:\/\/sbfnk\.github\.io\/mfiidd\.julia\/");
+          var isInternal = (href) => {
+              return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+          }
+          // Inspect non-navigation links and adorn them if external
+         var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+          for (var i=0; i<links.length; i++) {
+            const link = links[i];
+            if (!isInternal(link.href)) {
+              // undo the damage that might have been done by quarto-nav.js in the case of
+              // links that we want to consider external
+              if (link.dataset.originalHref !== undefined) {
+                link.href = link.dataset.originalHref;
+              }
+                // target, if specified
+                link.setAttribute("target", "_blank");
+                if (link.getAttribute("rel") === null) {
+                  link.setAttribute("rel", "noopener");
+                }
+            }
+          }
+        function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+          const config = {
+            allowHTML: true,
+            maxWidth: 500,
+            delay: 100,
+            arrow: false,
+            appendTo: function(el) {
+                return el.closest('section.slide') || el.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'light-border',
+            placement: 'bottom-start',
+          };
+          if (contentFn) {
+            config.content = contentFn;
+          }
+          if (onTriggerFn) {
+            config.onTrigger = onTriggerFn;
+          }
+          if (onUntriggerFn) {
+            config.onUntrigger = onUntriggerFn;
+          }
+            config['offset'] = [0,0];
+            config['maxWidth'] = 700;
+          window.tippy(el, config); 
+        }
+        const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+        for (var i=0; i<noterefs.length; i++) {
+          const ref = noterefs[i];
+          tippyHover(ref, function() {
+            // use id or data attribute instead here
+            let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+            try { href = new URL(href).hash; } catch {}
+            const id = href.replace(/^#\/?/, "");
+            const note = window.document.getElementById(id);
+            if (note) {
+              return note.innerHTML;
+            } else {
+              return "";
+            }
+          });
+        }
+        const findCites = (el) => {
+          const parentEl = el.parentElement;
+          if (parentEl) {
+            const cites = parentEl.dataset.cites;
+            if (cites) {
+              return {
+                el,
+                cites: cites.split(' ')
+              };
+            } else {
+              return findCites(el.parentElement)
+            }
+          } else {
+            return undefined;
+          }
+        };
+        var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+        for (var i=0; i<bibliorefs.length; i++) {
+          const ref = bibliorefs[i];
+          const citeInfo = findCites(ref);
+          if (citeInfo) {
+            tippyHover(citeInfo.el, function() {
+              var popup = window.document.createElement('div');
+              citeInfo.cites.forEach(function(cite) {
+                var citeDiv = window.document.createElement('div');
+                citeDiv.classList.add('hanging-indent');
+                citeDiv.classList.add('csl-entry');
+                var biblioDiv = window.document.getElementById('ref-' + cite);
+                if (biblioDiv) {
+                  citeDiv.innerHTML = biblioDiv.innerHTML;
+                }
+                popup.appendChild(citeDiv);
+              });
+              return popup.innerHTML;
+            });
+          }
+        }
+      });
+      </script>
+    
+
+</body></html>
