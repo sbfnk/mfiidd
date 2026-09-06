@@ -92,7 +92,8 @@ The [course structure](../reference/structure.qmd) shows how they depend on the 
 
 - Everything here stays online, and the material is MIT licensed, so you are free to reuse it with attribution.
 - The [session timetable](../reference/sessions.qmd) and [course structure](../reference/structure.qmd) are the quickest way back into a specific topic.
-- If something in the course was wrong, unclear, or broken, [open an issue](https://github.com/mfiidd/mfiidd/issues). That is genuinely useful to us and to the next cohort.
+- The [Discussion board](https://github.com/mfiidd/mfiidd/discussions) is the place to ask about anything in the sessions, say how you got on, or show what you have fitted. It is open to everyone using the material, wherever they came across it.
+- For something in the course that is wrong, unclear, or broken, [open an issue](https://github.com/mfiidd/mfiidd/issues). That is genuinely useful to us and to the next cohort.
 
 ::: {.callout-tip title="Learning points"}
 - The choice of inference method follows from two properties of your model: whether the likelihood is tractable, and whether the model is differentiable.
