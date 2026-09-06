@@ -81,7 +81,7 @@ Every line of Julia is given complete. The exercises ask you to predict, interpr
 
 Head to
 
-### [mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
+### [mfiidd.github.io](https://mfiidd.github.io/)
 
 and click **Getting Started** to set your laptop up.
 
