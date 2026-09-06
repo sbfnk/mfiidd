@@ -77,6 +77,12 @@ The practicals are the course. Sit with someone and compare answers, and ask us 
 Every line of Julia is given complete. The exercises ask you to predict, interpret and choose, never to debug.
 :::
 
-#
+## {{< fa laptop-code >}} Your Turn {background-color="#447099" transition="fade-in"}
 
-[Return to the session](../introduction-and-course-overview.qmd)
+Head to
+
+### [mfiidd.github.io/mfiidd](https://mfiidd.github.io/mfiidd/)
+
+and click **Getting Started** to set your laptop up.
+
+We are coming round, so put your hand up as soon as anything does not work.
