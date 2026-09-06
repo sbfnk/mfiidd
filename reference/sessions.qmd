@@ -98,6 +98,10 @@ Tuesday 8 September: 14.30-15.15 and 15.45-17.00
     - simulating it deterministically and stochastically, and comparing (45 mins)
 -   Wrap up (10 mins)
 
+Tuesday 8 September: 19.00
+
+-   Course dinner
+
 # Day 3: Particle-based methods and observation models
 
 **Wednesday 9 September**
@@ -138,13 +142,6 @@ Wednesday 9 September: 15.45-17.00
     - the negative binomial, and seeing a likelihood as a distance function (25 mins)
 -   Wrap up (5 mins)
 
-The session ends on a question rather than an answer: if a likelihood is a
-distance function, why not choose the distance directly? That is the first thing
-Thursday morning takes up.
-
-Wednesday 9 September: 19.00
-
--   Course dinner
 
 # Day 4: Likelihood-free inference and closing
 
@@ -164,9 +161,6 @@ Thursday 10 September: 09.45-11.00
     - ABC-SMC, and comparing it against rejection ABC (20 mins)
 -   Wrap up (10 mins)
 
-The closing part asks how much a single outlying observation moves each approach,
-which is the sharpest illustration that a likelihood and a distance are the same
-kind of object.
 
 ## Session 10: Choosing an inference approach
 
